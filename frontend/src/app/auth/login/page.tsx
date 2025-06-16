@@ -1,7 +1,6 @@
 'use client'
 
 import { saveLogin } from '@/actions/authMethods/loginMethods'
-import { revalidatePath } from 'next/cache'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
@@ -17,49 +16,28 @@ export default function LoginPage() {
     setLoading(true)
     setError(null) // Resetear error previo
 
-    // const login = async (formData: FormData) => {
-    //   "use server"
-    //   const data = await saveLogin(formData);
-
-    //   revalidatePath("/auth/login");
-    // }
-
-    // console.log(login);
-
-    // Enviar datos al backend
+  
+    //Enviar datos al backend
     try {
-      const response = await fetch('http://localhost:5003/api/v1/auth/login', {  // RUTA API en Next.js
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      })
+      const data = await saveLogin({ email, password })
+      console.log("✅ LOGIN EXITOSO", data)
+      const { token, user } = data
 
-      const data = await response.json()
-      console.log('DATA:', data)
-
-      if (response.ok) {
-       const { token, user } = data
         // Guardar en localStorage
         localStorage.setItem('token', token)
         localStorage.setItem('rol', user.roles?.[0]?.rol || '')
         localStorage.setItem('user', JSON.stringify(user))
 
         // Redirigir según el rol
-  switch (user.roles?.[0]?.rol) {
-    case 'Admin':
-      router.push('/admin/dashboard')
-      break
-    case 'Docente':
-      router.push('/docente/home')
-      break
-    default:
-      router.push('/')
-  }
-      } else {
-        // Mostrar error
-        setError(data.message || 'Algo salió mal')
+      switch (user.roles?.[0]?.rol) {
+        case 'Admin':
+          router.push('/admin/dashboard')
+          break
+        case 'Docente':
+          router.push('/docente/home')
+          break
+        default:
+          router.push('/')
       }
     } catch (err) {
       setError('Error de red, intenta de nuevo')

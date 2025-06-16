@@ -38,9 +38,13 @@ import { UserService } from './users.service';
   
           return { user, token };
       } catch (error) {
-          throw new InternalServerErrorException(error);
-      }
+        if (error instanceof UnauthorizedException) {
+      throw error; // Propagar 401
+    }
+    
+      console.error('Error en login:', error); // Para depurar en consola
+    throw new InternalServerErrorException('Error interno del servidor');
   }
   
-  }
-  
+}
+}

@@ -11,7 +11,10 @@ export class AuthController {
 
   @Post('login')
   async signIn(@Body() payload: AuthDto) {
-    return await this.authService.signIn(payload);
+    console.log("🎯 Datos recibidos en login:", payload);
+    const response = await this.authService.signIn(payload);
+    console.log('✅ RESPUESTA A ENVIAR:', response);
+    return response;
   }
 
   @Get('test')

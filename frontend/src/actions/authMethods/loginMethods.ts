@@ -1,20 +1,26 @@
 "use server";
 
-import feching from "@/utils/cliente-http";
+import { feching } from "@/utils/cliente-http";
 
-export async function saveLogin(request: FormData) {
-    const data = {
-        email: request.get("email"),
-        password: request.get("password")
-    }
+interface LoginData {
+  email: string;
+  password: string;
+}
 
+export async function saveLogin({ email, password }: LoginData) {
+    const data = { email, password }
     const endPoint = `/auth/login`;
+    
+    const response = await feching(endPoint, "no-cache", "POST", data);
 
-    const login = await feching(endPoint, "no-cache", "POST", data);
+    // console.log("🔎 RESPUESTA DEL BACKEND:", response);
+    // console.log("📤 ENVIANDO A BACKEND:", { email, password })
+    // console.log("📥 RESPUESTA cruda DEL BACKEND:", response.data)
+ 
 
-    if(!login.data){
-        throw new Error(login.error);
+    if(!response || response.error){
+        throw new Error(response?.error || "Error desconocido en el login");
     }
 
-    return await login.data;
+    return await response;
 }
