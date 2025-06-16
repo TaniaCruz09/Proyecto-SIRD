@@ -40,29 +40,6 @@ export class Centro {
     })
     direccionCentro: string;
 
-    @ManyToOne(() => User, (user) => user.id)
-    @JoinColumn({ name: 'user_id' })
-    user: User;
-
-    @ManyToOne(() => User, (user) => user.id, { nullable: true })
-    @JoinColumn({ name: 'user_update_id' })
-    userUpdate?: User;
-
-    @CreateDateColumn({
-        name: 'created_at',
-        type: 'timestamp',
-        default: () => 'CURRENT_TIMESTAMP',
-    })
-    createdAt?: Date;
-
-    @UpdateDateColumn({
-        name: 'updated_at',
-        type: 'timestamp',
-        default: () => 'CURRENT_TIMESTAMP',
-        onUpdate: 'CURRENT_TIMESTAMP',
-    })
-    updatedAt?: Date;
-
     @ManyToOne (() => Departamento, (departamento) => departamento.centro)
     @JoinColumn ({name: 'departamento'})
     departamento: Departamento;
@@ -72,8 +49,8 @@ export class Centro {
     municipio: Municipio;
 
     // ID del Usuario que creo el registro
-            @Column({ name: 'user_create_id', type: 'int4' ,nullable: true }) 
-            user_create_id: number;
+    @Column({ name: 'user_create_id', type: 'int4' ,nullable: true }) 
+    user_create_id: number;
         
             // Fecha y Hora en el que se creo el registro
             @CreateDateColumn({ name: 'created_at', type: "timestamp", 

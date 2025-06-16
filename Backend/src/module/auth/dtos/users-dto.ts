@@ -43,7 +43,12 @@ export class UsersDto {
   @IsBoolean()
   @IsOptional()
   @ApiProperty()
-  readonly isActive: boolean;
+  readonly isActive?: boolean;
+
+  @IsOptional()
+  @IsNumber({}, { each: true })
+  @ApiProperty({ type: [Number], required: false })
+  readonly roles?: number[];
 }
 
 export class UserPartialTypeDto extends PartialType(UsersDto) {}

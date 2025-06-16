@@ -15,10 +15,10 @@ import {
     @IsNotEmpty()
     @IsString()
     @MaxLength(50)
-    role: string;
+    rol: string;
   
     @IsBoolean()
     @IsOptional()
-    is_active: boolean;
+    isActive: boolean;
   }
   

@@ -26,12 +26,13 @@ export class UserService {
      async findByEmail(email:string) {
         const user = await this.userRepository.findOne({
             where: {email},
-            select: {
-                id: true,
-                email: true,
-                name: true,
-                password: true
-            },
+            relations: ['roles'],
+            // select: {
+            //     id: true,
+            //     email: true,
+            //     name: true,
+            //     password: true
+            // },
         });
 
         if (!user) {
@@ -69,13 +70,13 @@ export class UserService {
   }
     
       async getUsers() {
-        const users = await this.userRepository.find();
+        const users = await this.userRepository.find({relations: ['roles']});
         return users;
       }
     
       async getUserById(id: number): Promise<User> {
         try{
-          const user = await this.userRepository.findOne({ where: { id } });
+          const user = await this.userRepository.findOne({ where: { id }, relations: ['roles'] });
           return user;
         } catch (error){
           Utilities.catchError(error);
@@ -83,13 +84,20 @@ export class UserService {
       }
     
       async updated(id: number, payload: UserPartialTypeDto) {
-        const oldUser = await this.userRepository.findOne({ where: { id: id } });
+        const oldUser = await this.userRepository.findOne({ where: { id: id }, relations: ['rol'] });
         if (!oldUser) {
           throw new NotFoundException('No se encontro el usuario');
         }
+
+        // Convertir los roles de number[] a objetos con id si existen en el payload
+      const roles = (payload as any).rol?.map((roleId: number) => ({ id: roleId }));
     
-        const merged = this.userRepository.merge(oldUser, payload);
-        return await this.userRepository.save(merged);
+        const merged = this.userRepository.merge(oldUser, {
+    ...payload,
+    ...(roles && { roles: roles }), // solo si viene el campo roles
+  });
+
+  return await this.userRepository.save(merged);
       }
 
       // deleted(id: number) {

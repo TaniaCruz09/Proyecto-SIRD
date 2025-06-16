@@ -74,4 +74,22 @@ export class AsignarRolesService {
 
     return await list.getMany();
   }
+
+  async verUsuarioConRoles(userId: number): Promise<{ id: number; nombre: string; roles: Role[] }> {
+  const user = await this.dataSource.getRepository(User).findOne({
+    where: { id: userId },
+    relations: { roles: true },
+  });
+
+  if (!user) {
+    throw new Error('Usuario no encontrado');
+  }
+
+  return {
+    id: user.id,
+    nombre: user.name, // Aquí usamos el campo "name"
+    roles: user.roles,
+  };
+}
+
 }

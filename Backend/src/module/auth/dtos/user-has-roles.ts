@@ -3,7 +3,7 @@ import { IsArray, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 export class UserHasRolesDto {
   @IsNotEmpty()
   @IsNumber()
-  user_id: number;
+  userId: number;
 
   @IsNotEmpty()
   @IsNumber({}, { each: true })

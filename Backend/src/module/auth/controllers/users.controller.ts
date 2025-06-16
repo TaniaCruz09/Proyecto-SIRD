@@ -11,9 +11,6 @@ import {
 } from '@nestjs/common';
 
 import { UsersDto, UserPartialTypeDto } from '../dtos/users-dto';
-import { AuthGuard } from '@nestjs/passport';
-import { Auth, GetUser } from '../decorators';
-import { User } from '../entities';
 import { UserService } from '../services';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Utilities } from 'src/common/helpers/utilities';

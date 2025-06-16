@@ -1,4 +1,4 @@
-import { Body, Controller, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
 import { AsignarRolesService } from '../services';
 import { UserHasRolesDto } from '../dtos/user-has-roles';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -30,4 +30,11 @@ export class AsignarRolesController {
     const data = await this.asignarRolesRepo.removerRol(userId, payload);
     return data;
   }
+
+
+  @Get(':userId/roles')
+async obtenerUsuarioConRoles(@Param('userId', ParseIntPipe) userId: number) {
+  return await this.asignarRolesRepo.verUsuarioConRoles(userId);
+}
+
 }
