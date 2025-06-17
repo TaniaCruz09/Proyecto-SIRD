@@ -17,7 +17,7 @@ export default function Home() {
       // Redirigir según rol guardado
       switch (rol) {
         case 'Admin':
-          router.push('admin/dashboard')
+          router.push('admin/home')
           break
         case 'Docente':
           router.push('docente/home')
