@@ -84,7 +84,7 @@ export class UserService {
       }
     
       async updated(id: number, payload: UserPartialTypeDto) {
-        const oldUser = await this.userRepository.findOne({ where: { id: id }, relations: ['rol'] });
+        const oldUser = await this.userRepository.findOne({ where: { id: id }, relations: ['roles'] });
         if (!oldUser) {
           throw new NotFoundException('No se encontro el usuario');
         }

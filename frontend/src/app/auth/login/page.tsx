@@ -23,22 +23,13 @@ export default function LoginPage() {
       console.log("✅ LOGIN EXITOSO", data)
       const { token, user } = data
 
-        // Guardar en localStorage
+        // Guardamos los datos en localStorage
         localStorage.setItem('token', token)
         localStorage.setItem('rol', user.roles?.[0]?.rol || '')
         localStorage.setItem('user', JSON.stringify(user))
-
-        // Redirigir según el rol
-      switch (user.roles?.[0]?.rol) {
-        case 'Admin':
-          router.push('/admin/home')
-          break
-        case 'Docente':
-          router.push('/docente/home')
-          break
-        default:
-          router.push('/')
-      }
+      
+        router.push('/')
+      
     } catch (err) {
       setError('Error de red, intenta de nuevo')
     } finally {

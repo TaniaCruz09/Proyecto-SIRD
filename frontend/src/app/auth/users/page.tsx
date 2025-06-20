@@ -1,107 +1,221 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
+import { assignRoleToUser, deleteUser, getUser, saveUser, updateUser } from "@/actions/authMethods/usersMethods";
+import FormUserModal from "@/components/modals/FormUserModal";
+import ConfirmDeletModal from "@/components/modals/modalConfirmDeletion";
+import NavbarAdmin from "@/components/navbarAdmin";
+import { useEffect, useState } from "react";
+import { FaSearch } from "react-icons/fa";
 
-export default function UsuariosPage() {
-  const [usuarios, setUsuarios] = useState([])
-  const [roles, setRoles] = useState([])
-  const [nuevoUsuario, setNuevoUsuario] = useState({ name: '', email: '', password: '' })
+export default function Users() {
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [rol, setRol] = useState("")
+  const [usuarios, setUsuarios] = useState<any[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [editUserId, setEditUserId] = useState<number | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState("")
+
+  const fetchUsers = async () => {
+    try {
+      const res = await getUser();
+      setUsuarios(res?.data || []);
+    } catch (error) {
+      console.error("Error al obtener usuarios", error);
+    }
+  };
 
   useEffect(() => {
-    fetchUsuarios()
-    fetchRoles()
-  }, [])
+    fetchUsers();
+  }, []);
 
-  const fetchUsuarios = async () => {
-    const res = await fetch('http://localhost:5003/api/v1/users')
-    const data = await res.json()
-    setUsuarios(data)
-  }
+  const resetForm = () => {
+    setName("");
+    setEmail("");
+    setPassword("");
+    setRol("");
+    setIsEdit(false);
+    setEditUserId(null);
+  };
 
-  const fetchRoles = async () => {
-    const res = await fetch('http://localhost:5003/api/v1/roles')
-    const data = await res.json()
-    setRoles(data)
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      const data = await saveUser({ name, email, password })
+      const userId = data?.data?.id; // segun como responde el backen es asi
 
-  const crearUsuario = async () => {
-    const res = await fetch('http://localhost:5003/api/v1/users', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(nuevoUsuario),
-    })
+      if (userId && rol) {
+      await assignRoleToUser(userId, [Number(rol)]);
+      console.log("Rol asignado correctamente");
+    }
 
-    if (res.ok) {
-      setNuevoUsuario({ name: '', email: '', password: '' })
-      fetchUsuarios()
-    } else {
-      alert('Error al crear usuario')
+      // Limpiar formulario
+      resetForm
+      setShowModal(false) // Cierra modal
+    } catch (err) {
+      console.error("Error al guardar el usuario", err)
     }
   }
 
-  const eliminarUsuario = async (id: string) => {
-    if (!confirm('¿Eliminar este usuario?')) return
-    const res = await fetch(`http://localhost:5003/api/v1/users/${id}`, {
-      method: 'DELETE',
-    })
-    if (res.ok) {
-      fetchUsuarios()
-    } else {
-      alert('No se pudo eliminar')
+  const handleEdit = (usuario: any) => {
+  setName(usuario.name);
+  setEmail(usuario.email);
+  setRol(usuario.roles?.[0]?.id || ""); // si tiene rol
+  setEditUserId(usuario.id);
+  setIsEdit(true);
+  setShowModal(true);
+};
+
+  const handleUpdate = async (e: React.FormEvent) => {
+  e.preventDefault();
+  try {
+    if (!editUserId) return;
+    await updateUser(editUserId, { name, email, password }); // OJO: no mandes password si no deseas cambiarla
+
+    if (rol) {
+      await assignRoleToUser(editUserId, [Number(rol)]);
     }
+
+    resetForm();
+    // setIsEdit(false);
+    setShowModal(false);
+  } catch (error) {
+    console.error("Error al actualizar el usuario", error);
   }
+};
 
-  // const asignarRol = async (userId: string, roleId: string) => {
-  //   const res = await fetch('http://localhost:5003/api/v1/asignar-roles', {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify({ userId, roleId }),
-  //   })
+  const confirmDelete = async () => {
+    if (!userToDelete) return;
+    try {
+      await deleteUser(userToDelete);
+      fetchUsers();
+    } catch (error) {
+      console.error("Error al eliminar usuario", error);
+    } finally {
+      setShowConfirm(false);
+      setUserToDelete(null);
+    }
+  };
 
-  //   if (res.ok) {
-  //     alert('Rol asignado')
-  //     fetchUsuarios()
-  //   } else {
-  //     alert('Error al asignar rol')
-  //   }
-  // }
+   const handleDeleteClick = (id: number) => {
+    setUserToDelete(id);
+    setShowConfirm(true);
+  };
+
+  // Filtro por búsqueda
+  const filteredUsers = usuarios.filter((u) =>
+    u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    u.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Gestión de Usuarios</h1>
-
-      <div className="bg-white p-4 rounded shadow mb-6">
-        <h2 className="font-semibold text-lg mb-2">Nuevo Usuario</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <input type="text" placeholder="Nombre" value={nuevoUsuario.name} onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, name: e.target.value })} className="border p-2 rounded" />
-          <input type="email" placeholder="Correo" value={nuevoUsuario.email} onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, email: e.target.value })} className="border p-2 rounded" />
-          <input type="password" placeholder="Contraseña" value={nuevoUsuario.password} onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, password: e.target.value })} className="border p-2 rounded" />
-        </div>
-        <button onClick={crearUsuario} className="mt-3 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Crear</button>
+    <div className="flex h-screen">
+      <div className="w-1/4">
+        <NavbarAdmin />
       </div>
+      <div className="w-3/4 p-6 bg-gray-100">
+        <h1 className="text-2xl font-bold mb-4">Bienvenido la configuracion de usuarios</h1>
+        <div className="flex items-center justify-between mb-4">
+          <button
+            onClick={() => setShowModal(true)}
+            className="ml-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+          >
+            Agregar Usuario
+          </button>
+          <div className="relative w-full max-w-md flex items-center">
+  <FaSearch className="absolute left-3 text-gray-400" />
+  <input
+    type="text"
+    placeholder="Buscar por nombre o correo..."
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+    className="w-full pl-10 pr-10 py-3 border rounded-xl border-gray-300 text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+  />
+  {searchTerm && (
+    <button
+      onClick={() => setSearchTerm("")}
+      className="absolute right-2 text-gray-500 hover:text-red-500 text-lg font-bold"
+      title="Limpiar búsqueda"
+    >
+      ×
+    </button>
+  )}
+</div>
+        </div>
 
-      {/* <ul className="space-y-4">
-        {usuarios.map((u: any) => (
-          <li key={u.id} className="bg-white p-4 rounded shadow">
-            <div className="flex justify-between items-center">
-              <div>
-                <p><strong>Nombre:</strong> {u.name}</p>
-                <p><strong>Correo:</strong> {u.email}</p>
-                <p><strong>Rol:</strong> {u.roles?.map((r: any) => r.name).join(', ') || 'Ninguno'}</p>
-              </div>
-              <div className="flex gap-2">
-                <select onChange={(e) => asignarRol(u.id, e.target.value)} className="border rounded px-2 py-1">
-                  <option value="">Asignar rol</option>
-                  {roles.map((r: any) => (
-                    <option key={r.id} value={r.id}>{r.name}</option>
-                  ))}
-                </select>
-                <button onClick={() => eliminarUsuario(u.id)} className="text-red-600 hover:underline">Eliminar</button>
-              </div>
-            </div>
-          </li>
-        ))}
-      </ul> */}
+      {/*a partir de aca esta la tabla de usuarios sin embargo hay que hacerla en un componente aparte porque es mucho codigo ya */}
+        <h2 className="text-xl font-bold mt-6 mb-2">Usuarios Registrados</h2>
+        <div className="overflow-x-auto rounded-lg shadow-md">
+          <table className="w-full text-left border border-gray-300 bg-white">
+            <thead className="bg-blue-100">
+              <tr>
+                <th className="p-3 border">Nombre</th>
+                <th className="p-3 border">Correo</th>
+                <th className="p-3 border">Rol</th>
+                <th className="p-3 border">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map((usuario) => (
+                  <tr key={usuario.id} className="hover:bg-gray-100">
+                    <td className="p-3 border">{usuario.name}</td>
+                    <td className="p-3 border">{usuario.email}</td>
+                    <td className="p-3 border">
+                      {usuario.roles?.[0]?.rol || "Sin rol"}
+                    </td>
+                    <td className="p-3 border flex gap-2">
+                      <button
+                        onClick={() => handleEdit(usuario)}
+                        className="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500"
+                      >
+                        Editar
+                      </button> 
+                      <button
+                        onClick={() => handleDeleteClick(usuario.id)}
+                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                      >
+                        Eliminar
+                      </button>
+
+                   
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} className="text-center p-3">No hay usuarios registrados.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      <ConfirmDeletModal
+      visible={showConfirm}
+      onCancel={()=> setShowConfirm(false)}
+      onConfirm={confirmDelete}
+      />
+     <FormUserModal
+     visible={showModal}
+     onCloseModal={()=> setShowModal(false)}
+     reset={resetForm}
+     name={name}
+     setName={setName}
+     email={email}
+     setEmail={setEmail}
+     password={password}
+     setPassword={setPassword}
+     rol={rol}
+     setRol={setRol}
+     isEditMode={isEdit}
+     update={handleUpdate}
+     create={handleSubmit}
+     />
+      </div>
     </div>
-  )
+  );
 }
