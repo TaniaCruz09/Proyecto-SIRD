@@ -4,7 +4,7 @@ import BtnNavbar from "./btnNavbar";
 
 export default function NavbarAdmin() {
   return (
-    <nav className="flex gap-4 p-4 bg-gray-100 shadow flex-col  h-screen
+    <nav className="flex gap-4 p-4 bg-gray-100 shadow flex-col  h-screen h-screen
 ">
       <BtnNavbar nombreTexto="Dasboard/home" icono={FaHome} ruta="/admin/home" />
       <BtnNavbar nombreTexto="Usuarios" icono={FaUsers} ruta="/auth/users" />

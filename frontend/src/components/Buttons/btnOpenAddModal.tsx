@@ -1,18 +1,19 @@
+"use client"
 import React, { useState } from 'react'
 
 interface BtnOpenAddModalProps {
     text: string
+    onClick: ()=> void
 }
 
-export default function BtnOpenAddModal({text}: BtnOpenAddModalProps) {
-    const [showModal, setShowModal] = useState(Boolean)
-    
+export default function BtnOpenAddModal({text, onClick}: BtnOpenAddModalProps) {
+  
   return (
     <button
-     onClick={() => setShowModal(true)}
-     className="ml-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+     onClick={onClick}
+     className="ml-4 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 transition"
     >
-     Agregar Usuario
+     {text}
     </button>
   )
 }

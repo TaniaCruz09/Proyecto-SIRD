@@ -13,17 +13,17 @@ export default function ConfirmDeletModal({visible, onCancel, onConfirm}: Confir
     return(
         <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
             <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm text-center relative">
-                <p className="text-lg font-semibold mb-4">¿Estás seguro de eliminar este usuario?</p>
+                <p className="text-lg font-semibold mb-4 text-gray-700">¿Estás seguro de eliminar este usuario?</p>
                 <div className="flex justify-center gap-4">
                     <button
                     onClick={onConfirm}
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                    className="bg-red-600/70 text-white px-4 py-2 rounded hover:bg-red-600"
                     >
                     Sí, eliminar
                     </button>
                     <button
                     onClick={onCancel}
-                    className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+                    className="bg-green-600/80 px-4 py-2 rounded hover:bg-gray-400"
                     >
                     Cancelar
                     </button>

@@ -19,8 +19,15 @@ export class AsignarRolesService {
 
     user.roles = asignar;
 
-    const saved = await this.dataSource.getRepository(User).save(user);
-    return saved;
+    await this.dataSource.getRepository(User).save(user);
+
+// Recargar usuario con roles ya asignados
+const updatedUser = await this.dataSource.getRepository(User).findOne({
+  where: { id: userId },
+  relations: { roles: true },
+});
+
+return updatedUser;
   }
 
   async removerRol(userId: number, payload: UserHasRolesDto) {

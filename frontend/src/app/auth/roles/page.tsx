@@ -1,16 +1,7 @@
-'use client'
+import React from 'react'
 
-import NavbarAdmin from '@/components/navbarAdmin'
-
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function Roles() {
   return (
-    <div className="flex h-screen">
-      <div className="w-1/4">
-      <NavbarAdmin/>
-      </div>
-      <div className="w-3/4 p-6 bg-gray-100">
-
-      </div>
-    </div>
+    <div>Roles</div>
   )
 }
