@@ -11,18 +11,19 @@ import ConfirmDeletModal from "@/components/modals/modalConfirmDeletion";
 import NavbarAdmin from "@/components/navbarAdmin";
 import SearchBar from "@/components/SearchBar";
 import UserTable from "@/components/tables/UserTable";
-import ModalBase from "@/components/modals/ModalBase";
 import UserForm from "@/components/forms/UserForm";
+import ModalBase from "@/components/modals/ModalBase";
+import User from "@/interfaces/authInterface";
 
 export default function Users() {
-  const [usuarios, setUsuarios] = useState<any[]>([]);
+  const [usuarios, setUsuarios] = useState<User[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
-  const [editUserId, setEditUserId] = useState<number | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
+  //obtener todos los usuarios
   const fetchUsers = async () => {
     try {
       const res = await getUser();
@@ -36,11 +37,11 @@ export default function Users() {
     fetchUsers();
   }, []);
 
-  const handleEdit = (usuario: any) => {
-    setEditUserId(usuario.id);
-    setIsEdit(true);
-    setShowModal(true);
-  };
+  const handleSuccess = () => {
+  fetchUsers();
+  setIsEdit(false);
+  setShowModal(false);
+};
 
   const confirmDelete = async () => {
     if (!userToDelete) return;
@@ -69,20 +70,37 @@ export default function Users() {
 
   return (
     <div className="flex h-screen">
-      <div className="w-1/4">
+      <div>
         <NavbarAdmin />
       </div>
-      <div className="w-3/4 p-6 bg-gray-100">
-      <div className="flex items-center justify-between">
-        <h1 className="ml-10 text-2xl font-bold c mb-4 tracking-tight text-gray-600 text-center">
-          Usuarios
-        </h1>
-        <div className="flex justify-end mr-10 mb-6 mt-6">
-          <BtnOpenAddModal
-            text="Agregar Usuario"
-            onClick={() => setShowModal(true)}
-          />
-      </div>
+      <div className="w-screen p-6 bg-gray-100">
+        <div className="flex items-center justify-between">
+          <h1 className="ml-10 text-2xl font-bold c mb-4 tracking-tight text-gray-600 text-center">
+            Usuarios
+          </h1>
+          <div className="flex justify-end mr-10 mb-6 mt-6">
+            <BtnOpenAddModal
+              text="Agregar Usuario"
+              onClick={() => {
+                setIsEdit(false);
+                setShowModal(true);
+              }}
+            />
+            {showModal && (
+              <ModalBase
+                onshowModal={showModal}
+                onCloseModal={() => setShowModal(false)}
+                content={
+                  <UserForm
+                    onSuccess={() => {
+                      fetchUsers();
+                      setShowModal(false);
+                    }}
+                  />
+                }
+              />
+            )}
+          </div>
         </div>
         <div className="flex items-center justify-between bg-white border rounded-t-xl">
           <h2 className="pl-10 text-xl font-bold text-gray-600">
@@ -97,33 +115,12 @@ export default function Users() {
         </div>
         <UserTable
           users={filteredUsers}
-          onEdit={handleEdit}
           onDelete={handleDeleteClick}
+          onSuccess={handleSuccess}
+          fetchUsers={fetchUsers}
         />
-
-        {showModal && (
-          <ModalBase
-            onCloseModal={() => {
-              setShowModal(false);
-              setIsEdit(false);
-              setEditUserId(null);
-            }}
-          >
-            <UserForm
-              defaultValues={
-                isEdit ? usuarios.find((u) => u.id === editUserId) : null
-              }
-              onSuccess={() => {
-                fetchUsers();
-                setShowModal(false);
-                setIsEdit(false);
-                setEditUserId(null);
-              }}
-            />
-          </ModalBase>
-        )}
         <ConfirmDeletModal
-          visible={showConfirm}
+          onshow={showConfirm}
           onCancel={() => setShowConfirm(false)}
           onConfirm={confirmDelete}
         />

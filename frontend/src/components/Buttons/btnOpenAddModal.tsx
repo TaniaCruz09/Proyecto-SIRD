@@ -1,8 +1,9 @@
 "use client"
 import React, { useState } from 'react'
+import { BsPlusCircle } from 'react-icons/bs'
 
 interface BtnOpenAddModalProps {
-    text: string
+    text?: string
     onClick: ()=> void
 }
 
@@ -11,9 +12,12 @@ export default function BtnOpenAddModal({text, onClick}: BtnOpenAddModalProps) {
   return (
     <button
      onClick={onClick}
-     className="ml-4 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 transition"
+     className="flex items-center gap-2 ml-4 bg-indigo-500 text-white px-3 py-2 rounded-xl hover:bg-indigo-600 transition"
     >
-     {text}
+     <span>
+      Agregar
+     </span>
+     <BsPlusCircle className="text-xl"/>
     </button>
   )
 }

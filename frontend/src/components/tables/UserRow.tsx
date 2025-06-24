@@ -1,24 +1,23 @@
 "use client"
 
-import { FaEdit, FaUserEdit } from "react-icons/fa";
-import { FiEdit } from "react-icons/fi";
-import { MdEdit, MdModeEdit } from "react-icons/md";
-import { RiDeleteBin6Line, RiEditBoxFill, RiEditFill } from "react-icons/ri";
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  roles?: { rol: string }[];
-}
+import { RiDeleteBin6Line } from "react-icons/ri";
+import BtnOpenEditModal from "../Buttons/btnOpenEditModal";
+import { useEffect, useState } from "react";
+import User from "@/interfaces/authInterface";
+import ModalBase from "../modals/ModalBase";
+import UserForm from "../forms/UserForm";
+import { getUser } from "@/actions/authMethods/usersMethods";
 
 interface UserRowProps {
   user: User;
-  onEdit: (user: User) => void;
   onDelete: (id: number) => void;
+  fetchUsers: () => Promise<void>;
+  onSuccess: () => void;
 }
 
-export default function UserRow({ user, onEdit, onDelete }: UserRowProps) {
+export default function UserRow({ user, onDelete, fetchUsers, onSuccess }: UserRowProps) {
+  const [showModal, setShowModal] = useState(false);
+
   return (
         <tr className="hover:bg-gray-100">
             <td className="p-3 border-b border-gray-200">{user.name}</td>
@@ -27,17 +26,31 @@ export default function UserRow({ user, onEdit, onDelete }: UserRowProps) {
              {user.roles?.[0]?.rol || "Sin rol"}
             </td>
             <td className="p-3 px-2 py-2 border-b border-gray-200 text-center">
-                <button
-                onClick={() => onEdit(user)}
-                className="bg-yellow-500/70 hover:bg-yellow-300 text-white px-5 py-2 rounded-md text-sm"
-                >
-                <FaEdit />
-                </button> 
+              <BtnOpenEditModal
+                onClick={() => setShowModal(true)}
+              />
+
+              {showModal && (
+                <ModalBase
+                  onshowModal={showModal}
+                  onCloseModal={() => setShowModal(false)}
+                  content={
+                    <UserForm
+                      defaultValues={user}
+                      onSuccess={() => {
+                        fetchUsers();
+                        setShowModal(false);
+                        onSuccess();
+                      }}
+                    />
+                  }
+                />
+              )}
             </td>
             <td className="p-3 px-2 py-3 border-b border-gray-200 text-center">
                 <button
                 onClick={() => onDelete(user.id)}
-                className="bg-red-600/70 hover:bg-red-400 text-white px-5 py-2 rounded-md text-sm"
+                className="bg-red-300/30 hover:bg-red-400 text-red-600 text-bold px-4 py-2 rounded-md text-sm"
                 >
                 <RiDeleteBin6Line />
                 </button>

@@ -2,74 +2,63 @@
 import { useEffect, useState } from "react";
 import {
   assignRoleToUser,
-  getUser,
   saveUser,
   updateUser,
 } from "@/actions/authMethods/usersMethods";
 import { getRoles } from "@/actions/authMethods/rolesMethods";
+import User from "@/interfaces/authInterface";
 
-interface UserFormProps {}
+interface UserFormProps {
+  defaultValues?: User | null;
+  onSuccess: () => void;
+}
 
-//mejorar el tipado con una interface
-const UserForm = ({ defaultValues = null, onSuccess }: any) => {
+const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rol, setRol] = useState("");
-  const [roles, setRoles] = useState<{ id: number; rol: string }[]>();
-  const [usuarios, setUsuarios] = useState<any[]>([]);
+  const [roles, setRoles] = useState<{ id: number; rol: string }[]>([]);
 
   const isEdit = Boolean(defaultValues?.id);
 
-  const fetchUsers = async () => {
-    try {
-      const res = await getUser();
-      setUsuarios(res?.data || []);
-    } catch (error) {
-      console.error("Error al obtener usuarios", error);
-    }
-  };
-
+  // Prellenar campos si es edición
   useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const resetForm = () => {
-    setName("");
-    setEmail("");
-    setPassword("");
-    setRol("");
-    onSuccess();
-  };
+    if (defaultValues) {
+      setName(defaultValues.name || "");
+      setEmail(defaultValues.email || "");
+      setPassword(""); // No mostrar contraseña cifrada
+      setRol(defaultValues.roles?.[0]?.id?.toString() || ""); // O ajusta según tu estructura
+    }
+  }, [defaultValues]);
 
   //funcion con la que enviamos los datos para agregar un nuevo usuario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
-      //guardo el usuario
-      const data = await saveUser({ name, email, password });
-      const user = data?.user;
-      const userId = user?.id;
+      if (isEdit && defaultValues?.id) {
+        // 🔁 Editar usuario
+        const updatedUser = await updateUser(defaultValues.id, { name, email, password });
+        
+        if (rol) await assignRoleToUser(updatedUser.id, [Number(rol)]);
+      } else {
+        // ➕ Crear nuevo usuario
+        const newUserRes = await saveUser({ name, email, password });
+        const userId = newUserRes?.user?.id;
 
-      let newUserWithRoles = user;
-
-      //asignamos usuarios al estado con rol
-      if (userId && rol) {
-        const updatedUser = await assignRoleToUser(userId, [Number(rol)]);
-        newUserWithRoles = updatedUser;
+        if (userId && rol) {
+          await assignRoleToUser(userId, [Number(rol)]);
+        }
       }
 
-      // Agregamos usuario al estado (con rol)
-      setUsuarios((prev) => [...prev, newUserWithRoles]);
-
-      //limpiar el formulario
-      resetForm();
-      onSuccess(); // Cierra modal
+      onSuccess();
     } catch (err) {
-      console.error("Error al guardar el usuario", err);
+      console.error("Error al guardar/actualizar el usuario:", err);
     }
   };
 
+    // Traer roles una vez
   useEffect(() => {
     const fetchRoles = async () => {
       try {
@@ -83,6 +72,7 @@ const UserForm = ({ defaultValues = null, onSuccess }: any) => {
     fetchRoles();
   }, []);
 
+  // Si defaultValues cambia, actualiza los inputs
   useEffect(() => {
     if (defaultValues) {
       setName(defaultValues.name || "");
