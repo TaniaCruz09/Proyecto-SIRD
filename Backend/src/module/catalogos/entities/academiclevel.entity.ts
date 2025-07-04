@@ -77,5 +77,5 @@ export class AcademicLevelEntity {
   user_delete: User;
 
   @ManyToMany(() => Docentes, (docente) => docente.nivel_academico)
-  docente: Docentes[];
+  docente?: Docentes[];
 }

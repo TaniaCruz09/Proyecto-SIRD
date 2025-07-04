@@ -12,7 +12,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import moment from 'moment';
+import * as moment from 'moment-timezone';
 import { User } from '../../auth/entities';
 
 @Entity({ schema: 'catalogos', name: 'pais' })
@@ -26,9 +26,6 @@ export class Pais {
     name: 'pais',
   })
   pais: string;
-
-  @OneToMany(() => Docentes, (docente) => docente.pais)
-  docente?: Docentes;
 
   @OneToMany(() => StudentEntity, (student) => student.pais)
   student?: StudentEntity;

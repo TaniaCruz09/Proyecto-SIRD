@@ -53,6 +53,6 @@ export class ProfessionsEntity {
     @JoinColumn({ name: 'deleted_at_id' })  // Se enlaza con el usuario que eliminó el registro
     user_delete: User;
 
-    @ManyToMany(() => Docentes, (docente) => docente.profesion)
+    @ManyToMany(() => Docentes, (docente) => docente.profession)
     docente: Docentes[];
 }

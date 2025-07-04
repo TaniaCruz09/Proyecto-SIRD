@@ -28,16 +28,17 @@ export class Municipio {
   })
   municipio: string;
 
-  @OneToMany(() => Docentes, (docente) => docente.municipio)
-  docente?: Docentes;
+  // @OneToMany(() => Docentes, (docente) => docente.municipio)
+  // docente?: Docentes[];
 
-  @OneToMany(() => StudentEntity, (student) => student.municipio)
-  student?: StudentEntity;
+  // @OneToMany(() => StudentEntity, (student) => student.municipio)
+  // student?: StudentEntity[];
 
-  @OneToMany(() => Centro, (centro) => centro.municipio)
-  centro?: Centro;
+  // @OneToMany(() => Centro, (centro) => centro.municipio)
+  // centro?: Centro[];
 
-  @ManyToOne(() => Departamento, (departamento) => departamento.id)
+  @ManyToOne(() => Departamento)
+  @JoinColumn({ name: 'departamento_id' })
   departamento: Departamento;
 
   // ID del Usuario que creo el registro
