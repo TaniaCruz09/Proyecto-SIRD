@@ -2,11 +2,10 @@
 
 import { RiDeleteBin6Line } from "react-icons/ri";
 import BtnOpenEditModal from "../Buttons/btnOpenEditModal";
-import { useEffect, useState } from "react";
-import User from "@/interfaces/authInterface";
+import { useState } from "react";
+import User from "@/interfaces/AuthInterface";
 import ModalBase from "../modals/ModalBase";
 import UserForm from "../forms/UserForm";
-import { getUser } from "@/actions/authMethods/usersMethods";
 
 interface UserRowProps {
   user: User;
@@ -19,7 +18,8 @@ export default function UserRow({ user, onDelete, fetchUsers, onSuccess }: UserR
   const [showModal, setShowModal] = useState(false);
 
   return (
-        <tr className="hover:bg-gray-100">
+        <tr className="hover:bg-gray-100 cursor-pointer">
+            <td className="p-3 border-b border-gray-200">{user.id}</td>
             <td className="p-3 border-b border-gray-200">{user.name}</td>
             <td className="p-3 border-b border-gray-200 text-blue-700">{user.email}</td>
             <td className="p-3 border-b border-gray-200">
@@ -40,7 +40,7 @@ export default function UserRow({ user, onDelete, fetchUsers, onSuccess }: UserR
                       onSuccess={() => {
                         fetchUsers();
                         setShowModal(false);
-                        onSuccess();
+                        // onSuccess();s
                       }}
                     />
                   }

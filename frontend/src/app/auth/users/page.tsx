@@ -7,13 +7,13 @@ import {
 } from "@/actions/authMethods/usersMethods";
 
 import BtnOpenAddModal from "@/components/Buttons/btnOpenAddModal";
-import ConfirmDeletModal from "@/components/modals/modalConfirmDeletion";
+import ConfirmDeletModal from "@/components/modals/ModalConfirmDeletion";
 import NavbarAdmin from "@/components/navbarAdmin";
 import SearchBar from "@/components/SearchBar";
 import UserTable from "@/components/tables/UserTable";
 import UserForm from "@/components/forms/UserForm";
 import ModalBase from "@/components/modals/ModalBase";
-import User from "@/interfaces/authInterface";
+import User from "@/interfaces/AuthInterface";
 
 export default function Users() {
   const [usuarios, setUsuarios] = useState<User[]>([]);
@@ -78,7 +78,7 @@ export default function Users() {
           <h1 className="ml-10 text-2xl font-bold c mb-4 tracking-tight text-gray-600 text-center">
             Usuarios
           </h1>
-          <div className="flex justify-end mr-10 mb-6 mt-6">
+          <div className="flex justify-end mr-10 mb-6 mt-5">
             <BtnOpenAddModal
               text="Agregar Usuario"
               onClick={() => {
@@ -102,7 +102,7 @@ export default function Users() {
             )}
           </div>
         </div>
-        <div className="flex items-center justify-between bg-white border rounded-t-xl">
+        <div className="flex items-center justify-between border rounded-t-xl">
           <h2 className="pl-10 text-xl font-bold text-gray-600">
           Lista de usuarios
           </h2>
@@ -112,6 +112,9 @@ export default function Users() {
             onClear={() => setSearchTerm("")}
             placeholder="Buscar por nombre o correo..."
           />
+        </div>
+        <div>
+          
         </div>
         <UserTable
           users={filteredUsers}

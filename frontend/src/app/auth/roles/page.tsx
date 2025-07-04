@@ -4,11 +4,11 @@ import { deleteRoles, getRoles } from '@/actions/authMethods/rolesMethods'
 import BtnOpenAddModal from '@/components/Buttons/btnOpenAddModal'
 import RoleForm from '@/components/forms/RoleForm'
 import ModalBase from '@/components/modals/ModalBase'
-import ConfirmDeletModal from '@/components/modals/modalConfirmDeletion'
+import ConfirmDeletModal from '@/components/modals/ModalConfirmDeletion'
 import NavbarAdmin from '@/components/navbarAdmin'
 import SearchBar from '@/components/SearchBar'
 import RolTable from '@/components/tables/RolTable'
-import Role from '@/interfaces/authInterface'
+import Role from '@/interfaces/AuthInterface'
 import {useEffect, useState } from 'react'
 
 export default function Roles() {
@@ -17,7 +17,7 @@ export default function Roles() {
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState<string>("")
   const [rolToDelete, setRolToDelete] = useState<number | null>(null);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
 
   const fetchRoles = async() =>{
@@ -25,7 +25,7 @@ export default function Roles() {
       const res = await getRoles();
       setRoles(res || []);
     } catch (error) {
-      console.error("Error al obtener usuarios", error);
+      console.error("Error al obtener roles", error);
     }
   }
 
@@ -44,15 +44,14 @@ export default function Roles() {
     setShowConfirm(true);
   };
 
-  const handleEditClick = (role: Role) => {
-  setRoleToEdit(role);
-  setShowModal(true);
-};
+//   const handleEditClick = (role: Role) => {
+//   setRoleToEdit(role);
+//   setShowModal(true);
+// };
 
 
   const handleSuccess = () => {
   fetchRoles();
-  // setIsEdit(false);
   setShowModal(false);
 };
 

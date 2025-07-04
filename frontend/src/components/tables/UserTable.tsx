@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import UserRow from "./UserRow";
-import User from "@/interfaces/authInterface";
+import User from "@/interfaces/AuthInterface";
 
 interface UserTableProps {
   users: User[];
@@ -24,10 +24,12 @@ export default function UserTable({
   const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
 
   return (
-    <div className="bg-white shadow-md max-screen overflow-hidden shadow-md">
-      <table className="w-full h-full overflow-y-auto space-y-2 text-left bg-white overflow-y-auto text-gray-800">
+    <div className="bg-white">
+    <div className="bg-white shadow-lg h-[calc(100vh-230px)] overflow-y-auto">
+      <table className="w-full h-full space-y-2 text-left bg-white text-gray-800">
         <thead className="bg-gray-200 uppercase text-sm font-semibold sticky top-0 z-10">
           <tr>
+            <th className="p-3 border-b border-gray-300">Id</th>
             <th className="p-3 border-b border-gray-300">Nombre</th>
             <th className="p-3 border-b border-gray-300">Correo</th>
             <th className="p-3 border-b border-gray-300">Rol</th>
@@ -57,7 +59,8 @@ export default function UserTable({
           )}
         </tbody>
       </table>
-      <div className="flex justify-between items-center mt-4">
+    </div>
+      <div className="flex justify-between items-center mt-4 bg-white">
         <p className="text-sm text-gray-600">
           Mostrando {indexOfFirstUser + 1} -{" "}
           {Math.min(indexOfLastUser, users.length)} de {users.length} usuarios

@@ -22,7 +22,23 @@ const catalogSubmenu = [
   { label: "Grados", href: "/catalogos/grados", icon: FaUserPlus },
   { label: "Modalidades", href: "/catalogos/modalidades", icon: FaUserPlus },
   { label: "Municipios", href: "/catalogos/municipios", icon: FaUserPlus },
-  { label: "Países", href: "/catalogos/paises", icon: FaUserPlus },
+  { label: "Países", href: "/catalogo/country", icon: FaUserPlus },
+  { label: "Profesiones", href: "/catalogos/profesiones", icon: FaUserPlus },
+  { label: "Secciones", href: "/catalogos/secciones", icon: FaUserPlus },
+  { label: "Semestres", href: "/catalogos/semestres", icon: FaUserPlus },
+  { label: "Turnos", href: "/catalogos/turnos", icon: FaUserPlus },
+];
+const SchoolOrganizacionSubmenu = [
+  { label: "Grupos", href: "/SchoolOrganization/grupos", icon: FaUserPlus },
+  { label: "Asignaturas", href: "/catalogos/asignaturas", icon: FaUserPlus },
+  { label: "Cortes", href: "/catalogos/cortes", icon: FaUserPlus },
+  { label: "Departamentos", href: "/catalogos/departamentos", icon: FaUserPlus },
+  { label: "Etnias", href: "/catalogos/etnias", icon: FaUserPlus },
+  { label: "Género", href: "/catalogos/genero", icon: FaUserPlus },
+  { label: "Grados", href: "/catalogos/grados", icon: FaUserPlus },
+  { label: "Modalidades", href: "/catalogos/modalidades", icon: FaUserPlus },
+  { label: "Municipios", href: "/catalogos/municipios", icon: FaUserPlus },
+  { label: "Países", href: "/catalogo/country", icon: FaUserPlus },
   { label: "Profesiones", href: "/catalogos/profesiones", icon: FaUserPlus },
   { label: "Secciones", href: "/catalogos/secciones", icon: FaUserPlus },
   { label: "Semestres", href: "/catalogos/semestres", icon: FaUserPlus },
@@ -92,15 +108,19 @@ export default function NavbarAdmin() {
           </div>
         )}
 
-        {/* Otros enlaces */}
-        <Link href="/docentes" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/docentes")}`}>
+        <Link href="/registerDocente" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/docentes")}`}>
           <FaCog />
           <span>Docentes</span>
         </Link>
 
-        <Link href="/estudiantes" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}>
+        <Link href="/registerStudents" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}>
           <FaCog />
           <span>Estudiantes</span>
+        </Link>
+
+        <Link href="/registerStudents" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}>
+          <FaCog />
+          <span>organizacion Escolar</span>
         </Link>
       </div>
     </nav>

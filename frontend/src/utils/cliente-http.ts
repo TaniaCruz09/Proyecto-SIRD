@@ -17,18 +17,19 @@ export const feching = async (
   };
 
   try {
-    console.log("📤 Enviando request a:", url);
-    console.log("📦 Body:", body);
-    console.log("🧾 Headers:", headers);
-
     const res = await fetch(url, options);
 
-    // ⚠️ Si la respuesta NO es 2xx, lanza error manualmente
+    if (res.status === 401) {
+    // Lanzar error personalizado para que el cliente detecte
+    throw new Error("Unauthorized");
+  }
+
     if (!res.ok) {
       const errorText = await res.text();
       console.error("❌ Error del servidor:", res.status, errorText);
       throw new Error(`Error del servidor: ${res.status}`);
     }
+
 
     const data = await res.json();
     return data;

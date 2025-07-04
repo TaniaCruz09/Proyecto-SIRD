@@ -1,0 +1,56 @@
+import { Municipio } from "./MunicipioInterface";
+import { NivelAcademico } from "./NivelAcademicoInterface";
+import { Pais } from "./PaisInterface";
+import { Profesion } from "./ProfesionInterface";
+import { Sexo } from "./SexoInterface";
+
+ export interface Docente {
+    id: number,
+    nombres: string,
+    apellido_paterno: string,
+    apellido_materno: string,
+    cedula_identidad: string,
+    telefono: string,
+    fecha_nacimiento: string,
+    direccion_domiciliar: string,
+    fechaContratado: string,
+    nombre_contacto_emergencia: string,
+    telefono_contacto_emergencia: string
+    sexo: Sexo,
+    nivel_academico: NivelAcademico[],
+    profession: Profesion[],
+    pais: Pais,
+    municipio: Municipio,
+
+    user_create_id?: number | null;
+  created_at?: string;
+  update_at?: string;
+  user_update_id?: number | null;
+  deleted_at?: string | null;
+  deleted_at_id?: number | null;
+ }
+
+ export interface DocentePayload {
+    nombres: string,
+    apellido_paterno: string,
+    apellido_materno: string,
+    cedula_identidad: string,
+    telefono: string,
+    fecha_nacimiento: string,
+    direccion_domiciliar: string,
+    fechaContratado: string,
+    nombre_contacto_emergencia: string,
+    telefono_contacto_emergencia: string
+    sexo: Sexo,
+    nivel_academico: NivelAcademico[],
+    profession: Profesion[],
+    pais: Pais,
+    municipio: Municipio,
+
+    user_create_id?: number | null;
+  created_at?: string;
+  update_at?: string;
+  user_update_id?: number | null;
+  deleted_at?: string | null;
+  deleted_at_id?: number | null;
+ }
