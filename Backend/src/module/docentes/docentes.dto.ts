@@ -52,7 +52,7 @@ export class DocentesDTO {
 
   @IsNotEmpty()
   @IsArray()
-  profesion: ProfessionsEntity[];
+  profession: ProfessionsEntity[];
 
   @IsNotEmpty()
   @IsString()

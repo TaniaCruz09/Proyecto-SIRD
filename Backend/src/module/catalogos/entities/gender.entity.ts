@@ -77,9 +77,6 @@ export class GenderEntity {
   @JoinColumn({ name: 'deleted_at_id' }) // Se enlaza con el usuario que eliminó el registro
   user_delete: User;
 
-  @OneToMany(() => Docentes, (docente) => docente.sexo)
-  docente: Docentes;
-
   @OneToMany(() => StudentEntity, (student) => student.gender)
   student?: StudentEntity;
 }

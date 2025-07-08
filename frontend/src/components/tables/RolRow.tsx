@@ -5,7 +5,7 @@ import BtnOpenEditModal from "../Buttons/btnOpenEditModal";
 import { useEffect, useState } from "react";
 import ModalBase from "../modals/ModalBase";
 import UserForm from "../forms/UserForm";
-import Role from "@/interfaces/authInterface";
+import Role from "@/interfaces/AuthInterface";
 import RoleForm from "../forms/RoleForm";
 
 interface RolRowProps {

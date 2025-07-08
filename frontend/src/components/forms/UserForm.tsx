@@ -6,7 +6,8 @@ import {
   updateUser,
 } from "@/actions/authMethods/usersMethods";
 import { getRoles } from "@/actions/authMethods/rolesMethods";
-import User from "@/interfaces/authInterface";
+import User from "@/interfaces/AuthInterface";
+import Role from "@/interfaces/AuthInterface";
 
 interface UserFormProps {
   defaultValues?: User | null;
@@ -18,7 +19,7 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rol, setRol] = useState("");
-  const [roles, setRoles] = useState<{ id: number; rol: string }[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
 
   const isEdit = Boolean(defaultValues?.id);
 

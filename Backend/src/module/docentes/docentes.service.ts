@@ -29,9 +29,8 @@ export class DocentesService {
         relations: [
           'sexo',
           'nivel_academico',
-          'profesion',
+          'profession',
           'pais',
-          'departamento',
           'municipio',
         ],
       });
@@ -48,9 +47,8 @@ export class DocentesService {
         relations: [
           'sexo',
           'nivel_academico',
-          'profesion',
+          'profession',
           'pais',
-          'departamento',
           'municipio',
         ],
       });
@@ -67,9 +65,8 @@ export class DocentesService {
         relations: [
           'sexo',
           'nivel_academico',
-          'profesion',
+          'profession',
           'pais',
-          'departamento',
           'municipio',
         ],
       });
@@ -98,9 +95,8 @@ export class DocentesService {
         relations: [
           'sexo',
           'nivel_academico',
-          'profesion',
+          'profession',
           'pais',
-          'departamento',
           'municipio',
         ],
       });

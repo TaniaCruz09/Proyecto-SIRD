@@ -36,7 +36,10 @@ import { UserService } from './users.service';
           const payloadJwt = { sub: user.id, name: user.name };
           const token = await this.jwtService.signAsync(payloadJwt);
   
-          return { user, token };
+           // Limpiar el objeto user (remover token antes de devolverlo)
+    const { token: __, ...cleanUser } = user;
+
+          return { user:cleanUser, token };
       } catch (error) {
         if (error instanceof UnauthorizedException) {
       throw error; // Propagar 401

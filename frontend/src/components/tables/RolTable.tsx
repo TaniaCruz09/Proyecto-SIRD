@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import Role from "@/interfaces/authInterface";
+import Role from "@/interfaces/AuthInterface";
 import RolRow from "./RolRow";
 
 interface RolTableProps {
@@ -17,7 +17,7 @@ export default function RolTable({
   fetchRoles,
 }: RolTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
-  const rolesPerPage = 7; // o 10, depende del tamaño que quieras
+  const rolesPerPage = 5; // o 10, depende del tamaño que quieras
 
   const indexOfLastRol = currentPage * rolesPerPage;
   const indexOfFirstRol = indexOfLastRol - rolesPerPage;
@@ -27,39 +27,42 @@ export default function RolTable({
   console.log("Roles en RoleTable2:", currentPage);
 
   return (
-    <div className="bg-white shadow-md max-screen overflow-hidden shadow-md">
-      <table className="w-full h-full overflow-y-auto space-y-2 text-left bg-white overflow-y-auto text-gray-800">
-        <thead className="bg-gray-200 uppercase text-sm font-semibold sticky top-0 z-10">
-          <tr>
-            <th className="p-3 border-b border-gray-300">ID</th>
-            <th className="p-3 border-b border-gray-300">Rol</th>
-            <th className="p-3 border-b border-gray-300">Activo</th>
-            <th className="p-1 border-b border-gray-300 text-center">Editar</th>
-            <th className="p-1 border-b border-gray-300 text-center">
-              Eliminar
-            </th>
-          </tr>
-        </thead>
-        <tbody className="text-black text-sm">
-          {roles.length > 0 ? (
-            currentRoles.map((rol) => (
-              <RolRow
-                key={rol.id}
-                rol={rol}
-                onDelete={onDelete}
-                onSuccess={() => onSuccess}
-                fetchRoles={fetchRoles}
-              />
-            ))
-          ) : (
+    <div className="bg-white">
+    <div className="bg-white shadow-lg h-[calc(100vh-250px)] overflow-y-auto">
+      <table className="w-full space-y-2 text-left bg-white text-gray-800">
+          <thead className="bg-gray-200 uppercase text-sm font-semibold sticky top-0 z-10">
             <tr>
-              <td colSpan={4} className="px-4 py-3">
-                No hay Roles registrados.
-              </td>
+              <th className="p-3 border-b border-gray-300">ID</th>
+              <th className="p-3 border-b border-gray-300">Rol</th>
+              <th className="p-3 border-b border-gray-300">Activo</th>
+              <th className="p-1 border-b border-gray-300 text-center">Editar</th>
+              <th className="p-1 border-b border-gray-300 text-center">
+                Eliminar
+              </th>
             </tr>
-          )}
-        </tbody>
+          </thead>
+
+          <tbody className="text-black text-sm">
+            {roles.length > 0 ? (
+              currentRoles.map((rol) => (
+                <RolRow
+                  key={rol.id}
+                  rol={rol}
+                  onDelete={onDelete}
+                  onSuccess={() => onSuccess}
+                  fetchRoles={fetchRoles}
+                />
+              ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="px-4 py-3">
+                  No hay Roles registrados.
+                </td>
+              </tr>
+            )}
+          </tbody>
       </table>
+    </div>
       <div className="flex justify-between items-center mt-4">
         <p className="text-sm text-gray-600">
           Mostrando {indexOfFirstRol + 1} -{" "}

@@ -106,18 +106,33 @@ export class Docentes {
   })
   telefono_contacto_emergencia: string;
 
-  // Fecha y hora de la última actualización del registro
-  @UpdateDateColumn({
-    name: 'update_at',
-    type: 'timestamp',
-    onUpdate: 'CURRENT_TIMESTAMP',
-    transformer: {
-      to: (value: Date) => value,
-      from: (value: Date) =>
-        moment(value).tz('America/Managua').format('YYYY-MM-DD hh:mm A'),
-    },
-  })
-  update_at: Date;
+  @ManyToOne(() => GenderEntity)
+  @JoinColumn({ name: 'sexo_id' })
+  sexo: GenderEntity;
+
+  @ManyToMany(() => AcademicLevelEntity, (academiclevel) => academiclevel.docente,
+  )
+  @JoinTable({ name: 'docentes_tienen_nivel_academico' })
+  nivel_academico: AcademicLevelEntity[];
+
+  @ManyToMany(() => ProfessionsEntity, (profesion) => profesion.docente)
+  @JoinTable({ name: 'docentes_tienen_profesiones' })
+  profession: ProfessionsEntity[];
+
+  @ManyToOne(() => Pais)
+  @JoinColumn({ name: 'pais_id' })
+  pais: Pais;
+
+  @ManyToOne(() => Municipio)
+  @JoinColumn({ name: 'municipio_id' })
+  municipio: Municipio;
+
+  @OneToMany(() => Grupos, (grupo) => grupo.id)
+  grupos?: Grupos[];
+
+   //ID del usuario que creó el registro
+  @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo
+  user_create_id: number;
 
   // Fecha y hora en que se creó el registro
   @CreateDateColumn({
@@ -132,9 +147,18 @@ export class Docentes {
   })
   created_at: Date;
 
-  //ID del usuario que creó el registro
-  @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo
-  user_create_id: number;
+  // Fecha y hora de la última actualización del registro
+  @UpdateDateColumn({
+    name: 'update_at',
+    type: 'timestamp',
+    onUpdate: 'CURRENT_TIMESTAMP',
+    transformer: {
+      to: (value: Date) => value,
+      from: (value: Date) =>
+        moment(value).tz('America/Managua').format('YYYY-MM-DD hh:mm A'),
+    },
+  })
+  update_at: Date;
 
   // ID del usuario que realizó la última actualización del registro
   @Column({ name: 'user_update_id', type: 'int4', nullable: true })
@@ -147,37 +171,6 @@ export class Docentes {
   // ID del usuario que elimino el registro
   @Column({ name: 'deleted_at_id', type: 'int4', nullable: true })
   deleted_at_id: number;
-
-  @ManyToOne(() => GenderEntity, (gender) => gender.docente)
-  @JoinColumn()
-  sexo: GenderEntity;
-
-  @ManyToMany(
-    () => AcademicLevelEntity,
-    (academiclevel) => academiclevel.docente,
-  )
-  @JoinColumn({ name: 'nivel_academico_id' })
-  nivel_academico: AcademicLevelEntity[];
-
-  @ManyToMany(() => ProfessionsEntity, (profesion) => profesion.docente)
-  @JoinColumn({ name: 'profesion_id' })
-  profesion: ProfessionsEntity[];
-
-  @ManyToOne(() => Pais, (pais) => pais.docente)
-  @JoinColumn({ name: 'pais_id' })
-  pais: Pais;
-
-  // @ManyToOne(() => Departamento, (departamento) => departamento.docente)
-  // @JoinColumn({ name: 'departamente_id' })
-  // departamento: Departamento;
-
-  @ManyToOne(() => Municipio, (municipio) => municipio.docente)
-  @JoinColumn({ name: 'municipio_id' })
-  municipio: Municipio;
-
-  @OneToMany(() => Grupos, (grupo) => grupo.docente)
-  @JoinColumn({ name: 'grupo_id' })
-  grupos?: Grupos[];
 
   @ManyToOne(() => User, (user) => user.id)
   @JoinColumn({ name: 'user_create_id' }) // Se enlaza con el usuario que creó el registro

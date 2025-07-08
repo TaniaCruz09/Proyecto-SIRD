@@ -44,7 +44,7 @@ export class Centro {
     @JoinColumn ({name: 'departamento'})
     departamento: Departamento;
 
-    @ManyToOne (() => Municipio, (municipio) => municipio.centro)
+    @ManyToOne (() => Municipio)
     @JoinColumn ({name: 'municipio'})
     municipio: Municipio;
 

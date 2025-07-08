@@ -1,0 +1,51 @@
+// import Country from '@/interfaces/CountryInterface';
+// import React, { useState } from 'react'
+// import BtnOpenEditModal from '../Buttons/btnOpenEditModal';
+// import ModalBase from '../modals/ModalBase';
+// import RoleForm from '../forms/RoleForm';
+// import CountryForm from '../forms/countryForm';
+
+// interface countryData {
+//     country: Country
+//     onDelete: (id: number) => void
+//     fetchCountry: () => void
+//     onSuccess: () => void
+// }
+// export default function CountryRow({country, onDelete, fetchCountry, onSuccess}: countryData ) {
+//     const [showModal, setShowModal] = useState <boolean> (false)
+//   return (
+//     <tr className="hover:bg-gray-100">
+//       <td className="p-3 border-b border-gray-200">{country.id}</td>
+//       <td className="p-3 border-b border-gray-200">{country.pais}</td>
+      
+//       <td className="p-3 px-2 py-2 border-b border-gray-200 text-center">
+//         <BtnOpenEditModal onClick={() => setShowModal(true)} />
+
+//         {showModal && (
+//           <ModalBase
+//             onshowModal={showModal}
+//             onCloseModal={() => setShowModal(false)}
+//             content={
+//               <CountryForm
+//                 defaultValues={country}
+//                 onSuccess={() => {
+//                   fetchCountry();
+//                   setShowModal(false);
+//                   onSuccess();
+//                 }}
+//               />
+//             }
+//           />
+//         )}
+//       </td>
+//       <td className="p-3 px-2 py-3 border-b border-gray-200 text-center">
+//         <button
+//           onClick={() => onDelete(rol.id)}
+//           className="bg-red-300/30 hover:bg-red-400 text-red-600 text-bold px-4 py-2 rounded-md text-sm"
+//         >
+//           <RiDeleteBin6Line />
+//         </button>
+//       </td>
+//     </tr>
+//   )
+// }

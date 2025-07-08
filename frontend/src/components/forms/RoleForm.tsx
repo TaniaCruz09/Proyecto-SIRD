@@ -1,7 +1,7 @@
 "use client"
 
 import { saveRoles, updateRoles } from "@/actions/authMethods/rolesMethods";
-import Role from "@/interfaces/authInterface";
+import Role from "@/interfaces/AuthInterface";
 import { useEffect, useState } from "react";
 
 interface RoleFormProps{

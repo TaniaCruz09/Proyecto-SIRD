@@ -1,6 +1,6 @@
 "use server";
 
-import Role from "@/interfaces/authInterface";
+import Role from "@/interfaces/AuthInterface";
 import { feching } from "@/utils/cliente-http";
 
 export async function getRoles(): Promise<Role[]>  {
