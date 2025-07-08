@@ -12,7 +12,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import moment from 'moment';
+import * as moment from 'moment';
 import { User } from '../../auth/entities';
 
 @Entity({ schema: 'catalogos', name: 'pais' })

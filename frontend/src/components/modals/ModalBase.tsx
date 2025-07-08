@@ -7,7 +7,7 @@ import { IoExitOutline } from "react-icons/io5";
 interface ModalBaseProps {
   onshowModal: boolean;
   onCloseModal: () => void;
-  content: React.ReactNode;
+  content?: React.ReactNode;
 }
 
 const ModalBase = ({onshowModal, content, onCloseModal }: ModalBaseProps) => {

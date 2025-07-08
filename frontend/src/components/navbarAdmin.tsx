@@ -98,7 +98,7 @@ export default function NavbarAdmin() {
           <span>Docentes</span>
         </Link>
 
-        <Link href="/estudiantes" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}>
+        <Link href="/registerEstudent" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}>
           <FaCog />
           <span>Estudiantes</span>
         </Link>
