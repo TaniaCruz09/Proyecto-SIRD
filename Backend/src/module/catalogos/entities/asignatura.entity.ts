@@ -1,4 +1,4 @@
-import moment from 'moment';
+import * as moment from 'moment';
 import { User } from '../../auth/entities';
 import {
   Column,

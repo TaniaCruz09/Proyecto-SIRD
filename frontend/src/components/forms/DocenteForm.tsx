@@ -1,7 +1,7 @@
 "use client";
 
 import { getNivelesAcademicos } from "@/actions/catalogos/academicLevelMethods";
-import { getPaises } from "@/actions/catalogos/countryMethods";
+import { getPaises } from "@/actions/catalogos/paisMethods";
 import { getMunicipios } from "@/actions/catalogos/municipioMethods";
 import { getProfesiones } from "@/actions/catalogos/profesionMethods";
 import { getSexos } from "@/actions/catalogos/sexoMethods";
@@ -37,7 +37,7 @@ export default function DocenteForm({
   const [nivelAcademico, setNivelAcademico] = useState<string>("");
   const [profession, SetProfession] = useState<string>("");
   const [telefono, setTelefono] = useState<string>("");
-  const [fechaNacimiento, setFechaNacimiento] = useState<string>("");
+  const [fechaNacimiento, setFechaNacimiento] = useState<Date>();
   const [pais, setPais] = useState<string>("");
   const [municipio, setMunicipio] = useState<string>("");
   const [fechaContratado, setFechaContratado] = useState<string>("");

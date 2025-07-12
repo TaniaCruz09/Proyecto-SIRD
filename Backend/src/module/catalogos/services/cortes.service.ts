@@ -23,7 +23,7 @@ export class CortesService {
 
   async findOne(id: number): Promise<Cortes> {
     try {
-      const corte = await this.corteRepository.findOne({ where: { id } });
+      const corte = await this.corteRepository.findOne({ where: { id } , relations: ["semestre"]});
       return corte;
     } catch (error) {
       Utilities.catchError(error);
@@ -32,7 +32,7 @@ export class CortesService {
 
   async findAll(): Promise<Cortes[]> {
     try {
-      const corte = await this.corteRepository.find();
+      const corte = await this.corteRepository.find({relations: ["semestre"]});
       return corte;
     } catch (error) {
       Utilities.catchError(error);
@@ -42,7 +42,7 @@ export class CortesService {
   async update(id: number, payload: Partial<Cortes>): Promise<Cortes> {
     try {
       const corte = await this.corteRepository.findOne({
-        where: { id },
+        where: { id }, relations: ["semestre"]
       });
 
       Object.assign(corte, payload);
@@ -59,7 +59,7 @@ export class CortesService {
   async delete(id: number, userId: number): Promise<Cortes> {
     try {
       const corte = await this.corteRepository.findOne({
-        where: { id },
+        where: { id }, relations: ["semestre"]
       });
 
       corte.delete_at = new Date();

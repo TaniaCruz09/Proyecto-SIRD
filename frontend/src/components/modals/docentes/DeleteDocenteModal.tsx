@@ -16,7 +16,7 @@ export default function DeleteDocenteModal({
   idEliminar,
   fetchDocentes,
 }: DeleteDocenteModalProps) {
-  const [DocenteToDelete, setDocenteToDelete] = useState<number | null>(null);
+  const [docenteToDelete, setDocenteToDelete] = useState<number | null>(null);
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
   const handleDeleteClick = (id: number) => {
@@ -25,9 +25,9 @@ export default function DeleteDocenteModal({
   };
 
   const confirmDelete = async () => {
-    if (!DocenteToDelete) return;
+    if (!docenteToDelete) return;
     try {
-      await deleteDocentes(DocenteToDelete);
+      await deleteDocentes(docenteToDelete);
       await fetchDocentes();
     } catch (error) {
       console.error("Error al eliminar usuario", error);

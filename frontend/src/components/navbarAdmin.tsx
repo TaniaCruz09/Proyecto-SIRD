@@ -13,37 +13,38 @@ const authSubmenu = [
 ];
 
 const catalogSubmenu = [
-  { label: "Niveles Académicos", href: "/catalogos/niveles-academicos", icon: FaUserPlus },
-  { label: "Asignaturas", href: "/catalogos/asignaturas", icon: FaUserPlus },
-  { label: "Cortes", href: "/catalogos/cortes", icon: FaUserPlus },
-  { label: "Departamentos", href: "/catalogos/departamentos", icon: FaUserPlus },
-  { label: "Etnias", href: "/catalogos/etnias", icon: FaUserPlus },
-  { label: "Género", href: "/catalogos/genero", icon: FaUserPlus },
-  { label: "Grados", href: "/catalogos/grados", icon: FaUserPlus },
-  { label: "Modalidades", href: "/catalogos/modalidades", icon: FaUserPlus },
-  { label: "Municipios", href: "/catalogos/municipios", icon: FaUserPlus },
-  { label: "Países", href: "/catalogo/country", icon: FaUserPlus },
-  { label: "Profesiones", href: "/catalogos/profesiones", icon: FaUserPlus },
-  { label: "Secciones", href: "/catalogos/secciones", icon: FaUserPlus },
-  { label: "Semestres", href: "/catalogos/semestres", icon: FaUserPlus },
-  { label: "Turnos", href: "/catalogos/turnos", icon: FaUserPlus },
+  { label: "Niveles Académicos", href: "/catalogo/nivelAcademico", icon: FaUserPlus },
+  { label: "Asignaturas", href: "/catalogo/asignatura", icon: FaUserPlus },
+  { label: "Cortes", href: "/catalogo/corteEvaluativo", icon: FaUserPlus },
+  { label: "Departamentos", href: "/catalogo/departamento", icon: FaUserPlus },
+  { label: "Etnias", href: "/catalogo/etnia", icon: FaUserPlus },
+  { label: "Género", href: "/catalogo/genero", icon: FaUserPlus },
+  { label: "Grados", href: "/catalogo/grados", icon: FaUserPlus },
+  { label: "Modalidades", href: "/catalogo/modalidad", icon: FaUserPlus },
+  { label: "Municipios", href: "/catalogo/municipio", icon: FaUserPlus },
+  { label: "Países", href: "/catalogo/pais", icon: FaUserPlus },
+  { label: "Profesiones", href: "/catalogo/profesion", icon: FaUserPlus },
+  { label: "Secciones", href: "/catalogo/seccion", icon: FaUserPlus },
+  { label: "Semestres", href: "/catalogo/semestre", icon: FaUserPlus },
+  { label: "Turnos", href: "/catalogo/turnos", icon: FaUserPlus },
+  { label: "Años Lectivos", href: "/catalogo/anioLectivo", icon: FaUserPlus },
 ];
-const SchoolOrganizacionSubmenu = [
-  { label: "Grupos", href: "/SchoolOrganization/grupos", icon: FaUserPlus },
-  { label: "Asignaturas", href: "/catalogos/asignaturas", icon: FaUserPlus },
-  { label: "Cortes", href: "/catalogos/cortes", icon: FaUserPlus },
-  { label: "Departamentos", href: "/catalogos/departamentos", icon: FaUserPlus },
-  { label: "Etnias", href: "/catalogos/etnias", icon: FaUserPlus },
-  { label: "Género", href: "/catalogos/genero", icon: FaUserPlus },
-  { label: "Grados", href: "/catalogos/grados", icon: FaUserPlus },
-  { label: "Modalidades", href: "/catalogos/modalidades", icon: FaUserPlus },
-  { label: "Municipios", href: "/catalogos/municipios", icon: FaUserPlus },
-  { label: "Países", href: "/catalogo/country", icon: FaUserPlus },
-  { label: "Profesiones", href: "/catalogos/profesiones", icon: FaUserPlus },
-  { label: "Secciones", href: "/catalogos/secciones", icon: FaUserPlus },
-  { label: "Semestres", href: "/catalogos/semestres", icon: FaUserPlus },
-  { label: "Turnos", href: "/catalogos/turnos", icon: FaUserPlus },
-];
+// const SchoolOrganizacionSubmenu = [
+//   { label: "Grupos", href: "/SchoolOrganization/grupos", icon: FaUserPlus },
+//   { label: "Asignaturas", href: "/catalogos/asignaturas", icon: FaUserPlus },
+//   { label: "Cortes", href: "/catalogos/cortes", icon: FaUserPlus },
+//   { label: "Departamentos", href: "/catalogos/departamentos", icon: FaUserPlus },
+//   { label: "Etnias", href: "/catalogos/etnias", icon: FaUserPlus },
+//   { label: "Género", href: "/catalogos/genero", icon: FaUserPlus },
+//   { label: "Grados", href: "/catalogos/grados", icon: FaUserPlus },
+//   { label: "Modalidades", href: "/catalogos/modalidades", icon: FaUserPlus },
+//   { label: "Municipios", href: "/catalogos/municipios", icon: FaUserPlus },
+//   { label: "Países", href: "/catalogo/country", icon: FaUserPlus },
+//   { label: "Profesiones", href: "/catalogos/profesiones", icon: FaUserPlus },
+//   { label: "Secciones", href: "/catalogos/secciones", icon: FaUserPlus },
+//   { label: "Semestres", href: "/catalogos/semestres", icon: FaUserPlus },
+//   { label: "Turnos", href: "/catalogos/turnos", icon: FaUserPlus },
+// ];
 
 export default function NavbarAdmin() {
   const pathname = usePathname();
@@ -118,9 +119,13 @@ export default function NavbarAdmin() {
           <span>Estudiantes</span>
         </Link>
 
-        <Link href="/registerStudents" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}>
+        <Link href="/notasEstudiantes" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}>
           <FaCog />
-          <span>organizacion Escolar</span>
+          <span>Grupos escolares</span>
+        </Link>
+        <Link href="/docente/home" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}>
+          <FaCog />
+          <span>vista docente</span>
         </Link>
       </div>
     </nav>

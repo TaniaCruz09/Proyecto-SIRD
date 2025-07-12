@@ -10,7 +10,6 @@ import { Utilities } from "src/common/helpers/utilities";
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('semestre')
-
 export class SemestreController{
 
     constructor(private readonly SemestreService: SemestreService ){}

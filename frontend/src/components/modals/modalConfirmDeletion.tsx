@@ -20,7 +20,7 @@ export default function ConfirmDeletModal({ onshow, onCancel, onConfirm }: Confi
                     </div>
                 </div>
                 <p className="text-lg font-semibold mb-4 text-gray-700">
-                    ¿Estás seguro de eliminar este usuario?
+                    ¿Estás seguro de eliminar?
                 </p>
                 <div className="flex justify-center gap-4">
                     <button
