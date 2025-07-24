@@ -113,15 +113,15 @@ export default function NavbarAdmin() {
           <span>Docentes</span>
         </Link>
 
-        <Link href="/registerStudents" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}>
+        <Link href="/registerEstudent" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/student")}`}>
           <FaCog />
           <span>Estudiantes</span>
         </Link>
 
-        <Link href="/registerStudents" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}>
+        {/* <Link href="/registerStudents" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}>
           <FaCog />
           <span>organizacion Escolar</span>
-        </Link>
+        </Link> */}
       </div>
     </nav>
   );

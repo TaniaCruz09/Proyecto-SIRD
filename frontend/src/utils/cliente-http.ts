@@ -6,7 +6,7 @@ export const feching = async (
   metodo: string,
   body: any = null
 ) => {
-  const headers = getHeadersGlobal();
+  const headers = await getHeadersGlobal();
   const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${endPoint}`;
 
   const options: RequestInit = {
@@ -21,7 +21,7 @@ export const feching = async (
 
     if (res.status === 401) {
     // Lanzar error personalizado para que el cliente detecte
-    throw new Error("Unauthorized");
+   // throw new Error("Unauthorized");
   }
 
     if (!res.ok) {
