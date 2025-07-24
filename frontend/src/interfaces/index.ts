@@ -1,7 +1,17 @@
+export type { NivelAcademico, NivelAcademicoPayload } from "./catalogoInterface/NivelAcademicoInterface";
+export type { Asignatura, AsignaturaPayload } from "./catalogoInterface/AsignaturaInterface"
+export type { Corte, CortePayload } from "./catalogoInterface/corteEvaluativoInterface"
+export type { Departamento, DepartamentoPayload } from "./catalogoInterface/DepartamentoInterface";
+export type { Etnia, EtniaPayload } from "./catalogoInterface/EtniaInterface"
+export type { Sexo, SexoPayload } from "./catalogoInterface/SexoInterface";
+export type { Grado, GradoPayload } from "./catalogoInterface/GradoInterfase"
+export type { Modalidad, ModalidadPayload } from "./catalogoInterface/ModalidadInterface"
+export type { Municipio, MunicipioPayload } from "./catalogoInterface/MunicipioInterface"
+export type { Pais, PaisPayload } from "./catalogoInterface/PaisInterface";
+export type { Profesion, ProfesionPayload } from "./catalogoInterface/ProfesionInterface";
+export type { Seccion, SeccionPayload } from "./catalogoInterface/SeccionInterfase"
+export type { Semestre, SemestrePayload } from "./catalogoInterface/SemestreInterface"
+export type { Turno, TurnoPayload } from "./catalogoInterface/TurnoInterface"
+export type { AnioLectivo, AnioLectivoPayload } from "./catalogoInterface/AnioLectivo"
+
 export type { Docente, DocentePayload } from "./DocenteInterface";
-export type { Sexo } from "./SexoInterface";
-export type { NivelAcademico } from "./NivelAcademicoInterface";
-export type { Profesion } from "./ProfesionInterface";
-export type { Pais } from "./PaisInterface";
-export type { Municipio } from "./MunicipioInterface";
-export type { Departamento } from "./DepartamentoInterface";

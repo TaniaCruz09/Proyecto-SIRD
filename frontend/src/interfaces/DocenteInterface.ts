@@ -1,8 +1,9 @@
-import { Municipio } from "./MunicipioInterface";
-import { NivelAcademico } from "./NivelAcademicoInterface";
-import { Pais } from "./PaisInterface";
-import { Profesion } from "./ProfesionInterface";
-import { Sexo } from "./SexoInterface";
+
+import { Municipio } from "./catalogoInterface/MunicipioInterface";
+import { NivelAcademico } from "./catalogoInterface/NivelAcademicoInterface";
+import { Pais } from "./catalogoInterface/PaisInterface";
+import { Profesion } from "./catalogoInterface/ProfesionInterface";
+import { Sexo } from "./catalogoInterface/SexoInterface";
 
  export interface Docente {
     id: number,
@@ -11,9 +12,9 @@ import { Sexo } from "./SexoInterface";
     apellido_materno: string,
     cedula_identidad: string,
     telefono: string,
-    fecha_nacimiento: string,
+    fecha_nacimiento: Date,
     direccion_domiciliar: string,
-    fechaContratado: string,
+    fechaContratado: Date,
     nombre_contacto_emergencia: string,
     telefono_contacto_emergencia: string
     sexo: Sexo,
@@ -36,9 +37,9 @@ import { Sexo } from "./SexoInterface";
     apellido_materno: string,
     cedula_identidad: string,
     telefono: string,
-    fecha_nacimiento: string,
+    fecha_nacimiento: Date,
     direccion_domiciliar: string,
-    fechaContratado: string,
+    fechaContratado: Date,
     nombre_contacto_emergencia: string,
     telefono_contacto_emergencia: string
     sexo: Sexo,

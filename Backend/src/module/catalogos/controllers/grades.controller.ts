@@ -1,13 +1,14 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from "@nestjs/common";
 import { GradesService } from "../services/grades.service";
 import { GradesDto } from "../dtos/grades.dto";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { Utilities } from "src/common/helpers/utilities";
+import { JwtAuthGuard } from "src/module/auth/guards/jwt.guard";
 
 @ApiTags('Grades')
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('grades')
-
 export class GradesController{
     constructor (private readonly gradesService: GradesService){}
 

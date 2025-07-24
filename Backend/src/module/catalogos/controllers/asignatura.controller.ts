@@ -1,11 +1,13 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, ParseIntPipe, HttpException, HttpStatus, Req } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, ParseIntPipe, HttpException, HttpStatus, Req, UseGuards } from '@nestjs/common';
 import { AsignaturaService } from '../services/asignatura.service';
 import { createAsignaturaDto } from '../dtos/asignatura.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Utilities } from '../../../common/helpers/utilities';
+import { JwtAuthGuard } from 'src/module/auth/guards/jwt.guard';
 
 @ApiTags('asignatura')
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('asignatura')
 export class AsignaturaController {
     constructor(private readonly asignaturaService: AsignaturaService) {}

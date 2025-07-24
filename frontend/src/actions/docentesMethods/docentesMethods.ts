@@ -1,5 +1,3 @@
-
-
 import { Docente, DocentePayload } from "@/interfaces";
 import { feching } from "@/utils/cliente-http"
 
