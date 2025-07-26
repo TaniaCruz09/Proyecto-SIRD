@@ -9,6 +9,7 @@ interface LoginData {
 
 export async function saveLogin({ email, password }: LoginData) {
     const data = { email, password }
+    console.log('estos son los datos',email,password)
     const endPoint = `/auth/login`;
     
     const response = await feching(endPoint, "no-cache", "POST", data);

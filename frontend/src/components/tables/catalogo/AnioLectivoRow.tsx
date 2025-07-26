@@ -1,6 +1,8 @@
 "use client"
 
-import { AnioLectivo, Modalidad } from '@/interfaces';
+import DeleteAñoLectivoModal from '@/components/modals/catalogo/anioLectivoModals/DeleteAnioLectivoModal';
+import EditAñoLectivoModal from '@/components/modals/catalogo/anioLectivoModals/EditAnioLectivoModal';
+import { AnioLectivo } from '@/interfaces';
 import React from 'react'
 
 interface AnioLectivoRowProp{
@@ -9,13 +11,13 @@ interface AnioLectivoRowProp{
 }
 
 export default function AnioLectivoRow({fetchAniosLectivos, anioLectivo}:AnioLectivoRowProp) {
-  console.log("Modalidades recibidas:", anioLectivo);
+  console.log("Año lectivo recibidas:", anioLectivo);
   return (
     <tr className="hover:bg-gray-100 cursor-pointer">
         <td className="p-3 border-b border-gray-200">{anioLectivo.id}</td>
-        <td className="p-3 border-b border-gray-200">{anioLectivo.anioLectivo}</td>
-        {/* <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><EditModalidadModal modalidad={anioLectivo} fetchModalidad={fetchAnioLectivos}/></td>
-        <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><DeleteModalidadModal idEliminar={anioLectivo.id} fetchModalidades={fetchAnioLectivos}/></td> */}
+        <td className="p-3 border-b border-gray-200">{anioLectivo.anio_lectivo}</td>
+        <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><EditAñoLectivoModal añoLectivo={anioLectivo} fetchAñoLectivo={fetchAniosLectivos}/></td>
+        <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><DeleteAñoLectivoModal idEliminar={anioLectivo.id} fetchAñoLectivo={fetchAniosLectivos}/></td>
     </tr>
   )
 }

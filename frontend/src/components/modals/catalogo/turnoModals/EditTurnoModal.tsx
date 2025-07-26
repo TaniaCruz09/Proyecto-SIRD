@@ -1,15 +1,15 @@
 import BtnOpenEditModal from '@/components/Buttons/btnOpenEditModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase';
-import ModalidadForm from '@/components/forms/catalogoForms/ModalidadForm';
-import { Modalidad } from '@/interfaces';
+import { Turno } from '@/interfaces';
+import TurnoForm from '@/components/forms/catalogoForms/TurnoForm';
 
 interface EditTurnoModalProp{
-    modalidad: Modalidad;
-    fetchModalidad: () => Promise<void>;
+    turno: Turno;
+    fetchTurno: () => Promise<void>;
 }
 
-export default function EditTurnoModal({modalidad, fetchModalidad}:EditTurnoModalProp) {
+export default function EditTurnoModal({turno, fetchTurno}:EditTurnoModalProp) {
     const [showModal, setShowModal] = useState(false);
   return (
     <div>
@@ -19,10 +19,10 @@ export default function EditTurnoModal({modalidad, fetchModalidad}:EditTurnoModa
                 onshowModal={showModal}
                 onCloseModal={()=> setShowModal(false)}
                 content={
-                    <ModalidadForm
-                    defaultValues={modalidad}
+                    <TurnoForm
+                    defaultValues={turno}
                     onSuccess={()=>{
-                        fetchModalidad();
+                        fetchTurno();
                         setShowModal(false);
                     }}
                     />

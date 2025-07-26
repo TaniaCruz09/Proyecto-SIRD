@@ -1,4 +1,5 @@
-import { saveModalidad, updateModalidad } from "@/actions/catalogos/modalidadMethods";
+
+import { saveTurno, updateTurno } from "@/actions/catalogos/turnoMethods";
 import { Turno } from "@/interfaces";
 import React, { useEffect, useState } from "react";
 
@@ -27,14 +28,14 @@ export default function TurnoForm({
     e.preventDefault();
     try{
       if(isEdit && defaultValues?.id){
-        await updateModalidad(defaultValues.id, {modalidad: turno})
+        await updateTurno(defaultValues.id, {turno: turno})
       } else {
-        await saveModalidad({modalidad: turno})
+        await saveTurno({turno: turno})
       }
       onSuccess();
 
     }catch (error) {
-      console.error("Error al guardar o actualizar modalidad:", error);
+      console.error("Error al guardar o actualizar turno:", error);
     }
   }
 
@@ -43,7 +44,7 @@ export default function TurnoForm({
       <h2 className="text-xl font-semibold text-gray-700 mb-4">{isEdit ? "Editar Modalidad" : "Agregar Modalidad"}</h2>
       <input
         type="text"
-        placeholder="Modalidad"
+        placeholder="Turno"
         value={turno}
         onChange={(e) => setTurno(e.target.value)}
         className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"

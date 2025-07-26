@@ -1,13 +1,13 @@
 import BtnOpenAddModal from '@/components/Buttons/btnOpenAddModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase'
-import ModalidadForm from '@/components/forms/catalogoForms/ModalidadForm'
+import TurnoForm from '@/components/forms/catalogoForms/TurnoForm'
 
 interface AddTurnoModalProp{
-    fetchModalidades: () => Promise<void>
+    fetchTurno: () => Promise<void>
 }
 
-export default function AddTurnoModal({fetchModalidades}: AddTurnoModalProp) {
+export default function AddTurnoModal({fetchTurno}: AddTurnoModalProp) {
     const [showModal, setShowModal] = useState<boolean>(false);
   return (
     <div>
@@ -17,9 +17,9 @@ export default function AddTurnoModal({fetchModalidades}: AddTurnoModalProp) {
           onshowModal={showModal}
           onCloseModal={() => setShowModal(false)}
           content={
-            <ModalidadForm
+            <TurnoForm
             onSuccess={()=>{
-                fetchModalidades()
+                fetchTurno()
                 setShowModal(false)
             }}
             />

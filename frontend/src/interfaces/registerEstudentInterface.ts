@@ -1,7 +1,8 @@
-import { Departamento } from "./DepartamentoInterface";
-import { Municipio } from "./MunicipioInterface";
-import { Pais } from "./PaisInterface";
-import { Sexo } from "./SexoInterface";
+import { Departamento } from "./catalogoInterface/DepartamentoInterface";
+import { Municipio } from "./catalogoInterface/MunicipioInterface";
+import { Pais } from "./catalogoInterface/PaisInterface";
+import { Sexo } from "./catalogoInterface/SexoInterface";
+
 
 export default interface RegisterEstudent{
     id?: number,

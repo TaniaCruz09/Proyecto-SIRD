@@ -27,6 +27,7 @@ export default function LoginPage() {
         localStorage.setItem('token', token)
         localStorage.setItem('rol', user.roles?.[0]?.rol || '')
         localStorage.setItem('user', JSON.stringify(user))
+        console.log(user)
       
         router.push('/')
       

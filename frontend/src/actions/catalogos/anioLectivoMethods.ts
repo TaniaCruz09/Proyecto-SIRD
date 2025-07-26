@@ -2,7 +2,7 @@ import { AnioLectivoPayload } from "@/interfaces";
 import { feching } from "@/utils/cliente-http"
 
 export async function getAniosLectivos() {
-    const endpoint = `/anioLectivo`
+    const endpoint = `/organizacionEscolar`
 
     const response = await feching(endpoint, "no-cache", "GET");
 
@@ -13,7 +13,7 @@ export async function getAniosLectivos() {
 }
 
 export async function saveAnioLectivo(anioLectivo: AnioLectivoPayload) {
-    const endpoint = `/anioLectivo`
+    const endpoint = `/organizacionEscolar`
 
     const response = await feching(endpoint, "no-cache", "POST", anioLectivo);
 
@@ -24,7 +24,7 @@ export async function saveAnioLectivo(anioLectivo: AnioLectivoPayload) {
 }
 
 export async function updateAnioLectivo (id:number, anioLectivo: AnioLectivoPayload){
- const endpoint = `/anioLectivo/${id}`;
+ const endpoint = `/organizacionEscolar/${id}`;
 
     const response = await feching(endpoint, "no-cache", "PUT", anioLectivo);
 
@@ -35,7 +35,7 @@ export async function updateAnioLectivo (id:number, anioLectivo: AnioLectivoPayl
 }
 
 export async function deleteAnioLectivo(id:number){
-    const endpoint = `/anioLectivo/${id}`;
+    const endpoint = `/organizacionEscolar/${id}`;
 
     const response = await feching(endpoint, "no-cache", "DELETE");
 

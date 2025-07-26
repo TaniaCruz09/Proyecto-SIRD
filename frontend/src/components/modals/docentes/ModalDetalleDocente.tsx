@@ -53,7 +53,7 @@ export default function ModalDetalleDocente({
               <strong>Teléfono:</strong> {docente.telefono}
             </div>
             <div>
-              <strong>Fecha de Nacimiento:</strong> {docente.fecha_nacimiento}
+              <strong>Fecha de Nacimiento:</strong> {docente.fecha_nacimiento?.toLocaleDateString() ?? 'N/A'}
             </div>
             <div>
               <strong>País:</strong> {docente.pais?.pais ?? "N/A"}
@@ -62,7 +62,7 @@ export default function ModalDetalleDocente({
               <strong>Municipio:</strong> {docente.municipio?.municipio ?? "N/A"}
             </div>
             <div>
-              <strong>Fecha Contratado:</strong> {docente.fechaContratado}
+              <strong>Fecha Contratado:</strong> {docente.fechaContratado?.toLocaleDateString() ?? 'N/A'}
             </div>
             <div>
               <strong>Dirección Domiciliar:</strong> {docente.direccion_domiciliar}

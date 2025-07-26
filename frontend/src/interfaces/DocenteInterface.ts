@@ -37,9 +37,9 @@ import { Sexo } from "./catalogoInterface/SexoInterface";
     apellido_materno: string,
     cedula_identidad: string,
     telefono: string,
-    fecha_nacimiento: Date,
+    fecha_nacimiento?: Date,
     direccion_domiciliar: string,
-    fechaContratado: Date,
+    fechaContratado?: Date,
     nombre_contacto_emergencia: string,
     telefono_contacto_emergencia: string
     sexo: Sexo,
