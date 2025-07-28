@@ -16,7 +16,7 @@ export default function RegisterEstudentTable({student, fetchStudent }: StudentP
                 <th className="p-3 border-b border-gray-300">Id</th>
                 <th className="p-3 border-b border-gray-300">Nombres</th>
                 <th className="p-3 border-b border-gray-300">apellido 1</th>
-                <th className="p-3 border-b border-gray-300">apellido 2</th>
+                <th className="p-3 border-b border-gray-300">codigo estudiante</th>
                 <th className="p-3 border-b border-gray-300 text-center">Ver detalles</th>
                 <th  className="p-1 border-b border-gray-300 text-center">Editar</th>
                 <th className="p-1 border-b border-gray-300 text-center">Eliminar</th>
@@ -28,6 +28,7 @@ export default function RegisterEstudentTable({student, fetchStudent }: StudentP
                 )}
             </tbody>
         </table>
+        <ModalDetalleEstudiante student={student} fetchStudent={fetchStudent}/>
     </div>
    )
 }

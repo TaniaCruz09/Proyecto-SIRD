@@ -24,11 +24,11 @@ const router = useRouter()
     console.log(res, ' este es el resultado de la funcion fetch')
 
     } catch (error: any) {
-            // if (error.message === "Unauthorized") {
-            // router.push("/auth/login"); // redirigir en cliente
-            // } else {
-            // console.error(error);
-            // }
+        //      if (error.message === "Unauthorized") {
+        //  router.push("/auth/login"); // redirigir en cliente
+        //  } else {
+        //  console.error(error);
+        //  }
     }
  }
 
@@ -44,13 +44,13 @@ const router = useRouter()
                 <div className="p-6 flex item-center justify-between">
                     <h1 className="ml-10 text-2xl font-bold c mb-4 tracking-tight text-gray-600 text-center">Estudiantes</h1>
                 <div className="flex justify-end mr-10 mb-5 bg-red" >
-                    {/* <BtnOpenAddModal onClick={()=> setShowModal(true)}/> */}
-                    {/* {showModal && (
+                     <BtnOpenAddModal onClick={()=> setShowModal(true)}/> 
+                 {showModal && (
                         <ModalBase 
                         onshowModal={showModal}
                         onCloseModal={()=> setShowModal(false)}
                         />
-                    )} */}
+                    )} 
                 </div>
                 </div>
                 <div className="flex items-center justify-between bg-white border rounded-t-xl">

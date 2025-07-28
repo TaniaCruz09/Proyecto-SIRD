@@ -24,16 +24,16 @@ export async function getEstudentById(id: number) {
 
 }
 
-// export async function saveStudent(student: RegisterEstudent) {
-//     const data = { student }
-//     const endPoint = '/student'
-//     const response = await feching(endPoint, 'no-cache', 'POST', data)
-//     if (!response.data || response.error) {
-//         throw new Error(response?.error || 'error al agregar estudiante')
+ export async function saveStudent(student: RegisterEstudent) {
+     const data = { student }
+     const endPoint = '/student'
+     const response = await feching(endPoint, 'no-cache', 'POST', data)
+     if (!response.data || response.error) {
+         throw new Error(response?.error || 'error al agregar estudiante')
 
-//     }
-//     return response.data
-// }
+     }
+     return response.data
+ }
 
 export async function ActualizarStudent(id: number, student: RegisterEstudent) {
     const data = { student }
