@@ -37,7 +37,7 @@ export default function DocenteForm({
   const [nivelAcademico, setNivelAcademico] = useState<string>("");
   const [profession, SetProfession] = useState<string>("");
   const [telefono, setTelefono] = useState<string>("");
-  const [fechaNacimiento, setFechaNacimiento] = useState<string>("");
+  const [fechaNacimiento, setFechaNacimiento] = useState<Date>();
   const [pais, setPais] = useState<string>("");
   const [municipio, setMunicipio] = useState<string>("");
   const [fechaContratado, setFechaContratado] = useState<string>("");
@@ -121,10 +121,10 @@ export default function DocenteForm({
         apellido_paterno: apellido1,
         apellido_materno: apellido2,
         cedula_identidad: cedulaIdentidad,
-        telefono: telefono,
-        fecha_nacimiento: new Date (fechaNacimiento),
+        telefono,
+        fecha_nacimiento: fechaNacimiento,
         direccion_domiciliar: direccionDomiciliar,
-        fechaContratado:new Date (fechaContratado) ,
+        fechaContratado,
         nombre_contacto_emergencia: nmobreContactoemergencia,
         telefono_contacto_emergencia: telefonoContactoEmergencia,
 
@@ -166,10 +166,10 @@ export default function DocenteForm({
     setNivelAcademico(defaultValues.nivel_academico?.[0]?.id?.toString() || "");
     SetProfession(defaultValues.profession?.[0]?.id?.toString() || "");
     setTelefono(defaultValues.telefono || "");
-    setFechaNacimiento(defaultValues.fecha_nacimiento ? new Date(defaultValues.fecha_nacimiento).toISOString().split("T")[0] : "");
+    setFechaNacimiento(defaultValues.fecha_nacimiento || "");
     setPais(defaultValues.pais?.id?.toString() || "");
     setMunicipio(defaultValues.municipio?.id?.toString() || "");
-    setFechaContratado(defaultValues.fechaContratado ? new Date(defaultValues.fechaContratado).toISOString().split("T")[0] : "");
+    setFechaContratado(defaultValues.fechaContratado || "");
     setDireccionDomiciliar(defaultValues.direccion_domiciliar || "");
     setNombreContactoEmergencia(defaultValues.nombre_contacto_emergencia || "");
     setTelefonoContactoEmergencia(defaultValues.telefono_contacto_emergencia || "");
@@ -266,7 +266,7 @@ export default function DocenteForm({
         required
       />
       <input
-        type="date"
+        type="text"
         placeholder="Fecha de Nacimiento"
         value={fechaNacimiento}
         onChange={(e) => setFechaNacimiento(e.target.value)}
@@ -302,7 +302,7 @@ export default function DocenteForm({
         ))}
       </select>
       <input
-        type="date"
+        type="text"
         placeholder="Fecha contratado"
         value={fechaContratado}
         onChange={(e) => setFechaContratado(e.target.value)}

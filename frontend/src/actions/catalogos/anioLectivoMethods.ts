@@ -12,10 +12,10 @@ export async function getAniosLectivos() {
     } return response.data
 }
 
-export async function saveAnioLectivo(anioLectivo: AnioLectivoPayload) {
+export async function saveAnioLectivo( anio_lectivo: AnioLectivoPayload) {
     const endpoint = `/organizacionEscolar`
 
-    const response = await feching(endpoint, "no-cache", "POST", anioLectivo);
+    const response = await feching(endpoint, "no-cache", "POST",  anio_lectivo);
 
     if (!response.data || response.error ) {
         throw new Error(response?.error || "Error al agregar");
@@ -23,10 +23,10 @@ export async function saveAnioLectivo(anioLectivo: AnioLectivoPayload) {
     } return response.data
 }
 
-export async function updateAnioLectivo (id:number, anioLectivo: AnioLectivoPayload){
+export async function updateAnioLectivo (id:number,  anio_lectivo: AnioLectivoPayload){
  const endpoint = `/organizacionEscolar/${id}`;
 
-    const response = await feching(endpoint, "no-cache", "PUT", anioLectivo);
+    const response = await feching(endpoint, "no-cache", "PUT",  anio_lectivo);
 
     if (!response.data || response.error ) {
         throw new Error(response?.error || "Error al actualizar");
