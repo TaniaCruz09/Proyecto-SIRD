@@ -25,17 +25,24 @@ export default function AñoLectivoForm({
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
+  const anioLectivoNumber = parseInt(anioLectivo, 10); // ✅ Convertir a número
+
+  if (isNaN(anioLectivoNumber)) {
+    console.error("El año lectivo no es un número válido");
+    return;
+  }
+
   try {
     if (isEdit && defaultValues?.id) {
       console.log("Actualizando año lectivo...");
       await updateAnioLectivo(defaultValues.id, {
-        anio_lectivo: anioLectivo,
+        anio_lectivo: anioLectivoNumber, // ✅ Número, no string
       });
       console.log("Año lectivo actualizado correctamente");
     } else {
       console.log("Guardando nuevo año lectivo...");
       await saveAnioLectivo({
-        anio_lectivo: anioLectivo,
+        anio_lectivo: anioLectivoNumber, // ✅ Número, no string
       });
       console.log("Año lectivo guardado correctamente");
     }
@@ -46,14 +53,13 @@ export default function AñoLectivoForm({
   }
 };
 
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto px-2">
       <h2 className="text-xl font-semibold text-gray-700 mb-4">
         {isEdit ? "Editar Año Lectivo" : "Agregar Año Lectivo"}
       </h2>
       <input
-        type="number" // ← CORREGIDO
+        type="number" 
         placeholder="Año Lectivo"
         value={anioLectivo}
         onChange={(e) => setAnioLectivo(e.target.value)}
@@ -66,7 +72,7 @@ export default function AñoLectivoForm({
           type="submit"
           className="px-20 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 mb-6"
         >
-          {isEdit ? "Actualizar" : "Guardar"}
+          {isEdit ? "Actualizar" : "jajaja no se"}
         </button>
       </div>
     </form>

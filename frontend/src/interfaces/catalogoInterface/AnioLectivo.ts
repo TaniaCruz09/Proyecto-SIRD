@@ -9,4 +9,5 @@ export interface AnioLectivo {
 
 export interface AnioLectivoPayload {
     anio_lectivo: number,
+    grupo?: Grupos,
 }
