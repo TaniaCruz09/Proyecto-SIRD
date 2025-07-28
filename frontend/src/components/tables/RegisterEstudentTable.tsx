@@ -22,13 +22,13 @@ export default function RegisterEstudentTable({student, fetchStudent }: StudentP
                 <th className="p-1 border-b border-gray-300 text-center">Eliminar</th>
             </tr>
             </thead>
-            <tbody className="text-black text-sm">
+            {/* <tbody className="text-black text-sm">
                 {student.map(
                     (student)=> (<RegisterEstudentRow key={student.id} student={student} fetchStudent={fetchStudent}/>) 
                 )}
-            </tbody>
+            </tbody> */}
         </table>
-        <ModalDetalleEstudiante student={student} fetchStudent={fetchStudent}/>
+        {/* <ModalDetalleEstudiante student={student} fetchStudent={fetchStudent}/> */}
     </div>
    )
 }

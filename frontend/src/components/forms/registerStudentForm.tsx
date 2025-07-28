@@ -19,7 +19,7 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
     const [lastName, setLastName] = useState<string>("");
     const [studentCode, setStudentCode] = useState<string>("");
     const [identityCard, setIdentityCard] = useState<string>("");
-    const [dateBirt, setDateBirt] = useState<Date | null>();
+    const [dateBirt, setDateBirt] = useState<string>("");
     const [address, setAddress] = useState<string>("");
     const [tutorName, setTutorName] = useState<string>("");
     const [tutorIdentityCard, setTutorIdentityCard] = useState<string>("");
@@ -82,7 +82,7 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
                 lastName: lastName,
                 studentCode: studentCode,
                 identityCard: identityCard,
-                dateBirt: dateBirt || new Date(),
+                dateBirt: new Date(dateBirt),
                 address: address,
                 tutorName: tutorName,
                 tutorIdentityCard: tutorIdentityCard,
@@ -120,7 +120,7 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
             setLastName(defeaultValues.lastName);
             setStudentCode(defeaultValues.studentCode);
             setIdentityCard(defeaultValues.identityCard);
-            setDateBirt(defeaultValues.dateBirt ? new Date(defeaultValues.dateBirt) : null);
+            setDateBirt(defeaultValues.dateBirt ? new Date(defeaultValues.dateBirt).toISOString().split("T")[0] : "");
             setAddress(defeaultValues.address);
             setTutorName(defeaultValues.tutorName);
             setTutorIdentityCard(defeaultValues.tutorIdentityCard);
@@ -171,7 +171,7 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
                 required
             />
             <input
-                type="text"
+                type="date"
                 placeholder="Cedula Identidad"
                 value={dateBirt}
                 onChange={(e) => setDateBirt(e.target.value)}
