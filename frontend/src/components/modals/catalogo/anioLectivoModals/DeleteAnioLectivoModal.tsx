@@ -1,32 +1,32 @@
 import BtnDelete from '@/components/Buttons/BtnDelete'
 import React, { useState } from 'react'
-import ConfirmDeletModal from '../../ModalConfirmDeletion'
-import { deleteModalidad } from '@/actions/catalogos/modalidadMethods';
+import ConfirmDeletModal from '../../ModalConfirmDeletion';
+import { deleteAnioLectivo } from '@/actions/catalogos/anioLectivoMethods';
 
-interface DeleteModalidadModalProps {
+interface DeleteAñoLectivoModalProps {
   idEliminar: number;
-  fetchModalidades: () => Promise<void>;
+  fetchAñoLectivo: () => Promise<void>;
 }
 
-export default function DeleteModalidadModal({idEliminar, fetchModalidades}:DeleteModalidadModalProps) {
-    const [modalidadToDelete, setModalidadToDelete] = useState<number | null>(null);
+export default function DeleteAñoLectivoModal({idEliminar, fetchAñoLectivo}:DeleteAñoLectivoModalProps) {
+    const [AñoLectivoToDelete, setAñoLectivoToDelete] = useState<number | null>(null);
       const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
       const handleDeleteClick = (id: number)=>{
-        setModalidadToDelete(id);
+        setAñoLectivoToDelete(id);
         setShowConfirm(true);
       }
 
       const confirmDelete = async ()=>{
-        if(!modalidadToDelete) return;
+        if(!AñoLectivoToDelete) return;
         try{
-            await deleteModalidad(modalidadToDelete);
-            await fetchModalidades();
+            await deleteAnioLectivo(AñoLectivoToDelete);
+            await fetchAñoLectivo();
         } catch (error) {
-            console.error("error al eliminar la modalidad", error)
+            console.error("error al eliminar la año lectivo", error)
         } finally {
             setShowConfirm(false);
-            setModalidadToDelete(null)
+            setAñoLectivoToDelete(null)
         }
       } 
     

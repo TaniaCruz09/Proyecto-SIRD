@@ -2,7 +2,6 @@
 
 import { AnioLectivo } from "@/interfaces";
 import React from "react";
-import ModalidadRow from "./ModalidadRow";
 import AnioLectivoRow from "./AnioLectivoRow";
 
 interface AnioLectivoProp {

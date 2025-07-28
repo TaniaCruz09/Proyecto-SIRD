@@ -4,6 +4,7 @@ import { Pais } from "./catalogoInterface/PaisInterface";
 import { Sexo } from "./catalogoInterface/SexoInterface";
 
 
+
 export default interface RegisterEstudent {
     id?: number,
     name: string,

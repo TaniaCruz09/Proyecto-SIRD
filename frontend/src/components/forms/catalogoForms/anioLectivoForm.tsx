@@ -7,7 +7,7 @@ interface AnioLectivoFormProps {
   onSuccess: () => void;
 }
 
-export default function ModalidadForm({
+export default function AñoLectivoForm({
   defaultValues,
   onSuccess,
 }: AnioLectivoFormProps) {
@@ -18,7 +18,7 @@ export default function ModalidadForm({
   //rellenar los campos si va a editar
   useEffect(() => {
       if (defaultValues) {
-        setAnioLectivo(defaultValues.anioLectivo);
+        setAnioLectivo(defaultValues.anio_lectivo);
       }
     }, [defaultValues]);
 

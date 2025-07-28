@@ -2,7 +2,6 @@
 
 import { Semestre } from "@/interfaces";
 import React from "react";
-import ModalidadRow from "./ModalidadRow";
 import SemestreRow from "./SemestreRow";
 
 interface SemestreTableProps {

@@ -21,7 +21,7 @@ export const feching = async (
 
     if (res.status === 401) {
     // Lanzar error personalizado para que el cliente detecte
-   // throw new Error("Unauthorized");
+   throw new Error("Unauthorized");
   }
 
     if (!res.ok) {

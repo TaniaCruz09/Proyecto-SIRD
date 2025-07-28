@@ -1,23 +1,22 @@
 "use client"
-
-import DeleteModalidadModal from '@/components/modals/catalogo/modalidad/DeleteModalidadModal';
-import EditModalidadModal from '@/components/modals/catalogo/modalidad/EditModalidadModal';
-import { Modalidad } from '@/interfaces';
+import DeleteTurnoModal from '@/components/modals/catalogo/turnoModals/DeleteTurnoModal';
+import EditTurnoModal from '@/components/modals/catalogo/turnoModals/EditTurnoModal';
+import { Turno } from '@/interfaces';
 import React from 'react'
 
-interface ModalidadRowProp{
-    fetchModalidad: ()=> Promise<void>
-    modalidad: Modalidad
+interface TurnoRowProp{
+    fetchTurno: ()=> Promise<void>
+    turno: Turno
 }
 
-export default function ModalidadRow({fetchModalidad, modalidad}:ModalidadRowProp) {
-  console.log("Modalidades recibidas:", modalidad);
+export default function TurnoRow({fetchTurno, turno}:TurnoRowProp) {
+  console.log("Turnos recibid0s:", turno);
   return (
     <tr className="hover:bg-gray-100 cursor-pointer">
-        <td className="p-3 border-b border-gray-200">{modalidad.id}</td>
-        <td className="p-3 border-b border-gray-200">{modalidad.modalidad}</td>
-        <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><EditModalidadModal modalidad={modalidad} fetchModalidad={fetchModalidad}/></td>
-        <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><DeleteModalidadModal idEliminar={modalidad.id} fetchModalidades={fetchModalidad}/></td>
+        <td className="p-3 border-b border-gray-200">{turno.id}</td>
+        <td className="p-3 border-b border-gray-200">{turno.turno}</td>
+        <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><EditTurnoModal turno={turno} fetchTurno={fetchTurno}/></td>
+        <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><DeleteTurnoModal idEliminar={turno.id} fetchTurno={fetchTurno}/></td>
     </tr>
   )
 }

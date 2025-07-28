@@ -1,32 +1,32 @@
 import BtnDelete from '@/components/Buttons/BtnDelete'
 import React, { useState } from 'react'
-import ConfirmDeletModal from '../../ModalConfirmDeletion'
-import { deleteModalidad } from '@/actions/catalogos/modalidadMethods';
+import ConfirmDeletModal from '../../ModalConfirmDeletion';
+import { deleteTurno } from '@/actions/catalogos/turnoMethods';
 
 interface DeleteTurnoModalProps {
   idEliminar: number;
-  fetchModalidades: () => Promise<void>;
+  fetchTurno: () => Promise<void>;
 }
 
-export default function DeleteTurnoModal({idEliminar, fetchModalidades}:DeleteTurnoModalProps) {
-    const [modalidadToDelete, setModalidadToDelete] = useState<number | null>(null);
+export default function DeleteTurnoModal({idEliminar, fetchTurno}:DeleteTurnoModalProps) {
+    const [turnoToDelete, setTurnoToDelete] = useState<number | null>(null);
       const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
       const handleDeleteClick = (id: number)=>{
-        setModalidadToDelete(id);
+        setTurnoToDelete(id);
         setShowConfirm(true);
       }
 
       const confirmDelete = async ()=>{
-        if(!modalidadToDelete) return;
+        if(!turnoToDelete) return;
         try{
-            await deleteModalidad(modalidadToDelete);
-            await fetchModalidades();
+            await deleteTurno(turnoToDelete);
+            await fetchTurno();
         } catch (error) {
-            console.error("error al eliminar la modalidad", error)
+            console.error("error al eliminar la turno", error)
         } finally {
             setShowConfirm(false);
-            setModalidadToDelete(null)
+            setTurnoToDelete(null)
         }
       } 
     

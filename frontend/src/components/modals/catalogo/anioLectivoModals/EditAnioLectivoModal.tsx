@@ -2,14 +2,15 @@ import BtnOpenEditModal from '@/components/Buttons/btnOpenEditModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase';
 import ModalidadForm from '@/components/forms/catalogoForms/ModalidadForm';
-import { Modalidad } from '@/interfaces';
+import { AnioLectivo } from '@/interfaces';
+import AñoLectivoForm from '@/components/forms/catalogoForms/anioLectivoForm';
 
-interface EditModalidadModalProp{
-    modalidad: Modalidad;
-    fetchModalidad: () => Promise<void>;
+interface EditAñoLectivoModalProp{
+    añoLectivo: AnioLectivo;
+    fetchAñoLectivo: () => Promise<void>;
 }
 
-export default function EditModalidadModal({modalidad, fetchModalidad}:EditModalidadModalProp) {
+export default function EditAñoLectivoModal({añoLectivo, fetchAñoLectivo}:EditAñoLectivoModalProp) {
     const [showModal, setShowModal] = useState(false);
   return (
     <div>
@@ -19,10 +20,10 @@ export default function EditModalidadModal({modalidad, fetchModalidad}:EditModal
                 onshowModal={showModal}
                 onCloseModal={()=> setShowModal(false)}
                 content={
-                    <ModalidadForm
-                    defaultValues={modalidad}
+                    <AñoLectivoForm
+                    defaultValues={añoLectivo}
                     onSuccess={()=>{
-                        fetchModalidad();
+                        fetchAñoLectivo();
                         setShowModal(false);
                     }}
                     />
