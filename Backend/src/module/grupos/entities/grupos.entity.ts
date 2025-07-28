@@ -17,7 +17,7 @@ import { User } from '../../auth/entities';
 import * as moment from 'moment-timezone';
 import { OrganizacionEscolar } from './organizacionEscolar.entity.';
 
-@Entity({ name: 'grupos' })
+@Entity({ name: 'grupos', schema: 'grupos'  })
 export class Grupos {
   @PrimaryGeneratedColumn({
     name: 'id',

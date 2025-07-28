@@ -16,7 +16,7 @@ import { User } from '../../auth/entities';
 import * as moment from 'moment-timezone';
 import { Asignatura } from 'src/module/catalogos';
 
-@Entity({ name: 'gruposConEstudiantes' })
+@Entity({ name: 'gruposConEstudiantes', schema: 'grupos'  })
 export class GruposConEstudiantes {
   @PrimaryGeneratedColumn({
     name: 'id',

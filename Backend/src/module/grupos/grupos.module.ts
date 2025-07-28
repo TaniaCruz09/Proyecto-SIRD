@@ -28,5 +28,6 @@ import { OrganizacionEscolarController } from './controllers/organizacionEscolar
     GruposConEstudiantesService,
     OrganizacionEscolarService,
   ],
+   exports: [GruposModule, TypeOrmModule],
 })
 export class GruposModule {}
