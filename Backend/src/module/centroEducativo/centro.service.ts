@@ -7,61 +7,61 @@ import { CreateCentroDto } from './dto/create-centro.dto';
 import { UpdateCentroDto } from './dto/update-centro.dto';
 
 @Injectable()
-export class CentroService { 
+export class CentroService {
     constructor(
         @InjectRepository(Centro)
         private centroReposiroty: Repository<Centro>
-    ){}
+    ) { }
 
     async createCentro(createCentroDto: CreateCentroDto): Promise<Centro> {
-        try{
+        try {
             const nuevoCentro = this.centroReposiroty.create(createCentroDto);
             return await this.centroReposiroty.save(nuevoCentro)
-        } catch(error){
+        } catch (error) {
             Utilities.catchError(error)
         }
     }
 
-    async getCentro(): Promise<Centro[]>{
-        try{
+    async getCentro(): Promise<Centro[]> {
+        try {
             const centro = await this.centroReposiroty.find({
-                relations: ['departamento', 'municipio']
+                relations: ['municipio']
             });
             return centro;
-        } catch(error){
+        } catch (error) {
             Utilities.catchError(error)
         }
     }
 
-    async getCentroById(id:number): Promise<Centro>{
-        try{
+    async getCentroById(id: number): Promise<Centro> {
+        try {
             const centro = await this.centroReposiroty.findOne({
-                where: {id},
-                relations: ['departamento', 'municipio']
+                where: { id },
+                relations: ['municipio']
             })
             return centro;
-        } catch(error){
+        } catch (error) {
             Utilities.catchError(error)
         }
     }
 
-    async deleteCentro(id:number): Promise<Centro>{
+    async deleteCentro(id: number): Promise<Centro> {
         try {
             const Centro = await this.centroReposiroty.findOne({
-                where: {id: id}
+                where: { id: id }
             });
             return await this.centroReposiroty.remove(Centro)
-        } catch (error){
+        } catch (error) {
             Utilities.catchError(error)
         }
     }
 
-    async updateCentro(id: number, payload: UpdateCentroDto): Promise<Centro>{
-        try{
+    async updateCentro(id: number, payload: UpdateCentroDto): Promise<Centro> {
+        try {
             const Centro = await this.centroReposiroty.preload({ id, ...payload });
             if (!Centro) throw new NotFoundException(`Centro con ID ${id} no encontrado`);
             return await this.centroReposiroty.save(Centro);
-        }catch(error){
+        } catch (error) {
             Utilities.catchError(error)
         }
     }
