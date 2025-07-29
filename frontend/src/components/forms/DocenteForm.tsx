@@ -121,10 +121,10 @@ export default function DocenteForm({
         apellido_paterno: apellido1,
         apellido_materno: apellido2,
         cedula_identidad: cedulaIdentidad,
-        telefono: telefono,
-        fecha_nacimiento: new Date (fechaNacimiento),
+        telefono,
+        fecha_nacimiento: fechaNacimiento ? new Date(fechaNacimiento) : undefined,
         direccion_domiciliar: direccionDomiciliar,
-        fechaContratado:new Date (fechaContratado) ,
+        fechaContratado: fechaContratado ? new Date(fechaContratado) : undefined,
         nombre_contacto_emergencia: nmobreContactoemergencia,
         telefono_contacto_emergencia: telefonoContactoEmergencia,
 
@@ -166,13 +166,22 @@ export default function DocenteForm({
     setNivelAcademico(defaultValues.nivel_academico?.[0]?.id?.toString() || "");
     SetProfession(defaultValues.profession?.[0]?.id?.toString() || "");
     setTelefono(defaultValues.telefono || "");
-    setFechaNacimiento(defaultValues.fecha_nacimiento ? new Date(defaultValues.fecha_nacimiento).toISOString().split("T")[0] : "");
     setPais(defaultValues.pais?.id?.toString() || "");
     setMunicipio(defaultValues.municipio?.id?.toString() || "");
-    setFechaContratado(defaultValues.fechaContratado ? new Date(defaultValues.fechaContratado).toISOString().split("T")[0] : "");
     setDireccionDomiciliar(defaultValues.direccion_domiciliar || "");
     setNombreContactoEmergencia(defaultValues.nombre_contacto_emergencia || "");
     setTelefonoContactoEmergencia(defaultValues.telefono_contacto_emergencia || "");
+     // ✅ Convertir Date a string tipo "YYYY-MM-DD"
+    setFechaNacimiento(
+      defaultValues.fecha_nacimiento
+        ? new Date(defaultValues.fecha_nacimiento).toISOString().split("T")[0]
+        : ""
+    );
+    setFechaContratado(
+      defaultValues.fechaContratado
+        ? new Date(defaultValues.fechaContratado).toISOString().split("T")[0]
+        : ""
+    );
   }
 }, [defaultValues]);
 

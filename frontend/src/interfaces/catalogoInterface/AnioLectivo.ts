@@ -8,5 +8,6 @@ export interface AnioLectivo {
 }
 
 export interface AnioLectivoPayload {
-    anioLectivo: number,
+    anio_lectivo: number,
+    grupo?: Grupos,
 }
