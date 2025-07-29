@@ -23,13 +23,10 @@ export default function RolTable({
   const indexOfFirstRol = indexOfLastRol - rolesPerPage;
   const currentRoles = roles.slice(indexOfFirstRol, indexOfLastRol);
 
-  console.log("Roles en RoleTable:", roles);
-  console.log("Roles en RoleTable2:", currentPage);
-
   return (
     <div className="bg-white">
-    <div className="bg-white shadow-lg h-[calc(100vh-250px)] overflow-y-auto">
-      <table className="w-full space-y-2 text-left bg-white text-gray-800">
+      <div className="bg-white shadow-lg h-[calc(100vh-250px)] overflow-y-auto">
+        <table className="w-full space-y-2 text-left bg-white text-gray-800">
           <thead className="bg-gray-200 uppercase text-sm font-semibold sticky top-0 z-10">
             <tr>
               <th className="p-3 border-b border-gray-300">ID</th>
@@ -61,8 +58,8 @@ export default function RolTable({
               </tr>
             )}
           </tbody>
-      </table>
-    </div>
+        </table>
+      </div>
       <div className="flex justify-between items-center mt-4">
         <p className="text-sm text-gray-600">
           Mostrando {indexOfFirstRol + 1} -{" "}

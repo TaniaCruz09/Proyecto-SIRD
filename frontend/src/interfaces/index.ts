@@ -15,3 +15,5 @@ export type { Turno, TurnoPayload } from "./catalogoInterface/TurnoInterface"
 export type { AnioLectivo, AnioLectivoPayload } from "./catalogoInterface/AnioLectivo"
 
 export type { Docente, DocentePayload } from "./DocenteInterface";
+
+export type { GrupoEscolar, GrupoEscolarPayload } from "./grupoInterface"

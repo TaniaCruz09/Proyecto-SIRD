@@ -52,9 +52,6 @@ export class Grupos {
   )
   organizacionEscolar: OrganizacionEscolar;
 
-  @Column({ name: 'anio_lectivo', type: 'int2', nullable: true })
-  anio_lectivo: number;
-
   //ID del usuario que creó el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo
   user_create_id: number;

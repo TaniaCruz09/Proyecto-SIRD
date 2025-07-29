@@ -22,10 +22,10 @@ export default function Page() {
     } catch (error: any) {
       // console.error("Error al obtener Docentes", error);
       if (error.message === "Unauthorized") {
-          router.push("/auth/login"); // redirigir en cliente
-        } else {
-          console.error(error);
-        }
+        router.push("/auth/login"); // redirigir en cliente
+      } else {
+        console.error(error);
+      }
     }
   };
 
@@ -49,7 +49,7 @@ export default function Page() {
             Docentes
           </h1>
           <div className="flex justify-end mr-10 mb-6 mt-5">
-            <AddDocenteModal fetchDocentes={fetchDocentes}/>
+            <AddDocenteModal fetchDocentes={fetchDocentes} />
           </div>
         </div>
         <div className="flex items-center justify-between bg-white border rounded-t-xl">
