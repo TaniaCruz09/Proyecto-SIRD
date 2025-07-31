@@ -1,11 +1,10 @@
 "use client";
 
-import { Departamento, Modalidad } from "@/interfaces";
+import { Departamento } from "@/interfaces";
 import React from "react";
-import ModalidadRow from "./ModalidadRow";
 import DepartamentoRow from "./DepartamentoRow";
 
-interface ModalidadProp {
+interface DepartamentoTableProps {
   departamento: Departamento[];
   fetchDepartamentos: () => Promise<void>;
 }
@@ -13,7 +12,7 @@ interface ModalidadProp {
 export default function DepartamentoTable({
   departamento,
   fetchDepartamentos,
-}: ModalidadProp) {
+}: DepartamentoTableProps) {
   return (
     <div className="bg-white">
       <div className="bg-white shadow-lg h-[calc(100vh-230px)] overflow-y-auto">
@@ -34,7 +33,7 @@ export default function DepartamentoTable({
             {departamento.length === 0 ? (
               <tr>
                 <td colSpan={4} className="text-center text-gray-500 py-10">
-                  No hay modalidades registradas.
+                  No hay departamentos registrados.
                 </td>
               </tr>
             ) : (

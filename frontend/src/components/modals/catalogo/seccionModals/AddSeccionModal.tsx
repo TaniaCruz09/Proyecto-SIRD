@@ -1,27 +1,27 @@
 import BtnOpenAddModal from '@/components/Buttons/btnOpenAddModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase'
-import ModalidadForm from '@/components/forms/catalogoForms/ModalidadForm'
+import SeccionForm from '@/components/forms/catalogoForms/seccionForm'
 
-interface AddSeccionModalProp{
-    fetchModalidades: () => Promise<void>
+interface AddSeccionModalProp {
+  fetchSecciones: () => Promise<void>
 }
 
-export default function AddSeccionModal({fetchModalidades}: AddSeccionModalProp) {
-    const [showModal, setShowModal] = useState<boolean>(false);
+export default function AddSeccionModal({ fetchSecciones }: AddSeccionModalProp) {
+  const [showModal, setShowModal] = useState<boolean>(false);
   return (
     <div>
-        <BtnOpenAddModal onClick={()=> setShowModal(true)}/>
-        {showModal && (
+      <BtnOpenAddModal onClick={() => setShowModal(true)} />
+      {showModal && (
         <ModalBase
           onshowModal={showModal}
           onCloseModal={() => setShowModal(false)}
           content={
-            <ModalidadForm
-            onSuccess={()=>{
-                fetchModalidades()
+            <SeccionForm
+              onSuccess={() => {
+                fetchSecciones()
                 setShowModal(false)
-            }}
+              }}
             />
           }
         />

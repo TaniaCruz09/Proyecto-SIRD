@@ -1,27 +1,27 @@
 import BtnOpenAddModal from '@/components/Buttons/btnOpenAddModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase'
-import ModalidadForm from '@/components/forms/catalogoForms/ModalidadForm'
+import PaisForm from '@/components/forms/catalogoForms/PaisForm'
 
-interface AddPaisModalProp{
-    fetchModalidades: () => Promise<void>
+interface AddPaisModalProp {
+  fetchPaises: () => Promise<void>
 }
 
-export default function AddPaisModal({fetchModalidades}: AddPaisModalProp) {
-    const [showModal, setShowModal] = useState<boolean>(false);
+export default function AddPaisModal({ fetchPaises }: AddPaisModalProp) {
+  const [showModal, setShowModal] = useState<boolean>(false);
   return (
     <div>
-        <BtnOpenAddModal onClick={()=> setShowModal(true)}/>
-        {showModal && (
+      <BtnOpenAddModal onClick={() => setShowModal(true)} />
+      {showModal && (
         <ModalBase
           onshowModal={showModal}
           onCloseModal={() => setShowModal(false)}
           content={
-            <ModalidadForm
-            onSuccess={()=>{
-                fetchModalidades()
+            <PaisForm
+              onSuccess={() => {
+                fetchPaises()
                 setShowModal(false)
-            }}
+              }}
             />
           }
         />

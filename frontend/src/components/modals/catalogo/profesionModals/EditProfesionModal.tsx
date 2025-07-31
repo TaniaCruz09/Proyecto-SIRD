@@ -1,34 +1,34 @@
 import BtnOpenEditModal from '@/components/Buttons/btnOpenEditModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase';
-import ModalidadForm from '@/components/forms/catalogoForms/ModalidadForm';
-import { Modalidad } from '@/interfaces';
+import { Profesion } from '@/interfaces';
+import ProfesionForm from '@/components/forms/catalogoForms/ProfecionForm';
 
-interface EditProfesionModalProp{
-    modalidad: Modalidad;
-    fetchModalidad: () => Promise<void>;
+interface EditProfesionModalProp {
+    profesion: Profesion;
+    fetchProfesiones: () => Promise<void>;
 }
 
-export default function EditProfesionModal({modalidad, fetchModalidad}:EditProfesionModalProp) {
+export default function EditProfesionModal({ profesion, fetchProfesiones }: EditProfesionModalProp) {
     const [showModal, setShowModal] = useState(false);
-  return (
-    <div>
-        <BtnOpenEditModal onClick={()=> setShowModal(true)}/>
+    return (
+        <div>
+            <BtnOpenEditModal onClick={() => setShowModal(true)} />
             {showModal && (
                 <ModalBase
-                onshowModal={showModal}
-                onCloseModal={()=> setShowModal(false)}
-                content={
-                    <ModalidadForm
-                    defaultValues={modalidad}
-                    onSuccess={()=>{
-                        fetchModalidad();
-                        setShowModal(false);
-                    }}
-                    />
-                }
+                    onshowModal={showModal}
+                    onCloseModal={() => setShowModal(false)}
+                    content={
+                        <ProfesionForm
+                            defaultValues={profesion}
+                            onSuccess={() => {
+                                fetchProfesiones();
+                                setShowModal(false);
+                            }}
+                        />
+                    }
                 />
             )}
-    </div>
-  )
+        </div>
+    )
 }

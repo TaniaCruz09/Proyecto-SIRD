@@ -1,34 +1,34 @@
 import BtnOpenEditModal from '@/components/Buttons/btnOpenEditModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase';
-import ModalidadForm from '@/components/forms/catalogoForms/ModalidadForm';
-import { Modalidad } from '@/interfaces';
+import { Grado } from '@/interfaces';
+import GradoForm from '@/components/forms/catalogoForms/GradoForm';
 
-interface EditGradosModalProp{
-    modalidad: Modalidad;
-    fetchModalidad: () => Promise<void>;
+interface EditGradosModalProp {
+    grado: Grado;
+    fetchGrados: () => Promise<void>;
 }
 
-export default function EditGradosModal({modalidad, fetchModalidad}:EditGradosModalProp) {
+export default function EditGradosModal({ grado, fetchGrados }: EditGradosModalProp) {
     const [showModal, setShowModal] = useState(false);
-  return (
-    <div>
-        <BtnOpenEditModal onClick={()=> setShowModal(true)}/>
+    return (
+        <div>
+            <BtnOpenEditModal onClick={() => setShowModal(true)} />
             {showModal && (
                 <ModalBase
-                onshowModal={showModal}
-                onCloseModal={()=> setShowModal(false)}
-                content={
-                    <ModalidadForm
-                    defaultValues={modalidad}
-                    onSuccess={()=>{
-                        fetchModalidad();
-                        setShowModal(false);
-                    }}
-                    />
-                }
+                    onshowModal={showModal}
+                    onCloseModal={() => setShowModal(false)}
+                    content={
+                        <GradoForm
+                            defaultValues={grado}
+                            onSuccess={() => {
+                                fetchGrados();
+                                setShowModal(false);
+                            }}
+                        />
+                    }
                 />
             )}
-    </div>
-  )
+        </div>
+    )
 }

@@ -1,34 +1,34 @@
 import BtnOpenEditModal from '@/components/Buttons/btnOpenEditModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase';
-import ModalidadForm from '@/components/forms/catalogoForms/ModalidadForm';
-import { Modalidad } from '@/interfaces';
+import { NivelAcademico } from '@/interfaces';
+import NivelAcademicoForm from '@/components/forms/catalogoForms/NivelAcademicoForm';
 
-interface EditNivelAcademicoModalProp{
-    modalidad: Modalidad;
-    fetchModalidad: () => Promise<void>;
+interface EditNivelAcademicoModalProp {
+    nivelAcademico: NivelAcademico;
+    fetchNivelesAcademicos: () => Promise<void>;
 }
 
-export default function EditNivelAcademicoModal({modalidad, fetchModalidad}:EditNivelAcademicoModalProp) {
+export default function EditNivelAcademicoModal({ nivelAcademico, fetchNivelesAcademicos }: EditNivelAcademicoModalProp) {
     const [showModal, setShowModal] = useState(false);
-  return (
-    <div>
-        <BtnOpenEditModal onClick={()=> setShowModal(true)}/>
+    return (
+        <div>
+            <BtnOpenEditModal onClick={() => setShowModal(true)} />
             {showModal && (
                 <ModalBase
-                onshowModal={showModal}
-                onCloseModal={()=> setShowModal(false)}
-                content={
-                    <ModalidadForm
-                    defaultValues={modalidad}
-                    onSuccess={()=>{
-                        fetchModalidad();
-                        setShowModal(false);
-                    }}
-                    />
-                }
+                    onshowModal={showModal}
+                    onCloseModal={() => setShowModal(false)}
+                    content={
+                        <NivelAcademicoForm
+                            defaultValues={nivelAcademico}
+                            onSuccess={() => {
+                                fetchNivelesAcademicos();
+                                setShowModal(false);
+                            }}
+                        />
+                    }
                 />
             )}
-    </div>
-  )
+        </div>
+    )
 }

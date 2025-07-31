@@ -1,18 +1,18 @@
 "use client";
 
-import { Modalidad } from "@/interfaces";
+import { Seccion } from "@/interfaces";
 import React from "react";
-import ModalidadRow from "./ModalidadRow";
+import SeccionRow from "./SeccionRow";
 
-interface ModalidadProp {
-  modalidad: Modalidad[];
-  fetchModalidades: () => Promise<void>;
+interface SeccionProps {
+  seccion: Seccion[];
+  fetchSecciones: () => Promise<void>;
 }
 
-export default function ModalidadTable({
-  modalidad,
-  fetchModalidades,
-}: ModalidadProp) {
+export default function SeccionTable({
+  seccion,
+  fetchSecciones
+}: SeccionProps) {
   return (
     <div className="bg-white">
       <div className="bg-white shadow-lg h-[calc(100vh-230px)] overflow-y-auto">
@@ -20,7 +20,7 @@ export default function ModalidadTable({
           <thead className="bg-gray-200 uppercase text-xs font-semibold sticky top-0 z-10">
             <tr>
               <th className="p-3 border-b border-gray-300">Id</th>
-              <th className="p-3 border-b border-gray-300">Modalidades</th>
+              <th className="p-3 border-b border-gray-300">Secciones</th>
               <th className="p-1 border-b border-gray-300 text-center">
                 Editar
               </th>
@@ -30,18 +30,18 @@ export default function ModalidadTable({
             </tr>
           </thead>
           <tbody>
-            {modalidad.length === 0 ? (
+            {seccion.length === 0 ? (
               <tr>
                 <td colSpan={4} className="text-center text-gray-500 py-10">
-                  No hay modalidades registradas.
+                  No hay Secciones registradas.
                 </td>
               </tr>
             ) : (
-              modalidad.map((modalidadItem) => (
-                <ModalidadRow
-                  key={modalidadItem.id}
-                  fetchModalidad={fetchModalidades}
-                  modalidad={modalidadItem}
+              seccion.map((seccionItem) => (
+                <SeccionRow
+                  key={seccionItem.id}
+                  fetchSecciones={fetchSecciones}
+                  seccion={seccionItem}
                 />
               ))
             )}

@@ -1,35 +1,34 @@
 import BtnOpenEditModal from '@/components/Buttons/btnOpenEditModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase';
-import ModalidadForm from '@/components/forms/catalogoForms/ModalidadForm';
 import { AnioLectivo } from '@/interfaces';
-import AñoLectivoForm from '@/components/forms/catalogoForms/anioLectivoForm';
+import AñoLectivoForm from '@/components/forms/organizacionEscolarForms/anioLectivoForm';
 
-interface EditAñoLectivoModalProp{
+interface EditAñoLectivoModalProp {
     añoLectivo: AnioLectivo;
     fetchAñoLectivo: () => Promise<void>;
 }
 
-export default function EditAñoLectivoModal({añoLectivo, fetchAñoLectivo}:EditAñoLectivoModalProp) {
+export default function EditAñoLectivoModal({ añoLectivo, fetchAñoLectivo }: EditAñoLectivoModalProp) {
     const [showModal, setShowModal] = useState(false);
-  return (
-    <div>
-        <BtnOpenEditModal onClick={()=> setShowModal(true)}/>
+    return (
+        <div>
+            <BtnOpenEditModal onClick={() => setShowModal(true)} />
             {showModal && (
                 <ModalBase
-                onshowModal={showModal}
-                onCloseModal={()=> setShowModal(false)}
-                content={
-                    <AñoLectivoForm
-                    defaultValues={añoLectivo}
-                    onSuccess={()=>{
-                        fetchAñoLectivo();
-                        setShowModal(false);
-                    }}
-                    />
-                }
+                    onshowModal={showModal}
+                    onCloseModal={() => setShowModal(false)}
+                    content={
+                        <AñoLectivoForm
+                            defaultValues={añoLectivo}
+                            onSuccess={() => {
+                                fetchAñoLectivo();
+                                setShowModal(false);
+                            }}
+                        />
+                    }
                 />
             )}
-    </div>
-  )
+        </div>
+    )
 }

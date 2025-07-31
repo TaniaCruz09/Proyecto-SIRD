@@ -1,6 +1,6 @@
 "use client";
 
-import getDocentes from "@/actions/docentesMethods/docentesMethods";
+import { getDocentes } from "@/actions/docentesMethods/docentesMethods";
 import AddDocenteModal from "@/components/modals/docentes/AddDocenteModal";
 import NavbarAdmin from "@/components/navbarAdmin";
 import SearchBar from "@/components/SearchBar";

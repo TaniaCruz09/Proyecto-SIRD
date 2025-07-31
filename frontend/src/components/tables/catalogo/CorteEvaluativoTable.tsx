@@ -1,8 +1,7 @@
 "use client";
 
-import { Corte, Modalidad } from "@/interfaces";
+import { Corte } from "@/interfaces";
 import React from "react";
-import ModalidadRow from "./ModalidadRow";
 import CorteEvaluativoRow from "./CorteEvaluativoRow";
 
 interface CorteEvaluativoTableProp {
@@ -36,7 +35,7 @@ export default function CorteEvaluativoTable({
             {corteEvaluativo.length === 0 ? (
               <tr>
                 <td colSpan={4} className="text-center text-gray-500 py-10">
-                  No hay modalidades registradas.
+                  No hay cortes Evaluativos registrados.
                 </td>
               </tr>
             ) : (

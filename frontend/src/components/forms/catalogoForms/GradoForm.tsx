@@ -1,5 +1,5 @@
-import { saveModalidad, updateModalidad } from "@/actions/catalogos/modalidadMethods";
-import { Grado, Modalidad } from "@/interfaces";
+import { saveGrado, updateGrado } from "@/actions/catalogos/gradoMethods";
+import { Grado } from "@/interfaces";
 import React, { useEffect, useState } from "react";
 
 interface GradoFormProps {
@@ -17,33 +17,33 @@ export default function GradoForm({
 
   //rellenar los campos si va a editar
   useEffect(() => {
-      if (defaultValues) {
-        setGrado(defaultValues.grades || "");
-      }
-    }, [defaultValues]);
+    if (defaultValues) {
+      setGrado(defaultValues.grades || "");
+    }
+  }, [defaultValues]);
 
-    //funcion que gaurda o edita
-  const handleSubmit = async (e: React.FormEvent)=>{
+  //funcion que gaurda o edita
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try{
-      if(isEdit && defaultValues?.id){
-        await updateModalidad(defaultValues.id, {modalidad: grado})
+    try {
+      if (isEdit && defaultValues?.id) {
+        await updateGrado(defaultValues.id, { grades: grado })
       } else {
-        await saveModalidad({modalidad: grado})
+        await saveGrado({ grades: grado })
       }
       onSuccess();
 
-    }catch (error) {
-      console.error("Error al guardar o actualizar modalidad:", error);
+    } catch (error) {
+      console.error("Error al guardar o actualizar Grado:", error);
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto px-2">
-      <h2 className="text-xl font-semibold text-gray-700 mb-4">{isEdit ? "Editar Modalidad" : "Agregar Modalidad"}</h2>
+      <h2 className="text-xl font-semibold text-gray-700 mb-4">{isEdit ? "Editar Grado" : "Agregar Grado"}</h2>
       <input
         type="text"
-        placeholder="Modalidad"
+        placeholder="Grado"
         value={grado}
         onChange={(e) => setGrado(e.target.value)}
         className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"

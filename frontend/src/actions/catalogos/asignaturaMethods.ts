@@ -6,41 +6,41 @@ export async function getAsignaturas() {
 
     const response = await feching(endpoint, "no-cache", "GET");
 
-    if (!response.data || response.error ) {
-        throw new Error(response?.error || "Error al obtener modalidad");
+    if (!response.data || response.error) {
+        throw new Error(response?.error || "Error al obtener la asignatura");
 
     } return response.data
 }
 
-export async function saveAsignatura(asignatura:AsignaturaPayload) {
+export async function saveAsignatura(asignatura: AsignaturaPayload) {
     const endpoint = `/asignatura`
 
     const response = await feching(endpoint, "no-cache", "POST", asignatura);
 
-    if (!response.data || response.error ) {
-        throw new Error(response?.error || "Error al obtener modalidad");
+    if (!response.data || response.error) {
+        throw new Error(response?.error || "Error al enviar la asignatura");
 
     } return response.data
 }
 
-export async function updateAsignatura (id:number, asignatura:AsignaturaPayload){
- const endpoint = `/asignatura/${id}`;
+export async function updateAsignatura(id: number, asignatura: AsignaturaPayload) {
+    const endpoint = `/asignatura/${id}`;
 
     const response = await feching(endpoint, "no-cache", "PUT", asignatura);
 
-    if (!response.data || response.error ) {
-        throw new Error(response?.error || "Error al obtener modalidad");
+    if (!response.data || response.error) {
+        throw new Error(response?.error || "Error al actualizar la asignatura");
 
     } return response.data
 }
 
-export async function deleteAsignatura(id:number){
+export async function deleteAsignatura(id: number) {
     const endpoint = `/asignatura/${id}`;
 
     const response = await feching(endpoint, "no-cache", "DELETE");
 
-    if (!response.data || response.error ) {
-        throw new Error(response?.error || "Error al obtener modalidad");
+    if (!response.data || response.error) {
+        throw new Error(response?.error || "Error al eliminar la asignatura");
 
     } return response.data
 }

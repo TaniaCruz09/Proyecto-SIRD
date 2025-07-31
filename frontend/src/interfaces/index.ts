@@ -12,8 +12,8 @@ export type { Profesion, ProfesionPayload } from "./catalogoInterface/ProfesionI
 export type { Seccion, SeccionPayload } from "./catalogoInterface/SeccionInterfase"
 export type { Semestre, SemestrePayload } from "./catalogoInterface/SemestreInterface"
 export type { Turno, TurnoPayload } from "./catalogoInterface/TurnoInterface"
-export type { AnioLectivo, AnioLectivoPayload } from "./catalogoInterface/AnioLectivo"
+export type { AnioLectivo, AnioLectivoPayload } from "./organizacionEscolarInterface/AnioLectivo"
 
 export type { Docente, DocentePayload } from "./DocenteInterface";
 
-export type { GrupoEscolar, GrupoEscolarPayload } from "./grupoInterface"
+export type { GrupoEscolar, GrupoEscolarPayload } from "./organizacionEscolarInterface/grupoInterface"

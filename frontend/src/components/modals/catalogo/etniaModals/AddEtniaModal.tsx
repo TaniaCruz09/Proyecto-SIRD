@@ -1,27 +1,27 @@
 import BtnOpenAddModal from '@/components/Buttons/btnOpenAddModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase'
-import ModalidadForm from '@/components/forms/catalogoForms/ModalidadForm'
+import EtniaForm from '@/components/forms/catalogoForms/EtniaForm'
 
-interface AddEtniaModalProp{
-    fetchModalidades: () => Promise<void>
+interface AddEtniaModalProp {
+  fetchEtnias: () => Promise<void>
 }
 
-export default function AddEtniaModal({fetchModalidades}: AddEtniaModalProp) {
-    const [showModal, setShowModal] = useState<boolean>(false);
+export default function AddEtniaModal({ fetchEtnias }: AddEtniaModalProp) {
+  const [showModal, setShowModal] = useState<boolean>(false);
   return (
     <div>
-        <BtnOpenAddModal onClick={()=> setShowModal(true)}/>
-        {showModal && (
+      <BtnOpenAddModal onClick={() => setShowModal(true)} />
+      {showModal && (
         <ModalBase
           onshowModal={showModal}
           onCloseModal={() => setShowModal(false)}
           content={
-            <ModalidadForm
-            onSuccess={()=>{
-                fetchModalidades()
+            <EtniaForm
+              onSuccess={() => {
+                fetchEtnias()
                 setShowModal(false)
-            }}
+              }}
             />
           }
         />
