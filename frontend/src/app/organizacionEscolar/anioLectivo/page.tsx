@@ -4,7 +4,7 @@ import { getAniosLectivos } from "@/actions/catalogos/anioLectivoMethods";
 import AddAniosLectivosModal from "@/components/modals/catalogo/anioLectivoModals/AddAnioLectivoModal";
 import NavbarAdmin from "@/components/navbarAdmin";
 import SearchBar from "@/components/SearchBar";
-import AnioLectivoTable from "@/components/tables/catalogo/AnioLectivoTable";
+import AnioLectivoTable from "@/components/tables/organizacionEscolar/AnioLectivoTable";
 import { AnioLectivo } from "@/interfaces";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -43,7 +43,7 @@ export default function Page() {
       <div className="w-screen p-6 bg-gray-100">
         <div className="flex items-center justify-between">
           <h1 className="ml-10 text-2xl font-bold mb-4 tracking-tight text-gray-600 text-center">
-            Años Lectivos 
+            Años Lectivos
           </h1>
           <div className="flex justify-end mr-10 mb-6 mt-5">
             <AddAniosLectivosModal fetchAniosLectivos={fetchAniosLectivos} />
@@ -60,7 +60,7 @@ export default function Page() {
             placeholder="Buscar Año lectivo"
           />
         </div>
-        <AnioLectivoTable anioLectivo={filteredAnioLectivo} fetchAniosLectivos={fetchAniosLectivos}/>
+        <AnioLectivoTable anioLectivo={filteredAnioLectivo} fetchAniosLectivos={fetchAniosLectivos} />
       </div>
     </div>
   );

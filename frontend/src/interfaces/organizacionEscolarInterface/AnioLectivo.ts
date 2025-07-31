@@ -1,4 +1,5 @@
-import { Grupos } from "./Grupos";
+import { Grupos } from "../catalogoInterface/Grupos";
+
 
 export interface AnioLectivo {
     id: number,
