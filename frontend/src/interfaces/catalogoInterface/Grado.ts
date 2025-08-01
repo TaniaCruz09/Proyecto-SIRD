@@ -1,4 +1,4 @@
-import { Grupos } from "./Grupos"
+import { Grupos } from "./GruposInterface"
 
 export interface Grado {
     id: number,

@@ -3,7 +3,6 @@
 import EditDocenteModal from '../modals/docentes/EditDocenteModal'
 import DeleteDocenteModal from '../modals/docentes/DeleteDocenteModal'
 import { Docente } from '@/interfaces'
-import { RiEyeLine } from 'react-icons/ri'
 import { TbEyePlus } from 'react-icons/tb'
 
 interface DocenteRowProps {

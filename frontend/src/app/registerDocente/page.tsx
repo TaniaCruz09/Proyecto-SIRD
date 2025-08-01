@@ -7,12 +7,12 @@ import SearchBar from "@/components/SearchBar";
 import DocenteTable from "@/components/tables/DocenteTable";
 import { Docente } from "@/interfaces";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Page() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [docentes, setDocentes] = useState<Docente[]>([]);
-
+  const [showModal, setShowModal] = useState<boolean>(false)
   const router = useRouter();
 
   const fetchDocentes = async () => {

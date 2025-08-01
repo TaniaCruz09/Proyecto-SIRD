@@ -1,6 +1,8 @@
 'use client'
 import RegisterEstudent from "@/interfaces/registerEstudentInterface"
 import { TbEyePlus } from "react-icons/tb"
+import EditStudentModal from "../modals/Estudiantes/EditStudentModal";
+import DeleteStudentModal from "../modals/Estudiantes/DeleteStudentModal";
 
 interface StudentRowProps{
     student: RegisterEstudent,
@@ -21,8 +23,8 @@ export default function RegisterEstudentRow({student, fetchStudent, onShowDetail
           }} className="bg-blue-300/30 hover:bg-blue-400 text-blue-600 text-bold text-xl px-4 py-2 rounded-md text-sm cursor-pointer"> 
           <TbEyePlus/>
           </button></td>
-        <td className="p-3 px-2 py-2 border-b border-gray-200 text-center">editar</td>
-        <td className="p-3 px-2 py-2 border-b border-gray-200 text-center">eliminar</td>
+        <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><EditStudentModal student={student} fetchStudent={fetchStudent}/></td>
+        <td className="p-3 px-2 py-3 border-b border-gray-200 text-center"><DeleteStudentModal idEliminar={student.id!} fetchStudent={fetchStudent}/></td>
     </tr>
    )
 }

@@ -1,11 +1,9 @@
 "use client"
-
-import { getDepartamentos } from "@/actions/catalogos/departamentoMethods";
 import { getMunicipios } from "@/actions/catalogos/municipioMethods";
 import { getPaises } from "@/actions/catalogos/paisMethods";
 import { getSexos } from "@/actions/catalogos/sexoMethods";
 import { ActualizarStudent, saveStudent } from "@/actions/resgisterEstudentMethods/regiterEstudentMethods";
-import { Departamento, Municipio, Pais, Sexo } from "@/interfaces";
+import { Municipio, Pais, Sexo } from "@/interfaces";
 import RegisterEstudent, { RegisterEstudentPayload } from "@/interfaces/registerEstudentInterface";
 import { useEffect, useState } from "react";
 
@@ -27,12 +25,10 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
     const [gender, setGender] = useState<string>("");
     const [observations, setObservations] = useState<string>("");
     const [pais, setPais] = useState<string>("");
-    const [departamento, setDepartamento] = useState<string>("");
     const [municipio, setMunicipio] = useState<string>("");
 
     const [generos, setGeneros] = useState<Sexo[]>([]);
     const [paises, setPaises] = useState<Pais[]>([]);
-    const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
     const [municipios, setMunicipios] = useState<Municipio[]>([]);
     const isEdit = Boolean(defeaultValues?.id)
 
@@ -42,17 +38,14 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
                 const [
                     generosData,
                     paisesData,
-                    departamentosData,
                     municipiosData
                 ] = await Promise.all([
                     getSexos(),
                     getPaises(),
-                    getDepartamentos(),
                     getMunicipios()
                 ])
                 setGeneros(generosData);
                 setPaises(paisesData);
-                setDepartamentos(departamentosData);
                 setMunicipios(municipiosData);
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -65,12 +58,12 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
         try {
             const selectedSexo = generos.find((s) => s.id === parseInt(gender))
             const selectedPais = paises.find((p) => p.id === parseInt(pais));
-            const selectedDepartamento = departamentos.find((d) => d.id === parseInt(departamento));
-            const selectedMunicipio = municipios.find((m) => m.id === parseInt(municipio));
+            const selectedMunicipio = municipios.find(
+                (m) => m.id === parseInt(municipio)
+            );
             if (
                 !selectedSexo ||
                 !selectedPais ||
-                !selectedDepartamento ||
                 !selectedMunicipio
             ) {
                 console.error("Faltan campos requeridos");
@@ -88,10 +81,8 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
                 tutorIdentityCard: tutorIdentityCard,
                 tutorPhoneNumber: tutorPhoneNumber,
                 observations: observations,
-
                 gender: selectedSexo,
                 pais: selectedPais,
-                departamento: selectedDepartamento,
                 municipio: selectedMunicipio,
                 // Opcionales:
                 user_create_id: null,
@@ -128,14 +119,13 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
             setGender(defeaultValues.gender?.id?.toString() || "");
             setObservations(defeaultValues.observations);
             setPais(defeaultValues.pais?.id?.toString() || "");
-            setDepartamento(defeaultValues.departamento?.id?.toString() || "");
             setMunicipio(defeaultValues.municipio?.id?.toString() || "");
         }
     }, [defeaultValues]);
     return (
         <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto px-2">
             <h2 className="text-xl font-semibold text-gray-700">
-                {isEdit ? "Editar Docente" : "Agregar Docente"}
+                {isEdit ? "Editar Estudiante" : "Agregar Estudiante"}
             </h2>
 
             <input
@@ -148,7 +138,7 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
             />
             <input
                 type="text"
-                placeholder="Primer Apellido"
+                placeholder="Apellidos"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
@@ -156,7 +146,7 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
             />
             <input
                 type="text"
-                placeholder="Segundo Apellido"
+                placeholder="codigo del estudiante"
                 value={studentCode}
                 onChange={(e) => setStudentCode(e.target.value)}
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
@@ -172,7 +162,7 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
             />
             <input
                 type="date"
-                placeholder="Cedula Identidad"
+                placeholder="Fecha de nacimiento"
                 value={dateBirt}
                 onChange={(e) => setDateBirt(e.target.value)}
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
@@ -196,33 +186,20 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
                 name=""
                 id=""
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-                value={pais}
-                onChange={(e) => setPais(e.target.value)}
-            >
-                <option value="">Nivel Academico</option>
-                {paises?.map((r) => (
-                    <option key={r.id} value={r.id}>
-                        {r.pais}
-                    </option>
-                ))}
-            </select>
-            <select
-                name=""
-                id=""
-                className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
                 value={municipio}
                 onChange={(e) => setMunicipio(e.target.value)}
             >
-                <option value="">Profecion</option>
+                <option value="">Municipio de origen</option>
                 {municipios?.map((r) => (
                     <option key={r.id} value={r.id}>
+                        
                         {r.municipio}
                     </option>
                 ))}
             </select>
             <input
                 type="text"
-                placeholder="Telefono"
+                placeholder="Nombre del tutor"
                 value={tutorName}
                 onChange={(e) => setTutorName(e.target.value)}
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
@@ -230,7 +207,7 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
             />
             <input
                 type="text"
-                placeholder="Fecha de Nacimiento"
+                placeholder="Cedula del tutor"
                 value={tutorIdentityCard}
                 onChange={(e) => setTutorIdentityCard(e.target.value)}
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
@@ -250,37 +227,9 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
                     </option>
                 ))}
             </select>
-            <select
-                name=""
-                id=""
-                className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-                value={municipio}
-                onChange={(e) => setMunicipio(e.target.value)}
-            >
-                <option value="">Municipio de origen</option>
-                {municipios?.map((r) => (
-                    <option key={r.id} value={r.id}>
-                        {r.municipio}
-                    </option>
-                ))}
-            </select>
-            <select
-                name=""
-                id=""
-                className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-                value={departamento}
-                onChange={(e) => setDepartamento(e.target.value)}
-            >
-                <option value="">Municipio de origen</option>
-                {departamentos?.map((r) => (
-                    <option key={r.id} value={r.id}>
-                        {r.departamento}
-                    </option>
-                ))}
-            </select>
             <input
                 type="text"
-                placeholder="Fecha contratado"
+                placeholder="Observacion"
                 value={observations}
                 onChange={(e) => setObservations(e.target.value)}
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
@@ -296,7 +245,7 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
             />
             <input
                 type="text"
-                placeholder="Nombre contacto de emergencia"
+                placeholder="Numero de telefono del tutor"
                 value={tutorPhoneNumber}
                 onChange={(e) => setTutorPhoneNumber(e.target.value)}
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"

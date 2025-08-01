@@ -1,5 +1,4 @@
 "use client";
-
 import { Docente } from "@/interfaces";
 import ModalBase from "../ModalBase";
 
@@ -20,7 +19,7 @@ export default function ModalDetalleDocente({
       onCloseModal={onClose}
       content={
         <div className="max-h-[70vh] overflow-y-auto">
-          <h2 className="text-xl text-black font-semibold mb-4">Detalle del Docente</h2>
+          <h2 className="text-xl text-black font-semibold mb-4">Detalle del Estudiante</h2>
 
           <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
             <div>
@@ -39,8 +38,8 @@ export default function ModalDetalleDocente({
               <strong>Nivel Académico:</strong>{" "}
               {docente.nivel_academico.length > 0
                 ? docente.nivel_academico
-                    .map((n) => n.academicLevel)
-                    .join(", ")
+                  .map((n) => n.academicLevel)
+                  .join(", ")
                 : "N/A"}
             </div>
             <div>
@@ -53,7 +52,10 @@ export default function ModalDetalleDocente({
               <strong>Teléfono:</strong> {docente.telefono}
             </div>
             <div>
-              <strong>Fecha de Nacimiento:</strong> {docente.fecha_nacimiento?.toLocaleDateString() ?? 'N/A'}
+              <strong>Fecha de Nacimiento:</strong>{" "}
+              {docente.fecha_nacimiento
+                ? new Date(docente.fecha_nacimiento).toLocaleDateString()
+                : "N/A"}
             </div>
             <div>
               <strong>País:</strong> {docente.pais?.pais ?? "N/A"}
@@ -62,7 +64,10 @@ export default function ModalDetalleDocente({
               <strong>Municipio:</strong> {docente.municipio?.municipio ?? "N/A"}
             </div>
             <div>
-              <strong>Fecha Contratado:</strong> {docente.fechaContratado?.toLocaleDateString() ?? 'N/A'}
+              <strong>Fecha Contratado:</strong>{" "}
+              {docente.fechaContratado
+                ? new Date(docente.fechaContratado).toLocaleDateString()
+                : "N/A"}
             </div>
             <div>
               <strong>Dirección Domiciliar:</strong> {docente.direccion_domiciliar}

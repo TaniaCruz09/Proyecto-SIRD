@@ -5,6 +5,7 @@ import RegisterEstudent from "@/interfaces/registerEstudentInterface";
 import { useState } from "react";
 import ModalBase from "../ModalBase";
 import RegisterEstudentForm from "@/components/forms/registerStudentForm";
+import BtnOpenEditModal from "@/components/Buttons/btnOpenEditModal";
 
 
 interface EditStudentModalProps {
@@ -15,7 +16,7 @@ export default function EditStudentModal({ student, fetchStudent }: EditStudentM
     const [showModal, setShowModal] = useState(false);
     return (
         <div>
-            <BtnOpenAddModal onClick={() => setShowModal(true)} />
+            <BtnOpenEditModal onClick={() => setShowModal(true)} />
             {showModal && (
                 <ModalBase onshowModal={showModal}
                     onCloseModal={() => setShowModal(false)}

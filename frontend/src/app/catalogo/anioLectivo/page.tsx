@@ -40,7 +40,7 @@ export default function Page() {
       <div>
         <NavbarAdmin />
       </div>
-      <div className="w-screen p-6 bg-gray-100">
+      <div className="p-6 bg-gray-100 w-full h-full overflow-y-auto">
         <div className="flex items-center justify-between">
           <h1 className="ml-10 text-2xl font-bold mb-4 tracking-tight text-gray-600 text-center">
             Años Lectivos 

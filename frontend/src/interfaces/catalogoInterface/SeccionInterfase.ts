@@ -1,11 +1,12 @@
-import { Grupos } from "./Grupos"
+import { Grupos } from "./GruposInterface"
 
 export interface Seccion {
     id: number,
     seccion: string,
-    grupos?: Grupos
+    grado?: Grupos
 }
 
 export interface SeccionPayload {
-    seccion: string
+    seccion: string,
+    grado?: Grupos
 }

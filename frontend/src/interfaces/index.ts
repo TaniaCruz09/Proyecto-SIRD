@@ -4,7 +4,7 @@ export type { Corte, CortePayload } from "./catalogoInterface/corteEvaluativoInt
 export type { Departamento, DepartamentoPayload } from "./catalogoInterface/DepartamentoInterface";
 export type { Etnia, EtniaPayload } from "./catalogoInterface/EtniaInterface"
 export type { Sexo, SexoPayload } from "./catalogoInterface/SexoInterface";
-export type { Grado, GradoPayload } from "./catalogoInterface/GradoInterfase"
+export type { Grado, GradoPayload } from "./catalogoInterface/Grado"
 export type { Modalidad, ModalidadPayload } from "./catalogoInterface/ModalidadInterface"
 export type { Municipio, MunicipioPayload } from "./catalogoInterface/MunicipioInterface"
 export type { Pais, PaisPayload } from "./catalogoInterface/PaisInterface";

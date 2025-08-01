@@ -1,4 +1,3 @@
-import { Departamento } from "./catalogoInterface/DepartamentoInterface";
 import { Municipio } from "./catalogoInterface/MunicipioInterface";
 import { Pais } from "./catalogoInterface/PaisInterface";
 import { Sexo } from "./catalogoInterface/SexoInterface";
@@ -13,7 +12,6 @@ export default interface RegisterEstudent {
     identityCard: string,
     dateBirt: Date,
     pais: Pais,
-    departamento: Departamento,
     municipio: Municipio,
     address: string,
     tutorName: string,
@@ -30,14 +28,12 @@ export default interface RegisterEstudent {
     deleted_at_id?: number | null;
 }
 export interface RegisterEstudentPayload {
-    id?: number,
     name: string,
     lastName: string,
     studentCode: string,
     identityCard: string,
     dateBirt: Date,
     pais: Pais,
-    departamento: Departamento,
     municipio: Municipio,
     address: string,
     tutorName: string,

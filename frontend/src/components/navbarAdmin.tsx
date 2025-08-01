@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { FaHome, FaUsers, FaUser, FaUserPlus, FaCog, FaChevronDown } from "react-icons/fa";
 import { VscFileSubmodule } from "react-icons/vsc";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-// 🔸 Submenús configurables
 const authSubmenu = [
   { label: "Usuarios", href: "/auth/users", icon: FaUser },
   { label: "Roles", href: "/auth/roles", icon: FaUserPlus },
@@ -29,44 +28,54 @@ const catalogSubmenu = [
   { label: "Turnos", href: "/catalogo/turnos", icon: FaUserPlus },
   { label: "Años Lectivos", href: "/catalogo/anioLectivo", icon: FaUserPlus },
 ];
-// const SchoolOrganizacionSubmenu = [
-//   { label: "Grupos", href: "/SchoolOrganization/grupos", icon: FaUserPlus },
-//   { label: "Asignaturas", href: "/catalogos/asignaturas", icon: FaUserPlus },
-//   { label: "Cortes", href: "/catalogos/cortes", icon: FaUserPlus },
-//   { label: "Departamentos", href: "/catalogos/departamentos", icon: FaUserPlus },
-//   { label: "Etnias", href: "/catalogos/etnias", icon: FaUserPlus },
-//   { label: "Género", href: "/catalogos/genero", icon: FaUserPlus },
-//   { label: "Grados", href: "/catalogos/grados", icon: FaUserPlus },
-//   { label: "Modalidades", href: "/catalogos/modalidades", icon: FaUserPlus },
-//   { label: "Municipios", href: "/catalogos/municipios", icon: FaUserPlus },
-//   { label: "Países", href: "/catalogo/country", icon: FaUserPlus },
-//   { label: "Profesiones", href: "/catalogos/profesiones", icon: FaUserPlus },
-//   { label: "Secciones", href: "/catalogos/secciones", icon: FaUserPlus },
-//   { label: "Semestres", href: "/catalogos/semestres", icon: FaUserPlus },
-//   { label: "Turnos", href: "/catalogos/turnos", icon: FaUserPlus },
-// ];
 
-export default function NavbarAdmin() {
+function NavbarAdmin() {
   const pathname = usePathname();
-  const [openUsers, setOpenUsers] = useState(false);
-  const [openCatalogs, setOpenCatalogs] = useState(false);
+  const [openUsers, setOpenUsers] = useState(true);
+  const [openCatalogs, setOpenCatalogs] = useState(true);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Guarda la posición del scroll antes de cambiar de ruta
+  useEffect(() => {
+    const savedScroll = sessionStorage.getItem("sidebar-scroll");
+    if (savedScroll && scrollRef.current) {
+      scrollRef.current.scrollTop = parseInt(savedScroll);
+    }
+  }, []);
+
+  // Guarda scroll actual antes de navegación
+  const handleSaveScroll = () => {
+    if (scrollRef.current) {
+      sessionStorage.setItem("sidebar-scroll", scrollRef.current.scrollTop.toString());
+    }
+  };
 
   const isActive = (route: string) =>
-    pathname === route ? "bg-indigo-600 text-white" : "text-white hover:bg-white hover:text-gray-900";
+    pathname === route
+      ? "bg-indigo-600 text-white"
+      : "text-white hover:bg-white hover:text-gray-900";
 
   return (
     <nav className="w-64 bg-gray-900 text-white h-screen overflow-hidden shadow-md">
-      <div className="h-full overflow-y-auto p-4 space-y-2">
+      <div
+        ref={scrollRef}
+        className="h-full overflow-y-auto p-4 space-y-2"
+      >
         {/* Home */}
-        <Link href="/admin/home" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/admin/home")}`}>
+        <Link
+          href="/admin/home"
+          className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/admin/home")}`}
+          onClick={handleSaveScroll}
+        >
           <FaHome />
-          <span>Dashboard</span>
+          <span>Inicio</span>
         </Link>
 
         {/* Autenticación */}
         <button
           onClick={() => setOpenUsers(!openUsers)}
-          className={`flex items-center justify-between p-3 w-full rounded-md transition ${isActive("")}`}
+          className={`flex items-center justify-between p-3 w-full rounded-md transition`}
         >
           <div className="flex items-center gap-3">
             <FaUsers />
@@ -78,7 +87,13 @@ export default function NavbarAdmin() {
         {openUsers && (
           <div className="ml-6 flex flex-col gap-1">
             {authSubmenu.map(({ label, href, icon: Icon }) => (
-              <Link key={href} href={href} className={`flex items-center gap-2 p-2 rounded-md text-sm transition ${isActive(href)}`}>
+              <Link
+                key={href}
+                href={href}
+                scroll={false}
+                className={`flex items-center gap-2 p-2 rounded-md text-sm transition ${isActive(href)}`}
+                onClick={handleSaveScroll}
+              >
                 <Icon className="text-base" />
                 {label}
               </Link>
@@ -89,7 +104,7 @@ export default function NavbarAdmin() {
         {/* Catálogos */}
         <button
           onClick={() => setOpenCatalogs(!openCatalogs)}
-          className={`flex items-center justify-between p-3 w-full rounded-md transition ${isActive("")}`}
+          className={`flex items-center justify-between p-3 w-full rounded-md transition`}
         >
           <div className="flex items-center gap-3">
             <VscFileSubmodule />
@@ -101,7 +116,13 @@ export default function NavbarAdmin() {
         {openCatalogs && (
           <div className="ml-6 flex flex-col gap-1">
             {catalogSubmenu.map(({ label, href, icon: Icon }) => (
-              <Link key={href} href={href} className={`flex items-center gap-2 p-2 rounded-md text-sm transition ${isActive(href)}`}>
+              <Link
+                key={href}
+                href={href}
+                scroll={false}
+                className={`flex items-center gap-2 p-2 rounded-md text-sm transition ${isActive(href)}`}
+                onClick={handleSaveScroll}
+              >
                 <Icon className="text-base" />
                 {label}
               </Link>
@@ -109,31 +130,48 @@ export default function NavbarAdmin() {
           </div>
         )}
 
-        <Link href="/registerDocente" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/docentes")}`}>
+        <Link
+          href="/registerDocente"
+          scroll={false}
+          className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/docentes")}`}
+          onClick={handleSaveScroll}
+        >
           <FaCog />
           <span>Docentes</span>
         </Link>
 
-        <Link href="/registerEstudent" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/student")}`}>
+        <Link
+          href="/registerEstudent"
+          scroll={false}
+          className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/student")}`}
+          onClick={handleSaveScroll}
+        >
           <FaCog />
           <span>Estudiantes</span>
         </Link>
 
-        {/* <Link href="/registerStudents" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}>
-          <FaCog />
-          <span>organizacion Escolar</span>
-        </Link> */}
-
-        <Link href="/notasEstudiantes" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}>
+        <Link
+          href="/notasEstudiantes"
+          scroll={false}
+          className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}
+          onClick={handleSaveScroll}
+        >
           <FaCog />
           <span>Grupos escolares</span>
         </Link>
-        <Link href="/docente/home" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}>
-          <FaCog />
-          <span>vista docente</span>
-        </Link>
 
+        <Link
+          href="/docente/home"
+          scroll={false}
+          className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}
+          onClick={handleSaveScroll}
+        >
+          <FaCog />
+          <span>Vista docente</span>
+        </Link>
       </div>
     </nav>
   );
 }
+
+export default memo(NavbarAdmin);

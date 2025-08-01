@@ -1,14 +1,15 @@
 "use client"
+
 import BtnOpenAddModal from "@/components/Buttons/btnOpenAddModal";
 import { useState } from "react";
 import ModalBase from "../ModalBase";
-import DocenteForm from "@/components/forms/DocenteForm";
+import RegisterEstudentForm from "@/components/forms/registerStudentForm";
 
-interface AddDocenteModalProp {
-    fetchDocentes: () => Promise<void>
+interface AddStudentModalProp {
+    fetchStudent: () => Promise<void>
 }
 
-export default function AddDocenteModal({fetchDocentes}: AddDocenteModalProp) {
+export default function AddStudentModal({fetchStudent}: AddStudentModalProp) {
   const [showModal, setShowModal] = useState<boolean>(false);
   return (
     <div>
@@ -18,9 +19,9 @@ export default function AddDocenteModal({fetchDocentes}: AddDocenteModalProp) {
           onshowModal={showModal}
           onCloseModal={() => setShowModal(false)}
           content={
-            <DocenteForm
-            onSuccess={()=>{
-                fetchDocentes()
+            <RegisterEstudentForm
+            onSucess={()=>{
+                fetchStudent()
                 setShowModal(false)
             }}
             />

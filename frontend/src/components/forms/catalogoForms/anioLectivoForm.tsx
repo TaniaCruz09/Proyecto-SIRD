@@ -12,6 +12,7 @@ export default function AñoLectivoForm({
   onSuccess,
 }: AnioLectivoFormProps) {
   const [anioLectivo, setAnioLectivo] = useState<string>("");
+  const [grupo, setGrupos] = useState<string>("");
 
   const isEdit = Boolean(defaultValues?.id);
 

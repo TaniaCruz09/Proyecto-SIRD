@@ -1,5 +1,5 @@
 
-import RegisterEstudent from "@/interfaces/registerEstudentInterface"
+import RegisterEstudent, { RegisterEstudentPayload } from "@/interfaces/registerEstudentInterface"
 import { feching } from "@/utils/cliente-http"
 
 
@@ -24,10 +24,10 @@ export async function getEstudentById(id: number) {
 
 }
 
- export async function saveStudent(student: RegisterEstudent) {
-     const data = { student }
+ export async function saveStudent(student: RegisterEstudentPayload) {
      const endPoint = '/student'
-     const response = await feching(endPoint, 'no-cache', 'POST', data)
+     console.log(student, 'este es el estudiante que se envia al back')
+     const response = await feching(endPoint, 'no-cache', 'POST', student)
      if (!response.data || response.error) {
          throw new Error(response?.error || 'error al agregar estudiante')
 
@@ -35,10 +35,10 @@ export async function getEstudentById(id: number) {
      return response.data
  }
 
-export async function ActualizarStudent(id: number, student: RegisterEstudent) {
-    const data = { student }
-    const endPoint = `/student${id}`
-    const response = await feching(endPoint, 'no-cache', 'PUT', data)
+export async function ActualizarStudent(id: number, student: RegisterEstudentPayload) {
+    console.log(student, 'este es el estudiante que se envia al back para actualizar')
+    const endPoint = `/student/${id}`
+    const response = await feching(endPoint, 'no-cache', 'PUT', student)
     if (!response || response.error) {
         throw new Error(response?.error)
     }
