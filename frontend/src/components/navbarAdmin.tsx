@@ -57,9 +57,7 @@ function NavbarAdmin() {
       sessionStorage.setItem("sidebar-scroll", scrollRef.current.scrollTop.toString());
     }
   };
-  const [openUsers, setOpenUsers] = useState(false);
-  const [openCatalogs, setOpenCatalogs] = useState(false);
-  const [openOrganizacionEscolar, setOpenOrganizacionEscolar] = useState(false);
+  const [openOrganizacionEscolar, setOpenOrganizacionEscolar] = useState(true);
 
   const isActive = (route: string) =>
     pathname === route
@@ -159,12 +157,12 @@ function NavbarAdmin() {
           <FaCog />
           <span>Estudiantes</span>
         </Link>
-        <Link
+        {/* <Link
           href="/notasEstudiantes"
           scroll={false}
           className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}
           onClick={handleSaveScroll}
-        >
+        > */}
         {/* organizacion Escolar */}
         <button
           onClick={() => setOpenOrganizacionEscolar(!openOrganizacionEscolar)}
