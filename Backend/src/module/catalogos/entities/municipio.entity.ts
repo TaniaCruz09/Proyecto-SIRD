@@ -34,8 +34,8 @@ export class Municipio {
   // @OneToMany(() => StudentEntity, (student) => student.municipio)
   // student?: StudentEntity[];
 
-  // @OneToMany(() => Centro, (centro) => centro.municipio)
-  // centro?: Centro[];
+  @OneToMany(() => Centro, (centro) => centro.municipio)
+  centro?: Centro[];
 
   @ManyToOne(() => Departamento)
   @JoinColumn({ name: 'departamento_id' })

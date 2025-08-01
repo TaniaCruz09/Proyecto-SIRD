@@ -16,35 +16,43 @@ export default function LoginPage() {
     setLoading(true)
     setError(null) // Resetear error previo
 
-  
+
     //Enviar datos al backend
     try {
       const data = await saveLogin({ email, password })
-      console.log("✅ LOGIN EXITOSO", data)
       const { token, user } = data
 
-        // Guardamos los datos en localStorage
-        localStorage.setItem('token', token)
-        localStorage.setItem('rol', user.roles?.[0]?.rol || '')
-        localStorage.setItem('user', JSON.stringify(user))
-        console.log(user)
-      
-        router.push('/')
-      
-    } catch (err) {
-      setError('Error de red, intenta de nuevo')
+      // Guardamos los datos en localStorage
+      localStorage.setItem('token', token)
+      localStorage.setItem('rol', user.roles?.[0]?.rol || '')
+      localStorage.setItem('user', JSON.stringify(user))
+
+      router.push('/')
+    } catch (err: any) {
+      if (err.response) {
+        console.log(err.response.data)
+        const status = err.response.status
+        const message = err.response.data?.message || 'Error desconocido'
+
+        if (status === 401) {
+          setError(message)//aqui se muestra el mensaje que viene desde el backend si es usuario no encontrado o credenciales invalidas
+        } else if (status) {
+          setError(`Error del servidor: ${message}`)
+        }
+      } else {
+        setError('Error de red, intenta de nuevo')
+      }
     } finally {
       setLoading(false)
     }
   }
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <form
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm space-y-6"
       >
-        <img src="/logo_actual_instituto_ruben_dario.png" alt="Mi logo" className='w-20 h-auto mx-auto'/>
+        <img src="/logo_actual_instituto_ruben_dario.png" alt="Mi logo" className='w-20 h-auto mx-auto' />
         <h1 className="text-2xl font-bold text-center text-blue-600">Inicia Sesión</h1>
 
         {error && <p className="text-red-500 text-center">{error}</p>} {/* Mensaje de error */}
@@ -68,7 +76,7 @@ export default function LoginPage() {
         />
         <p className="text-center text-sm text-gray-600">
           <a href="/crear la pagina" className="text-blue-600 hover:underline">
-          ¿Olvidó su contraseña?
+            ¿Olvidó su contraseña?
           </a>
         </p>
 

@@ -34,9 +34,6 @@ export class Departamento {
   @OneToMany(() => StudentEntity, (student) => student.departamento)
   student?: StudentEntity;
 
-  @OneToMany(() => Centro, (centro) => centro.departamento)
-  centro?: Centro;
-
   // ID del Usuario que creo el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true })
   user_create_id: number;

@@ -1,27 +1,27 @@
 import BtnOpenAddModal from '@/components/Buttons/btnOpenAddModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase'
-import AñoLectivoForm from '@/components/forms/catalogoForms/anioLectivoForm'
+import AñoLectivoForm from '@/components/forms/organizacionEscolarForms/anioLectivoForm'
 
-interface AddAniosLectivosModalProp{
-    fetchAniosLectivos: () => Promise<void>
+interface AddAniosLectivosModalProp {
+  fetchAniosLectivos: () => Promise<void>
 }
 
-export default function AddAniosLectivosModal({fetchAniosLectivos}: AddAniosLectivosModalProp) {
-    const [showModal, setShowModal] = useState<boolean>(false);
+export default function AddAniosLectivosModal({ fetchAniosLectivos }: AddAniosLectivosModalProp) {
+  const [showModal, setShowModal] = useState<boolean>(false);
   return (
     <div>
-        <BtnOpenAddModal onClick={()=> setShowModal(true)}/>
-        {showModal && (
+      <BtnOpenAddModal onClick={() => setShowModal(true)} />
+      {showModal && (
         <ModalBase
           onshowModal={showModal}
           onCloseModal={() => setShowModal(false)}
           content={
             <AñoLectivoForm
-            onSuccess={()=>{
+              onSuccess={() => {
                 fetchAniosLectivos()
                 setShowModal(false)
-            }}
+              }}
             />
           }
         />

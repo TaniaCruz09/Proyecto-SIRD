@@ -1,34 +1,34 @@
 import BtnOpenEditModal from '@/components/Buttons/btnOpenEditModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase';
-import ModalidadForm from '@/components/forms/catalogoForms/ModalidadForm';
-import { Modalidad } from '@/interfaces';
+import SeccionForm from '@/components/forms/catalogoForms/seccionForm';
+import { Seccion } from '@/interfaces';
 
-interface EditSeccionModalProp{
-    modalidad: Modalidad;
-    fetchModalidad: () => Promise<void>;
+interface EditSeccionModalProp {
+    seccion: Seccion;
+    fetchSecciones: () => Promise<void>;
 }
 
-export default function EditSeccionModal({modalidad, fetchModalidad}:EditSeccionModalProp) {
+export default function EditSeccionModal({ seccion, fetchSecciones }: EditSeccionModalProp) {
     const [showModal, setShowModal] = useState(false);
-  return (
-    <div>
-        <BtnOpenEditModal onClick={()=> setShowModal(true)}/>
+    return (
+        <div>
+            <BtnOpenEditModal onClick={() => setShowModal(true)} />
             {showModal && (
                 <ModalBase
-                onshowModal={showModal}
-                onCloseModal={()=> setShowModal(false)}
-                content={
-                    <ModalidadForm
-                    defaultValues={modalidad}
-                    onSuccess={()=>{
-                        fetchModalidad();
-                        setShowModal(false);
-                    }}
-                    />
-                }
+                    onshowModal={showModal}
+                    onCloseModal={() => setShowModal(false)}
+                    content={
+                        <SeccionForm
+                            defaultValues={seccion}
+                            onSuccess={() => {
+                                fetchSecciones();
+                                setShowModal(false);
+                            }}
+                        />
+                    }
                 />
             )}
-    </div>
-  )
+        </div>
+    )
 }

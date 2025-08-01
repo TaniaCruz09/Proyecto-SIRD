@@ -1,27 +1,27 @@
 import BtnOpenAddModal from '@/components/Buttons/btnOpenAddModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase'
-import ModalidadForm from '@/components/forms/catalogoForms/ModalidadForm'
+import ProfesionForm from '@/components/forms/catalogoForms/ProfecionForm'
 
-interface AddProfesionModalProp{
-    fetchModalidades: () => Promise<void>
+interface AddProfesionModalProp {
+  fetchProfesiones: () => Promise<void>
 }
 
-export default function AddProfesionModal({fetchModalidades}: AddProfesionModalProp) {
-    const [showModal, setShowModal] = useState<boolean>(false);
+export default function AddProfesionModal({ fetchProfesiones }: AddProfesionModalProp) {
+  const [showModal, setShowModal] = useState<boolean>(false);
   return (
     <div>
-        <BtnOpenAddModal onClick={()=> setShowModal(true)}/>
-        {showModal && (
+      <BtnOpenAddModal onClick={() => setShowModal(true)} />
+      {showModal && (
         <ModalBase
           onshowModal={showModal}
           onCloseModal={() => setShowModal(false)}
           content={
-            <ModalidadForm
-            onSuccess={()=>{
-                fetchModalidades()
+            <ProfesionForm
+              onSuccess={() => {
+                fetchProfesiones()
                 setShowModal(false)
-            }}
+              }}
             />
           }
         />

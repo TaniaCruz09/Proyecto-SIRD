@@ -43,10 +43,6 @@ export class CreateGrupoDto {
   @IsOptional()
   grupoConEstudiantes?: GruposConEstudiantes;
 
-  @IsNotEmpty()
-  @IsNumber()
-  anio_lectivo: number;
-
   @IsOptional()
   @IsNumber()
   user_create_id: number;

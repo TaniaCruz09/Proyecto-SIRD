@@ -1,35 +1,38 @@
 "use client";
 
 import { getNivelesAcademicos } from '@/actions/catalogos/academicLevelMethods';
+import AddNivelAcademicoModal from '@/components/modals/catalogo/nivelAcademicoModals/AddNivelAcademicoModal';
 import NavbarAdmin from '@/components/navbarAdmin'
+import SearchBar from '@/components/SearchBar';
+import NivelAcademicoTable from '@/components/tables/catalogo/NivelAcademicoTable';
 import { NivelAcademico } from '@/interfaces';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
 
 export default function Page() {
   const [nivelesAcademicos, setNivelesAcademicos] = useState<NivelAcademico[]>([])
-    const [searchTerm, setSearchTerm] = useState<string>("");
-  
-    const router = useRouter();
-  
-    const fetchNivelesAcademicos = async ()=> {
-      try{
-        const response = await getNivelesAcademicos();
-        setNivelesAcademicos(response)
-      } catch (error: any){
-        if (error.message === "Unauthorized") {
-          router.push("/auth/login"); // redirigir en cliente
-        } else {
-          console.error(error);
-        }
+  const [searchTerm, setSearchTerm] = useState<string>("");
+
+  const router = useRouter();
+
+  const fetchNivelesAcademicos = async () => {
+    try {
+      const response = await getNivelesAcademicos();
+      setNivelesAcademicos(response)
+    } catch (error: any) {
+      if (error.message === "Unauthorized") {
+        router.push("/auth/login"); // redirigir en cliente
+      } else {
+        console.error(error);
       }
     }
-  
-    useEffect(()=>{
-      fetchNivelesAcademicos();
-    }, []);
+  }
 
-    //filtro
+  useEffect(() => {
+    fetchNivelesAcademicos();
+  }, []);
+
+  //filtro
   const filteredNivelAcademico = nivelesAcademicos.filter((u) =>
     u.academicLevel.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -37,20 +40,25 @@ export default function Page() {
   return (
     <div className="flex h-screen">
       <div>
-        <NavbarAdmin/>
+        <NavbarAdmin />
       </div>
       <div className="w-screen p-6 bg-gray-100">
-        <div  className="flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <h1 className="ml-10 text-2xl font-bold mb-4 tracking-tight text-gray-600 text-center">Niveles Academicos</h1>
           <div className="flex justify-end mr-10 mb-6 mt-5">
-            --
+            <AddNivelAcademicoModal fetchNivelesAcademicos={fetchNivelesAcademicos} />
           </div>
         </div>
         <div className="flex items-center justify-between bg-white border rounded-t-xl">
           <h2 className="pl-10 text-xl font-bold text-gray-600">Listado de Niveles Academicos</h2>
-          --
+          <SearchBar
+            value={searchTerm}
+            onChange={setSearchTerm}
+            onClear={() => setSearchTerm("")}
+            placeholder="Buscar nivel academico"
+          />
         </div>
-        --
+        <NivelAcademicoTable nivelAcademico={filteredNivelAcademico} fetchNivelesAcademicos={fetchNivelesAcademicos} />
       </div>
     </div>
   )

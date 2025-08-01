@@ -7,13 +7,11 @@ import { ApiTags } from '@nestjs/swagger';
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('login')
   async signIn(@Body() payload: AuthDto) {
-    console.log("🎯 Datos recibidos en login:", payload);
     const response = await this.authService.signIn(payload);
-    console.log('✅ RESPUESTA A ENVIAR:', response);
     return response;
   }
 

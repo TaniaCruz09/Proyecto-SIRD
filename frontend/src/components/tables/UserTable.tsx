@@ -25,41 +25,41 @@ export default function UserTable({
 
   return (
     <div className="bg-white">
-    <div className="bg-white shadow-lg h-[calc(100vh-230px)] overflow-y-auto">
-      <table className="w-full h-full space-y-2 text-left bg-white text-gray-800">
-        <thead className="bg-gray-200 uppercase text-sm font-semibold sticky top-0 z-10">
-          <tr>
-            <th className="p-3 border-b border-gray-300">Id</th>
-            <th className="p-3 border-b border-gray-300">Nombre</th>
-            <th className="p-3 border-b border-gray-300">Correo</th>
-            <th className="p-3 border-b border-gray-300">Rol</th>
-            <th className="p-1 border-b border-gray-300 text-center">Editar</th>
-            <th className="p-1 border-b border-gray-300 text-center">
-              Eliminar
-            </th>
-          </tr>
-        </thead>
-        <tbody className="text-black text-sm">
-          {users.length > 0 ? (
-            currentUsers.map((user) => (
-              <UserRow
-                key={user.id}
-                user={user}
-                onDelete={onDelete}
-                onSuccess={() => onSuccess}
-                fetchUsers={fetchUsers}
-              />
-            ))
-          ) : (
+      <div className="bg-white shadow-lg h-[calc(100vh-230px)] overflow-y-auto">
+        <table className="w-full space-y-2 text-left bg-white text-gray-800">
+          <thead className="bg-gray-200 uppercase text-sm font-semibold sticky top-0 z-10">
             <tr>
-              <td colSpan={4} className="px-4 py-3">
-                No hay usuarios registrados.
-              </td>
+              <th className="p-3 border-b border-gray-300">Id</th>
+              <th className="p-3 border-b border-gray-300">Nombre</th>
+              <th className="p-3 border-b border-gray-300">Correo</th>
+              <th className="p-3 border-b border-gray-300">Rol</th>
+              <th className="p-1 border-b border-gray-300 text-center">Editar</th>
+              <th className="p-1 border-b border-gray-300 text-center">
+                Eliminar
+              </th>
             </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody className="text-black text-sm">
+            {users.length > 0 ? (
+              currentUsers.map((user) => (
+                <UserRow
+                  key={user.id}
+                  user={user}
+                  onDelete={onDelete}
+                  onSuccess={() => onSuccess}
+                  fetchUsers={fetchUsers}
+                />
+              ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="px-4 py-3">
+                  No hay usuarios registrados.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
       <div className="flex justify-between items-center mt-4 bg-white">
         <p className="text-sm text-gray-600">
           Mostrando {indexOfFirstUser + 1} -{" "}

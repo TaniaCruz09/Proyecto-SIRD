@@ -29,6 +29,13 @@ const catalogSubmenu = [
   { label: "Años Lectivos", href: "/catalogo/anioLectivo", icon: FaUserPlus },
 ];
 
+const organizacionEscolarSubmenu = [
+  { label: "Organizacion/Año lectivo", href: "/organizacionEscolar/anioLectivo", icon: FaUser },
+  { label: "Grupos Educativos", href: "/organizacionEscolar/registerGroups", icon: FaUserPlus },
+  { label: "Grupos con Estudiantes", href: "/organizacionEscolar/gruposConEstudiantes", icon: FaUserPlus },
+];
+
+
 function NavbarAdmin() {
   const pathname = usePathname();
   const [openUsers, setOpenUsers] = useState(true);
@@ -50,6 +57,9 @@ function NavbarAdmin() {
       sessionStorage.setItem("sidebar-scroll", scrollRef.current.scrollTop.toString());
     }
   };
+  const [openUsers, setOpenUsers] = useState(false);
+  const [openCatalogs, setOpenCatalogs] = useState(false);
+  const [openOrganizacionEscolar, setOpenOrganizacionEscolar] = useState(false);
 
   const isActive = (route: string) =>
     pathname === route
@@ -149,15 +159,37 @@ function NavbarAdmin() {
           <FaCog />
           <span>Estudiantes</span>
         </Link>
-
         <Link
           href="/notasEstudiantes"
           scroll={false}
           className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}
           onClick={handleSaveScroll}
         >
+        {/* organizacion Escolar */}
+        <button
+          onClick={() => setOpenOrganizacionEscolar(!openOrganizacionEscolar)}
+          className={`flex items-center justify-between p-3 w-full rounded-md transition ${isActive("")}`}
+        >
+          <div className="flex items-center gap-3">
+            <VscFileSubmodule />
+            <span>Organizacion Escolar</span>
+          </div>
+          <FaChevronDown className={`${openOrganizacionEscolar ? "rotate-180" : ""} transition`} />
+        </button>
+
+        {openOrganizacionEscolar && (
+          <div className="ml-6 flex flex-col gap-1">
+            {organizacionEscolarSubmenu.map(({ label, href, icon: Icon }) => (
+              <Link key={href} href={href} className={`flex items-center gap-2 p-2 rounded-md text-sm transition ${isActive(href)}`}>
+                <Icon className="text-base" />
+                {label}
+              </Link>
+            ))}
+          </div>
+        )}
+        <Link href="/notasEstudiantes" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}>
           <FaCog />
-          <span>Grupos escolares</span>
+          <span>Calificaciones</span>
         </Link>
 
         <Link
@@ -173,5 +205,6 @@ function NavbarAdmin() {
     </nav>
   );
 }
+
 
 export default memo(NavbarAdmin);

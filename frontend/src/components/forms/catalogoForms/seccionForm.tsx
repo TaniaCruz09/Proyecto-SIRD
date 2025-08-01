@@ -1,5 +1,6 @@
-import { saveModalidad, updateModalidad } from "@/actions/catalogos/modalidadMethods";
-import { Modalidad, Seccion } from "@/interfaces";
+"use client"
+import { saveSeccion, updateSeccion } from "@/actions/catalogos/seccionMethods";
+import { Seccion } from "@/interfaces";
 import React, { useEffect, useState } from "react";
 
 interface SeccionFormProps {
@@ -17,33 +18,33 @@ export default function SeccionForm({
 
   //rellenar los campos si va a editar
   useEffect(() => {
-      if (defaultValues) {
-        setSeccion(defaultValues.seccion || "");
-      }
-    }, [defaultValues]);
+    if (defaultValues) {
+      setSeccion(defaultValues.seccion || "");
+    }
+  }, [defaultValues]);
 
-    //funcion que gaurda o edita
-  const handleSubmit = async (e: React.FormEvent)=>{
+  //funcion que gaurda o edita
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try{
-      if(isEdit && defaultValues?.id){
-        await updateModalidad(defaultValues.id, {modalidad: seccion})
+    try {
+      if (isEdit && defaultValues?.id) {
+        await updateSeccion(defaultValues.id, { seccion })
       } else {
-        await saveModalidad({modalidad: seccion})
+        await saveSeccion({ seccion })
       }
       onSuccess();
 
-    }catch (error) {
-      console.error("Error al guardar o actualizar modalidad:", error);
+    } catch (error) {
+      console.error("Error al guardar o actualizar seccion:", error);
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto px-2">
-      <h2 className="text-xl font-semibold text-gray-700 mb-4">{isEdit ? "Editar Modalidad" : "Agregar Modalidad"}</h2>
+      <h2 className="text-xl font-semibold text-gray-700 mb-4">{isEdit ? "Editar Seccion" : "Agregar Seccion"}</h2>
       <input
         type="text"
-        placeholder="Modalidad"
+        placeholder="Seccion"
         value={seccion}
         onChange={(e) => setSeccion(e.target.value)}
         className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"

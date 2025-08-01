@@ -1,11 +1,10 @@
 "use client";
 
-import getDocentes, {
-  deleteDocentes,
-} from "@/actions/docentesMethods/docentesMethods";
-import React, { useEffect, useState } from "react";
+
+import React, { useState } from "react";
 import ConfirmDeletModal from "../ModalConfirmDeletion";
 import BtnDelete from "../../Buttons/BtnDelete";
+import { deleteDocentes } from "@/actions/docentesMethods/docentesMethods";
 
 interface DeleteDocenteModalProps {
   idEliminar: number;
@@ -30,7 +29,7 @@ export default function DeleteDocenteModal({
       await deleteDocentes(docenteToDelete);
       await fetchDocentes();
     } catch (error) {
-      console.error("Error al eliminar usuario", error);
+      console.error("Error al eliminar docente", error);
     } finally {
       setShowConfirm(false);
       setDocenteToDelete(null);

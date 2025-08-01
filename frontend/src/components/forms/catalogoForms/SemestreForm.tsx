@@ -1,4 +1,4 @@
-import { saveModalidad, updateModalidad } from "@/actions/catalogos/modalidadMethods";
+"use client"
 import { saveSemestre, updateSemestre } from "@/actions/catalogos/semestreMethods";
 import { Semestre } from "@/interfaces";
 import React, { useEffect, useState } from "react";
@@ -19,29 +19,29 @@ export default function SemestreForm({
 
   //rellenar los campos si va a editar
   useEffect(() => {
-      if (defaultValues) {
-        setSemestre(defaultValues.semestre || "");
-        setAbreviatura(defaultValues.abreviatura || "");
-      }
-    }, [defaultValues]);
+    if (defaultValues) {
+      setSemestre(defaultValues.semestre || "");
+      setAbreviatura(defaultValues.abreviatura || "");
+    }
+  }, [defaultValues]);
 
-    //funcion que gaurda o edita
-  const handleSubmit = async (e: React.FormEvent)=>{
+  //funcion que gaurda o edita
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try{
+    try {
       const dataToSend = {
         semestre: semestre,
         abreviatura: abreviatura,
 
       };
-      if(isEdit && defaultValues?.id){
+      if (isEdit && defaultValues?.id) {
         await updateSemestre(defaultValues.id, dataToSend)
       } else {
         await saveSemestre(dataToSend)
       }
       onSuccess();
 
-    }catch (error) {
+    } catch (error) {
       console.error("Error al guardar o actualizar Semestre:", error);
     }
   }

@@ -1,5 +1,5 @@
-import { saveModalidad, updateModalidad } from "@/actions/catalogos/modalidadMethods";
-import { Etnia, Modalidad } from "@/interfaces";
+import { saveEtnia, updateEtnia } from "@/actions/catalogos/etniaMethods";
+import { Etnia } from "@/interfaces";
 import React, { useEffect, useState } from "react";
 
 interface EtniaFormProps {
@@ -17,33 +17,33 @@ export default function EtniaForm({
 
   //rellenar los campos si va a editar
   useEffect(() => {
-      if (defaultValues) {
-        setEtnia(defaultValues.etnia || "");
-      }
-    }, [defaultValues]);
+    if (defaultValues) {
+      setEtnia(defaultValues.etnia || "");
+    }
+  }, [defaultValues]);
 
-    //funcion que gaurda o edita
-  const handleSubmit = async (e: React.FormEvent)=>{
+  //funcion que gaurda o edita
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try{
-      if(isEdit && defaultValues?.id){
-        await updateModalidad(defaultValues.id, {modalidad: etnia})
+    try {
+      if (isEdit && defaultValues?.id) {
+        await updateEtnia(defaultValues.id, { etnia })
       } else {
-        await saveModalidad({modalidad: etnia})
+        await saveEtnia({ etnia })
       }
       onSuccess();
 
-    }catch (error) {
-      console.error("Error al guardar o actualizar modalidad:", error);
+    } catch (error) {
+      console.error("Error al guardar o actualizar la etnia:", error);
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto px-2">
-      <h2 className="text-xl font-semibold text-gray-700 mb-4">{isEdit ? "Editar Modalidad" : "Agregar Modalidad"}</h2>
+      <h2 className="text-xl feont-semibold text-gray-700 emb-4">{isEdit ? "Editar Etnia" : "Agregar Etnia"}</h2>
       <input
         type="text"
-        placeholder="Modalidad"
+        placeholder="Etnia"
         value={etnia}
         onChange={(e) => setEtnia(e.target.value)}
         className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"

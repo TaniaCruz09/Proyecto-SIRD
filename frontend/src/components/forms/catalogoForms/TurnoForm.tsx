@@ -18,30 +18,30 @@ export default function TurnoForm({
 
   //rellenar los campos si va a editar
   useEffect(() => {
-      if (defaultValues) {
-        setTurno(defaultValues.turno || "");
-      }
-    }, [defaultValues]);
+    if (defaultValues) {
+      setTurno(defaultValues.turno || "");
+    }
+  }, [defaultValues]);
 
-    //funcion que gaurda o edita
-  const handleSubmit = async (e: React.FormEvent)=>{
+  //funcion que gaurda o edita
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try{
-      if(isEdit && defaultValues?.id){
-        await updateTurno(defaultValues.id, {turno: turno})
+    try {
+      if (isEdit && defaultValues?.id) {
+        await updateTurno(defaultValues.id, { turno: turno })
       } else {
-        await saveTurno({turno: turno})
+        await saveTurno({ turno: turno })
       }
       onSuccess();
 
-    }catch (error) {
+    } catch (error) {
       console.error("Error al guardar o actualizar turno:", error);
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto px-2">
-      <h2 className="text-xl font-semibold text-gray-700 mb-4">{isEdit ? "Editar Modalidad" : "Agregar Modalidad"}</h2>
+      <h2 className="text-xl font-semibold text-gray-700 mb-4">{isEdit ? "Editar Turno" : "Agregar Turno"}</h2>
       <input
         type="text"
         placeholder="Turno"

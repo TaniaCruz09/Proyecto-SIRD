@@ -1,39 +1,39 @@
 import BtnDelete from '@/components/Buttons/BtnDelete'
 import React, { useState } from 'react'
 import ConfirmDeletModal from '../../ModalConfirmDeletion'
-import { deleteModalidad } from '@/actions/catalogos/modalidadMethods';
+import { deletePais } from '@/actions/catalogos/paisMethods';
 
 interface DeletePaisModalProps {
   idEliminar: number;
-  fetchModalidades: () => Promise<void>;
+  fetchPaises: () => Promise<void>;
 }
 
-export default function DeletePaisModal({idEliminar, fetchModalidades}:DeletePaisModalProps) {
-    const [modalidadToDelete, setModalidadToDelete] = useState<number | null>(null);
-      const [showConfirm, setShowConfirm] = useState<boolean>(false);
+export default function DeletePaisModal({ idEliminar, fetchPaises }: DeletePaisModalProps) {
+  const [paisToDelete, setPaisToDelete] = useState<number | null>(null);
+  const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
-      const handleDeleteClick = (id: number)=>{
-        setModalidadToDelete(id);
-        setShowConfirm(true);
-      }
+  const handleDeleteClick = (id: number) => {
+    setPaisToDelete(id);
+    setShowConfirm(true);
+  }
 
-      const confirmDelete = async ()=>{
-        if(!modalidadToDelete) return;
-        try{
-            await deleteModalidad(modalidadToDelete);
-            await fetchModalidades();
-        } catch (error) {
-            console.error("error al eliminar la modalidad", error)
-        } finally {
-            setShowConfirm(false);
-            setModalidadToDelete(null)
-        }
-      } 
-    
+  const confirmDelete = async () => {
+    if (!paisToDelete) return;
+    try {
+      await deletePais(paisToDelete);
+      await fetchPaises();
+    } catch (error) {
+      console.error("error al eliminar el Pais", error)
+    } finally {
+      setShowConfirm(false);
+      setPaisToDelete(null)
+    }
+  }
+
   return (
     <div>
-        <BtnDelete onClick={()=> handleDeleteClick(idEliminar)}/>
-        <ConfirmDeletModal onshow={showConfirm} onCancel={()=> setShowConfirm(false)} onConfirm={confirmDelete}/>
+      <BtnDelete onClick={() => handleDeleteClick(idEliminar)} />
+      <ConfirmDeletModal onshow={showConfirm} onCancel={() => setShowConfirm(false)} onConfirm={confirmDelete} />
     </div>
   )
 }

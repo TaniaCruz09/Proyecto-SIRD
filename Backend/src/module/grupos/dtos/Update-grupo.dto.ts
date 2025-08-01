@@ -7,6 +7,8 @@ import {
 } from 'class-validator';
 import { GradesEntity, Modalidad, Seccion, Turno } from '../../catalogos';
 import { Docentes } from '../../docentes/docentes.entity';
+import { OrganizacionEscolar } from '../entities/organizacionEscolar.entity.';
+import { GruposConEstudiantes } from '../entities/gruposConEstudiantes.entity';
 
 export class UpdateGrupoDto {
   @IsOptional()
@@ -32,6 +34,14 @@ export class UpdateGrupoDto {
   @IsOptional()
   @IsObject()
   docente?: Docentes;
+
+  @IsObject()
+  @IsOptional()
+  organizacionEscolar?: OrganizacionEscolar;
+
+  @IsObject()
+  @IsOptional()
+  grupoConEstudiantes?: GruposConEstudiantes;
 
   @IsOptional()
   @IsNumber()
