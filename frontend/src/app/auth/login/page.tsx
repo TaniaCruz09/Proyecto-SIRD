@@ -1,7 +1,8 @@
 'use client'
 
 import { saveLogin } from '@/actions/authMethods/loginMethods'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+
 import { useState } from 'react'
 
 export default function LoginPage() {
@@ -10,6 +11,9 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+
+  const searchParams = useSearchParams()
+  const sessionExpired = searchParams.get('expired') === 'true'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,6 +60,12 @@ export default function LoginPage() {
         <h1 className="text-2xl font-bold text-center text-blue-600">Inicia Sesión</h1>
 
         {error && <p className="text-red-500 text-center">{error}</p>} {/* Mensaje de error */}
+
+        {sessionExpired && (
+          <p className="text-yellow-600 bg-yellow-100 border border-yellow-300 p-3 rounded text-sm text-center">
+            Tu sesión ha caducado. Por favor, inicia sesión nuevamente.
+          </p>
+        )}
 
         <input
           type="email"

@@ -1,257 +1,88 @@
 'use client'
 
-import NavbarAdmin from "@/components/navbarAdmin";
-import React, { useState } from "react";
+import { FaChartBar, FaUsers, FaCogs } from 'react-icons/fa'
+import { motion } from 'framer-motion'
+import NavbarAdmin from '@/components/navbarAdmin'
+import { FaArrowUpRightFromSquare } from 'react-icons/fa6'
+import CerrarSecion from '@/components/cerrarSesion'
+import Link from 'next/link'
 
-type Estudiante = {
-  id: number;
-  nombre: string;
-  notaMatematicas?: number;
-  notaCiencias?: number;
-};
-
-type SeccionDocente = {
-  id: number;
-  nombre: string; // Ej: "6° A"
-  estudiantes: Estudiante[];
-};
-
-type MateriaDocente = {
-  id: number;
-  nombre: string;
-  secciones: SeccionDocente[];
-};
-
-// Datos simulados
-
-const materiasDocente: MateriaDocente[] = [
-  {
-    id: 1,
-    nombre: "Matemáticas",
-    secciones: [
-      {
-        id: 101,
-        nombre: "6° A",
-        estudiantes: [
-          { id: 1, nombre: "Ana López", notaMatematicas: 85 },
-          { id: 2, nombre: "Carlos Martínez", notaMatematicas: 78 },
-        ],
-      },
-      {
-        id: 102,
-        nombre: "7° B",
-        estudiantes: [
-          { id: 3, nombre: "Luisa Torres", notaMatematicas: 95 },
-          { id: 4, nombre: "Pedro Gómez" },
-        ],
-      },
-    ],
-  },
-  {
-    id: 2,
-    nombre: "Ciencias",
-    secciones: [
-      {
-        id: 201,
-        nombre: "6° A",
-        estudiantes: [
-          { id: 1, nombre: "Ana López", notaCiencias: 90 },
-          { id: 2, nombre: "Carlos Martínez", notaCiencias: 80 },
-        ],
-      },
-    ],
-  },
-];
-
-export default function VistaDocente() {
-  const [materiaSeleccionada, setMateriaSeleccionada] = useState<MateriaDocente>(
-    materiasDocente[0]
-  );
-  const [seccionSeleccionada, setSeccionSeleccionada] = useState<SeccionDocente>(
-    materiasDocente[0].secciones[0]
-  );
-
-  const [estudianteActivo, setEstudianteActivo] = useState<Estudiante | null>(null);
-  const [notaEdit, setNotaEdit] = useState<number | "">("");
-
-  // Cambiar sección al cambiar materia
-  const onChangeMateria = (id: number) => {
-    const materia = materiasDocente.find((m) => m.id === id);
-    if (materia) {
-      setMateriaSeleccionada(materia);
-      setSeccionSeleccionada(materia.secciones[0]);
-      setEstudianteActivo(null);
-      setNotaEdit("");
-    }
-  };
-
-  // Cambiar sección
-  const onChangeSeccion = (id: number) => {
-    const seccion = materiaSeleccionada.secciones.find((s) => s.id === id);
-    if (seccion) {
-      setSeccionSeleccionada(seccion);
-      setEstudianteActivo(null);
-      setNotaEdit("");
-    }
-  };
-
-  const abrirModal = (est: Estudiante) => {
-    setEstudianteActivo(est);
-    const nota = materiaSeleccionada.nombre === "Matemáticas" ? est.notaMatematicas : est.notaCiencias;
-    setNotaEdit(nota ?? "");
-  };
-
-  const guardarNota = () => {
-    if (!estudianteActivo) return;
-    // Aquí normalmente harías un POST o PUT al backend para guardar la nota.
-    // Por simplicidad, vamos a simular guardado en estado (no persistente)
-
-    // Actualizamos estado local
-    seccionSeleccionada.estudiantes = seccionSeleccionada.estudiantes.map((est) =>
-      est.id === estudianteActivo.id
-        ? {
-            ...est,
-            ...(materiaSeleccionada.nombre === "Matemáticas"
-              ? { notaMatematicas: Number(notaEdit) }
-              : { notaCiencias: Number(notaEdit) }),
-          }
-        : est
-    );
-    setEstudianteActivo(null);
-  };
-
+export default function HomePage() {
   return (
-    <div className="flex h-screen">
-        <div>
-            <NavbarAdmin/>
-        </div>
-    <div className="w-screen p-6 bg-gray-100 mx-auto min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-center">Panel docente</h1>
+    <div className="flex h-screen bg-white">
+      <div>
+        <NavbarAdmin />
+      </div>
+      <div className="w-screen p-6 text-center bg-gray-100 overflow-auto">
+        <div className="flex items-center justify-between">
 
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
-        {/* Selector materia */}
-        <div className="flex-1">
-          <label className="block mb-2 font-semibold">Materia que impartes</label>
-          <select
-            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            value={materiaSeleccionada.id}
-            onChange={(e) => onChangeMateria(Number(e.target.value))}
-          >
-            {materiasDocente.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.nombre}
-              </option>
-            ))}
-          </select>
+          <h2 className="text-2xl md:text-2xl font-bold text-blue-900 drop-shadow-md mb-6">
+            Página de inicio
+          </h2>
+          <CerrarSecion />
         </div>
+        <h2 className="text-2xl md:text-3xl font-bold text-blue-900 drop-shadow-md mb-6">
+          Bienvenido Docente al Sistema de Calificaciones SIRD
+        </h2>
+        <p className="text-lg text-blue-800 mb-12">
+          Accede fácilmente a tus funciones principales desde aquí
+        </p>
 
-        {/* Selector sección */}
-        <div className="flex-1">
-          <label className="block mb-2 font-semibold">Sección</label>
-          <select
-            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            value={seccionSeleccionada.id}
-            onChange={(e) => onChangeSeccion(Number(e.target.value))}
-          >
-            {materiaSeleccionada.secciones.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.nombre}
-              </option>
-            ))}
-          </select>
+        <div className="flex items-center bg-white rounded-t-xl pl-3 font-semibold text-black">
+          <FaArrowUpRightFromSquare />
+          <p className="pl-2">
+            Accesos directos
+          </p>
+        </div>
+        {/* Tarjetas de acceso directo */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 place-items-center bg-white border rounded-b-xl p-8">
+          {/* Tarjeta 1 */}
+          <Card
+            icon={<FaChartBar className="text-black text-4xl mb-4" />}
+            title="Calificaciones"
+            description="Consulta el avance académico de los estudiantes"
+            bgColor='bg-green-600/50 hover:bg-green-500/70" hover:shadow-2xl'
+            href='/calificaciones'
+          />
+
+          {/* Tarjeta 2 */}
+          <Card
+            icon={<FaUsers className="text-black text-4xl mb-4" />}
+            title="Gestión de Estudiantes"
+            description="Administra los datos de los estudiantes fácilmente"
+            bgColor='bg-yellow-500/40 hover:shadow-2xl hover:bg-yellow-400/60'
+            href='registerEstudent'
+          />
+
+          {/* Tarjeta 3 */}
+          <Card
+            icon={<FaCogs className="text-black text-4xl mb-4" />}
+            title="onfiguración"
+            description="Ajustes del sistema y gestión de usuarios"
+            bgColor='bg-blue-500/30 hover:shadow-2xl hover:bg-blue-400/50'
+            href='/admin/configuracion'
+          />
         </div>
       </div>
-
-      {/* Tabla estudiantes */}
-      <div className="overflow-x-auto bg-white rounded shadow">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-indigo-600 text-white">
-            <tr>
-              <th className="px-6 py-3 text-center">#</th>
-              <th className="px-6 py-3 text-left">Estudiante</th>
-              <th className="px-6 py-3 text-center">{materiaSeleccionada.nombre}</th>
-              <th className="px-6 py-3 text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {seccionSeleccionada.estudiantes.length === 0 && (
-              <tr>
-                <td colSpan={4} className="text-center py-4 text-gray-500">
-                  No hay estudiantes
-                </td>
-              </tr>
-            )}
-
-            {seccionSeleccionada.estudiantes.map((est, idx) => {
-              const nota =
-                materiaSeleccionada.nombre === "Matemáticas"
-                  ? est.notaMatematicas
-                  : est.notaCiencias;
-              return (
-                <tr key={est.id} className="hover:bg-indigo-50 cursor-pointer">
-                  <td className="px-6 py-3 text-center">{idx + 1}</td>
-                  <td className="px-6 py-3">{est.nombre}</td>
-                  <td className="px-6 py-3 text-center">{nota ?? "-"}</td>
-                  <td className="px-6 py-3 text-center">
-                    <button
-                      onClick={() => abrirModal(est)}
-                      className="inline-block rounded bg-indigo-600 px-3 py-1 text-white text-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-                    >
-                      Editar nota
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Modal para editar nota */}
-      {estudianteActivo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-lg relative">
-            <button
-              onClick={() => setEstudianteActivo(null)}
-              className="absolute top-4 right-4 text-gray-600 hover:text-gray-800 focus:outline-none"
-              aria-label="Cerrar modal"
-            >
-              ✕
-            </button>
-            <h2 className="text-xl font-bold mb-4">
-              Editar nota: {estudianteActivo.nombre}
-            </h2>
-
-            <label className="block mb-2 font-semibold">{materiaSeleccionada.nombre}</label>
-            <input
-              type="number"
-              min={0}
-              max={100}
-              value={notaEdit}
-              onChange={(e) =>
-                setNotaEdit(e.target.value === "" ? "" : Number(e.target.value))
-              }
-              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-
-            <div className="flex justify-end mt-6 gap-4">
-              <button
-                onClick={() => setEstudianteActivo(null)}
-                className="px-4 py-2 border rounded hover:bg-gray-100"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={guardarNota}
-                className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-              >
-                Guardar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
-    </div>
-  );
+  )
 }
+
+// Componente de tarjeta reutilizable
+function Card({ icon, title, description, bgColor, href }: { icon: React.ReactNode, title: string, description: string, bgColor: string, href: string }) {
+  return (
+    <Link href={href}>
+
+      <motion.div
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.98 }}
+        className={`w-75 ${bgColor} rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer`}
+      >
+        {icon}
+        <h2 className="text-xl font-semibold text-black">{title}</h2>
+        <p className="text-sm text-black mt-2 text-center">{description}</p>
+      </motion.div>
+    </Link>
+  )
+}
+
