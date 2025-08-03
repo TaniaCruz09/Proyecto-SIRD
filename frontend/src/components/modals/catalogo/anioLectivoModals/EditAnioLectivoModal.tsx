@@ -2,7 +2,7 @@ import BtnOpenEditModal from '@/components/Buttons/btnOpenEditModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase';
 import { AnioLectivo } from '@/interfaces';
-import AñoLectivoForm from '@/components/forms/organizacionEscolarForms/anioLectivoForm';
+import AñoLectivoForm from '@/components/forms/catalogoForms/anioLectivoForm';
 
 interface EditAñoLectivoModalProp {
     añoLectivo: AnioLectivo;

@@ -4,7 +4,7 @@ import { getAniosLectivos } from "@/actions/catalogos/anioLectivoMethods";
 import AddAniosLectivosModal from "@/components/modals/catalogo/anioLectivoModals/AddAnioLectivoModal";
 import NavbarAdmin from "@/components/navbarAdmin";
 import SearchBar from "@/components/SearchBar";
-import AnioLectivoTable from "@/components/tables/organizacionEscolar/AnioLectivoTable";
+import AnioLectivoTable from "@/components/tables/catalogo/AnioLectivoTable";
 import { AnioLectivo } from "@/interfaces";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";

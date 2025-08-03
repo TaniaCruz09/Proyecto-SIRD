@@ -1,7 +1,7 @@
 import BtnOpenAddModal from '@/components/Buttons/btnOpenAddModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase'
-import AñoLectivoForm from '@/components/forms/organizacionEscolarForms/anioLectivoForm'
+import AñoLectivoForm from '@/components/forms/catalogoForms/anioLectivoForm'
 
 interface AddAniosLectivosModalProp {
   fetchAniosLectivos: () => Promise<void>
