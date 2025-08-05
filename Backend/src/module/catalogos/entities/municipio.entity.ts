@@ -37,7 +37,7 @@ export class Municipio {
   @OneToMany(() => Centro, (centro) => centro.municipio)
   centro?: Centro[];
 
-  @ManyToOne(() => Departamento)
+  @ManyToOne(() => Departamento, (departamento) => departamento.municipio)
   @JoinColumn({ name: 'departamento_id' })
   departamento: Departamento;
 

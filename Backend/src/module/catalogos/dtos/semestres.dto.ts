@@ -23,7 +23,7 @@ export class SemestreDto {
 
   @IsObject()
   @IsOptional()
-  corte?: Cortes;
+  corte?: Cortes[];
 
   @IsOptional()
   @IsNumber()

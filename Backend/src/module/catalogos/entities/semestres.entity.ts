@@ -38,7 +38,7 @@ export class SemestreEntity {
   semestre: string;
 
   @OneToMany(() => Cortes, (cortes) => cortes.semestre)
-  corte?: Cortes;
+  corte?: Cortes[];
 
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo
   user_create_id: number;
