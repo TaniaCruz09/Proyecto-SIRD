@@ -8,17 +8,17 @@ import { DocentesModule } from './module/docentes/docentes.module';
 import { AuthModule } from './module/auth/auth.module';
 import { StudetnModule } from './module/createEstudents/students.module';
 import { CalificacionesModule } from './module/calificaciones/calificaciones.module';
-import { GruposModule } from './module/grupos/grupos.module';
 import { CentroModule } from './module/centroEducativo/centro.module';
+import { OrganizacionEscolarModule } from './module/organizacionEscolar/organizacionEscolar.module';
 
 
 @Module({
   imports: [ConfigModule.forRoot({
     envFilePath: '.env',
     isGlobal: true,
-  }), DatabaseModule,  CatalogoModule, DocentesModule, AuthModule, StudetnModule, CalificacionesModule, GruposModule, CentroModule],
+  }), DatabaseModule, CatalogoModule, DocentesModule, AuthModule, StudetnModule, CalificacionesModule, OrganizacionEscolarModule, CentroModule],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
 

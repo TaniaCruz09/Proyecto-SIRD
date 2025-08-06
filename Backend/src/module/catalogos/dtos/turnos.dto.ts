@@ -8,7 +8,7 @@ import {
   MaxLength,
 } from 'class-validator';
 
-export class createTurnoDto {
+export class CreateTurnoDto {
   @IsOptional()
   @IsNumber()
   id: number;

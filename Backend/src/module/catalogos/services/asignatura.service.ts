@@ -3,33 +3,33 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Asignatura } from "../entities/asignatura.entity";
 import { Repository } from "typeorm";
 import { Utilities } from "../../../common/helpers/utilities";
-import { createAsignaturaDto } from "../dtos/asignatura.dto";
+import { CreateAsignaturaDto } from "../dtos/asignatura.dto";
 
 @Injectable()
 export class AsignaturaService {
     constructor(
         @InjectRepository(Asignatura)
-        private readonly asignaturaRepository: Repository <Asignatura>,
-    ) {}
+        private readonly asignaturaRepository: Repository<Asignatura>,
+    ) { }
 
     // Funcion para crear asignatura
     // Asignatira por createAsignaturaDto
-    async create(payload: createAsignaturaDto ): Promise<Asignatura> {
+    async create(payload: CreateAsignaturaDto): Promise<Asignatura> {
         try {
             const asignatura = await this.asignaturaRepository.create(payload);
             return await this.asignaturaRepository.save(asignatura);
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
     // Funcion para buscar una asignatura por su id
-    async findOne (id: number): Promise<Asignatura> {
+    async findOne(id: number): Promise<Asignatura> {
         try {
-            const asignatura = await this.asignaturaRepository.findOne({where: { id }});
+            const asignatura = await this.asignaturaRepository.findOne({ where: { id } });
             return asignatura;
-        } catch (error){
-            Utilities.catchError (error)
+        } catch (error) {
+            Utilities.catchError(error)
         }
     }
 
@@ -38,7 +38,7 @@ export class AsignaturaService {
             const asignatura = await this.asignaturaRepository.find();
             return asignatura;
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
@@ -50,12 +50,12 @@ export class AsignaturaService {
 
             Object.assign(asignatura, payload);
 
-            asignatura.update_at = new Date ();
+            asignatura.update_at = new Date();
             asignatura.user_update_id;
 
             return await this.asignaturaRepository.save(asignatura);
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
@@ -70,8 +70,8 @@ export class AsignaturaService {
 
             return await this.asignaturaRepository.save(asignatura)
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
-        
+
     }
 }

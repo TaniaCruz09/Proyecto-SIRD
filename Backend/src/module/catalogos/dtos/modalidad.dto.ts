@@ -8,14 +8,14 @@ import {
   MaxLength,
 } from 'class-validator';
 
-export class createModalidadDto {
+export class CreateModalidadDto {
   @IsOptional()
   @IsNumber()
   id: number;
 
   @IsNotEmpty()
   @IsString()
- // @MaxLength(100)
+  // @MaxLength(100)
   modalidad: string;
 
   @IsOptional()

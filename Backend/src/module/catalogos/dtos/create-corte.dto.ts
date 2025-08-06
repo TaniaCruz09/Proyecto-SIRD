@@ -9,7 +9,7 @@ import {
 } from 'class-validator';
 import { SemestreEntity } from '../entities/semestres.entity';
 
-export class createCortesDto {
+export class CreateCortesDto {
   @IsOptional()
   @IsNumber()
   id?: number;

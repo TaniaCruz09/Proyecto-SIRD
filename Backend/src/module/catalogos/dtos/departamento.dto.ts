@@ -7,7 +7,7 @@ import {
   MaxLength,
 } from 'class-validator';
 
-export class createDepartamentoDto {
+export class CreateDepartamentoDto {
   @IsOptional()
   @IsNumber()
   id: number;

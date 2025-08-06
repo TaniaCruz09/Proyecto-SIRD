@@ -12,7 +12,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { ModalidadService } from '../services/modalidad.service';
-import { createModalidadDto } from '../dtos/modalidad.dto';
+import { CreateModalidadDto } from '../dtos/modalidad.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Utilities } from '../../../common/helpers/utilities';
 import { JwtAuthGuard } from 'src/module/auth/guards/jwt.guard';
@@ -22,7 +22,7 @@ import { JwtAuthGuard } from 'src/module/auth/guards/jwt.guard';
 @UseGuards(JwtAuthGuard)
 @Controller('modalidad')
 export class ModalidadController {
-  constructor(private readonly modalidadService: ModalidadService) {}
+  constructor(private readonly modalidadService: ModalidadService) { }
 
   @Get('/')
   async findAll() {
@@ -53,7 +53,7 @@ export class ModalidadController {
   }
 
   @Post('/')
-  async create(@Body() payload: createModalidadDto, @Req() req) {
+  async create(@Body() payload: CreateModalidadDto, @Req() req) {
     try {
       const userId = req.user?.id; //obtener el ID del usuario autenticado
 
@@ -81,7 +81,7 @@ export class ModalidadController {
   @Put('/:id')
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() payload: createModalidadDto,
+    @Body() payload: CreateModalidadDto,
     @Req() req, // Capturar el usuario autenticado
   ) {
     try {

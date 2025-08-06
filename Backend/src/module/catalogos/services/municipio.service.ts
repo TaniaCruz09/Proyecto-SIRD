@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Municipio } from "../entities/municipio.entity";
 import { Repository } from "typeorm";
 import { Utilities } from "../../../common/helpers/utilities";
-import { createMunicipioDto } from "../dtos/municipio.dto";
+import { CreateMunicipioDto } from "../dtos/municipio.dto";
 
 @Injectable()
 export class MunicipioService {
@@ -12,7 +12,7 @@ export class MunicipioService {
         private municipioRepository: Repository<Municipio>,
     ) { }
 
-    async create(Payload: createMunicipioDto): Promise<Municipio> {
+    async create(Payload: CreateMunicipioDto): Promise<Municipio> {
         try {
             const municipio = await this.municipioRepository.create(Payload)
             return await this.municipioRepository.save(municipio);

@@ -9,7 +9,7 @@ import {
 } from 'class-validator';
 import { Departamento } from '../entities/departamento.entity';
 
-export class createMunicipioDto {
+export class CreateMunicipioDto {
   @IsOptional()
   @IsNumber()
   readonly id: number;

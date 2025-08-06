@@ -1,29 +1,29 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query, ParseIntPipe, UseGuards, Req } from '@nestjs/common';
 import { DepartamentoService } from '../services/departamento.service';
-import { createDepartamentoDto } from '../dtos/departamento.dto';
+import { CreateDepartamentoDto } from '../dtos/departamento.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Utilities } from '../../../common/helpers/utilities';
 import { JwtAuthGuard } from 'src/module/auth/guards/jwt.guard';
 
 
-    @ApiTags('Departamento')
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard)
-    @Controller('departamento')
-    export class DepartamentoController {
-    constructor(private readonly departamentoService: DepartamentoService) {}
+@ApiTags('Departamento')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller('departamento')
+export class DepartamentoController {
+    constructor(private readonly departamentoService: DepartamentoService) { }
 
     @Get('/')
     async findAll() {
         try {
             const departamento = await this.departamentoService.findAll();
             const data = {
-            data: departamento,
-            message: 'ok',
+                data: departamento,
+                message: 'ok',
             };
             return data;
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
@@ -32,22 +32,22 @@ import { JwtAuthGuard } from 'src/module/auth/guards/jwt.guard';
         try {
             const departamento = await this.departamentoService.findOne(id);
             const data = {
-            data: departamento,
-            message: 'ok',
+                data: departamento,
+                message: 'ok',
             };
             return data;
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
     @Post('/')
-    async create(@Body() payload: createDepartamentoDto, @Req() req){
+    async create(@Body() payload: CreateDepartamentoDto, @Req() req) {
         try {
             const userId = req.user?.id;
 
             if (!userId) {
-                return { 
+                return {
                     message: 'No se encontró el usuario',
                     statusCode: 401
                 };
@@ -57,21 +57,21 @@ import { JwtAuthGuard } from 'src/module/auth/guards/jwt.guard';
 
             const newDepartamento = await this.departamentoService.create(payload);
             const data = {
-            data: newDepartamento,
-            message: 'Departamento creado correctamente',
+                data: newDepartamento,
+                message: 'Departamento creado correctamente',
             };
             return data;
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
     @Put('/:id')
     async update(
-        @Param('id', ParseIntPipe) id: number, 
-        @Body() payload: createDepartamentoDto,
+        @Param('id', ParseIntPipe) id: number,
+        @Body() payload: CreateDepartamentoDto,
         @Req() req
-    ){
+    ) {
         try {
             const userId = req.user?.id;
             if (!userId) {
@@ -85,11 +85,11 @@ import { JwtAuthGuard } from 'src/module/auth/guards/jwt.guard';
 
             const departamento = await this.departamentoService.update(id, payload);
             return {
-            data: departamento,
-            message: 'Departamento actualizado correctamente',
+                data: departamento,
+                message: 'Departamento actualizado correctamente',
             };
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
@@ -106,11 +106,11 @@ import { JwtAuthGuard } from 'src/module/auth/guards/jwt.guard';
             }
             const departamento = await this.departamentoService.delete(id, userId);
             return {
-            data: departamento,
-            message: 'Departamento eliminado correctamente',
+                data: departamento,
+                message: 'Departamento eliminado correctamente',
             };
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
-    }
+}

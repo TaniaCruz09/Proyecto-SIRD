@@ -7,7 +7,7 @@ import {
   MaxLength,
 } from 'class-validator';
 
-export class createAsignaturaDto {
+export class CreateAsignaturaDto {
   @IsOptional()
   @IsNumber()
   id: number;
