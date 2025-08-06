@@ -1,8 +1,11 @@
 "use client";
 
 import { getEtnias } from '@/actions/catalogos/etniaMethods';
+import AddEtniaModal from '@/components/modals/catalogo/etniaModals/AddEtniaModal';
+import AddProfesionModal from '@/components/modals/catalogo/profesionModals/AddProfesionModal';
 import NavbarAdmin from '@/components/navbarAdmin'
 import SearchBar from '@/components/SearchBar';
+import EtniaTable from '@/components/tables/catalogo/EtniaTable';
 import { Etnia } from '@/interfaces';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
@@ -44,7 +47,7 @@ export default function Page() {
         <div  className="flex items-center justify-between">
           <h1 className="ml-10 text-2xl font-bold mb-4 tracking-tight text-gray-600 text-center">Etnias</h1>
           <div className="flex justify-end mr-10 mb-6 mt-5">
-            --
+            <AddEtniaModal fetchEtnias={fetchEtnia} />
           </div>
         </div>
         <div className="flex items-center justify-between bg-white border rounded-t-xl">
@@ -56,7 +59,7 @@ export default function Page() {
                       placeholder="Buscar Etnia"
                     />
         </div>
-        --
+        <EtniaTable etnias={filteredEtnia} fetchEtnias={fetchEtnia} />
       </div>
     </div>
   )

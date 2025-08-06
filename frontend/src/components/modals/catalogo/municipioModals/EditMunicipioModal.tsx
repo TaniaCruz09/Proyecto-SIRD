@@ -1,15 +1,16 @@
 import BtnOpenEditModal from '@/components/Buttons/btnOpenEditModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase';
-import ModalidadForm from '@/components/forms/catalogoForms/ModalidadForm';
-import { Modalidad } from '@/interfaces';
+
+import { Municipio } from '@/interfaces';
+import MunicipioForm from '@/components/forms/catalogoForms/MunicipioForm';
 
 interface EditMunicipioModalProp{
-    modalidad: Modalidad;
-    fetchModalidad: () => Promise<void>;
+    municipio: Municipio;
+    fetchMunicipio: () => Promise<void>;
 }
 
-export default function EditMunicipioModal({modalidad, fetchModalidad}:EditMunicipioModalProp) {
+export default function EditMunicipioModal({municipio: municipio, fetchMunicipio}:EditMunicipioModalProp) {
     const [showModal, setShowModal] = useState(false);
   return (
     <div>
@@ -19,10 +20,10 @@ export default function EditMunicipioModal({modalidad, fetchModalidad}:EditMunic
                 onshowModal={showModal}
                 onCloseModal={()=> setShowModal(false)}
                 content={
-                    <ModalidadForm
-                    defaultValues={modalidad}
+                    <MunicipioForm
+                    defaultValues={municipio}
                     onSuccess={()=>{
-                        fetchModalidad();
+                        fetchMunicipio();
                         setShowModal(false);
                     }}
                     />

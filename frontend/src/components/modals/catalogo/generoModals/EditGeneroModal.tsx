@@ -1,15 +1,15 @@
 import BtnOpenEditModal from '@/components/Buttons/btnOpenEditModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase';
-import ModalidadForm from '@/components/forms/catalogoForms/ModalidadForm';
-import { Modalidad } from '@/interfaces';
+import { Sexo } from '@/interfaces';
+import SexoForm from '@/components/forms/catalogoForms/GeneroForm';
 
 interface EditSexoModalProp{
-    modalidad: Modalidad;
-    fetchModalidad: () => Promise<void>;
+    genero: Sexo;
+    fetchGenero: () => Promise<void>;
 }
 
-export default function EditSexoModal({modalidad, fetchModalidad}:EditSexoModalProp) {
+export default function EditSexoModal({genero: genero, fetchGenero}:EditSexoModalProp) {
     const [showModal, setShowModal] = useState(false);
   return (
     <div>
@@ -19,10 +19,10 @@ export default function EditSexoModal({modalidad, fetchModalidad}:EditSexoModalP
                 onshowModal={showModal}
                 onCloseModal={()=> setShowModal(false)}
                 content={
-                    <ModalidadForm
-                    defaultValues={modalidad}
+                    <SexoForm
+                    defaultValues={genero}
                     onSuccess={()=>{
-                        fetchModalidad();
+                        fetchGenero();
                         setShowModal(false);
                     }}
                     />

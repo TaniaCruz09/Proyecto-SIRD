@@ -1,32 +1,32 @@
 import BtnDelete from '@/components/Buttons/BtnDelete'
 import React, { useState } from 'react'
 import ConfirmDeletModal from '../../ModalConfirmDeletion'
-import { deleteModalidad } from '@/actions/catalogos/modalidadMethods';
+import { deleteMunicipio } from '@/actions/catalogos/municipioMethods';
 
 interface DeleteMunicipioModalProps {
   idEliminar: number;
-  fetchModalidades: () => Promise<void>;
+  fetchMunicipios: () => Promise<void>;
 }
 
-export default function DeleteMunicipioModal({idEliminar, fetchModalidades}:DeleteMunicipioModalProps) {
-    const [modalidadToDelete, setModalidadToDelete] = useState<number | null>(null);
+export default function DeleteMunicipioModal({idEliminar, fetchMunicipios}:DeleteMunicipioModalProps) {
+    const [municipioToDelete, setMunicipioToDelete] = useState<number | null>(null);
       const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
       const handleDeleteClick = (id: number)=>{
-        setModalidadToDelete(id);
+        setMunicipioToDelete(id);
         setShowConfirm(true);
       }
 
       const confirmDelete = async ()=>{
-        if(!modalidadToDelete) return;
+        if(!municipioToDelete) return;
         try{
-            await deleteModalidad(modalidadToDelete);
-            await fetchModalidades();
+            await deleteMunicipio(municipioToDelete);
+            await fetchMunicipios();
         } catch (error) {
-            console.error("error al eliminar la modalidad", error)
+            console.error("error al eliminar la municipio", error)
         } finally {
             setShowConfirm(false);
-            setModalidadToDelete(null)
+            setMunicipioToDelete(null)
         }
       } 
     
