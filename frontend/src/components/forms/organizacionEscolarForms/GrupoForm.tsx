@@ -26,12 +26,6 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
     const [turno, setTurno] = useState<string>("")
     const [turnos, setTurnos] = useState<Turno[]>([])
 
-    const [docente, setDocente] = useState<string>("")
-    const [docentes, setDocentes] = useState<Docente[]>([])
-
-    const [organizacionEscolar, setOrganizacionEscolar] = useState<string>("")
-    const [organizacionesEscolares, setOrganizacionesEscolares] = useState<AnioLectivo[]>([])
-
     const isEdit = Boolean(defaultValues?.id);
 
     useEffect(() => {
@@ -52,13 +46,10 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
                     getTurnos(),
                     getDocentes()
                 ]);
-
-                setOrganizacionesEscolares(organizacionEscolarData);
                 setGrados(gradoData);
                 setSecciones(seccionData);
                 setModalidades(modalidadData);
                 setTurnos(turnoData);
-                setDocentes(docenteData)
             } catch (error) {
                 console.error("Error al cargar los datos del formulario:", error);
             }
@@ -73,16 +64,12 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
             const selectedSeccion = secciones.find((s) => s.id === parseInt(seccion));
             const selectedModalidad = modalidades.find((m) => m.id === parseInt(modalidad));
             const selectedTurno = turnos.find((t) => t.id === parseInt(turno));
-            const selectedDocente = docentes.find((d) => d.id === parseInt(docente));
-            const selectedOrganizacionEscolar = organizacionesEscolares.find((o) => o.id === parseInt(organizacionEscolar));
 
             if (
                 !selectedGrado ||
                 !selectedSeccion ||
                 !selectedModalidad ||
-                !selectedTurno ||
-                !selectedDocente ||
-                !selectedOrganizacionEscolar
+                !selectedTurno
             ) {
                 console.error("Faltan campos requeridos");
                 return;
@@ -93,8 +80,6 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
                 seccion: selectedSeccion,
                 modalidad: selectedModalidad,
                 turno: selectedTurno,
-                docente: selectedDocente,
-                organizacionEscolar: selectedOrganizacionEscolar
             }
             if (isEdit && defaultValues?.id) {
                 await updateGrupo(defaultValues.id, grupoData);
@@ -109,12 +94,10 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
 
     useEffect(() => {
         if (defaultValues) {
-            setOrganizacionEscolar(defaultValues.organizacionEscolar?.id?.toString() || "");
             setGrado(defaultValues.grado?.id?.toString() || "");
             setSeccion(defaultValues.seccion?.id?.toString() || "");
             setModalidad(defaultValues.modalidad?.id?.toString() || "");
             setTurno(defaultValues.turno?.id?.toString() || "");
-            setDocente(defaultValues.docente?.id?.toString() || "")
         }
     }, [defaultValues])
     return (
@@ -122,20 +105,6 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
             <h2 className="text-xl font-semibold text-gray-700">
                 {isEdit ? "Editar Grupo" : "Agregar Nuevo Grupo"}
             </h2>
-            <select
-                name="anio_lectivo"
-                id="anio_lectivo"
-                className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-                value={organizacionEscolar}
-                onChange={(e) => setOrganizacionEscolar(e.target.value)}
-            >
-                <option value="">Año Lectivo</option>
-                {organizacionesEscolares?.map((r) => (
-                    <option key={r.id} value={r.id}>
-                        {r.anio_lectivo}
-                    </option>
-                ))}
-            </select>
             <select
                 name="grado"
                 id="grado"
@@ -165,20 +134,6 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
                 ))}
             </select>
             <select
-                name="modalidad"
-                id="modalidad"
-                className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-                value={modalidad}
-                onChange={(e) => setModalidad(e.target.value)}
-            >
-                <option value="">Modalidad</option>
-                {modalidades?.map((r) => (
-                    <option key={r.id} value={r.id}>
-                        {r.modalidad}
-                    </option>
-                ))}
-            </select>
-            <select
                 name="turno"
                 id="turno"
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
@@ -193,16 +148,16 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
                 ))}
             </select>
             <select
-                name="docente"
-                id="docente"
+                name="modalidad"
+                id="modalidad"
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-                value={docente}
-                onChange={(e) => setDocente(e.target.value)}
+                value={modalidad}
+                onChange={(e) => setModalidad(e.target.value)}
             >
-                <option value="">Docente Guia</option>
-                {docentes?.map((r) => (
+                <option value="">Modalidad</option>
+                {modalidades?.map((r) => (
                     <option key={r.id} value={r.id}>
-                        {r.nombres}
+                        {r.modalidad}
                     </option>
                 ))}
             </select>

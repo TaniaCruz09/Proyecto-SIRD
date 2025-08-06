@@ -6,11 +6,12 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
+  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { GruposConEstudiantes } from 'src/module/grupos/entities/gruposConEstudiantes.entity';
+import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity.';
 
 @Entity({ schema: 'catalogos', name: 'asignatura' })
 export class Asignatura {
@@ -23,6 +24,9 @@ export class Asignatura {
     name: 'asignatura',
   })
   asignatura: string;
+
+  @ManyToMany(() => OrganizacionEscolar, (org) => org.asignaturas)
+  organizacionesEscolares?: OrganizacionEscolar[];
 
   // ID del Usuario que creo el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true })
@@ -78,9 +82,4 @@ export class Asignatura {
   @JoinColumn({ name: 'deleted_at_id' }) // Se enlaza con el usuario que eliminó el registro
   user_delete: User;
 
-  @ManyToOne(
-    () => GruposConEstudiantes,
-    (gruposConEstudiante) => gruposConEstudiante.asignatura,
-  )
-  gruposConEstudiante?: GruposConEstudiantes;
 }

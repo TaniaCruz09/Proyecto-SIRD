@@ -15,26 +15,24 @@ import { Grupos } from './grupos.entity';
 import { User } from '../../auth/entities';
 import * as moment from 'moment-timezone';
 import { Asignatura } from 'src/module/catalogos';
+import { OrganizacionEscolar } from './organizacionEscolar.entity.';
 
-@Entity({ name: 'gruposConEstudiantes', schema: 'grupos'  })
-export class GruposConEstudiantes {
+@Entity({ name: 'organizacion_con_estudiante', schema: 'organizacion_escolar' })
+export class OrganizacionConEstudiantes {
   @PrimaryGeneratedColumn({
     name: 'id',
     type: 'int2',
   })
   id: number;
 
-  @ManyToMany(() => Grupos, (grupo) => grupo.grupoConEstudiantes)
-  grupo: Grupos;
+  @ManyToOne(() => OrganizacionEscolar, (org) => org.estudiantes, { eager: false })
+  @JoinColumn({ name: 'organizacion_escolar_id' })
+  organizacionEscolar: OrganizacionEscolar;
 
-  @OneToMany(
-    () => StudentEntity,
-    (estudiante) => estudiante.grupoConEstudiantes,
-  )
+  @ManyToOne(() => StudentEntity, (est) => est.organizaciones, { eager: true })
+  @JoinColumn({ name: 'estudiante_id' })
   estudiante: StudentEntity;
 
-  @OneToMany(() => Asignatura, (asignatura) => asignatura.gruposConEstudiante)
-  asignatura: Asignatura;
 
   //ID del usuario que creó el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo

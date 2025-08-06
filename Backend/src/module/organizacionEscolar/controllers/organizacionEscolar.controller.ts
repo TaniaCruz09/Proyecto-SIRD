@@ -12,9 +12,9 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt.guard';
-import { OrganizacionEscolarService } from '../services/organizacionEscolar.service';
-import { CreateOrganizacionEscolarDTO } from '../dtos/organizacionEscolar.dto';
+import { CreateOrganizacionEscolarDTO } from '../../organizacionEscolar/dtos/organizacionEscolar.dto';
 import { Utilities } from '../../../common/helpers/utilities';
+import { OrganizacionEscolarService } from '../services/organizacionEscolar.service';
 
 @ApiTags('OrganizacionEscolar')
 @ApiBearerAuth()
@@ -23,7 +23,7 @@ import { Utilities } from '../../../common/helpers/utilities';
 export class OrganizacionEscolarController {
   constructor(
     private readonly organizacionService: OrganizacionEscolarService,
-  ) {}
+  ) { }
 
   @Post('/')
   async createOrganizacion(

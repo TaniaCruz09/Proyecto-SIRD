@@ -11,9 +11,10 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Departamento, GenderEntity, Municipio, Pais } from '../catalogos';
-import { GruposConEstudiantes } from '../grupos/entities/gruposConEstudiantes.entity';
+
 import * as moment from 'moment-timezone';
 import { User } from '../auth/entities';
+import { OrganizacionConEstudiantes } from '../organizacionEscolar/entities/organizacionConEstudiante';
 
 @Entity({ name: 'student' })
 export class StudentEntity {
@@ -162,9 +163,7 @@ export class StudentEntity {
   @JoinColumn({ name: 'municipio_id' })
   municipio: Municipio;
 
-  @OneToMany(
-    () => GruposConEstudiantes,
-    (grupoConEstudiantes) => grupoConEstudiantes.id,
-  )
-  grupoConEstudiantes?: GruposConEstudiantes;
+  @OneToMany(() => OrganizacionConEstudiantes, (oe) => oe.estudiante)
+  organizaciones?: OrganizacionConEstudiantes[];
+
 }

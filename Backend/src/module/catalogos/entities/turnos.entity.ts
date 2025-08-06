@@ -1,4 +1,4 @@
-import { Grupos } from '../../grupos/entities/grupos.entity';
+
 import { User } from '../../auth/entities';
 import {
   Column,
@@ -12,6 +12,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import * as moment from 'moment-timezone';
+import { Grupos } from 'src/module/organizacionEscolar/entities/grupos.entity';
 
 @Entity({ schema: 'catalogos', name: 'turno' })
 export class Turno {
@@ -22,13 +23,13 @@ export class Turno {
   id: number;
 
 
-    @Column({
-        name: 'turno',
-        type: 'varchar',
-        nullable: true,
-        //length: 50,
-    })
-    turno: string;
+  @Column({
+    name: 'turno',
+    type: 'varchar',
+    nullable: true,
+    //length: 50,
+  })
+  turno: string;
 
   //ID del usuario que creó el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo
@@ -83,7 +84,7 @@ export class Turno {
   @ManyToOne(() => User, (user) => user.id)
   @JoinColumn({ name: 'deleted_at_id' }) // Se enlaza con el usuario que eliminó el registro
   user_delete: User;
-  
+
   @OneToMany(() => Grupos, (grupos) => grupos.turno)
   grupos?: Grupos[];
 }

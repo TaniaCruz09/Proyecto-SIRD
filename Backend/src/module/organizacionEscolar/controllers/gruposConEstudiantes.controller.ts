@@ -1,22 +1,20 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { GruposService } from '../services/grupos.service';
-import { UpdateGrupoDto } from '../dtos/Update-grupo.dto';
-import { CreateGrupoDto } from '../dtos/grupos.dto';
-import { Utilities } from '../../../common/helpers/utilities';
-import { JwtAuthGuard } from 'src/module/auth/guards/jwt.guard';
+import { CreateOrganizacionConEstudiantesDto } from '../dtos/organizacionConEstudiantes.dto';
+import { Utilities } from 'src/common/helpers/utilities';
+import { UpdateGrupoConEstudiantesDto } from '../dtos/updateOrganizacionConEstudiantes.dto';
+import { OrganizacionConEstudiantesService } from '../services/organizacionConEstudiantes.service';
 
-@ApiTags('Grupos')
+@ApiTags('organizacionConEstudiantes')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@Controller('grupos')
-export class GruposController {
-    constructor(private readonly grupoService: GruposService) { }
+@Controller('organizacionConEstudiantes')
+export class OrganizacionConEstudiantesController {
+    constructor(private readonly organizacionService: OrganizacionConEstudiantesService) { }
 
     @Post()
-    async createGrupo(@Body() createGrupoDto: CreateGrupoDto) {
+    async createGrupo(@Body() createGrupoDto: CreateOrganizacionConEstudiantesDto) {
         try {
-            const grupos = await this.grupoService.createGrupo(createGrupoDto);
+            const grupos = await this.organizacionService.createGrupo(createGrupoDto);
             const data = {
                 data: grupos,
                 message: 'Grupo agregado correctamente ',
@@ -31,7 +29,7 @@ export class GruposController {
     @Get('/')
     async getgrupos() {
         try {
-            const grupos = await this.grupoService.getGrupo();
+            const grupos = await this.organizacionService.getGrupo();
             const data = {
                 data: grupos,
                 message: 'ok',
@@ -46,7 +44,7 @@ export class GruposController {
     @Get('/:id')
     async getGruposById(@Param('id', ParseIntPipe) id: number) {
         try {
-            const grupo = await this.grupoService.getGrupoById(id);
+            const grupo = await this.organizacionService.getGrupoById(id);
             const data = {
                 data: grupo,
                 message: 'ok',
@@ -59,9 +57,9 @@ export class GruposController {
     }
 
     @Delete('/:id')
-    async deleteGrupo(@Param('id', ParseIntPipe) id: number) {
+    async deleteGrupo(@Param('id') id: number) {
         try {
-            const grupo = await this.grupoService.deleteGrupos(id);
+            const grupo = await this.organizacionService.deleteGrupos(id);
             const data = {
                 data: grupo,
                 message: 'ok',
@@ -76,9 +74,9 @@ export class GruposController {
     @Put('/:id')
     async updateGrupo(
         @Param('id', ParseIntPipe) id: number,
-        @Body() payload: UpdateGrupoDto
+        @Body() payload: UpdateGrupoConEstudiantesDto
     ) {
-        const grupo = await this.grupoService.updateGrupos(id, payload);
+        const grupo = await this.organizacionService.updateGrupos(id, payload);
         const data = {
             data: grupo,
             message: 'Grupo actualizado correctamente',

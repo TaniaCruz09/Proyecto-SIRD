@@ -6,19 +6,25 @@ import {
   IsOptional,
 } from 'class-validator';
 import { Grupos } from '../entities/grupos.entity';
+import { StudentEntity } from '../../createEstudents';
+import { Asignatura } from 'src/module/catalogos';
 
-export class CreateOrganizacionEscolarDTO {
+export class CreateOrganizacionConEstudiantesDto {
   @IsOptional()
   @IsNumber()
   readonly id?: number;
 
   @IsNotEmpty()
-  @IsNumber()
-  anio_lectivo: number;
-
-  @IsOptional()
   @IsObject()
-  grupo?: Grupos[];
+  grupo: Grupos;
+
+  @IsNotEmpty()
+  @IsObject()
+  estudiante: StudentEntity;
+
+  @IsNotEmpty()
+  @IsObject()
+  asignatura: Asignatura;
 
   @IsOptional()
   @IsNumber()

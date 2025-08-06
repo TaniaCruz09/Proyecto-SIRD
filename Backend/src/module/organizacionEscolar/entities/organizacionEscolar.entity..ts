@@ -4,6 +4,8 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -12,17 +14,52 @@ import {
 import { Grupos } from './grupos.entity';
 import { User } from '../../auth/entities';
 import * as moment from 'moment-timezone';
+import { AnioLectivo } from 'src/module/catalogos/entities/anioLectivo.entity';
+import { Docentes } from '../../docentes/docentes.entity';
+import { Asignatura } from '../../catalogos';
+import { Cortes } from '../../catalogos/entities/corte.entity';
+import { OrganizacionConEstudiantes } from './organizacionConEstudiante';
 
-@Entity({ name: 'organizacionEscolar', schema: 'grupos' })
+@Entity({ name: 'organizacionEscolar', schema: 'organizacion_escolar' })
 export class OrganizacionEscolar {
   @PrimaryGeneratedColumn({ name: 'id', type: 'int2' })
   id: number;
 
-  @Column({ name: 'anio_lectivo', type: 'int2' })
-  anio_lectivo: number;
+  @ManyToOne(() => AnioLectivo)
+  @JoinColumn({ name: 'anioLectivo_id' })
+  anio_lectivo: AnioLectivo;
 
-  @OneToMany(() => Grupos, (grupo) => grupo.organizacionEscolar)
-  grupo?: Grupos[];
+  @ManyToOne(() => Grupos)
+  @JoinColumn({ name: 'grupo_id' })
+  grupo: Grupos;
+
+  @ManyToOne(() => Docentes)
+  @JoinColumn({ name: 'docente_guia_id' })
+  docenteGuia: Docentes;
+
+  @ManyToMany(() => Docentes, (docente) => docente.organizacionesEscolares)
+  @JoinTable({
+    name: 'organizacion_escolar_docentes',
+    joinColumn: { name: 'organizacion_escolar_id' },
+    inverseJoinColumn: { name: 'docente_id' },
+  })
+  docentes: Docentes[];
+
+  @ManyToMany(() => Asignatura, (asignatura) => asignatura.organizacionesEscolares)
+  @JoinTable({
+    name: 'organizacion_escolar_asignaturas',
+    joinColumn: { name: 'organizacion_escolar_id' },
+    inverseJoinColumn: { name: 'asignatura_id' },
+  })
+  asignaturas: Asignatura[];
+
+  @ManyToMany(() => Cortes, (corte) => corte.organizacionesEscolares)
+  @JoinTable({ name: 'organizacionEscolar_tiene_cortes' })
+  cortes: Cortes[];
+
+  @OneToMany(() => OrganizacionConEstudiantes, (oe) => oe.organizacionEscolar)
+  estudiantes?: OrganizacionConEstudiantes[];
+
 
   //ID del usuario que creó el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo

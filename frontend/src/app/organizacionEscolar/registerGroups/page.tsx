@@ -34,7 +34,7 @@ export default function page() {
 
     //filtro que busca por el nombre
     const filteredGrupo = grupos.filter((u) =>
-        u.organizacionEscolar.anio_lectivo.toString().toLowerCase().includes(searchTerm.toLowerCase())
+        u.grado.grades.toLowerCase().includes(searchTerm.toLowerCase())
     );
     return (
         <div className="flex h-screen">

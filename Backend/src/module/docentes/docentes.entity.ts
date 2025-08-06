@@ -20,9 +20,10 @@ import {
   Pais,
   ProfessionsEntity,
 } from '../catalogos';
-import { Grupos } from '../grupos/entities/grupos.entity';
 import { User } from '../auth/entities';
 import * as moment from 'moment-timezone';
+import { Grupos } from '../organizacionEscolar/entities/grupos.entity';
+import { OrganizacionEscolar } from '../organizacionEscolar/entities/organizacionEscolar.entity.';
 
 @Entity({ name: 'docentes' })
 export class Docentes {
@@ -130,7 +131,10 @@ export class Docentes {
   @OneToMany(() => Grupos, (grupo) => grupo.id)
   grupos?: Grupos[];
 
-   //ID del usuario que creó el registro
+  @ManyToMany(() => OrganizacionEscolar, (org) => org.docentes)
+  organizacionesEscolares: OrganizacionEscolar[];
+
+  //ID del usuario que creó el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo
   user_create_id: number;
 
