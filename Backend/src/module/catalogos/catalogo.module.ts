@@ -42,6 +42,9 @@ import { CortesService } from './services/cortes.service';
 import { SemestreEntity } from './entities/semestres.entity';
 import { SemestreController } from './controllers/semestres.controller';
 import { SemestreService } from './services/semestre.service';
+import { AnioLectivo } from './entities/anioLectivo.entity';
+import { AnioLectivoController } from './controllers/anioLectivo.controller';
+import { AnioLectivoService } from './services/anioLectivo.service';
 
 @Module({
   imports: [
@@ -60,6 +63,7 @@ import { SemestreService } from './services/semestre.service';
       Pais,
       SemestreEntity,
       Cortes,
+      AnioLectivo
     ]),
   ],
   controllers: [
@@ -77,6 +81,8 @@ import { SemestreService } from './services/semestre.service';
     PaisController,
     SemestreController,
     CortesController,
+    AnioLectivoController
+
   ],
   providers: [
     AcademicLevelService,
@@ -93,7 +99,8 @@ import { SemestreService } from './services/semestre.service';
     PaisService,
     SemestreService,
     CortesService,
+    AnioLectivoService
   ],
   exports: [CatalogoModule, TypeOrmModule],
 })
-export class CatalogoModule {}
+export class CatalogoModule { }
