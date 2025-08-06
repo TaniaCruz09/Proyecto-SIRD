@@ -1,32 +1,32 @@
 import BtnDelete from '@/components/Buttons/BtnDelete'
 import React, { useState } from 'react'
 import ConfirmDeletModal from '../../ModalConfirmDeletion'
-import { deleteModalidad } from '@/actions/catalogos/modalidadMethods';
+import { deleteSexo } from '@/actions/catalogos/sexoMethods';
 
 interface DeleteSexoModalProps {
   idEliminar: number;
-  fetchModalidades: () => Promise<void>;
+  fetchGenero: () => Promise<void>;
 }
 
-export default function DeleteSexoModal({idEliminar, fetchModalidades}:DeleteSexoModalProps) {
-    const [modalidadToDelete, setModalidadToDelete] = useState<number | null>(null);
+export default function DeleteSexoModal({idEliminar, fetchGenero}:DeleteSexoModalProps) {
+    const [generoToDelete, setGeneroToDelete] = useState<number | null>(null);
       const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
       const handleDeleteClick = (id: number)=>{
-        setModalidadToDelete(id);
+        setGeneroToDelete(id);
         setShowConfirm(true);
       }
 
       const confirmDelete = async ()=>{
-        if(!modalidadToDelete) return;
+        if(!generoToDelete) return;
         try{
-            await deleteModalidad(modalidadToDelete);
-            await fetchModalidades();
+            await deleteSexo(generoToDelete);
+            await fetchGenero();
         } catch (error) {
-            console.error("error al eliminar la modalidad", error)
+            console.error("error al eliminar la sexo", error)
         } finally {
             setShowConfirm(false);
-            setModalidadToDelete(null)
+            setGeneroToDelete(null)
         }
       } 
     

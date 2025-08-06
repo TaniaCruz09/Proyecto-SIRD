@@ -1,8 +1,10 @@
 "use client";
 
 import { getSexos } from '@/actions/catalogos/sexoMethods';
+import AddSexoModal from '@/components/modals/catalogo/generoModals/AddgeneroModal';
 import NavbarAdmin from '@/components/navbarAdmin'
 import SearchBar from '@/components/SearchBar';
+import GenterTable from '@/components/tables/catalogo/GeneroTable';
 import { Sexo } from '@/interfaces';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
@@ -44,7 +46,8 @@ export default function Page() {
         <div  className="flex items-center justify-between">
           <h1 className="ml-10 text-2xl font-bold mb-4 tracking-tight text-gray-600 text-center">Sexos</h1>
           <div className="flex justify-end mr-10 mb-6 mt-5">
-            --
+            <div className="flex justify-end mr-10 mb-6 mt-5"> 
+              <AddSexoModal fetchGeneros={fetchSexos}/></div>
           </div>
         </div>
         <div className="flex items-center justify-between bg-white border rounded-t-xl">
@@ -53,10 +56,13 @@ export default function Page() {
                       value={searchTerm}
                       onChange={setSearchTerm}
                       onClear={() => setSearchTerm("")}
-                      placeholder="Buscar Año Sexo"
+                      placeholder="Buscar Sexo"
                     />
         </div>
-        --
+         <GenterTable
+        genter={filteredSexo}
+        fetchGeneros={fetchSexos}
+        />
       </div>
     </div>
   )

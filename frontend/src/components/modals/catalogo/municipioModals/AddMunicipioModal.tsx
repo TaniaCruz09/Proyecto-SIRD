@@ -1,13 +1,13 @@
 import BtnOpenAddModal from '@/components/Buttons/btnOpenAddModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase'
-import ModalidadForm from '@/components/forms/catalogoForms/ModalidadForm'
+import MunicipioForm from '@/components/forms/catalogoForms/MunicipioForm'
 
 interface AddMunicipioModalProp{
-    fetchModalidades: () => Promise<void>
+    fetchMunicipio: () => Promise<void>
 }
 
-export default function AddMunicipioModal({fetchModalidades}: AddMunicipioModalProp) {
+export default function AddMunicipioModal({fetchMunicipio}: AddMunicipioModalProp) {
     const [showModal, setShowModal] = useState<boolean>(false);
   return (
     <div>
@@ -17,9 +17,9 @@ export default function AddMunicipioModal({fetchModalidades}: AddMunicipioModalP
           onshowModal={showModal}
           onCloseModal={() => setShowModal(false)}
           content={
-            <ModalidadForm
+            <MunicipioForm
             onSuccess={()=>{
-                fetchModalidades()
+                fetchMunicipio()
                 setShowModal(false)
             }}
             />
