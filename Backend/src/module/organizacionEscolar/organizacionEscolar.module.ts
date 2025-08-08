@@ -11,6 +11,7 @@ import { OrganizacionEscolarController } from './controllers/organizacionEscolar
 import { OrganizacionConEstudiantes } from './entities/organizacionConEstudiante';
 import { Docentes } from '../docentes/docentes.entity';
 import { AnioLectivo, Asignatura, Cortes } from '../catalogos';
+import { StudentEntity } from '../createEstudents';
 
 @Module({
     imports: [
@@ -21,7 +22,8 @@ import { AnioLectivo, Asignatura, Cortes } from '../catalogos';
             Docentes,
             Asignatura,
             Cortes,
-            AnioLectivo
+            AnioLectivo,
+            StudentEntity
         ]),
     ],
     controllers: [

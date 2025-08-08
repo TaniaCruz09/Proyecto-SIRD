@@ -3,88 +3,47 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import NavbarAdmin from '@/components/navbarAdmin'
-
-type GrupoEstudiante = {
-  id: number
-  organizacion: {
-    id: number
-    añoLectivo: { anio: number }
-    grupo: {
-      id: number
-      grado: { nombre: string }
-      seccion: { nombre: string }
-      modalidad: { nombre: string }
-      turno: { nombre: string }
-    }
-  }
-}
+import { getOrganizacionEscolar } from '@/actions/organizacionEscolarMethods/organizacionMethods'
+import { OrganizacionEscolar } from '@/interfaces'
 
 export default function FiltroNotasPage() {
+  const [organizacionesEscolar, setOrganizacionesEscolar] = useState<OrganizacionEscolar[]>([])
+  const [anioSeleccionado, setAnioSeleccionado] = useState<string>("")
+  const [grupoSeleccionado, setGrupoSeleccionado] = useState<number | null>(null)
+  const [asignaturaSeleccionada, setAsignaturaSeleccionada] = useState<string>("")
   const router = useRouter()
 
-  const [data, setData] = useState<GrupoEstudiante[]>([])
-
-  const [anioSeleccionado, setAnioSeleccionado] = useState<number | null>(null)
-  const [modalidadSeleccionada, setModalidadSeleccionada] = useState<string>("")
-  const [turnoSeleccionado, setTurnoSeleccionado] = useState<string>("")
-  const [grupoSeleccionado, setGrupoSeleccionado] = useState<number | null>(null)
-
-  const [asignaturaSeleccionada, setAsignaturaSeleccionada] = useState<string>("");
-
-  const asignaturas = useMemo(() => {
-    // Aquí iría la lógica para obtener asignaturas según grupo, grado o modalidad.
-    // Por ejemplo, un array fijo o desde tu API.
-    return ["Matemáticas", "Ciencias", "Historia"];
-  }, []);
-
-  // Simular fetch de tu API — reemplaza por fetch real
   useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/asignar-estudiantes`)
-      const json = await res.json()
-      setData(json)
+      const data = await getOrganizacionEscolar()
+      setOrganizacionesEscolar(data)
     }
     fetchData()
   }, [])
 
   const anios = useMemo(() => {
-    if (!Array.isArray(data)) return []; // Verificamos que data sea un arreglo
-    return [...new Set(data.map((d) => d.organizacion.añoLectivo.anio))];
-  }, [data]);
+    return [...new Set(organizacionesEscolar.map((o) => o.anio_lectivo.anio_lectivo))]
+  }, [organizacionesEscolar])
 
-  const modalidades = useMemo(() => {
-    if (!Array.isArray(data)) return []; // Validación
-    return [
-      ...new Set(
-        data
-          .filter((d) => d.organizacion.añoLectivo.anio === anioSeleccionado)
-          .map((d) => d.organizacion.grupo.modalidad.nombre)
-      ),
-    ];
-  }, [anioSeleccionado, data]);
+  const grupos = useMemo(() => {
+    return organizacionesEscolar
+      .filter((o) => o.anio_lectivo.anio_lectivo.toString() === anioSeleccionado)
+      .map((o) => ({
+        id: o.id,
+        label: `${o.grupo.grado.grades} - ${o.grupo.seccion.seccion} - ${o.grupo.turno.turno} - ${o.grupo.modalidad.modalidad}`
+      }))
+  }, [organizacionesEscolar, anioSeleccionado])
 
-  const turnos = useMemo(() => {
-    if (!Array.isArray(data)) return []; // Validación
-    return [...new Set(data
-      .filter((d) =>
-        d.organizacion.añoLectivo.anio === anioSeleccionado &&
-        d.organizacion.grupo.modalidad.nombre === modalidadSeleccionada
-      )
-      .map((d) => d.organizacion.grupo.turno.nombre))]
-  }, [anioSeleccionado, modalidadSeleccionada, data])
-
-  const gruposFiltrados = useMemo(() => {
-    if (!Array.isArray(data)) return []; // Validación
-    return data.filter((d) =>
-      d.organizacion.añoLectivo.anio === anioSeleccionado &&
-      d.organizacion.grupo.modalidad.nombre === modalidadSeleccionada &&
-      d.organizacion.grupo.turno.nombre === turnoSeleccionado
-    )
-  }, [anioSeleccionado, modalidadSeleccionada, turnoSeleccionado, data])
+  const asignaturas = useMemo(() => {
+    const org = organizacionesEscolar.find((o) => o.id === grupoSeleccionado)
+    return org?.asignaturas || []
+  }, [grupoSeleccionado, organizacionesEscolar])
 
   const handleRedirigir = () => {
-    if (grupoSeleccionado && anioSeleccionado) {
-      router.push(`/calificaciones/registro?idGrupo=${grupoSeleccionado}&anio=${anioSeleccionado}`)
+    if (grupoSeleccionado && asignaturaSeleccionada) {
+      router.push(
+        `/calificaciones/registro?idGrupo=${grupoSeleccionado}&anio=${anioSeleccionado}&asignatura=${asignaturaSeleccionada}`
+      )
     } else {
       alert('Completa todos los filtros')
     }
@@ -94,56 +53,58 @@ export default function FiltroNotasPage() {
     <div className="flex h-screen">
       <NavbarAdmin />
       <div className="p-6 w-full bg-gray-100">
-        <h1 className="text-2xl text-black font-bold mb-6 text-blue-800">Filtrar Grupo para Registrar Notas</h1>
+        <h1 className="text-2xl font-bold mb-6 text-blue-800">Filtrar para Registrar Notas</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+
+          {/* Año lectivo */}
           <div>
-            <label className="block mb-1 font-semibold text-black">Año Escolar</label>
+            <label className="block mb-1 font-semibold">Año Escolar</label>
             <select
-              value={anioSeleccionado ?? ""}
-              onChange={(e) => setAnioSeleccionado(Number(e.target.value))}
+              value={anioSeleccionado}
+              onChange={(e) => setAnioSeleccionado(e.target.value)}
               className="w-full border px-4 py-2 rounded-md text-black"
             >
-              <option value="" disabled>Selecciona año</option>
+              <option value="">Selecciona año</option>
               {anios.map((a) => (
                 <option key={a} value={a}>{a}</option>
               ))}
             </select>
           </div>
 
+          {/* Grupo */}
           <div>
-            <label className="block mb-1 font-semibold text-black">Grupo Escolar</label>
+            <label className="block mb-1 font-semibold">Grupo</label>
             <select
-              value={modalidadSeleccionada}
-              onChange={(e) => setModalidadSeleccionada(e.target.value)}
+              value={grupoSeleccionado ?? ""}
+              onChange={(e) => setGrupoSeleccionado(Number(e.target.value))}
               className="w-full border px-4 py-2 rounded-md text-black"
               disabled={!anioSeleccionado}
             >
-              <option value="" disabled>Selecciona un grupo Escolar</option>
-              {modalidades.map((m) => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block mb-1 font-semibold text-black">Asignatura</label>
-            <select
-              value={modalidadSeleccionada}
-              onChange={(e) => setModalidadSeleccionada(e.target.value)}
-              className="w-full border px-4 py-2 rounded-md text-black"
-              disabled={!anioSeleccionado}
-            >
-              <option value="" disabled>Selecciona una asignatura</option>
-              {modalidades.map((m) => (
-                <option key={m} value={m}>{m}</option>
+              <option value="">Selecciona grupo</option>
+              {grupos.map((g) => (
+                <option key={g.id} value={g.id}>{g.label}</option>
               ))}
             </select>
           </div>
 
+          {/* Asignatura */}
           <div>
-
+            <label className="block mb-1 font-semibold">Asignatura</label>
+            <select
+              value={asignaturaSeleccionada}
+              onChange={(e) => setAsignaturaSeleccionada(e.target.value)}
+              className="w-full border px-4 py-2 rounded-md text-black"
+              disabled={!grupoSeleccionado}
+            >
+              <option value="">Selecciona asignatura</option>
+              {asignaturas.map((a) => (
+                <option key={a.id} value={a.id}>{a.asignatura}</option>
+              ))}
+            </select>
           </div>
         </div>
+
         <div className="flex justify-center mt-8">
           <button
             onClick={handleRedirigir}

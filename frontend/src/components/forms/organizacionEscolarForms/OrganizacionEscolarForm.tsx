@@ -2,11 +2,11 @@ import { getAniosLectivos } from '@/actions/catalogos/anioLectivoMethods';
 import { getAsignaturas } from '@/actions/catalogos/asignaturaMethods';
 import { getCortesEvaluativos } from '@/actions/catalogos/corteEvaluativoMethods';
 import { getDocentes } from '@/actions/docentesMethods/docentesMethods';
-import { getGrupos, saveGrupo, updateGrupo } from '@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods';
+import { getGrupos } from '@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods';
 import { saveOrganizacionEscolar, updateOrganizacionEscolar } from '@/actions/organizacionEscolarMethods/organizacionMethods';
-import { AnioLectivo, Asignatura, Corte, Docente, GrupoEscolarPayload, OrganizacionEscolar, OrganizacionEscolarPayload } from '@/interfaces';
-import { Grupos } from '@/interfaces/catalogoInterface/GruposInterface';
+import { AnioLectivo, Asignatura, Corte, Docente, GrupoEscolar, OrganizacionEscolar, OrganizacionEscolarPayload } from '@/interfaces';
 import React, { useEffect, useState } from 'react'
+import Select from 'react-select';
 
 interface OrganizacionFormProp {
     defaultValues?: OrganizacionEscolar | null;
@@ -19,7 +19,7 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
     const [aniosLectivos, setAniosLectivos] = useState<AnioLectivo[]>([])
 
     const [grupo, setGrupo] = useState<string>("")
-    const [grupos, setGrupos] = useState<Grupos[]>([])
+    const [grupos, setGrupos] = useState<GrupoEscolar[]>([])
 
     const [docenteGuia, setDocenteGuia] = useState<string>("")
     const [docentesGuias, setDocentesGuias] = useState<Docente[]>([])
@@ -146,8 +146,9 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
                 <option value="">Grupo</option>
                 {grupos?.map((r) => (
                     <option key={r.id} value={r.id}>
-                        {r.id}
+                        {`${r.grado?.grades} - ${r.seccion?.seccion} - ${r.turno?.turno} - ${r.modalidad?.modalidad}`}
                     </option>
+
                 ))}
             </select>
             <select
@@ -164,51 +165,69 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
                     </option>
                 ))}
             </select>
-            <select
-                multiple
+            <Select
+                isMulti
                 name="docentes"
-                id="docentes"
-                className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-                value={docente}
-                onChange={(e) => setDocente(Array.from(e.target.selectedOptions, (option) => option.value))}
-            >
-                <option value="">Docentes Asignados</option>
-                {docentesGuias?.map((r) => (
-                    <option key={r.id} value={r.id}>
-                        {r.nombres}
-                    </option>
-                ))}
-            </select>
-            <select
-                multiple
+                placeholder="Docentes asignados"
+                options={docentesGuias.map((d) => ({
+                    value: d.id.toString(),
+                    label: d.nombres,
+                }))}
+                value={docente.map((id) => {
+                    const found = docentesGuias.find((d) => d.id === parseInt(id));
+                    return {
+                        value: id,
+                        label: found?.nombres || '',
+                    };
+                })}
+                onChange={(selectedOptions) =>
+                    setDocente(selectedOptions.map((option) => option.value.toString()))
+                }
+                className="text-black"
+            />
+
+            <Select
+                isMulti
                 name="asignaturas"
-                id="asignaturas"
-                className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-                value={asignatura}
-                onChange={(e) => setAsignatura(Array.from(e.target.selectedOptions, (option) => option.value))}
-            >
-                <option value="">Asignaturas</option>
-                {asignaturas?.map((r) => (
-                    <option key={r.id} value={r.id}>
-                        {r.asignatura}
-                    </option>
-                ))}
-            </select>
-            <select
-                multiple
+                placeholder="Asignaturas"
+                options={asignaturas.map((a) => ({
+                    value: a.id.toString(),
+                    label: a.asignatura,
+                }))}
+                value={asignatura.map((id) => {
+                    const found = asignaturas.find((a) => a.id === parseInt(id));
+                    return {
+                        value: id,
+                        label: found?.asignatura || '',
+                    };
+                })}
+                onChange={(selectedOptions) => {
+                    setAsignatura(selectedOptions.map((option) => option.value.toString()));
+                }}
+                className="text-black"
+            />
+
+            <Select
+                isMulti
                 name="cortes"
-                id="cortes"
-                className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-                value={corte}
-                onChange={(e) => setCorte(Array.from(e.target.selectedOptions, (option) => option.value))}
-            >
-                <option value="">Corte</option>
-                {cortes?.map((r) => (
-                    <option key={r.id} value={r.id}>
-                        {r.corte}
-                    </option>
-                ))}
-            </select>
+                placeholder="Cortes"
+                options={cortes.map((c) => ({
+                    value: c.id.toString(),
+                    label: c.corte,
+                }))}
+                value={corte.map((id) => {
+                    const found = cortes.find((c) => c.id === parseInt(id));
+                    return {
+                        value: id,
+                        label: found?.corte || '',
+                    };
+                })}
+                onChange={(selectedOptions) =>
+                    setCorte(selectedOptions.map((option) => option.value.toString()))
+                }
+                className="text-black"
+            />
+
             <div className="flex justify-center">
                 <button
                     type="submit"

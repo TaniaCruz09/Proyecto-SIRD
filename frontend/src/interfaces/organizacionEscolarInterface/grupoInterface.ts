@@ -8,10 +8,10 @@ import { Grado } from "../catalogoInterface/Grado";
 
 export interface GrupoEscolar {
     id: number,
-    grado?: Grado,
-    seccion?: Seccion,
-    modalidad?: Modalidad,
-    turno?: Turno,
+    grado: Grado,
+    seccion: Seccion,
+    modalidad: Modalidad,
+    turno: Turno,
     user_create_id?: number | null;
     created_at?: string;
     update_at?: string;

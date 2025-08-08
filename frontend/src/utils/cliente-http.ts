@@ -34,7 +34,7 @@ export const feching = async (
 
     return responseData;
   } catch (error) {
-    console.error("❌ Error en feching():", error);
+    console.error("❌ Error en feching():", error instanceof Error ? error.message : JSON.stringify(error));
     throw error;
   }
 };

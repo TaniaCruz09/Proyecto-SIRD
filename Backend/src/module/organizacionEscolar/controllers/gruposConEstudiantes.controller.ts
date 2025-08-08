@@ -1,8 +1,7 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CreateOrganizacionConEstudiantesDto } from '../dtos/organizacionConEstudiantes.dto';
 import { Utilities } from 'src/common/helpers/utilities';
-import { UpdateGrupoConEstudiantesDto } from '../dtos/updateOrganizacionConEstudiantes.dto';
 import { OrganizacionConEstudiantesService } from '../services/organizacionConEstudiantes.service';
 
 @ApiTags('organizacionConEstudiantes')
@@ -11,13 +10,13 @@ import { OrganizacionConEstudiantesService } from '../services/organizacionConEs
 export class OrganizacionConEstudiantesController {
     constructor(private readonly organizacionService: OrganizacionConEstudiantesService) { }
 
-    @Post()
-    async createGrupo(@Body() createGrupoDto: CreateOrganizacionConEstudiantesDto) {
+    @Post('asignar')
+    async asignar(@Body() dto: CreateOrganizacionConEstudiantesDto) {
         try {
-            const grupos = await this.organizacionService.createGrupo(createGrupoDto);
+            const organizacion_con_estudiante = await this.organizacionService.asignarEstudiantes(dto);
             const data = {
-                data: grupos,
-                message: 'Grupo agregado correctamente ',
+                data: organizacion_con_estudiante,
+                message: 'agregado correctamente ',
             };
 
             return data;
@@ -26,12 +25,32 @@ export class OrganizacionConEstudiantesController {
         }
     }
 
-    @Get('/')
-    async getgrupos() {
+    @Get()
+    async getorganizacionConEstudiantes() {
         try {
-            const grupos = await this.organizacionService.getGrupo();
+            const organizacion_con_estudiante = await this.organizacionService.getOrganizacionConEstudiantes();
             const data = {
-                data: grupos,
+                data: organizacion_con_estudiante,
+                message: 'ok',
+            };
+
+            return data;
+        } catch (error) {
+            Utilities.catchError(error)
+        }
+    }
+
+    @Get("obtenerEstudiantes")
+    async obtenerEstudiantes(@Query('organizacionEscolarId') id: number) {
+        return await this.organizacionService.obtenerEstudiantesAsignados(Number(id));
+    }
+
+    @Get('por-grupo/:id')
+    async getListarEstudiantesDeGrupo(@Param('id') id: number) {
+        try {
+            const organizacion_con_estudiante = await this.organizacionService.ListarEstudiantesDeGrupo(id);
+            const data = {
+                data: organizacion_con_estudiante,
                 message: 'ok',
             };
 
@@ -42,11 +61,11 @@ export class OrganizacionConEstudiantesController {
     }
 
     @Get('/:id')
-    async getGruposById(@Param('id', ParseIntPipe) id: number) {
+    async getById(@Param('id', ParseIntPipe) id: number) {
         try {
-            const grupo = await this.organizacionService.getGrupoById(id);
+            const organizacion_con_estudiante = await this.organizacionService.findByOrganizacion(id);
             const data = {
-                data: grupo,
+                data: organizacion_con_estudiante,
                 message: 'ok',
             };
 
@@ -57,11 +76,11 @@ export class OrganizacionConEstudiantesController {
     }
 
     @Delete('/:id')
-    async deleteGrupo(@Param('id') id: number) {
+    async delete(@Param('id') id: number) {
         try {
-            const grupo = await this.organizacionService.deleteGrupos(id);
+            const organizacion_con_estudiante = await this.organizacionService.remove(id);
             const data = {
-                data: grupo,
+                data: organizacion_con_estudiante,
                 message: 'ok',
             };
 
@@ -69,19 +88,5 @@ export class OrganizacionConEstudiantesController {
         } catch (error) {
             Utilities.catchError(error)
         }
-    }
-
-    @Put('/:id')
-    async updateGrupo(
-        @Param('id', ParseIntPipe) id: number,
-        @Body() payload: UpdateGrupoConEstudiantesDto
-    ) {
-        const grupo = await this.organizacionService.updateGrupos(id, payload);
-        const data = {
-            data: grupo,
-            message: 'Grupo actualizado correctamente',
-        };
-
-        return data;
     }
 }

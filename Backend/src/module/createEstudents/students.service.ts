@@ -1,9 +1,10 @@
-import { createQueryBuilder, Repository } from "typeorm";
+import { ILike, Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { StudentEntity } from "./students.entity";
 import { StudentsDto } from "./student.dto";
 import { Utilities } from "../../common/helpers/utilities";
+import { FiltrarEstudiantesDto } from "./FiltrarEstudiantesDto";
 
 
 @Injectable()
@@ -35,13 +36,13 @@ export class StudentService {
     async getStudentById(id: number): Promise<StudentEntity> {
         try {
             const student = await this.StudentRepo
-            .createQueryBuilder('student')
-            .leftJoinAndSelect('student.pais','pais')
-            .leftJoinAndSelect('student.gender','gender')
-            .leftJoinAndSelect('student.departamento','departamento')
-            .leftJoinAndSelect('student.municipio','municipio')
-            .where('student.id = :id', { id })
-            .getOne()
+                .createQueryBuilder('student')
+                .leftJoinAndSelect('student.pais', 'pais')
+                .leftJoinAndSelect('student.gender', 'gender')
+                .leftJoinAndSelect('student.departamento', 'departamento')
+                .leftJoinAndSelect('student.municipio', 'municipio')
+                .where('student.id = :id', { id })
+                .getOne()
             return student;
         } catch (error) {
             Utilities.catchError(error)
@@ -85,5 +86,28 @@ export class StudentService {
         } catch (error) {
             Utilities.catchError(error)
         }
+    }
+
+    async filtrarEstudiantes(params: FiltrarEstudiantesDto): Promise<StudentEntity[]> {
+        const { name, lastName, studentCode } = params;
+
+        const where: any = {};
+
+        if (name) {
+            where.name = ILike(`%${name}%`);
+        }
+
+        if (lastName) {
+            where.lastName = ILike(`%${lastName}%`);
+        }
+
+        if (studentCode) {
+            where.studentCode = ILike(`%${studentCode}%`);
+        }
+
+        return this.StudentRepo.find({
+            where,
+            take: 30,
+        });
     }
 }

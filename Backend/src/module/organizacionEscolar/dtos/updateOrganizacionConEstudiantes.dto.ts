@@ -5,9 +5,8 @@ import {
   IsObject,
   IsOptional,
 } from 'class-validator';
-import { Grupos } from '../entities/grupos.entity';
 import { StudentEntity } from '../../createEstudents';
-import { Asignatura } from 'src/module/catalogos';
+import { OrganizacionEscolar } from '../entities/organizacionEscolar.entity.';
 
 export class UpdateGrupoConEstudiantesDto {
   @IsOptional()
@@ -16,15 +15,11 @@ export class UpdateGrupoConEstudiantesDto {
 
   @IsOptional()
   @IsObject()
-  grupo?: Grupos;
+  organizacionEscolar?: OrganizacionEscolar;
 
   @IsOptional()
   @IsObject()
   estudiante?: StudentEntity;
-
-  @IsNotEmpty()
-  @IsObject()
-  asignatura?: Asignatura;
 
   @IsOptional()
   @IsNumber()

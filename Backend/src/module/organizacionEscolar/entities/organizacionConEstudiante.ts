@@ -5,16 +5,12 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
-  ManyToMany,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Grupos } from './grupos.entity';
 import { User } from '../../auth/entities';
 import * as moment from 'moment-timezone';
-import { Asignatura } from 'src/module/catalogos';
 import { OrganizacionEscolar } from './organizacionEscolar.entity.';
 
 @Entity({ name: 'organizacion_con_estudiante', schema: 'organizacion_escolar' })
@@ -25,11 +21,11 @@ export class OrganizacionConEstudiantes {
   })
   id: number;
 
-  @ManyToOne(() => OrganizacionEscolar, (org) => org.estudiantes, { eager: false })
+  @ManyToOne(() => OrganizacionEscolar, { eager: false })
   @JoinColumn({ name: 'organizacion_escolar_id' })
   organizacionEscolar: OrganizacionEscolar;
 
-  @ManyToOne(() => StudentEntity, (est) => est.organizaciones, { eager: true })
+  @ManyToOne(() => StudentEntity, { eager: true })
   @JoinColumn({ name: 'estudiante_id' })
   estudiante: StudentEntity;
 

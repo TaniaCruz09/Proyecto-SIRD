@@ -30,7 +30,7 @@ const catalogSubmenu = [
 ];
 
 const organizacionEscolarSubmenu = [
-  { label: "Organizacion/Año lectivo", href: "/organizacionEscolar/anioLectivo", icon: FaUser },
+  { label: "Organizacion Escolar", href: "/organizacionEscolar/organizacion", icon: FaUser },
   { label: "Grupos Educativos", href: "/organizacionEscolar/registerGroups", icon: FaUserPlus },
   { label: "Grupos con Estudiantes", href: "/organizacionEscolar/gruposConEstudiantes", icon: FaUserPlus },
 ];

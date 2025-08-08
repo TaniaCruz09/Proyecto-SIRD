@@ -5,7 +5,7 @@ import { Sexo } from "./catalogoInterface/SexoInterface";
 
 
 export default interface RegisterEstudent {
-    id?: number,
+    id: number,
     name: string,
     lastName: string,
     studentCode: string,
