@@ -22,6 +22,11 @@ export const feching = async (
     const isJSON = contentType?.includes("application/json");
     const responseData = isJSON ? await res.json() : await res.text();
 
+    if (res.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = '/auth/login?expired=true';
+    }
+
     if (!res.ok) {
       throw {
         response: {

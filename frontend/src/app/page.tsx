@@ -3,16 +3,6 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
-function isTokenExpired(token: string): boolean {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    const currentTime = Math.floor(Date.now() / 1000)
-    return payload.exp < currentTime
-  } catch {
-    return true
-  }
-}
-
 export default function Home() {
   const router = useRouter()
 
@@ -20,7 +10,7 @@ export default function Home() {
     const token = localStorage.getItem('token')
     const rol = localStorage.getItem('rol')
 
-    if (!token || !rol || isTokenExpired(token)) {
+    if (!token || !rol) {
       localStorage.removeItem('token')
       localStorage.removeItem('rol')
       router.push('/auth/login?expired=true')
