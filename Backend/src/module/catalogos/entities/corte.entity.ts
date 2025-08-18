@@ -38,8 +38,8 @@ export class Cortes {
   @ManyToOne(() => SemestreEntity, (semestre) => semestre.corte)
   semestre: SemestreEntity;
 
-  @ManyToMany(() => OrganizacionEscolar, (org) => org.cortes)
-  organizacionesEscolares?: OrganizacionEscolar[];
+  @OneToMany(() => OrganizacionEscolar, (org) => org.corte)
+  organizacionesEscolar?: OrganizacionEscolar;
 
   // ID del Usuario que creo el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true })
