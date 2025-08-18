@@ -23,12 +23,9 @@ export default function OrganizacionEscolarTable({ organizacionEscolar, fetchOrg
                         <tr>
                             <th className="p-3 border-b border-gray-300">Id</th>
                             <th className="p-3 border-b border-gray-300">Año Lectivo</th>
-                            <th className="p-3 border-b border-gray-300">Grupo Escolar</th>
-                            <th className="p-3 border-b border-gray-300">Docente Guia</th>
-                            <th className="p-3 border-b border-gray-300">Docentes Asignados</th>
-                            <th className="p-3 border-b border-gray-300">Asignaturas</th>
-                            <th className="p-3 border-b border-gray-300">Cortes</th>
-                            <th className="p-1 border-b border-gray-300 text-center">Estudiantes</th>
+                            <th className="p-3 border-b border-gray-300">Turno</th>
+                            <th className="p-3 border-b border-gray-300">Corte</th>
+                            <th className="p-1 border-b border-gray-300 text-center">Grupos</th>
                             <th className="p-1 border-b border-gray-300 text-center">Editar</th>
                             <th className="p-1 border-b border-gray-300 text-center">Eliminar</th>
                         </tr>
