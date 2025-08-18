@@ -49,16 +49,28 @@ export class OrganizacionConEstudiantesService {
 
     async getOrganizacionConEstudiantes(): Promise<OrganizacionConEstudiantes[]> {
         try {
-            const organizacionConEstudiantes = await this.orgEstRepository.find({
-                relations: ['organizacionEscolar', "organizacionEscolar.anio_lectivo", "organizacionEscolar.grupo", "organizacionEscolar.grupo.grado", "organizacionEscolar.grupo.seccion", "organizacionEscolar.grupo.modalidad",
-                    "organizacionEscolar.grupo.turno",
-                    "organizacionEscolar.docenteGuia", "organizacionEscolar.docentes", "organizacionEscolar.asignaturas", "organizacionEscolar.cortes", 'estudiante']
-            });
-            return organizacionConEstudiantes
+            const organizacionConEstudiantes = await this.orgEstRepository
+                .createQueryBuilder('orgEst')
+                .leftJoinAndSelect('orgEst.organizacionEscolar', 'organizacionEscolar')
+                .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo')
+                .leftJoinAndSelect('organizacionEscolar.grupo', 'grupo')
+                .leftJoinAndSelect('grupo.grado', 'grado')
+                .leftJoinAndSelect('grupo.seccion', 'seccion')
+                .leftJoinAndSelect('grupo.modalidad', 'modalidad')
+                .leftJoinAndSelect('grupo.turno', 'turno')
+                .leftJoinAndSelect('organizacionEscolar.docenteGuia', 'docenteGuia')
+                .leftJoinAndSelect('organizacionEscolar.docentes', 'docentes')
+                .leftJoinAndSelect('organizacionEscolar.asignaturas', 'asignaturas')
+                .leftJoinAndSelect('organizacionEscolar.cortes', 'cortes')
+                .leftJoinAndSelect('orgEst.estudiante', 'estudiante')
+                .getMany();
+
+            return organizacionConEstudiantes;
         } catch (error) {
-            Utilities.catchError(error)
+            Utilities.catchError(error);
         }
     }
+
 
     async obtenerEstudiantesAsignados(idOrganizacionEscolar: number) {
         return await this.orgEstRepository.find({
