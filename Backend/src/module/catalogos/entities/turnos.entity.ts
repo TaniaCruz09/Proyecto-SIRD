@@ -13,6 +13,8 @@ import {
 } from 'typeorm';
 import * as moment from 'moment-timezone';
 import { Grupos } from 'src/module/organizacionEscolar/entities/grupos.entity';
+import { Modalidad } from './modalidad.entity';
+import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity.';
 
 @Entity({ schema: 'catalogos', name: 'turno' })
 export class Turno {
@@ -87,4 +89,10 @@ export class Turno {
 
   @OneToMany(() => Grupos, (grupos) => grupos.turno)
   grupos?: Grupos[];
+
+  @ManyToOne(() => Modalidad, (modalidad) => modalidad.turnos)
+  modalidad: Modalidad
+
+  @OneToMany(() => OrganizacionEscolar, (organizacionEscolar) => organizacionEscolar.turno)
+  organizacionEscolar?: OrganizacionEscolar[];
 }
