@@ -73,7 +73,7 @@ export class AnioLectivoController {
     @Get('/:id')
     async getAnioLectivoById(@Param('id', ParseIntPipe) id: number) {
         try {
-            const anioLectivo = await this.anioLectivoService.getAnioLectivoById(
+            const anioLectivo = await this.anioLectivoService.getOrganizacionEscolarPorAnio(
                 id
             );
             const data = {
