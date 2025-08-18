@@ -38,8 +38,9 @@ const organizacionEscolarSubmenu = [
 
 function NavbarAdmin() {
   const pathname = usePathname();
-  const [openUsers, setOpenUsers] = useState(true);
-  const [openCatalogs, setOpenCatalogs] = useState(true);
+  const [openUsers, setOpenUsers] = useState(false);
+  const [openCatalogs, setOpenCatalogs] = useState(false);
+  const [openOrganizacionEscolar, setOpenOrganizacionEscolar] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -57,12 +58,16 @@ function NavbarAdmin() {
       sessionStorage.setItem("sidebar-scroll", scrollRef.current.scrollTop.toString());
     }
   };
-  const [openOrganizacionEscolar, setOpenOrganizacionEscolar] = useState(true);
 
   const isActive = (route: string) =>
     pathname === route
       ? "bg-indigo-600 text-white"
       : "text-white hover:bg-white hover:text-gray-900";
+
+  // Rutas donde no quieres mostrar el navbar
+  const rutasSinNavbar = ["/auth/login"];
+
+  if (rutasSinNavbar.includes(pathname)) return null;
 
   return (
     <nav className="w-64 bg-gray-900 text-white h-screen overflow-hidden shadow-md">
