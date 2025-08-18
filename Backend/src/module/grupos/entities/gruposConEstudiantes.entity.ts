@@ -25,7 +25,7 @@ export class GruposConEstudiantes {
   id: number;
 
   @ManyToMany(() => Grupos, (grupo) => grupo.grupoConEstudiantes)
-  grupo: Grupos;
+  grupo: Grupos[];
 
   @OneToMany(
     () => StudentEntity,

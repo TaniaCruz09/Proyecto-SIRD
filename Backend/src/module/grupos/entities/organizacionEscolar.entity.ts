@@ -12,6 +12,7 @@ import {
 import { Grupos } from './grupos.entity';
 import { User } from '../../auth/entities';
 import * as moment from 'moment-timezone';
+import { OrganizacionLaboral } from 'src/module/organizacionLaboral/organizacionLaboral.entity';
 
 @Entity({ name: 'organizacionEscolar', schema: 'grupos' })
 export class OrganizacionEscolar {
@@ -23,6 +24,9 @@ export class OrganizacionEscolar {
 
   @OneToMany(() => Grupos, (grupo) => grupo.organizacionEscolar)
   grupo?: Grupos[];
+
+  @OneToMany(() => OrganizacionLaboral, (org) => org.añolectivo)
+  organizacionLaboral?: OrganizacionLaboral[];
 
   //ID del usuario que creó el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo

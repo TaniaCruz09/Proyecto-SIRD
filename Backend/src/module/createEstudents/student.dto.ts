@@ -35,7 +35,7 @@ export class StudentsDto {
     @IsObject()
     pais: Pais;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsObject()
     departamento: Departamento;
 

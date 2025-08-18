@@ -23,14 +23,18 @@ import {
 import { Grupos } from '../grupos/entities/grupos.entity';
 import { User } from '../auth/entities';
 import * as moment from 'moment-timezone';
+import { OrganizacionLaboral } from '../organizacionLaboral/organizacionLaboral.entity';
 
-@Entity({ name: 'docentes' })
+@Entity({ name: 'docentes', schema: 'docentes' })
 export class Docentes {
   @PrimaryGeneratedColumn({
     name: 'id',
     type: 'int2',
   })
   id: number;
+
+  @OneToMany(() => User, (user) => user.docente)
+  User?: User;
 
   @Column({
     name: 'nombres',
@@ -107,7 +111,7 @@ export class Docentes {
   telefono_contacto_emergencia: string;
 
   @ManyToOne(() => GenderEntity)
-  @JoinColumn({ name: 'sexo_id' })
+  @JoinColumn({ name: 'sexo' })
   sexo: GenderEntity;
 
   @ManyToMany(() => AcademicLevelEntity, (academiclevel) => academiclevel.docente,
@@ -130,7 +134,11 @@ export class Docentes {
   @OneToMany(() => Grupos, (grupo) => grupo.id)
   grupos?: Grupos[];
 
-   //ID del usuario que creó el registro
+  @OneToMany(() => OrganizacionLaboral, (org) => org.docente)
+  organizacionLaboral?: OrganizacionLaboral[];
+
+
+  //ID del usuario que creó el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo
   user_create_id: number;
 

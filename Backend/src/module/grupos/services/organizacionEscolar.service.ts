@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { OrganizacionEscolar } from '../entities/organizacionEscolar.entity.';
+import { OrganizacionEscolar } from '../entities/organizacionEscolar.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateOrganizacionEscolarDTO } from '../dtos/organizacionEscolar.dto';

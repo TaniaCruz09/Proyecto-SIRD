@@ -4,6 +4,7 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
   ManyToMany,
   ManyToOne,
   OneToMany,
@@ -15,9 +16,11 @@ import { Docentes } from '../../docentes/docentes.entity';
 import { GruposConEstudiantes } from './gruposConEstudiantes.entity';
 import { User } from '../../auth/entities';
 import * as moment from 'moment-timezone';
-import { OrganizacionEscolar } from './organizacionEscolar.entity.';
+import { OrganizacionEscolar } from './organizacionEscolar.entity';
+import { OrganizacionLaboral } from 'src/module/organizacionLaboral/organizacionLaboral.entity';
+import { OrganizacionLaboralAsignaturaGrupo } from 'src/module/OrganizacionLaboralAsignaturaGrupo/AsignaturaGrupo.entity';
 
-@Entity({ name: 'grupos', schema: 'grupos'  })
+@Entity({ name: 'grupos', schema: 'grupos' })
 export class Grupos {
   @PrimaryGeneratedColumn({
     name: 'id',
@@ -40,17 +43,26 @@ export class Grupos {
   @ManyToOne(() => Docentes, (docente) => docente.grupos)
   docente: Docentes;
 
+  // ...existing code...
   @ManyToMany(
     () => GruposConEstudiantes,
     (grupoConEstudiantes) => grupoConEstudiantes.grupo,
   )
-  grupoConEstudiantes?: GruposConEstudiantes;
-
+  @JoinTable({ name: 'grupos_tienen_gruposConEstudiantes' }) // Si necesitas tabla intermedia
+  grupoConEstudiantes: GruposConEstudiantes;
+  // ...existing code...
   @ManyToOne(
     () => OrganizacionEscolar,
     (organizacionEscolar) => organizacionEscolar.grupo,
   )
   organizacionEscolar: OrganizacionEscolar;
+
+  @OneToMany(() => OrganizacionLaboralAsignaturaGrupo, (org) => org.grupo)
+  grupo: OrganizacionLaboralAsignaturaGrupo[];
+
+  @OneToMany(() => OrganizacionLaboral, (org) => org.grupoGuia)
+  organizacionLaboralComoGuia: OrganizacionLaboral[];
+
 
   //ID del usuario que creó el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo

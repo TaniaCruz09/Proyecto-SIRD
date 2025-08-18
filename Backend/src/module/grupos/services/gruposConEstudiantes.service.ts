@@ -14,13 +14,21 @@ export class GruposConEstudiantesService {
     ){}
 
     async createGrupo(createGrupoDto: CreateGrupoConEstudiantesDto): Promise<GruposConEstudiantes> {
-        try{
-            const nuevoGrupo = this.grupoRepository.create(createGrupoDto);
-            return await this.grupoRepository.save(nuevoGrupo)
-        } catch(error){
-            Utilities.catchError(error)
-        }
+    try {
+        const fixedDto = {
+            ...createGrupoDto,
+            grupo: createGrupoDto.grupo
+                ? Array.isArray(createGrupoDto.grupo)
+                    ? createGrupoDto.grupo
+                    : [createGrupoDto.grupo]
+                : undefined,
+        };
+        const nuevoGrupo = this.grupoRepository.create(fixedDto);
+        return await this.grupoRepository.save(nuevoGrupo);
+    } catch (error) {
+        Utilities.catchError(error);
     }
+}
 
     async getGrupo(): Promise<GruposConEstudiantes[]>{
         try{
@@ -56,13 +64,25 @@ export class GruposConEstudiantesService {
         }
     }
 
+    
+    // ...existing code...
     async updateGrupos(id: number, payload: UpdateGrupoConEstudiantesDto): Promise<GruposConEstudiantes>{
         try{
-            const grupos = await this.grupoRepository.preload({ id, ...payload });
+            // Asegura que grupo sea un arreglo
+            const fixedPayload = {
+                ...payload,
+                grupo: payload.grupo
+                    ? Array.isArray(payload.grupo)
+                        ? payload.grupo
+                        : [payload.grupo]
+                    : undefined,
+            };
+            const grupos = await this.grupoRepository.preload({ id, ...fixedPayload });
             if (!grupos) throw new NotFoundException(`Grupos con ID ${id} no encontrado`);
             return await this.grupoRepository.save(grupos);
         }catch(error){
             Utilities.catchError(error)
         }
     }
+// ...existing code...
 }

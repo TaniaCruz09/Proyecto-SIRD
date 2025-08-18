@@ -6,11 +6,15 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
+  ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { GruposConEstudiantes } from 'src/module/grupos/entities/gruposConEstudiantes.entity';
+import { OrganizacionLaboral } from 'src/module/organizacionLaboral/organizacionLaboral.entity';
+import { OrganizacionLaboralAsignaturaGrupo } from 'src/module/OrganizacionLaboralAsignaturaGrupo/AsignaturaGrupo.entity';
 
 @Entity({ schema: 'catalogos', name: 'asignatura' })
 export class Asignatura {
@@ -19,10 +23,15 @@ export class Asignatura {
 
   @Column({
     type: 'varchar',
-    length: 50,
     name: 'asignatura',
   })
   asignatura: string;
+
+  @OneToMany(() => OrganizacionLaboral, (org) => org.asignatura)
+  organizacionLaboral: OrganizacionLaboral[];
+
+  @OneToMany(() => OrganizacionLaboralAsignaturaGrupo, (asignaturaGrupo) => asignaturaGrupo.asignatura)
+  asignaturasGrupos: OrganizacionLaboralAsignaturaGrupo[];
 
   // ID del Usuario que creo el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true })

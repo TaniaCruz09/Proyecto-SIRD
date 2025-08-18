@@ -8,7 +8,7 @@ import {
 import { GradesEntity, Modalidad, Seccion, Turno } from '../../catalogos';
 import { Docentes } from '../../docentes/docentes.entity';
 import { GruposConEstudiantes } from '../entities/gruposConEstudiantes.entity';
-import { OrganizacionEscolar } from '../entities/organizacionEscolar.entity.';
+import { OrganizacionEscolar } from '../entities/organizacionEscolar.entity';
 
 export class CreateGrupoDto {
   @IsOptional()

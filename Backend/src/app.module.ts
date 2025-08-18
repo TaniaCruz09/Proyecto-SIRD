@@ -10,13 +10,15 @@ import { StudetnModule } from './module/createEstudents/students.module';
 import { CalificacionesModule } from './module/calificaciones/calificaciones.module';
 import { GruposModule } from './module/grupos/grupos.module';
 import { CentroModule } from './module/centroEducativo/centro.module';
+import { OrganizacionLaboralModule } from './module/organizacionLaboral/organizacionLaboral.module';
+import { AsignaturaGrupoModule } from './module/OrganizacionLaboralAsignaturaGrupo/asignaturaGrupo.module';
 
 
 @Module({
   imports: [ConfigModule.forRoot({
     envFilePath: '.env',
     isGlobal: true,
-  }), DatabaseModule,  CatalogoModule, DocentesModule, AuthModule, StudetnModule, CalificacionesModule, GruposModule, CentroModule],
+  }), DatabaseModule,  CatalogoModule, DocentesModule, AuthModule, StudetnModule, CalificacionesModule, GruposModule, CentroModule,OrganizacionLaboralModule, AsignaturaGrupoModule],
   controllers: [AppController],
   providers: [AppService],
 })

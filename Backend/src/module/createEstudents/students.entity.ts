@@ -15,7 +15,7 @@ import { GruposConEstudiantes } from '../grupos/entities/gruposConEstudiantes.en
 import * as moment from 'moment-timezone';
 import { User } from '../auth/entities';
 
-@Entity({ name: 'student' })
+@Entity({ name: 'student', schema: 'estudiante' })
 export class StudentEntity {
   @PrimaryGeneratedColumn({
     name: 'id',
@@ -156,7 +156,7 @@ export class StudentEntity {
 
   @ManyToOne(() => Departamento, (departmento) => departmento.id)
   @JoinColumn({ name: 'departamento_id' })
-  departamento: Departamento;
+  departamento?: Departamento;
 
   @ManyToOne(() => Municipio, (municipio) => municipio.id)
   @JoinColumn({ name: 'municipio_id' })

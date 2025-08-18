@@ -24,7 +24,7 @@ export class SeccionService {
 
   async findAll(): Promise<Seccion[]> {
     try {
-      const seccion = await this.seccionRepository.find();
+      const seccion = await this.seccionRepository.find({relations: ['grupos']});
       return seccion;
     } catch (error) {
       Utilities.catchError(error);
@@ -33,7 +33,7 @@ export class SeccionService {
 
   async findOne(id: number): Promise<Seccion> {
     try {
-      const seccion = await this.seccionRepository.findOne({ where: { id } });
+      const seccion = await this.seccionRepository.findOne({ where: { id }, relations: ['grupos'] });
       return seccion;
     } catch (error) {
       Utilities.catchError(error);
@@ -42,7 +42,7 @@ export class SeccionService {
 
   async update(id: number, payload: CreateSeccionDTO): Promise<Seccion> {
     try {
-      const seccion = await this.seccionRepository.findOne({ where: { id } });
+      const seccion = await this.seccionRepository.findOne({ where: { id },relations: ['grupos'] });
       if (!seccion) {
         throw new NotFoundException('Seccion no encontrada');
       }
@@ -60,7 +60,7 @@ export class SeccionService {
 
   async delete(id: number, userId: number): Promise<Seccion> {
     try {
-      const seccion = await this.seccionRepository.findOne({ where: { id } });
+      const seccion = await this.seccionRepository.findOne({ where: { id } ,relations: ['grupos']});
       if (!seccion) {
         throw new NotFoundException('Profesión no encontrada');
       }

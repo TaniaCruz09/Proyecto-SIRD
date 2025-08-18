@@ -15,6 +15,7 @@ import {
 import { Centro } from '../../centroEducativo/entities/centro.entity';
 import * as moment from 'moment-timezone';
 import { User } from '../../auth/entities';
+import { Municipio } from './municipio.entity';
 
 @Entity({ schema: 'catalogos', name: 'departamento' })
 export class Departamento {
@@ -30,6 +31,9 @@ export class Departamento {
 
   // @OneToMany(()=> Docentes, (docente)=> docente.departamento)
   // docente?: Docentes;
+  @OneToMany(() => Municipio, (municipio) => municipio.departamento)
+    municipio?: Municipio;
+  
 
   @OneToMany(() => StudentEntity, (student) => student.departamento)
   student?: StudentEntity;

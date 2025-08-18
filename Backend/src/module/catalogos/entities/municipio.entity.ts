@@ -37,8 +37,7 @@ export class Municipio {
   @OneToMany(() => Centro, (centro) => centro.municipio)
   centro?: Centro[];
 
-  @ManyToOne(() => Departamento)
-  @JoinColumn({ name: 'departamento_id' })
+  @ManyToOne(() => Departamento, (departamento)=> departamento.municipio)
   departamento: Departamento;
 
   // ID del Usuario que creo el registro

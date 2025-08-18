@@ -23,7 +23,7 @@ export class MunicipioService {
 
     async findOne (id: number): Promise<Municipio> {
         try {
-            const municipio = await this.municipioRepository.findOne({where: { id }});
+            const municipio = await this.municipioRepository.findOne({where: { id }, relations: ["departamento"]});
             return municipio;
         } catch (error) {
             Utilities.catchError (error)
@@ -33,7 +33,7 @@ export class MunicipioService {
     async findAll(): Promise<Municipio[]> {
         try {
 
-            const municipio = await this.municipioRepository.find();
+            const municipio = await this.municipioRepository.find({relations: ["departamento"]});
             return municipio; 
         } catch (error) {
             Utilities.catchError (error)
@@ -43,7 +43,7 @@ export class MunicipioService {
     async update(id: number, payload: Partial<Municipio>): Promise<Municipio> {
         try {
             const municipio = await this.municipioRepository.findOne({
-                where: { id }
+                where: { id } ,relations: ["departamento"]
             });
 
             Object.assign(municipio, payload);
@@ -60,7 +60,7 @@ export class MunicipioService {
     async delete(id: number, userId: number): Promise<Municipio> {
         try {
             const municipio = await this.municipioRepository.findOne({ 
-                where: {id} 
+                where: {id} ,relations: ["semestre"]
             });
 
             municipio.deleted_at = new Date()

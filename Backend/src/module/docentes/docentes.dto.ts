@@ -16,6 +16,7 @@ import {
   Pais,
   ProfessionsEntity,
 } from '../catalogos';
+import { Grupos } from '../grupos/entities/grupos.entity';
 
 export class DocentesDTO {
   @IsOptional()
@@ -53,6 +54,10 @@ export class DocentesDTO {
   @IsNotEmpty()
   @IsArray()
   profession: ProfessionsEntity[];
+
+  @IsOptional()
+  @IsArray()
+  grupos: Grupos[];
 
   @IsNotEmpty()
   @IsString()

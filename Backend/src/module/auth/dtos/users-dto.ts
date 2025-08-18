@@ -5,11 +5,14 @@ import {
   IsEmail,
   IsNotEmpty,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
   MaxLength,
   MinLength,
+  ValidateIf,
 } from 'class-validator';
+import { Docentes } from 'src/module/docentes/docentes.entity';
 
 export class UsersDto {
   @IsNumber()
@@ -17,6 +20,11 @@ export class UsersDto {
   @ApiProperty()
   readonly id?: number;
 
+  @IsOptional()
+  @IsObject()
+  docente: Docentes;
+
+  @ValidateIf((o) => !o.docente) // Solo se valida si no hay docente
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
@@ -51,4 +59,4 @@ export class UsersDto {
   readonly roles?: number[];
 }
 
-export class UserPartialTypeDto extends PartialType(UsersDto) {}
+export class UserPartialTypeDto extends PartialType(UsersDto) { }

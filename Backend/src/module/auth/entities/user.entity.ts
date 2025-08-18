@@ -1,23 +1,28 @@
-import { Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Role } from "./roles.entity";
+import { Docentes } from "src/module/docentes/docentes.entity";
 
 
-@Entity({schema: 'auth', name: "users"})
+@Entity({ schema: 'auth', name: "users" })
 export class User {
-    @PrimaryGeneratedColumn({name: 'id', type: 'int4'})
-    id: number;
+  @PrimaryGeneratedColumn({ name: 'id', type: 'int4' })
+  id: number;
 
-    @Column({name: 'name', type: 'varchar', length: 100, nullable: false})
-    name: string;
+  @ManyToOne(() => Docentes, (docente) => docente.id)
+  @JoinColumn({ name: 'docente_id' })
+  docente?: Docentes;
 
-    @Column({name: 'email', type: 'varchar', length: 100, nullable: false, unique: true})
-    email: string;
+  @Column({ name: 'name', type: 'varchar', length: 100, nullable: false })
+  name: string;
 
-    @Column({name: 'password', type: 'varchar', length: 100, nullable: false, select: true,})
-    password: string;
+  @Column({ name: 'email', type: 'varchar', length: 100, nullable: false, unique: true })
+  email: string;
 
-    @Column({ name: 'token', type: 'varchar', length: 500, nullable: true })
-    token: string;
+  @Column({ name: 'password', type: 'varchar', length: 100, nullable: false, select: true, })
+  password: string;
+
+  @Column({ name: 'token', type: 'varchar', length: 500, nullable: true })
+  token: string;
 
   @ManyToMany(() => Role, (role) => role.users)
   @JoinTable({
@@ -35,6 +40,6 @@ export class User {
   })
   roles: Role[];
 
-  @Column({name: 'is_active', type: 'boolean', nullable: false, default: true})
+  @Column({ name: 'is_active', type: 'boolean', nullable: false, default: true })
   isActive: boolean;
 }
