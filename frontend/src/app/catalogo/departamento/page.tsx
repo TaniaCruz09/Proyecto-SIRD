@@ -2,7 +2,6 @@
 
 import { getDepartamentos } from "@/actions/catalogos/departamentoMethods";
 import AddDepartamentoModal from "@/components/modals/catalogo/departamentoModals/AddDepartamentoModal";
-import NavbarAdmin from "@/components/navbarAdmin";
 import SearchBar from "@/components/SearchBar";
 import DepartamentoTable from "@/components/tables/catalogo/DepartamentoTable";
 import { Departamento } from "@/interfaces";
@@ -38,33 +37,28 @@ export default function Page() {
   );
 
   return (
-    <div className="flex h-screen">
-      <div>
-        <NavbarAdmin />
+    <div className="mx-6">
+      <div className="flex items-center justify-between">
+        <h1 className="ml-10 text-2xl font-bold mb-4 tracking-tight text-gray-600 text-center">
+          Departamentos
+        </h1>
+        <div className="flex justify-end mr-10 mb-6 mt-5"><AddDepartamentoModal fetchDepartamento={fetchDepartamento} /></div>
       </div>
-      <div className="w-screen p-6 bg-gray-100">
-        <div className="flex items-center justify-between">
-          <h1 className="ml-10 text-2xl font-bold mb-4 tracking-tight text-gray-600 text-center">
-            Departamentos
-          </h1>
-          <div className="flex justify-end mr-10 mb-6 mt-5"><AddDepartamentoModal fetchDepartamento={fetchDepartamento}/></div>
-        </div>
-        <div className="flex items-center justify-between bg-white border rounded-t-xl">
-          <h2 className="pl-10 text-xl font-bold text-gray-600">
-            Listado de departamentos
-          </h2>
-          <SearchBar
-            value={searchTerm}
-            onChange={setSearchTerm}
-            onClear={() => setSearchTerm("")}
-            placeholder="Buscar Departamento"
-          />
-        </div>
-        <DepartamentoTable
-        departamento={filteredDepartamento}
-        fetchDepartamentos={fetchDepartamento}
+      <div className="flex items-center justify-between bg-white border rounded-t-xl">
+        <h2 className="pl-10 text-xl font-bold text-gray-600">
+          Listado de departamentos
+        </h2>
+        <SearchBar
+          value={searchTerm}
+          onChange={setSearchTerm}
+          onClear={() => setSearchTerm("")}
+          placeholder="Buscar Departamento"
         />
       </div>
+      <DepartamentoTable
+        departamento={filteredDepartamento}
+        fetchDepartamentos={fetchDepartamento}
+      />
     </div>
   );
 }

@@ -8,7 +8,6 @@ import {
 
 import BtnOpenAddModal from "@/components/Buttons/btnOpenAddModal";
 import ConfirmDeletModal from "@/components/modals/ModalConfirmDeletion";
-import NavbarAdmin from "@/components/navbarAdmin";
 import SearchBar from "@/components/SearchBar";
 import UserTable from "@/components/tables/UserTable";
 import UserForm from "@/components/forms/UserForm";
@@ -38,10 +37,10 @@ export default function Users() {
   }, []);
 
   const handleSuccess = () => {
-  fetchUsers();
-  setIsEdit(false);
-  setShowModal(false);
-};
+    fetchUsers();
+    setIsEdit(false);
+    setShowModal(false);
+  };
 
   const confirmDelete = async () => {
     if (!userToDelete) return;
@@ -69,65 +68,60 @@ export default function Users() {
   );
 
   return (
-    <div className="flex h-screen">
-      <div>
-        <NavbarAdmin />
-      </div>
-      <div className="w-screen p-6 bg-gray-100">
-        <div className="flex items-center justify-between">
-          <h1 className="ml-10 text-2xl font-bold c mb-4 tracking-tight text-gray-600 text-center">
-            Usuarios
-          </h1>
-          <div className="flex justify-end mr-10 mb-6 mt-5">
-            <BtnOpenAddModal
-              text="Agregar Usuario"
-              onClick={() => {
-                setIsEdit(false);
-                setShowModal(true);
-              }}
-            />
-            {showModal && (
-              <ModalBase
-                onshowModal={showModal}
-                onCloseModal={() => setShowModal(false)}
-                content={
-                  <UserForm
-                    onSuccess={() => {
-                      fetchUsers();
-                      setShowModal(false);
-                    }}
-                  />
-                }
-              />
-            )}
-          </div>
-        </div>
-        <div className="flex items-center justify-between border rounded-t-xl">
-          <h2 className="pl-10 text-xl font-bold text-gray-600">
-          Lista de usuarios
-          </h2>
-          <SearchBar
-            value={searchTerm}
-            onChange={setSearchTerm}
-            onClear={() => setSearchTerm("")}
-            placeholder="Buscar por nombre o correo..."
+    <div>
+      <div className="flex items-center justify-between">
+        <h1 className="ml-10 text-2xl font-bold c mb-4 tracking-tight text-gray-600 text-center">
+          Usuarios
+        </h1>
+        <div className="flex justify-end mr-10 mb-6 mt-5">
+          <BtnOpenAddModal
+            text="Agregar Usuario"
+            onClick={() => {
+              setIsEdit(false);
+              setShowModal(true);
+            }}
           />
+          {showModal && (
+            <ModalBase
+              onshowModal={showModal}
+              onCloseModal={() => setShowModal(false)}
+              content={
+                <UserForm
+                  onSuccess={() => {
+                    fetchUsers();
+                    setShowModal(false);
+                  }}
+                />
+              }
+            />
+          )}
         </div>
-        <div>
-          
-        </div>
-        <UserTable
-          users={filteredUsers}
-          onDelete={handleDeleteClick}
-          onSuccess={handleSuccess}
-          fetchUsers={fetchUsers}
-        />
-        <ConfirmDeletModal
-          onshow={showConfirm}
-          onCancel={() => setShowConfirm(false)}
-          onConfirm={confirmDelete}
+      </div>
+      <div className="flex items-center justify-between border rounded-t-xl">
+        <h2 className="pl-10 text-xl font-bold text-gray-600">
+          Lista de usuarios
+        </h2>
+        <SearchBar
+          value={searchTerm}
+          onChange={setSearchTerm}
+          onClear={() => setSearchTerm("")}
+          placeholder="Buscar por nombre o correo..."
         />
       </div>
+      <div>
+
+      </div>
+      <UserTable
+        users={filteredUsers}
+        onDelete={handleDeleteClick}
+        onSuccess={handleSuccess}
+        fetchUsers={fetchUsers}
+      />
+      <ConfirmDeletModal
+        onshow={showConfirm}
+        onCancel={() => setShowConfirm(false)}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }
