@@ -13,6 +13,18 @@ export async function getOrganizacionEscolar() {
     return response.data
 }
 
+export async function getOrganizacionEscolarById(id: number) {
+    const endPoint = `/organizacionEscolar/${id}`;
+
+    const response = await feching(endPoint, "no-cache", "GET");
+
+    if (!response.data || response.error) {
+        throw new Error(response?.error || "Error al obtener la organizacion escolar");
+    }
+
+    return response.data
+}
+
 export async function saveOrganizacionEscolar(organizacionEscolar: OrganizacionEscolarPayload) {
     const endPoint = `/organizacionEscolar`;
 
