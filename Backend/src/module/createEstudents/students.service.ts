@@ -88,26 +88,54 @@ export class StudentService {
         }
     }
 
-    async filtrarEstudiantes(params: FiltrarEstudiantesDto): Promise<StudentEntity[]> {
+    async filtrarEstudiantes(params: FiltrarEstudiantesDto): Promise<any[]> {
         const { name, lastName, studentCode } = params;
 
-        const where: any = {};
+        const qb = this.StudentRepo.createQueryBuilder('student')
+            .leftJoinAndSelect('student.pais', 'pais')
+            .leftJoinAndSelect('student.gender', 'gender')
+            .leftJoinAndSelect('student.departamento', 'departamento')
+            .leftJoinAndSelect('student.municipio', 'municipio')
+
+        // Aquí haces LEFT JOIN con la tabla que asigna estudiante a grupo
+        // .leftJoinAndSelect('student.organizacionEscolarconEstudiantes', 'organizacionEscolarconEstudiantes')
+        // .leftJoinAndSelect('organizacionEscolarconEstudiantes.organizacionEscolar', 'organizacionEscolar')
+        // .leftJoinAndSelect('organizacionEscolar.grupo', 'grupo')
+        // .leftJoinAndSelect('grupo.grado', 'grado')
+        // .leftJoinAndSelect('grupo.seccion', 'seccion')
+        // .leftJoinAndSelect('grupo.turno', 'turno')
+        // .leftJoinAndSelect('grupo.modalidad', 'modalidad')
+
+
+
 
         if (name) {
-            where.name = ILike(`%${name}%`);
+            qb.andWhere('student.name ILIKE :name', { name: `%${name}%` });
         }
-
         if (lastName) {
-            where.lastName = ILike(`%${lastName}%`);
+            qb.andWhere('student.lastName ILIKE :lastName', { lastName: `%${lastName}%` });
         }
-
         if (studentCode) {
-            where.studentCode = ILike(`%${studentCode}%`);
+            qb.andWhere('student.studentCode ILIKE :studentCode', { studentCode: `%${studentCode}%` });
         }
 
-        return this.StudentRepo.find({
-            where,
-            take: 30,
+        // Limitar resultados
+        qb.take(30);
+
+        const students = await qb.getMany();
+
+        // Opcional: mapear para agregar propiedad asignadoGrupo con descripción amigable
+        return students.map(student => {
+            const orgEst = student.organizacionEscolarconEstudiantes?.[0]; // primer registro
+            const grupoAsignado = orgEst?.organizacionEscolar
+                ? `${orgEst.organizacionEscolar.grupo.grado.grades} ${orgEst.organizacionEscolar.grupo.seccion.seccion} - ${orgEst.organizacionEscolar.grupo.turno.turno} - ${orgEst.organizacionEscolar.grupo.modalidad.modalidad}`
+                : null;
+
+            return {
+                ...student,
+                asignadoGrupo: grupoAsignado,
+            };
         });
+
     }
 }
