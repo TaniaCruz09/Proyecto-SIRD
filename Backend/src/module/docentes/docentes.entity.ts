@@ -131,9 +131,6 @@ export class Docentes {
   @OneToMany(() => Grupos, (grupo) => grupo.docenteGuia)
   grupos?: Grupos[];
 
-  // @ManyToMany(() => OrganizacionEscolar, (org) => org.docentes)
-  // organizacionesEscolares: OrganizacionEscolar[];
-
   //ID del usuario que creó el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo
   user_create_id: number;
