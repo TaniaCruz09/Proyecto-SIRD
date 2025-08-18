@@ -26,7 +26,7 @@ export class GruposService {
     async getGrupo(): Promise<Grupos[]> {
         try {
             const grupo = await this.grupoRepository.find({
-                relations: ['grado', 'seccion', 'modalidad', 'turno']
+                relations: ["organizacionEscolar", "organizacionEscolar.anio_lectivo", "organizacionEscolar.turno", "organizacionEscolar.corte", "grado", "seccion", "turno", "turno.modalidad", 'docenteGuia']
             });
             return grupo;
         } catch (error) {
@@ -38,7 +38,7 @@ export class GruposService {
         try {
             const grupo = await this.grupoRepository.findOne({
                 where: { id },
-                relations: ['grado', 'seccion', 'modalidad', 'turno']
+                relations: ["organizacionEscolar", "organizacionEscolar.anio_lectivo", "organizacionEscolar.turno", "organizacionEscolar.corte", "grado", "seccion", "turno", "turno.modalidad", 'docenteGuia']
             })
             return grupo;
         } catch (error) {
