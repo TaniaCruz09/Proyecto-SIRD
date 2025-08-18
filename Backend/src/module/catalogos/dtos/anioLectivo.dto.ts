@@ -1,10 +1,16 @@
+import { Type } from 'class-transformer';
 import {
+    IsArray,
+    IsBoolean,
     IsDate,
     IsNotEmpty,
     IsNumber,
+    isObject,
     IsObject,
     IsOptional,
+    ValidateNested,
 } from 'class-validator';
+import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity.';
 
 export class CreateAnioLectivoDTO {
     @IsOptional()
@@ -14,6 +20,16 @@ export class CreateAnioLectivoDTO {
     @IsNotEmpty()
     @IsNumber()
     anio_lectivo: number;
+
+    @IsOptional()
+    @IsBoolean()
+    isActive?: boolean;
+
+    @IsArray()
+    @IsOptional()
+    @ValidateNested({ each: true })
+    @Type(() => OrganizacionEscolar)
+    organizacionEscolar?: OrganizacionEscolar[]
 
     @IsOptional()
     @IsNumber()
