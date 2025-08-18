@@ -12,6 +12,17 @@ export async function getAniosLectivos() {
     } return response.data
 }
 
+export async function getOrganizacionEscolarPorAnio(id: number) {
+    const endpoint = `/anioLectivo/${id}`
+
+    const response = await feching(endpoint, "no-cache", "GET");
+
+    if (!response.data || response.error) {
+        throw new Error(response?.error || "Error al obtener");
+
+    } return response.data
+}
+
 export async function saveAnioLectivo(anio_lectivo: AnioLectivoPayload) {
     const endpoint = `/anioLectivo`
 
