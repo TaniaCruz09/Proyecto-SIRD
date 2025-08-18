@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { User } from '../../auth/entities';
 import * as moment from 'moment-timezone';
+import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity.';
 
 @Entity({ name: 'anioLectivo', schema: 'catalogos' })
 export class AnioLectivo {
@@ -19,6 +20,19 @@ export class AnioLectivo {
 
     @Column({ name: 'anio_lectivo', type: 'int2' })
     anio_lectivo: number;
+
+    @Column({
+        name: 'is_active',
+        type: 'boolean',
+        nullable: false,
+        default: true,
+    })
+    isActive: boolean;
+
+    @OneToMany(() => OrganizacionEscolar, (organizacionEscolar) => organizacionEscolar.anio_lectivo, {
+        cascade: true,
+    })
+    organizacionEscolar: OrganizacionEscolar[]
 
 
     //ID del usuario que creó el registro
