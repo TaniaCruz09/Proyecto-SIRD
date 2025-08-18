@@ -164,6 +164,6 @@ export class StudentEntity {
   municipio: Municipio;
 
   @OneToMany(() => OrganizacionConEstudiantes, (oe) => oe.estudiante)
-  organizaciones?: OrganizacionConEstudiantes[];
+  organizacionEscolarconEstudiantes?: OrganizacionConEstudiantes;
 
 }
