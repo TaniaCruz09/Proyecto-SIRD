@@ -1,6 +1,6 @@
 "use client";
 
-import getDocentes, {
+import{
   deleteDocentes,
 } from "@/actions/docentesMethods/docentesMethods";
 import React, { useState } from "react";

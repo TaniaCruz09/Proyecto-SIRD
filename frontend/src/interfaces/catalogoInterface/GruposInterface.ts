@@ -1,5 +1,5 @@
 import { Docente } from "../DocenteInterface";
-import { AnioLectivo } from "./AnioLectivo";
+import { AnioLectivo } from "../organizacionEscolarInterface/AnioLectivo";
 import { Grado } from "./Grado";
 import { Modalidad } from "./ModalidadInterface";
 import { Seccion } from "./SeccionInterfase";

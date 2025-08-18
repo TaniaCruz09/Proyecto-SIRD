@@ -1,4 +1,5 @@
-import { Grado } from "../catalogoInterface/GradoInterfase";
+
+import { Grado } from "../catalogoInterface/Grado";
 import { Modalidad } from "../catalogoInterface/ModalidadInterface";
 import { Seccion } from "../catalogoInterface/SeccionInterfase";
 import { Turno } from "../catalogoInterface/TurnoInterface";

@@ -1,5 +1,7 @@
 "use server";
 
+import { Docente } from "@/interfaces";
+import { Role } from "@/interfaces/AuthInterface";
 import { feching } from "@/utils/cliente-http";
 
 
@@ -7,6 +9,8 @@ interface UserData{
     name: string,
     email: string,
     password: string,
+    docente: Docente | null,
+    roles?: number[]
 }
 
 export async function getUser(){
@@ -33,11 +37,11 @@ export async function getUserById(id: number) {
     return response;
     
 }
-export async function saveUser({name, email, password}: UserData){
-    const data = {name, email, password};
+export async function saveUser({name, email, password, docente, roles= []}: UserData){
+    const data = {name, email, password, docente, roles};
+    console.log(data, "esa es la repuesta")
     const endPoint = `/users`;
-
-    const response = await feching(endPoint, "no-cache", "POST", data)
+    const response = await feching(endPoint, "no-cache", "POST", data);
 
     if(!response || response.error){
         throw new Error(response?.error || "error desconocido desde el front de agragar usuario")
@@ -46,11 +50,12 @@ export async function saveUser({name, email, password}: UserData){
     return response;
 }
 
+
 //hice esta funcion ya que actualmente el sistema primero crea el usuario luego le asigna el rol
 export async function assignRoleToUser(userId: number, roles: number[]) {
   const endPoint = `/asignar-roles/${userId}`;
   const response = await feching(endPoint, "no-cache", "POST", { userId, roles });
-
+console.log(response, "esa es la repuesta")
   if (!response || response.error) {
     throw new Error(response?.error || "Error al asignar rol al usuario");
   }
@@ -58,8 +63,8 @@ export async function assignRoleToUser(userId: number, roles: number[]) {
   return response;
 }
 
-export async function updateUser(id: number, {name, email, password}: UserData) {
-    const data = {name, email, password};
+export async function updateUser(id: number, {name, email, password, docente, roles=[]}: UserData) {
+    const data = {name, email, password, docente, roles};
     const endPoint = `/users/${id}`;
 
     const response = await feching(endPoint, "no-cache", "PUT", data);

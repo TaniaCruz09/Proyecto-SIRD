@@ -1,13 +1,15 @@
+import { Docente } from "./DocenteInterface";
 
-export default  interface Role {
+export interface Role {
   id: number;
   rol: string;
   isActive: boolean;
   deleteAt?: Date | null;
 }
 
-export default interface User {
+export interface User {
   id: number;
+  docente: Docente | null,
   name: string;
   email: string;
   roles?: Role[]

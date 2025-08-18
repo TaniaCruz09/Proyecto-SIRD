@@ -1,65 +1,66 @@
 "use client";
 import { useEffect, useState } from "react";
+import Select from "react-select";
 import {
   assignRoleToUser,
+  getUserById,
   saveUser,
   updateUser,
 } from "@/actions/authMethods/usersMethods";
 import { getRoles } from "@/actions/authMethods/rolesMethods";
-import User from "@/interfaces/AuthInterface";
-import Role from "@/interfaces/AuthInterface";
+import { User } from "@/interfaces/AuthInterface";
+import { Docente } from "@/interfaces";
+import { Role } from "@/interfaces/AuthInterface";
+import { getDocentes } from "@/actions/docentesMethods/docentesMethods";
 
 interface UserFormProps {
   defaultValues?: User | null;
   onSuccess: () => void;
 }
 
+interface OptionType {
+  value: number;
+  label: string;
+}
+
 const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rol, setRol] = useState("");
+  const [rolesSelected, setRolesSelected] = useState<OptionType[]>([]);
+  const [docente, setDocente] = useState<number | "">("");
+  const [docentes, setDocentes] = useState<Docente[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
 
   const isEdit = Boolean(defaultValues?.id);
 
-  // Prellenar campos si es edición
   useEffect(() => {
     if (defaultValues) {
       setName(defaultValues.name || "");
       setEmail(defaultValues.email || "");
-      setPassword(""); // No mostrar contraseña cifrada
-      setRol(defaultValues.roles?.[0]?.id?.toString() || ""); // O ajusta según tu estructura
+      setPassword("");
+
+      // Preselecciona docente si existe
+      setDocente(defaultValues.docente?.id || "");
+
+      // Preselecciona roles si existen
+      if (defaultValues.roles) {
+        const mappedRoles = defaultValues.roles.map((r: Role) => ({
+          value: r.id,
+          label: r.rol,
+        }));
+        setRolesSelected(mappedRoles);
+      }
     }
   }, [defaultValues]);
 
-  //funcion con la que enviamos los datos para agregar un nuevo usuario
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      if (isEdit && defaultValues?.id) {
-        // 🔁 Editar usuario
-        const updatedUser = await updateUser(defaultValues.id, { name, email, password });
-        
-        if (rol) await assignRoleToUser(updatedUser.id, [Number(rol)]);
-      } else {
-        // ➕ Crear nuevo usuario
-        const newUserRes = await saveUser({ name, email, password });
-        const userId = newUserRes?.user?.id;
-
-        if (userId && rol) {
-          await assignRoleToUser(userId, [Number(rol)]);
-        }
-      }
-
-      onSuccess();
-    } catch (err) {
-      console.error("Error al guardar/actualizar el usuario:", err);
+  // Asegura que el docente aparezca cuando ya se cargó la lista de docentes
+  useEffect(() => {
+    if (defaultValues?.docente?.id) {
+      setDocente(defaultValues.docente.id);
     }
-  };
+  }, [docentes, defaultValues]);
 
-    // Traer roles una vez
   useEffect(() => {
     const fetchRoles = async () => {
       try {
@@ -69,18 +70,55 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
         console.error("Error al cargar los roles:", error);
       }
     };
-
     fetchRoles();
+
+    const fetchDocentes = async () => {
+      try {
+        const docentesData = await getDocentes();
+        setDocentes(docentesData);
+      } catch (error) {
+        console.error("Error al cargar los docentes:", error);
+      }
+    };
+    fetchDocentes();
   }, []);
 
-  // Si defaultValues cambia, actualiza los inputs
-  useEffect(() => {
-    if (defaultValues) {
-      setName(defaultValues.name || "");
-      setEmail(defaultValues.email || "");
-      setRol(defaultValues.roles?.[0]?.id?.toString() || "");
+  const availableRoles = roles.map((r) => ({ value: r.id, label: r.rol }));
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const payload: any = {
+        email,
+        password: password || undefined,
+        roles: rolesSelected.map((r) => r.value),
+        docente: docente ? { id: Number(docente) } : undefined,
+        name: name.trim() || undefined,
+      };
+
+      let userId: number | undefined;
+
+      if (isEdit && defaultValues?.id) {
+        const updatedUser = await updateUser(defaultValues.id, payload);
+        userId = updatedUser.id;
+      } else {
+        const newUserRes = await saveUser(payload);
+        userId = newUserRes?.user?.id;
+      }
+
+      if (userId && rolesSelected.length > 0) {
+        await assignRoleToUser(userId, rolesSelected.map((r) => r.value));
+      }
+
+      if (userId) {
+        await getUserById(userId);
+      }
+
+      onSuccess();
+    } catch (err) {
+      console.error("Error al guardar/actualizar el usuario:", err);
     }
-  }, [defaultValues]);
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -88,14 +126,33 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
         {isEdit ? "Editar Usuario" : "Agregar Usuario"}
       </h2>
 
-      <input
-        type="text"
-        placeholder="Nombre"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        required
-      />
+      {/* Selector de docente SOLO si corresponde */}
+      {(!isEdit || defaultValues?.docente) && (
+        <select
+          className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+          value={docente}
+          onChange={(e) => setDocente(e.target.value === "" ? "" : Number(e.target.value))}
+        >
+          <option value="">Selecciona un docente (opcional)</option>
+          {docentes?.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.nombres} {d.apellido_materno}
+            </option>
+          ))}
+        </select>
+      )}
+
+      {/* Campo de nombre solo si NO seleccionó docente */}
+      {docente === "" && (
+        <input
+          type="text"
+          placeholder="Nombre"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+        />
+      )}
+
       <input
         type="email"
         placeholder="Correo"
@@ -104,26 +161,26 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
         className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
         required
       />
+
       <input
         type="password"
         placeholder="Contraseña"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        required
+        required={!isEdit}
       />
-      <select
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        value={rol}
-        onChange={(e) => setRol(e.target.value)}
-      >
-        <option value="">Selecciona un rol</option>
-        {roles?.map((r) => (
-          <option key={r.id} value={r.id}>
-            {r.rol}
-          </option>
-        ))}
-      </select>
+
+      {/* Multi-select moderno para todos los roles */}
+      <Select
+        isMulti
+        options={availableRoles}
+        value={rolesSelected}
+        onChange={(selected) => setRolesSelected(selected as OptionType[])}
+        placeholder="Selecciona uno o más roles"
+        className="text-black"
+      />
+
       <div className="flex justify-center">
         <button
           type="submit"
