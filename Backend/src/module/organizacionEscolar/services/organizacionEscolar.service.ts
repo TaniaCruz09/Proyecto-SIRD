@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CreateOrganizacionEscolarDTO } from '../dtos/organizacionEscolar.dto';
 import { Utilities } from 'src/common/helpers/utilities';
 import { Docentes } from 'src/module/docentes/docentes.entity';
-import { AnioLectivo, Asignatura, Cortes } from 'src/module/catalogos';
+import { AnioLectivo, Asignatura, Cortes, Modalidad, Turno } from 'src/module/catalogos';
 import { Grupos } from '../entities/grupos.entity';
 
 @Injectable()
@@ -14,17 +14,11 @@ export class OrganizacionEscolarService {
     @InjectRepository(OrganizacionEscolar)
     private organizacionEscolarRepo: Repository<OrganizacionEscolar>,
 
-    @InjectRepository(Docentes)
-    private docenteRepo: Repository<Docentes>,
-
-    @InjectRepository(Asignatura)
-    private asignaturaRepo: Repository<Asignatura>,
-
     @InjectRepository(Cortes)
     private cortesRepo: Repository<Cortes>,
 
-    @InjectRepository(Grupos)
-    private grupoRepo: Repository<Grupos>,
+    @InjectRepository(Turno)
+    private turnoRepo: Repository<Turno>,
 
     @InjectRepository(AnioLectivo)
     private anioRepo: Repository<AnioLectivo>,
@@ -36,80 +30,47 @@ export class OrganizacionEscolarService {
     try {
       const {
         anio_lectivo,
-        grupo,
-        docenteGuia,
-        docentes,
-        asignaturas,
-        cortes,
+        turno,
+        corte,
         user_create_id,
       } = createOrganizacionDto;
 
       const nuevaOrganizacion = this.organizacionEscolarRepo.create({
         anio_lectivo: await this.anioRepo.findOne({ where: { id: anio_lectivo.id } }),
-        grupo: await this.grupoRepo.findOne({
-          where: { id: grupo.id },
-          relations: ['grado', 'seccion', 'modalidad', 'turno'],
-        }),
-        docenteGuia: await this.docenteRepo.findOne({
-          where: { id: docenteGuia.id },
-          relations: [
-            'sexo',
-            'nivel_academico',
-            'profession',
-            'pais',
-            'municipio',
-          ],
-        }),
-        // relaciones para el many-to-many
-        docentes: await this.docenteRepo.findBy(
-          docentes.map((d) => ({ id: d.id }))
+
+        turno: await this.turnoRepo.findOne(
+          { where: { id: turno.id } }
         ),
 
-        asignaturas: await this.asignaturaRepo.findBy(
-          asignaturas.map((a) => ({ id: a.id }))
-        ),
-
-        cortes: await this.cortesRepo.findBy(
-          cortes.map((c) => ({ id: c.id }))
+        corte: await this.cortesRepo.findOne(
+          { where: { id: corte.id } }
         ),
 
         user_create_id,
       });
-
       return await this.organizacionEscolarRepo.save(nuevaOrganizacion);
+
     } catch (error) {
       Utilities.catchError(error);
     }
   }
 
-
-  // async getOrganizacion(): Promise<OrganizacionEscolar[]> {
-  //   try {
-  //     const organizacion = await this.organizacionEscolarRepo.find({
-  //       relations: ['anio_lectivo', "grupo", "grupo.grado", "grupo.seccion", "grupo.modalidad", "grupo.turno", "docenteGuia", "docentes", "asignaturas", "cortes"],
-  //     });
-  //     return organizacion;
-  //   } catch (error) {
-  //     Utilities.catchError(error);
-  //   }
-  // }
   async getOrganizacion(): Promise<OrganizacionEscolar[]> {
     try {
       const organizacion = await this.organizacionEscolarRepo
         .createQueryBuilder('organizacionEscolar')
         .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo')
-        .leftJoinAndSelect('organizacionEscolar.grupo', 'grupo')
-        .leftJoinAndSelect('grupo.grado', 'grado')
-        .leftJoinAndSelect('grupo.seccion', 'seccion')
-        .leftJoinAndSelect('grupo.modalidad', 'modalidad')
-        .leftJoinAndSelect('grupo.turno', 'turno')
-        .leftJoinAndSelect('organizacionEscolar.docenteGuia', 'docenteGuia')
-        .leftJoinAndSelect('organizacionEscolar.docentes', 'docentes')
-        .leftJoinAndSelect('organizacionEscolar.asignaturas', 'asignaturas')
-        .leftJoinAndSelect('organizacionEscolar.cortes', 'cortes')
-        .leftJoinAndSelect('organizacionEscolar.estudiantes', 'estudiantes')
-        .leftJoinAndSelect('estudiantes.estudiante', 'estudiante')
-        .orderBy('organizacionEscolar.id', 'DESC')
+        .leftJoinAndSelect('organizacionEscolar.grupos', 'grupos')
+        .leftJoinAndSelect('grupos.grado', 'grado')
+        .leftJoinAndSelect('grupos.seccion', 'seccion')
+        // .leftJoinAndSelect('grupos.turno', 'turno')
+        // .leftJoinAndSelect('grupos.modalidad', 'grupo_modalidad')
+        .leftJoinAndSelect('grupos.docenteGuia', 'docenteGuia')
+        .leftJoinAndSelect('organizacionEscolar.turno', 'turno')
+        .leftJoinAndSelect('turno.modalidad', 'modalidad')
+        .leftJoinAndSelect('organizacionEscolar.corte', 'corte')
+        .leftJoinAndSelect('corte.semestre', 'semestre')
+        .orderBy('anio_lectivo.anio_lectivo', 'DESC')
         .getMany();
 
       return organizacion;
@@ -119,11 +80,24 @@ export class OrganizacionEscolarService {
   }
   async getOrganizacionById(id: number): Promise<OrganizacionEscolar> {
     try {
-      const organizacion = await this.organizacionEscolarRepo.findOne({
-        where: { id },
-        relations: ['anio_lectivo', "grupo", "docenteGuia", "docentes", "asignaturas", "cortes"],
-      });
-      return organizacion;
+      const organizacion = await this.organizacionEscolarRepo
+        .createQueryBuilder('organizacionEscolar')
+        .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo')
+        .leftJoinAndSelect('organizacionEscolar.grupos', 'grupos')
+        .leftJoinAndSelect('grupos.grado', 'grado')
+        .leftJoinAndSelect('grupos.seccion', 'seccion')
+        // .leftJoinAndSelect('grupos.turno', 'turno')
+        // .leftJoinAndSelect('grupos.modalidad', 'grupo_modalidad')
+        .leftJoinAndSelect('grupos.docenteGuia', 'docenteGuia')
+        .leftJoinAndSelect('organizacionEscolar.turno', 'turno')
+        .leftJoinAndSelect('turno.modalidad', 'modalidad')
+        .leftJoinAndSelect('organizacionEscolar.corte', 'corte')
+        .leftJoinAndSelect('corte.semestre', 'semestre')
+        .where('organizacionEscolar.id = :id', { id })
+        .orderBy('anio_lectivo.anio_lectivo', 'DESC')
+        .getOne();
+
+      return organizacion ?? null;
     } catch (error) {
       Utilities.catchError(error);
     }
@@ -136,7 +110,7 @@ export class OrganizacionEscolarService {
     try {
       const organizacion = await this.organizacionEscolarRepo.findOne({
         where: { id },
-        relations: ['anio_lectivo', "grupo", "docenteGuia", "docentes", "asignaturas", "cortes"],
+        relations: ['anio_lectivo', "turno", "corte"],
       });
       if (!organizacion) {
         throw new NotFoundException('Organizacion Escolar no encontrada');
@@ -161,7 +135,7 @@ export class OrganizacionEscolarService {
     try {
       const organizacion = await this.organizacionEscolarRepo.findOne({
         where: { id },
-        relations: ['grupo'],
+        relations: ['anio_lectivo', "turno", "corte"],
       });
       if (!organizacion) {
         throw new NotFoundException('Organizacion escolar no encontrada');
