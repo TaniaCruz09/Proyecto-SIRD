@@ -128,11 +128,11 @@ export class Docentes {
   @JoinColumn({ name: 'municipio_id' })
   municipio: Municipio;
 
-  @OneToMany(() => Grupos, (grupo) => grupo.id)
+  @OneToMany(() => Grupos, (grupo) => grupo.docenteGuia)
   grupos?: Grupos[];
 
-  @ManyToMany(() => OrganizacionEscolar, (org) => org.docentes)
-  organizacionesEscolares: OrganizacionEscolar[];
+  // @ManyToMany(() => OrganizacionEscolar, (org) => org.docentes)
+  // organizacionesEscolares: OrganizacionEscolar[];
 
   //ID del usuario que creó el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo
