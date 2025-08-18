@@ -10,7 +10,7 @@ import { OrganizacionEscolarService } from '../organizacionEscolar/services/orga
 import { OrganizacionEscolarController } from './controllers/organizacionEscolar.controller';
 import { OrganizacionConEstudiantes } from './entities/organizacionConEstudiante';
 import { Docentes } from '../docentes/docentes.entity';
-import { AnioLectivo, Asignatura, Cortes } from '../catalogos';
+import { AnioLectivo, Asignatura, Cortes, Modalidad, Turno } from '../catalogos';
 import { StudentEntity } from '../createEstudents';
 
 @Module({
@@ -19,11 +19,9 @@ import { StudentEntity } from '../createEstudents';
             Grupos,
             OrganizacionEscolar,
             OrganizacionConEstudiantes,
-            Docentes,
-            Asignatura,
             Cortes,
             AnioLectivo,
-            StudentEntity
+            Turno
         ]),
     ],
     controllers: [
