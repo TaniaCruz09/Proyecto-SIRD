@@ -22,10 +22,11 @@ export default function GrupoTable({ grupos, fetchGrupos }: GrupoTableProps) {
                     <thead className="bg-gray-200 uppercase text-xs font-semibold sticky top-0 z-10">
                         <tr>
                             <th className="p-3 border-b border-gray-300">Id</th>
+                            <th className="p-3 border-b border-gray-300">Organizacion EScolar</th>
                             <th className="p-3 border-b border-gray-300">Grado</th>
                             <th className="p-3 border-b border-gray-300">Seccion</th>
                             <th className="p-3 border-b border-gray-300">Turno</th>
-                            <th className="p-3 border-b border-gray-300">Modalidad</th>
+                            <th className="p-3 border-b border-gray-300">Docente Guia</th>
                             <th className="p-1 border-b border-gray-300 text-center">Editar</th>
                             <th className="p-1 border-b border-gray-300 text-center">Eliminar</th>
                         </tr>
