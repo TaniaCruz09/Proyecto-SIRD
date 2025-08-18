@@ -11,7 +11,7 @@ export default function AddOrganizacionEscolarModal({ fetchOrganizacionEscolar }
     const [showModal, setShowModal] = useState<boolean>(false);
     return (
         <div>
-            <BtnOpenAddModal onClick={() => setShowModal(true)} />
+            <BtnOpenAddModal text={"Agregar nueva organizacion"} onClick={() => setShowModal(true)} />
             {
                 showModal && (
                     <ModalBase
