@@ -1,81 +1,98 @@
-import { saveAnioLectivo, updateAnioLectivo } from "@/actions/catalogos/anioLectivoMethods";
-import { AnioLectivo } from "@/interfaces";
-import React, { useEffect, useState } from "react";
+import { saveAnioLectivo } from "@/actions/catalogos/anioLectivoMethods";
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Calendar, Plus } from "lucide-react"
 
 interface AnioLectivoFormProps {
-  defaultValues?: AnioLectivo | null;
   onSuccess: () => void;
 }
 
-export default function AñoLectivoForm({
-  defaultValues,
+export function AnioLectivoForm({
   onSuccess,
 }: AnioLectivoFormProps) {
   const [anioLectivo, setAnioLectivo] = useState<string>("");
-  const [grupo, setGrupos] = useState<string>("");
-
-  const isEdit = Boolean(defaultValues?.id);
-
-  useEffect(() => {
-    if (defaultValues) {
-      console.log("Cargando datos para editar:", defaultValues);
-      setAnioLectivo(defaultValues.anio_lectivo.toString());
-    }
-  }, [defaultValues]);
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
+    setIsLoading(true)
 
-  const anioLectivoNumber = parseInt(anioLectivo, 10); // ✅ Convertir a número
+    const anioLectivoNumber = parseInt(anioLectivo, 10); // ✅ Convertir a número
 
-  if (isNaN(anioLectivoNumber)) {
-    console.error("El año lectivo no es un número válido");
-    return;
-  }
+    if (isNaN(anioLectivoNumber)) {
+      console.error("El año lectivo no es un número válido");
+      return;
+    }
 
-  try {
-    if (isEdit && defaultValues?.id) {
-      console.log("Actualizando año lectivo...");
-      await updateAnioLectivo(defaultValues.id, {
-        anio_lectivo: anioLectivoNumber, // ✅ Número, no string
-      });
-      console.log("Año lectivo actualizado correctamente");
-    } else {
-      console.log("Guardando nuevo año lectivo...");
+    try {
       await saveAnioLectivo({
         anio_lectivo: anioLectivoNumber, // ✅ Número, no string
       });
-      console.log("Año lectivo guardado correctamente");
-    }
 
-    onSuccess();
-  } catch (error) {
-    console.error("Error al guardar o actualizar año lectivo:", error);
-  }
-};
+      onSuccess();
+    } catch (error) {
+      console.error("Error al guardar o actualizar año lectivo:", error);
+    }
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto px-2">
-      <h2 className="text-xl font-semibold text-gray-700 mb-4">
-        {isEdit ? "Editar Año Lectivo" : "Agregar Año Lectivo"}
-      </h2>
-      <input
-        type="number" 
-        placeholder="Año Lectivo"
-        value={anioLectivo}
-        onChange={(e) => setAnioLectivo(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        required
-      />
+    <div className="mt-5">
+      <Card>
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl flex items-center justify-center gap-2">
+            <Calendar className="h-6 w-6" />
+            Crear Nuevo Año Lectivo
+          </CardTitle>
+          <CardDescription>Después podrás agregar las organizaciones escolares que necesites</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="year" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Año Lectivo
+              </Label>
+              <input
+                type="number"
+                placeholder="Ingresa el año lectivo"
+                value={anioLectivo}
+                onChange={(e) => setAnioLectivo(e.target.value)}
+                className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+                required
+              />
+            </div>
 
-      <div className="flex justify-center">
-        <button
-          type="submit"
-          className="px-20 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 mb-6"
-        >
-          {isEdit ? "Actualizar" : "jajaja no se"}
-        </button>
-      </div>
-    </form>
-  );
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Plus className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <h3 className="font-medium mb-1">Siguiente paso</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Una vez creado el año lectivo, podrás agregar organizaciones escolares seleccionando:
+                  </p>
+                  <ul className="text-sm text-muted-foreground mt-2 space-y-1">
+                    <li>
+                      • <strong>Modalidad:</strong>
+                    </li>
+                    <li>
+                      • <strong>Turno:</strong>
+                    </li>
+                    <li>
+                      • <strong>Cortes:</strong>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <Button type="submit" className="w-full" disabled={isLoading} variant={"custom"}>
+              {isLoading ? "Creando Año Lectivo..." : "Crear Año Lectivo"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  )
 }
