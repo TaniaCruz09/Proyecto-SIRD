@@ -23,7 +23,7 @@ export class TurnoService {
 
   async findAll(): Promise<Turno[]> {
     try {
-      const turno = await this.turnoRepository.find();
+      const turno = await this.turnoRepository.find({ relations: ["modalidad"] });
       return turno;
     } catch (error) {
       Utilities.catchError(error);
