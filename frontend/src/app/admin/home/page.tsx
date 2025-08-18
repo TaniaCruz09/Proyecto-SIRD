@@ -2,102 +2,121 @@
 
 import { FaUsers, FaUserShield, FaBook, FaChalkboardTeacher, FaGraduationCap, FaCogs } from 'react-icons/fa'
 import { motion } from 'framer-motion'
-import NavbarAdmin from '@/components/navbarAdmin'
 import { FaArrowUpRightFromSquare } from 'react-icons/fa6'
 import CerrarSecion from '@/components/cerrarSesion'
+import { AcademicYearsDashboard } from '@/components/organizacionEscolar/tablero-de-años-academicos'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Calendar } from 'lucide-react'
+import Link from 'next/link'
 
 export default function HomePage() {
   return (
-    <div className="flex h-screen bg-white">
-      <div>
-        <NavbarAdmin />
-      </div>
-      <div className="w-screen p-6 text-center bg-gray-100 overflow-auto">
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gray-100">
+      <header className="bg-gradient-to-r from-gray-50 to-purple-50 border-b border-gray-200 py-2">
+        <div className="max-w-7xl mx-auto px-5">
+          <div className="flex items-center justify-between">
+            {/* Título y subtítulo */}
+            <div>
+              <h1 className="text-2xl font-bold text-black mb-0.5">
+                Sistema de Calificaciones SIRD
+              </h1>
+              <p className="text-gray-600 text-sm">
+                Panel de Administración
+              </p>
+            </div>
 
-          <h2 className="text-2xl md:text-2xl font-bold text-blue-900 drop-shadow-md mb-6">
-            Página de inicio
-          </h2>
-          <CerrarSecion />
+            {/* Botón o componente de cierre de sesión */}
+            <CerrarSecion />
+          </div>
         </div>
-        <h2 className="text-2xl md:text-3xl font-bold text-blue-900 drop-shadow-md mb-6">
-          Bienvenido Administrador al Sistema de Calificaciones SIRD
-        </h2>
-        <p className="text-lg text-blue-800 mb-12">
-          Administra fácilmente las funciones del sistema desde aquí
-        </p>
+      </header>
+      <main className="max-w-7xl mx-auto px-6">
+        <div className="m-5">
+          <h2 className="text-2xl font-bold text-foreground mb-3">Bienvenido Administrador</h2>
+          <p className="text-lg text-muted-foreground">Administra fácilmente las funciones del sistema desde aquí</p>
+        </div>
 
-        <div className="flex items-center bg-white rounded-t-xl pl-3 font-semibold text-black">
+        <div className="flex items-center bg-gray-100 rounded-xl pl-3 font-semibold text-black">
           <FaArrowUpRightFromSquare />
           <p className="pl-2">Accesos directos</p>
         </div>
 
         {/* Tarjetas de acceso directo */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 place-items-center bg-white border rounded-b-xl p-8">
-          {/* Usuarios y Roles */}
-          <Card
-            icon={<FaUserShield className="text-black text-4xl mb-4" />}
-            title="Usuarios y Roles"
-            description="Gestiona los usuarios del sistema y sus permisos"
-            bgColor="bg-green-500/40 hover:bg-green-400/60"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-5 place-items-center bg-white border rounded-xl p-5 mb-5">
 
-          {/* Catálogos */}
-          <Card
-            icon={<FaBook className="text-black text-4xl mb-4" />}
-            title="Catálogos"
-            description="Administra asignaturas, grados, turnos y más"
-            bgColor="bg-yellow-400/40 hover:bg-yellow-300/60"
-          />
+          {/* Card 1: Usuarios y Roles */}
+          <Link href={"/auth/users"}>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-70">
+              <Card className="bg-gradient-to-br from-blue-200 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
+                <CardHeader className="flex flex-col items-center">
+                  <FaUserShield className="text-black text-3xl" />
+                </CardHeader>
+                <CardContent className="text-center">
+                  <div className="text-xl font-bold text-slate-800">Usuarios y Roles</div>
+                  <p className="text-sm text-slate-600">
+                    Gestiona los usuarios del sistema y sus permisos
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </Link>
 
-          {/* Organización Escolar */}
-          <Card
-            icon={<FaChalkboardTeacher className="text-black text-4xl mb-4" />}
-            title="Organización Escolar"
-            description="Define grupos y estructura educativa"
-            bgColor="bg-blue-400/30 hover:bg-blue-300/50"
-          />
 
-          {/* Registro Docente */}
-          <Card
-            icon={<FaUsers className="text-black text-4xl mb-4" />}
-            title="Registro de Docentes"
-            description="Agrega o edita los docentes del sistema"
-            bgColor="bg-purple-400/40 hover:bg-purple-300/60"
-          />
+          {/* Card 2: Registro Calificaciones*/}
+          <Link href={"/calificaciones"}>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-70">
+              <Card className="bg-gradient-to-br from-emerald-200 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
+                <CardHeader className="flex flex-col items-center">
+                  <FaBook className="text-black text-3xl" />
+                </CardHeader>
+                <CardContent className="text-center">
+                  <div className="text-xl font-bold text-slate-800">Calificaciones</div>
+                  <p className="text-sm text-slate-600">
+                    Administra las calificaciones de los grados y más
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </Link>
+
+          {/* Card 3: Registro Docente */}
+          <Link href={"/registerDocente"}>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-70">
+              <Card className="bg-gradient-to-br from-purple-200 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
+                <CardHeader className="flex flex-col items-center">
+                  <FaUsers className="text-black text-3xl" />
+                </CardHeader>
+                <CardContent className="text-center">
+                  <div className="text-xl font-bold text-slate-800">Registro de Docentes</div>
+                  <p className="text-sm text-slate-600">
+                    Agrega o edita los docentes del sistema
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </Link>
 
           {/* Registro Estudiantes */}
-          <Card
-            icon={<FaGraduationCap className="text-black text-4xl mb-4" />}
-            title="Registro de Estudiantes"
-            description="Gestiona los estudiantes registrados"
-            bgColor="bg-pink-300/40 hover:bg-pink-200/60"
-          />
-
-          {/* Configuración del sistema */}
-          <Card
-            icon={<FaCogs className="text-black text-4xl mb-4" />}
-            title="Configuración"
-            description="Ajustes generales del sistema"
-            bgColor="bg-gray-300/50 hover:bg-gray-200"
-          />
+          <Link href={"/registerEstudent"}>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-70">
+              <Card className="bg-gradient-to-br from-amber-200 to-amber-100 hover:from-amber-100 hover:to-amber-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
+                <CardHeader className="flex flex-col items-center">
+                  <FaGraduationCap className="text-black text-3xl" />
+                </CardHeader>
+                <CardContent className="text-center">
+                  <div className="text-xl font-bold text-slate-800">Estudiantes</div>
+                  <p className="text-sm text-slate-600">
+                    Gestiona los estudiantes registrados
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </Link>
         </div>
-      </div>
+        <div className="bg-card rounded-lg border border-border p-6 ">
+          <AcademicYearsDashboard />
+        </div>
+      </main>
     </div>
-  )
-}
-
-// Componente de tarjeta reutilizable
-function Card({ icon, title, description, bgColor }: { icon: React.ReactNode, title: string, description: string, bgColor: string }) {
-  return (
-    <motion.div
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.98 }}
-      className={`w-75 ${bgColor} rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer`}
-    >
-      {icon}
-      <h2 className="text-xl font-semibold text-black">{title}</h2>
-      <p className="text-sm text-black mt-2 text-center">{description}</p>
-    </motion.div>
   )
 }
