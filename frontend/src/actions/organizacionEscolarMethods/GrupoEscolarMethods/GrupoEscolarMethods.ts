@@ -13,6 +13,18 @@ export async function getGrupos() {
     return response.data
 }
 
+export async function getGruposById(id: number) {
+    const endPoint = `/grupos${id}`;
+
+    const response = await feching(endPoint, "no-cache", "GET");
+
+    if (!response.data || response.error) {
+        throw new Error(response?.error || "Error al obtener el grupo");
+    }
+
+    return response.data
+}
+
 export async function saveGrupo(grupo: GrupoEscolarPayload) {
     const endPoint = `/grupos`;
 
