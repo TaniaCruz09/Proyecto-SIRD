@@ -1,13 +1,9 @@
 import { getAniosLectivos } from '@/actions/catalogos/anioLectivoMethods';
-import { getAsignaturas } from '@/actions/catalogos/asignaturaMethods';
 import { getCortesEvaluativos } from '@/actions/catalogos/corteEvaluativoMethods';
-import { getDocentes } from '@/actions/docentesMethods/docentesMethods';
-import { getGrupos } from '@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods';
+import { getTurnos } from '@/actions/catalogos/turnoMethods';
 import { saveOrganizacionEscolar, updateOrganizacionEscolar } from '@/actions/organizacionEscolarMethods/organizacionMethods';
-import { AnioLectivo, Asignatura, Corte, Docente, GrupoEscolar, OrganizacionEscolar, OrganizacionEscolarPayload } from '@/interfaces';
+import { AnioLectivo, Corte, Docente, OrganizacionEscolar, OrganizacionEscolarPayload, Turno } from '@/interfaces';
 import React, { useEffect, useState } from 'react'
-import Select from 'react-select';
-
 interface OrganizacionFormProp {
     defaultValues?: OrganizacionEscolar | null;
     onSuccess: () => void;
@@ -18,19 +14,11 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
     const [anioLectivo, setAnioLectivo] = useState<string>("")
     const [aniosLectivos, setAniosLectivos] = useState<AnioLectivo[]>([])
 
-    const [grupo, setGrupo] = useState<string>("")
-    const [grupos, setGrupos] = useState<GrupoEscolar[]>([])
+    const [turno, setTurno] = useState<string>("")
+    const [turnos, setTurnos] = useState<Turno[]>([])
 
-    const [docenteGuia, setDocenteGuia] = useState<string>("")
-    const [docentesGuias, setDocentesGuias] = useState<Docente[]>([])
-
-    const [docente, setDocente] = useState<string[]>([])
-    const [docentes, setDocentes] = useState<Docente[]>([])
-
-    const [asignatura, setAsignatura] = useState<string[]>([])
-    const [asignaturas, setAsignaturas] = useState<Asignatura[]>([])
-
-    const [corte, setCorte] = useState<string[]>([])
+    const [corte, setCorte] = useState<string>("")
+    // const [corte, setCorte] = useState<string[]>([])
     const [cortes, setCortes] = useState<Corte[]>([])
 
     const isEdit = Boolean(defaultValues?.id);
@@ -40,24 +28,15 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
             try {
                 const [
                     anioLectivoData,
-                    grupoData,
-                    docenteGuiaData,
-                    docentesData,
-                    asignaturasData,
+                    turnoData,
                     cortesData
                 ] = await Promise.all([
                     getAniosLectivos(),
-                    getGrupos(),
-                    getDocentes(),
-                    getDocentes(),
-                    getAsignaturas(),
+                    getTurnos(),
                     getCortesEvaluativos()
                 ]);
                 setAniosLectivos(anioLectivoData);
-                setGrupos(grupoData);
-                setDocentesGuias(docenteGuiaData);
-                setDocentes(docentesData);
-                setAsignaturas(asignaturasData);
+                setTurnos(turnoData);
                 setCortes(cortesData);
             } catch (error) {
                 console.error("Error al cargar los datos del formulario:", error);
@@ -70,19 +49,13 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
         e.preventDefault();
         try {
             const selectedAnioEscolar = aniosLectivos.find((a) => a.id === parseInt(anioLectivo));
-            const selectedGrupo = grupos.find((g) => g.id === parseInt(grupo));
-            const selectedDocenteGuia = docentesGuias.find((m) => m.id === parseInt(docenteGuia));
-            const selectedDocentes = docentes.filter((d) => docente.includes(d.id.toString()));
-            const selectedAsignaturas = asignaturas.filter((a) => asignatura.includes(a.id.toString()));
-            const selectedCortes = cortes.filter((c) => corte.includes(c.id.toString()));
+            const selectedTurno = turnos.find((t) => t.id === parseInt(turno));
+            const selectedCorte = cortes.find((c) => c.id === parseInt(corte));;
 
             if (
                 !selectedAnioEscolar ||
-                !selectedGrupo ||
-                !selectedDocenteGuia ||
-                !selectedDocentes ||
-                !selectedAsignaturas ||
-                !selectedCortes
+                !selectedTurno ||
+                !selectedCorte
             ) {
                 console.error("Faltan campos requeridos");
                 return;
@@ -90,11 +63,8 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
 
             const organizacionEscolarData: OrganizacionEscolarPayload = {
                 anio_lectivo: selectedAnioEscolar,
-                grupo: selectedGrupo,
-                docenteGuia: selectedDocenteGuia,
-                docentes: selectedDocentes,
-                asignaturas: selectedAsignaturas,
-                cortes: selectedCortes,
+                turno: selectedTurno,
+                corte: selectedCorte,
             }
             if (isEdit && defaultValues?.id) {
                 await updateOrganizacionEscolar(defaultValues.id, organizacionEscolarData);
@@ -110,11 +80,8 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
     useEffect(() => {
         if (defaultValues) {
             setAnioLectivo(defaultValues.anio_lectivo?.id?.toString() || "");
-            setGrupo(defaultValues.grupo?.id?.toString() || "");
-            setDocenteGuia(defaultValues.docenteGuia?.id?.toString() || "");
-            setDocente(defaultValues.docentes?.map((d) => d.id.toString()) || []);
-            setAsignatura(defaultValues.asignaturas?.map((d) => d.id.toString()) || []);
-            setCorte(defaultValues.cortes?.map((d) => d.id.toString()) || []);
+            setTurno(defaultValues.turno?.id?.toString() || "");
+            setCorte(defaultValues.corte?.id?.toString() || "");
         }
     }, [defaultValues])
     return (
@@ -136,78 +103,37 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
                     </option>
                 ))}
             </select>
-            <select
-                name="grupo"
-                id="grupo"
-                className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-                value={grupo}
-                onChange={(e) => setGrupo(e.target.value)}
-            >
-                <option value="">Grupo</option>
-                {grupos?.map((r) => (
-                    <option key={r.id} value={r.id}>
-                        {`${r.grado?.grades} - ${r.seccion?.seccion} - ${r.turno?.turno} - ${r.modalidad?.modalidad}`}
-                    </option>
 
-                ))}
-            </select>
             <select
-                name="docenteGuia"
-                id="docenteGuia"
+                name="turno"
+                id="turno"
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-                value={docenteGuia}
-                onChange={(e) => setDocenteGuia(e.target.value)}
+                value={turno}
+                onChange={(e) => setTurno(e.target.value)}
             >
-                <option value="">Docente Guia</option>
-                {docentes?.map((r) => (
-                    <option key={r.id} value={r.id}>
-                        {r.nombres}
+                <option value="">Turno</option>
+                {turnos?.map((t) => (
+                    <option key={t.id} value={t.id}>
+                        {t.turno}
                     </option>
                 ))}
             </select>
-            <Select
-                isMulti
-                name="docentes"
-                placeholder="Docentes asignados"
-                options={docentesGuias.map((d) => ({
-                    value: d.id.toString(),
-                    label: d.nombres,
-                }))}
-                value={docente.map((id) => {
-                    const found = docentesGuias.find((d) => d.id === parseInt(id));
-                    return {
-                        value: id,
-                        label: found?.nombres || '',
-                    };
-                })}
-                onChange={(selectedOptions) =>
-                    setDocente(selectedOptions.map((option) => option.value.toString()))
-                }
-                className="text-black"
-            />
+            <select
+                name="corte"
+                id="corte"
+                className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+                value={corte}
+                onChange={(e) => setCorte(e.target.value)}
+            >
+                <option value="">Corte</option>
+                {cortes?.map((c) => (
+                    <option key={c.id} value={c.id}>
+                        {c.corte}
+                    </option>
+                ))}
+            </select>
 
-            <Select
-                isMulti
-                name="asignaturas"
-                placeholder="Asignaturas"
-                options={asignaturas.map((a) => ({
-                    value: a.id.toString(),
-                    label: a.asignatura,
-                }))}
-                value={asignatura.map((id) => {
-                    const found = asignaturas.find((a) => a.id === parseInt(id));
-                    return {
-                        value: id,
-                        label: found?.asignatura || '',
-                    };
-                })}
-                onChange={(selectedOptions) => {
-                    setAsignatura(selectedOptions.map((option) => option.value.toString()));
-                }}
-                className="text-black"
-            />
-
-            <Select
+            {/* <Select
                 isMulti
                 name="cortes"
                 placeholder="Cortes"
@@ -226,7 +152,7 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
                     setCorte(selectedOptions.map((option) => option.value.toString()))
                 }
                 className="text-black"
-            />
+            /> */}
 
             <div className="flex justify-center">
                 <button
