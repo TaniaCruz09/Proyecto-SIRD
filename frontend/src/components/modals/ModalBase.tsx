@@ -9,8 +9,8 @@ interface ModalBaseProps {
   content?: React.ReactNode;
 }
 
-const ModalBase = ({onshowModal, content, onCloseModal }: ModalBaseProps) => {
-  if(!onshowModal) return null
+const ModalBase = ({ onshowModal, content, onCloseModal }: ModalBaseProps) => {
+  if (!onshowModal) return null
   const [animateIn, setAnimateIn] = useState(false);
   const [animateOut, setAnimateOut] = useState(false);
 
@@ -31,11 +31,10 @@ const ModalBase = ({onshowModal, content, onCloseModal }: ModalBaseProps) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/40">
       <div
-        className={`bg-white p-6 rounded-2xl shadow-xl w-full max-w-md max-h-[calc(100vh-80px)] mx-4 relative transform transition-all duration-300 ease-in-out flex justify-center item-center
-          ${
-            animateIn && !animateOut
-              ? "scale-100 opacity-100"
-              : "-translate-y-5 opacity-0"
+        className={`bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg max-h-[calc(100vh-80px)] mx-4 relative transform transition-all duration-300 ease-in-out flex justify-center item-center
+          ${animateIn && !animateOut
+            ? "scale-100 opacity-100"
+            : "-translate-y-5 opacity-0"
           }
         `}
       >
