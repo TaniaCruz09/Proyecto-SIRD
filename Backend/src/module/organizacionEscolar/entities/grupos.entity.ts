@@ -4,15 +4,15 @@ import {
     DeleteDateColumn,
     Entity,
     JoinColumn,
-    ManyToMany,
     ManyToOne,
-    OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 import { GradesEntity, Modalidad, Seccion, Turno } from '../../catalogos';
 import { User } from '../../auth/entities';
 import * as moment from 'moment-timezone';
+import { Docentes } from 'src/module/docentes/docentes.entity';
+import { OrganizacionEscolar } from './organizacionEscolar.entity.';
 
 @Entity({ name: 'grupos', schema: 'organizacion_escolar' })
 export class Grupos {
@@ -22,17 +22,21 @@ export class Grupos {
     })
     id: number;
 
+    @ManyToOne(() => OrganizacionEscolar, (organizacionEscolar) => organizacionEscolar.grupos)
+    organizacionEscolar: OrganizacionEscolar;
+
     @ManyToOne(() => GradesEntity, (grado) => grado.grupos)
     grado: GradesEntity;
 
     @ManyToOne(() => Seccion, (seccion) => seccion.grupos)
     seccion: Seccion;
 
-    @ManyToOne(() => Modalidad, (modalidad) => modalidad.grupos)
-    modalidad: Modalidad;
-
     @ManyToOne(() => Turno, (turno) => turno.grupos)
     turno: Turno;
+
+    @ManyToOne(() => Docentes, (docente) => docente.grupos)
+    @JoinColumn({ name: 'docente_guia_id' })
+    docenteGuia: Docentes;
 
     //ID del usuario que creó el registro
     @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo
