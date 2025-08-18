@@ -6,6 +6,7 @@ import {
   IsOptional,
 } from 'class-validator';
 import { GradesEntity, Modalidad, Seccion, Turno } from '../../catalogos';
+import { Docentes } from 'src/module/docentes/docentes.entity';
 
 
 export class UpdateGrupoDto {
@@ -23,11 +24,11 @@ export class UpdateGrupoDto {
 
   @IsOptional()
   @IsObject()
-  modalidad?: Modalidad;
+  turno?: Turno;
 
   @IsOptional()
   @IsObject()
-  turno?: Turno;
+  docenteGuia?: Docentes;
 
   @IsOptional()
   @IsNumber()
