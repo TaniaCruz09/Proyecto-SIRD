@@ -6,13 +6,10 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
-  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity.';
-
 @Entity({ schema: 'catalogos', name: 'asignatura' })
 export class Asignatura {
   @PrimaryGeneratedColumn()
@@ -24,9 +21,6 @@ export class Asignatura {
     name: 'asignatura',
   })
   asignatura: string;
-
-  @ManyToMany(() => OrganizacionEscolar, (org) => org.asignaturas)
-  organizacionesEscolares?: OrganizacionEscolar[];
 
   // ID del Usuario que creo el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true })
