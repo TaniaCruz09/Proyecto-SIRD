@@ -22,7 +22,6 @@ import {
 } from '../catalogos';
 import { User } from '../auth/entities';
 import * as moment from 'moment-timezone';
-import { OrganizacionLaboral } from '../organizacionLaboral/organizacionLaboral.entity';
 import { Grupos } from '../organizacionEscolar/entities/grupos.entity';
 
 @Entity({ name: 'docentes', schema: 'docentes' })
@@ -134,8 +133,8 @@ export class Docentes {
   @OneToMany(() => Grupos, (grupo) => grupo.docenteGuia)
   grupos?: Grupos[];
 
-  @OneToMany(() => OrganizacionLaboral, (org) => org.docente)
-  organizacionLaboral?: OrganizacionLaboral[];
+  // @OneToMany(() => OrganizacionLaboral, (org) => org.docente)
+  // organizacionLaboral?: OrganizacionLaboral[];
 
   //ID del usuario que creó el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo

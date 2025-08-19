@@ -10,7 +10,7 @@ import {
     IsOptional,
     ValidateNested,
 } from 'class-validator';
-import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity.';
+import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity';
 
 export class CreateAnioLectivoDTO {
     @IsOptional()

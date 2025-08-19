@@ -1,8 +1,8 @@
 import { IsArray, IsDate, IsNotEmpty, IsNumber, IsObject, IsOptional } from "class-validator";
 import { Docentes } from "../docentes/docentes.entity";
 import { Asignatura } from "../catalogos/entities/asignatura.entity";
-import { Grupos } from "../grupos/entities/grupos.entity";
 import { OrganizacionEscolar } from "../organizacionEscolar/entities/organizacionEscolar.entity";
+import { Grupos } from "../organizacionEscolar/entities/grupos.entity";
 
 export class OrganizacionLaboralDTO{
     @IsOptional()

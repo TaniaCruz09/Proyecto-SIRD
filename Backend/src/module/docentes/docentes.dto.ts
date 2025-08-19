@@ -16,7 +16,7 @@ import {
   Pais,
   ProfessionsEntity,
 } from '../catalogos';
-import { Grupos } from '../grupos/entities/grupos.entity';
+import { Grupos } from '../organizacionEscolar/entities/grupos.entity';
 
 export class DocentesDTO {
   @IsOptional()

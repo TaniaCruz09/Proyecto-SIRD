@@ -9,8 +9,7 @@ import { AuthModule } from './module/auth/auth.module';
 import { StudetnModule } from './module/createEstudents/students.module';
 import { CalificacionesModule } from './module/calificaciones/calificaciones.module';
 import { CentroModule } from './module/centroEducativo/centro.module';
-import { OrganizacionLaboralModule } from './module/organizacionLaboral/organizacionLaboral.module';
-import { AsignaturaGrupoModule } from './module/OrganizacionLaboralAsignaturaGrupo/asignaturaGrupo.module';
+import { OrganizacionEscolarModule } from './module/organizacionEscolar/organizacionEscolar.module';
 // import { GruposModule } from './module/grupos/grupos.module';
 
 
@@ -18,7 +17,7 @@ import { AsignaturaGrupoModule } from './module/OrganizacionLaboralAsignaturaGru
   imports: [ConfigModule.forRoot({
     envFilePath: '.env',
     isGlobal: true,
-  }), DatabaseModule,  CatalogoModule, DocentesModule, AuthModule, StudetnModule, CalificacionesModule, CentroModule,OrganizacionLaboralModule, AsignaturaGrupoModule],
+  }), DatabaseModule,  CatalogoModule, DocentesModule, AuthModule, StudetnModule, CalificacionesModule, CentroModule, OrganizacionEscolarModule],
 
   controllers: [AppController],
   providers: [AppService],

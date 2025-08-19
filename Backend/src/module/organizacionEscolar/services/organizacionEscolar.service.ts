@@ -1,5 +1,4 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { OrganizacionEscolar } from '../entities/organizacionEscolar.entity.';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateOrganizacionEscolarDTO } from '../dtos/organizacionEscolar.dto';
@@ -7,6 +6,7 @@ import { Utilities } from 'src/common/helpers/utilities';
 import { Docentes } from 'src/module/docentes/docentes.entity';
 import { AnioLectivo, Asignatura, Cortes, Modalidad, Turno } from 'src/module/catalogos';
 import { Grupos } from '../entities/grupos.entity';
+import { OrganizacionEscolar } from '../entities/organizacionEscolar.entity';
 
 @Injectable()
 export class OrganizacionEscolarService {

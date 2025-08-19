@@ -7,7 +7,6 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
-import { Grupos } from 'src/module/grupos/entities/grupos.entity';
 
 export class CreateSeccionDTO {
   @IsOptional()

@@ -5,13 +5,13 @@ import { GruposController } from './controllers/grupos.controller';
 import { OrganizacionConEstudiantesController } from './controllers/gruposConEstudiantes.controller';
 import { OrganizacionConEstudiantesService } from './services/organizacionConEstudiantes.service';
 import { GruposService } from './services/grupos.service';
-import { OrganizacionEscolar } from './entities/organizacionEscolar.entity.';
 import { OrganizacionEscolarService } from '../organizacionEscolar/services/organizacionEscolar.service';
 import { OrganizacionEscolarController } from './controllers/organizacionEscolar.controller';
 import { OrganizacionConEstudiantes } from './entities/organizacionConEstudiante';
 import { Docentes } from '../docentes/docentes.entity';
-import { AnioLectivo, Asignatura, Cortes, Modalidad, Turno } from '../catalogos';
+import { AnioLectivo, Asignatura, Cortes, Modalidad, SemestreEntity, Turno } from '../catalogos';
 import { StudentEntity } from '../createEstudents';
+import { OrganizacionEscolar } from './entities/organizacionEscolar.entity';
 
 @Module({
     imports: [

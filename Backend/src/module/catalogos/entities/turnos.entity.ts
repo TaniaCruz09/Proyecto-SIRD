@@ -14,7 +14,7 @@ import {
 import * as moment from 'moment-timezone';
 import { Grupos } from 'src/module/organizacionEscolar/entities/grupos.entity';
 import { Modalidad } from './modalidad.entity';
-import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity.';
+import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity';
 
 @Entity({ schema: 'catalogos', name: 'turno' })
 export class Turno {

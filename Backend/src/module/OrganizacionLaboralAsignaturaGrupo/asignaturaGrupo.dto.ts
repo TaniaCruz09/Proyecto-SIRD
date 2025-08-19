@@ -1,50 +1,50 @@
-import { IsArray, IsDate, IsNotEmpty, IsNumber, IsObject, IsOptional } from "class-validator";
+// import { IsArray, IsDate, IsNotEmpty, IsNumber, IsObject, IsOptional } from "class-validator";
 
-export class GrupoAsignaturasDto {
-    @IsNotEmpty()
-    @IsNumber()
-    grupoId: number;
+// export class GrupoAsignaturasDto {
+//     @IsNotEmpty()
+//     @IsNumber()
+//     grupoId: number;
 
-    @IsArray()
-    @IsNotEmpty({ each: true })
-    asignaturasIds: number[];
-}
+//     @IsArray()
+//     @IsNotEmpty({ each: true })
+//     asignaturasIds: number[];
+// }
 
 
-export class OrganizacionLaboralAsignaturaGrupoDto {
-  @IsOptional()
-  @IsNumber()
-  id: number;
+// export class OrganizacionLaboralAsignaturaGrupoDto {
+//   @IsOptional()
+//   @IsNumber()
+//   id: number;
 
-  @IsNotEmpty()
-  @IsNumber()
-  organizacionLaboralId: number;
+//   @IsNotEmpty()
+//   @IsNumber()
+//   organizacionLaboralId: number;
 
-  @IsArray()
-  @IsNotEmpty({ each: true })
-  grupos: GrupoAsignaturasDto[];
+//   @IsArray()
+//   @IsNotEmpty({ each: true })
+//   grupos: GrupoAsignaturasDto[];
 
-  @IsOptional()
-  @IsNumber()
-  user_create_id?: number;
+//   @IsOptional()
+//   @IsNumber()
+//   user_create_id?: number;
 
-  @IsOptional()
-  @IsDate()
-  created_at?: Date;
+//   @IsOptional()
+//   @IsDate()
+//   created_at?: Date;
 
-  @IsOptional()
-  @IsDate()
-  update_at?: Date;
+//   @IsOptional()
+//   @IsDate()
+//   update_at?: Date;
 
-  @IsOptional()
-  @IsNumber()
-  user_update_id?: number;
+//   @IsOptional()
+//   @IsNumber()
+//   user_update_id?: number;
 
-  @IsOptional()
-  @IsDate()
-  deleted_at?: Date;
+//   @IsOptional()
+//   @IsDate()
+//   deleted_at?: Date;
 
-  @IsOptional()
-  @IsNumber()
-  deleted_at_id?: number;
-}
+//   @IsOptional()
+//   @IsNumber()
+//   deleted_at_id?: number;
+// }

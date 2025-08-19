@@ -13,7 +13,7 @@ import {
 import * as moment from 'moment-timezone';
 import { User } from 'src/module/auth/entities';
 import { Cortes } from './corte.entity';
-import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity.';
+import { OrganizacionEscolar } from '../../organizacionEscolar/entities/organizacionEscolar.entity';
 
 @Entity({ schema: 'catalogos', name: 'semestre' })
 export class SemestreEntity {

@@ -12,7 +12,6 @@ import {
 import { Grupos } from './grupos.entity';
 import { User } from '../../auth/entities';
 import * as moment from 'moment-timezone';
-import { OrganizacionLaboral } from 'src/module/organizacionLaboral/organizacionLaboral.entity';
 import { AnioLectivo } from 'src/module/catalogos/entities/anioLectivo.entity';
 import { SemestreEntity, Turno } from '../../catalogos';
 import { Cortes } from '../../catalogos/entities/corte.entity';
@@ -40,8 +39,8 @@ export class OrganizacionEscolar {
   @OneToMany(() => Grupos, (grupos) => grupos.organizacionEscolar)
   grupos?: Grupos[];
 
-  @OneToMany(() => OrganizacionLaboral, (org) => org.añolectivo)
-  organizacionLaboral?: OrganizacionLaboral[];
+  // @OneToMany(() => OrganizacionLaboral, (org) => org.añolectivo)
+  // organizacionLaboral?: OrganizacionLaboral[];
 
   //ID del usuario que creó el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo

@@ -6,7 +6,7 @@ import {
   IsOptional,
 } from 'class-validator';
 import { StudentEntity } from '../../createEstudents';
-import { OrganizacionEscolar } from '../entities/organizacionEscolar.entity.';
+import { OrganizacionEscolar } from '../entities/organizacionEscolar.entity';
 
 export class CreateOrganizacionConEstudiantesDto {
   @IsOptional()
