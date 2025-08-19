@@ -1,4 +1,5 @@
-import { Grupos } from '../../grupos/entities/grupos.entity';
+
+import { Grupos } from 'src/module/organizacionEscolar/entities/grupos.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ schema: 'catalogos', name: 'grades' })

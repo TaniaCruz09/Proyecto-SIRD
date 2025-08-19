@@ -1,11 +1,13 @@
-import { Grupos } from "./GruposInterface"
+import { GrupoEscolar } from "../organizacionEscolarInterface/grupoInterface"
+
 
 export interface Grado {
     id: number,
     grades: string,
-    grupos?:Grupos
+    grupos?: GrupoEscolar
 }
 
 export interface GradoPayload {
-    grades: string
+    grades?: string
+    grupos?: GrupoEscolar
 }

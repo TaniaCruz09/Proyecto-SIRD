@@ -22,6 +22,11 @@ export const feching = async (
     const isJSON = contentType?.includes("application/json");
     const responseData = isJSON ? await res.json() : await res.text();
 
+    if (res.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = '/auth/login?expired=true';
+    }
+
     if (!res.ok) {
       throw {
         response: {
@@ -34,7 +39,7 @@ export const feching = async (
 
     return responseData;
   } catch (error) {
-    console.error("❌ Error en feching():", error);
+    console.error("❌ Error en feching():", error instanceof Error ? error.message : JSON.stringify(error));
     throw error;
   }
 };

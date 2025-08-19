@@ -8,7 +8,7 @@ import {
   MaxLength,
 } from 'class-validator';
 
-export class createEtniaDto {
+export class CreateEtniaDto {
   @IsOptional()
   @IsNumber()
   id: number;

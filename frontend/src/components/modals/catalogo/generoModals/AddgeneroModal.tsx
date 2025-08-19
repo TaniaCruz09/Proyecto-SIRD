@@ -1,13 +1,13 @@
 import BtnOpenAddModal from '@/components/Buttons/btnOpenAddModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase'
-import ModalidadForm from '@/components/forms/catalogoForms/ModalidadForm'
+import SexoForm from '@/components/forms/catalogoForms/GeneroForm'
 
 interface AddSexoModalProp{
-    fetchModalidades: () => Promise<void>
+    fetchGeneros: () => Promise<void>
 }
 
-export default function AddSexoModal({fetchModalidades}: AddSexoModalProp) {
+export default function AddSexoModal({fetchGeneros}: AddSexoModalProp) {
     const [showModal, setShowModal] = useState<boolean>(false);
   return (
     <div>
@@ -17,9 +17,9 @@ export default function AddSexoModal({fetchModalidades}: AddSexoModalProp) {
           onshowModal={showModal}
           onCloseModal={() => setShowModal(false)}
           content={
-            <ModalidadForm
+            <SexoForm
             onSuccess={()=>{
-                fetchModalidades()
+                fetchGeneros() 
                 setShowModal(false)
             }}
             />

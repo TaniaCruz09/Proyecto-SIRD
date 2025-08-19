@@ -3,40 +3,40 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Departamento } from "../entities/departamento.entity";
 import { Repository } from "typeorm";
 import { Utilities } from "../../../common/helpers/utilities";
-import { createDepartamentoDto } from "../dtos/departamento.dto";
+import { CreateDepartamentoDto } from "../dtos/departamento.dto";
 
 
 @Injectable()
 export class DepartamentoService {
     constructor(
         @InjectRepository(Departamento)
-        private readonly departamentoRepository: Repository <Departamento>,
-    ) {}
-//Departamento a createDepartamentoDto
-    async create(payload: createDepartamentoDto): Promise<Departamento> {
+        private readonly departamentoRepository: Repository<Departamento>,
+    ) { }
+    //Departamento a createDepartamentoDto
+    async create(payload: CreateDepartamentoDto): Promise<Departamento> {
         try {
             const departamento = await this.departamentoRepository.create(payload)
             return await this.departamentoRepository.save(departamento);
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
-    async findOne (id: number): Promise<Departamento> {
+    async findOne(id: number): Promise<Departamento> {
         try {
-            const departamento = await this.departamentoRepository.findOne({where: { id }});
+            const departamento = await this.departamentoRepository.findOne({ where: { id } });
             return departamento;
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
     async findAll(): Promise<Departamento[]> {
         try {
             const municipio = await this.departamentoRepository.find();
-            return municipio;            
+            return municipio;
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
@@ -53,7 +53,7 @@ export class DepartamentoService {
 
             return await this.departamentoRepository.save(departamento);
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
@@ -67,9 +67,9 @@ export class DepartamentoService {
             departamento.deleted_at_id = userId;
 
             return await this.departamentoRepository.save(departamento)
-            
+
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 }

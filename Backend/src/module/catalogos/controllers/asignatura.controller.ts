@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query, ParseIntPipe, HttpException, HttpStatus, Req, UseGuards } from '@nestjs/common';
 import { AsignaturaService } from '../services/asignatura.service';
-import { createAsignaturaDto } from '../dtos/asignatura.dto';
+import { CreateAsignaturaDto } from '../dtos/asignatura.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Utilities } from '../../../common/helpers/utilities';
 import { JwtAuthGuard } from 'src/module/auth/guards/jwt.guard';
@@ -10,7 +10,7 @@ import { JwtAuthGuard } from 'src/module/auth/guards/jwt.guard';
 @UseGuards(JwtAuthGuard)
 @Controller('asignatura')
 export class AsignaturaController {
-    constructor(private readonly asignaturaService: AsignaturaService) {}
+    constructor(private readonly asignaturaService: AsignaturaService) { }
 
     @Get('/')
     async findAll() {
@@ -22,7 +22,7 @@ export class AsignaturaController {
             };
             return data;
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
@@ -36,12 +36,12 @@ export class AsignaturaController {
             };
             return data;
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
     @Post('/')
-    async create(@Body() payload: createAsignaturaDto, @Req() req) {
+    async create(@Body() payload: CreateAsignaturaDto, @Req() req) {
         try {
             const userId = req.user?.id;
 
@@ -61,14 +61,14 @@ export class AsignaturaController {
             };
             return data;
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
     @Put('/:id')
     async update(
         @Param('id', ParseIntPipe) id: number,
-        @Body() payload: createAsignaturaDto,
+        @Body() payload: CreateAsignaturaDto,
         @Req() req
     ) {
         try {
@@ -89,7 +89,7 @@ export class AsignaturaController {
                 message: 'Asignatura actualizada correctamente',
             };
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
@@ -98,7 +98,7 @@ export class AsignaturaController {
         try {
             const userId = req.user?.id;
 
-            if(!userId) {
+            if (!userId) {
                 return {
                     message: 'Usuario no autenticado',
                     statusCode: 401
@@ -111,7 +111,7 @@ export class AsignaturaController {
                 message: 'Asignatura eliminada correctamente',
             };
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 }

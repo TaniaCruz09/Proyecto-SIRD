@@ -12,7 +12,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { GruposConEstudiantes } from 'src/module/grupos/entities/gruposConEstudiantes.entity';
 import { OrganizacionLaboral } from 'src/module/organizacionLaboral/organizacionLaboral.entity';
 import { OrganizacionLaboralAsignaturaGrupo } from 'src/module/OrganizacionLaboralAsignaturaGrupo/AsignaturaGrupo.entity';
 
@@ -87,9 +86,4 @@ export class Asignatura {
   @JoinColumn({ name: 'deleted_at_id' }) // Se enlaza con el usuario que eliminó el registro
   user_delete: User;
 
-  @ManyToOne(
-    () => GruposConEstudiantes,
-    (gruposConEstudiante) => gruposConEstudiante.asignatura,
-  )
-  gruposConEstudiante?: GruposConEstudiantes;
 }

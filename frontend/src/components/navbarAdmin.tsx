@@ -30,7 +30,7 @@ const catalogSubmenu = [
 ];
 
 const organizacionEscolarSubmenu = [
-  { label: "Organizacion/Año lectivo", href: "/organizacionEscolar/anioLectivo", icon: FaUser },
+  { label: "Organizacion Escolar", href: "/organizacionEscolar/organizacion", icon: FaUser },
   { label: "Grupos Educativos", href: "/organizacionEscolar/registerGroups", icon: FaUserPlus },
   { label: "Grupos con Estudiantes", href: "/organizacionEscolar/gruposConEstudiantes", icon: FaUserPlus },
 ];
@@ -42,6 +42,7 @@ function Sidebar() {
   const [openUsers, setOpenUsers] = useState(true);
   const [openCatalogs, setOpenCatalogs] = useState(true);
   const [openOrganizacionEscolar, setOpenOrganizacionEscolar] = useState(true);
+
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Leer rol al cargar
@@ -78,6 +79,11 @@ function Sidebar() {
       : "text-white hover:bg-white hover:text-gray-900";
 
   if (!role) return null; // mientras carga el rol
+
+  // Rutas donde no quieres mostrar el navbar
+  const rutasSinNavbar = ["/auth/login"];
+
+  if (rutasSinNavbar.includes(pathname)) return null;
 
   return (
     <nav className="w-64 bg-gray-900 text-white h-screen overflow-hidden shadow-md">

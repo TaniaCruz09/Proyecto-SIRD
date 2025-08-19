@@ -1,19 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
 import { Repository } from 'typeorm';
 import { Turno } from '../entities/turnos.entity';
 import { Utilities } from '../../../common/helpers/utilities';
-import { createTurnoDto } from '../dtos/turnos.dto';
+import { CreateTurnoDto } from '../dtos/turnos.dto';
 
 @Injectable()
 export class TurnoService {
   constructor(
     @InjectRepository(Turno)
     private turnoRepository: Repository<Turno>,
-  ) {}
+  ) { }
 
-  async create(payload: createTurnoDto): Promise<Turno> {
+  async create(payload: CreateTurnoDto): Promise<Turno> {
     try {
       const turno = await this.turnoRepository.create(payload);
       return await this.turnoRepository.save(turno);
@@ -24,7 +23,7 @@ export class TurnoService {
 
   async findAll(): Promise<Turno[]> {
     try {
-      const turno = await this.turnoRepository.find();
+      const turno = await this.turnoRepository.find({ relations: ["modalidad"] });
       return turno;
     } catch (error) {
       Utilities.catchError(error);
@@ -40,7 +39,7 @@ export class TurnoService {
     }
   }
 
-  async update(id: number, payload: createTurnoDto): Promise<Turno> {
+  async update(id: number, payload: CreateTurnoDto): Promise<Turno> {
     try {
       const turno = await this.turnoRepository.findOne({ where: { id } });
       if (!turno) {

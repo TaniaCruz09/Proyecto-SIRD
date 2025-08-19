@@ -4,6 +4,7 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -12,6 +13,7 @@ import {
 import * as moment from 'moment-timezone';
 import { User } from 'src/module/auth/entities';
 import { Cortes } from './corte.entity';
+import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity.';
 
 @Entity({ schema: 'catalogos', name: 'semestre' })
 export class SemestreEntity {
@@ -38,7 +40,11 @@ export class SemestreEntity {
   semestre: string;
 
   @OneToMany(() => Cortes, (cortes) => cortes.semestre)
-  corte?: Cortes;
+  corte?: Cortes[];
+
+  @ManyToOne(() => OrganizacionEscolar, org => org.semestres, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: 'organizacionEscolar_id' })
+  organizacionEscolar?: OrganizacionEscolar;
 
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo
   user_create_id: number;

@@ -4,30 +4,30 @@ import { Pais } from "../entities/pais.entity";
 import { Repository } from "typeorm";
 import { AcademicLevelEntity } from "..";
 import { Utilities } from "../../../common/helpers/utilities";
-import { createPaisDto } from "../dtos/pais.dto";
+import { CreatePaisDto } from "../dtos/pais.dto";
 
 @Injectable()
 export class PaisService {
     constructor(
         @InjectRepository(Pais)
         private readonly paisRepository: Repository<Pais>,
-    ) {}
+    ) { }
 
-    async createPais(payload: createPaisDto): Promise<Pais> {
+    async createPais(payload: CreatePaisDto): Promise<Pais> {
         try {
             const pais = await this.paisRepository.create(payload)
             return await this.paisRepository.save(pais);
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
-    async findOne (id: number): Promise<Pais> {
+    async findOne(id: number): Promise<Pais> {
         try {
-            const pais = await this.paisRepository.findOne({where: { id }});
+            const pais = await this.paisRepository.findOne({ where: { id } });
             return pais;
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
@@ -36,7 +36,7 @@ export class PaisService {
             const pais = await this.paisRepository.find();
             return pais;
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
@@ -53,7 +53,7 @@ export class PaisService {
 
             return await this.paisRepository.save(pais);
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
@@ -68,7 +68,7 @@ export class PaisService {
 
             return await this.paisRepository.save(pais)
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 }

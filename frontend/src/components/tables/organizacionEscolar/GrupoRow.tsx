@@ -17,15 +17,13 @@ export default function GrupoRow({ fetchGrupos, grupo, onShowDetail }: GrupoRowP
     return (
         <tr className="hover:bg-gray-100 cursor-pointer">
             <td className="p-3 border-b border-gray-200">{grupo.id}</td>
-            <td className="p-3 border-b border-gray-200">{grupo.organizacionEscolar.anio_lectivo}</td>
+            <td className="p-3 border-b border-gray-200">{grupo.organizacionEscolar?.anio_lectivo?.anio_lectivo || "sin año lectivo"} -{" "}
+                {grupo.organizacionEscolar?.turno?.turno || "sin turno"} -{" "}
+                {grupo.organizacionEscolar?.corte?.corte || "sin corte"}</td>
             <td className="p-3 border-b border-gray-200">{grupo.grado.grades}</td>
             <td className="p-3 border-b border-gray-200">{grupo.seccion.seccion}</td>
-            <td className="p-3 border-b border-gray-200">{grupo.modalidad.modalidad}</td>
             <td className="p-3 border-b border-gray-200">{grupo.turno.turno}</td>
-            <td className="p-3 border-b border-gray-200">{grupo.docente.nombres}</td>
-            <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><button onClick={() => router.push(`/organizacionEscolar/gruposConEstudiantes`)} className="bg-blue-300/30 hover:bg-blue-400 text-blue-500 text-bold text-xl px-4 py-2 rounded-md text-sm cursor-pointer">
-                <FaChildren />
-            </button></td>
+            <td className="p-3 border-b border-gray-200">{grupo.docenteGuia.nombres} {grupo.docenteGuia.apellido_paterno} {grupo.docenteGuia.apellido_materno}</td>
             <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><EditGrupoModal grupo={grupo} fetchGrupos={fetchGrupos} /></td>
             <td className="p-3 px-2 py-3 border-b border-gray-200 text-center"><DeleteGruposModal idEliminar={grupo.id} fetchGrupos={fetchGrupos} /></td>
         </tr>

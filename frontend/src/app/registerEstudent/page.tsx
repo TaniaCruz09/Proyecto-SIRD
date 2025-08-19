@@ -1,13 +1,8 @@
 "use client"
 import { getRegisterEstudent } from "@/actions/resgisterEstudentMethods/regiterEstudentMethods";
-import BtnOpenAddModal from "@/components/Buttons/btnOpenAddModal";
 import AddStudentModal from "@/components/modals/Estudiantes/AddStudentModal";
-import ModalBase from "@/components/modals/ModalBase";
-import NavbarAdmin from "@/components/navbarAdmin";
 import SearchBar from "@/components/SearchBar";
-import RegisterEstudentRow from "@/components/tables/RegisterEstudentRow";
 import RegisterEstudentTable from "@/components/tables/RegisterEstudentTable";
-import RolTable from "@/components/tables/RolTable";
 import RegisterEstudent from "@/interfaces/registerEstudentInterface";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -41,35 +36,30 @@ export default function RegistroEstudiantes() {
         u.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     return (
-        <div className="flex h-screen ">
-            <div>
-                <NavbarAdmin />
+        <div className="mx-6">
+            <div className="flex items-center justify-between">
+                <h1 className="ml-10 text-2xl font-bold mb-4 tracking-tight text-gray-600 text-center">
+                    Estudiante
+                </h1>
+                <div className="flex justify-end mr-10 mb-6 mt-5">
+                    <AddStudentModal fetchStudent={fetchEstudiantes} />
+                </div>
             </div>
-            <div className="w-screen p-6 bg-gray-100">
-                <div className="flex items-center justify-between">
-                    <h1 className="ml-10 text-2xl font-bold mb-4 tracking-tight text-gray-600 text-center">
-                        Estudiante
-                    </h1>
-                    <div className="flex justify-end mr-10 mb-6 mt-5">
-                        <AddStudentModal fetchStudent={fetchEstudiantes} />
-                    </div>
-                </div>
-                <div className="flex items-center justify-between bg-white border rounded-t-xl">
-                    <h2 className="pl-10 text-xl font-bold text-gray-600">
-                        Listado de estudiante
-                    </h2>
-                    <SearchBar
-                        value={searchTerm}
-                        onChange={setSearchTerm}
-                        onClear={() => setSearchTerm("")}
-                        placeholder="Buscar estudiante"
-                    />
-                </div>
-                <RegisterEstudentTable
-                    student={filteredStudent}
-                    fetchStudent={fetchEstudiantes}
+            <div className="flex items-center justify-between bg-white border rounded-t-xl">
+                <h2 className="pl-10 text-xl font-bold text-gray-600">
+                    Listado de estudiante
+                </h2>
+                <SearchBar
+                    value={searchTerm}
+                    onChange={setSearchTerm}
+                    onClear={() => setSearchTerm("")}
+                    placeholder="Buscar estudiante"
                 />
             </div>
+            <RegisterEstudentTable
+                student={filteredStudent}
+                fetchStudent={fetchEstudiantes}
+            />
         </div>
     )
 }

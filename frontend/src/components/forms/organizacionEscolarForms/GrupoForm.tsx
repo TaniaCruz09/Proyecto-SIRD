@@ -5,7 +5,8 @@ import { getSecciones } from '@/actions/catalogos/seccionMethods';
 import { getTurnos } from '@/actions/catalogos/turnoMethods';
 import { getDocentes } from '@/actions/docentesMethods/docentesMethods';
 import { saveGrupo, updateGrupo } from '@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods';
-import { AnioLectivo, Docente, Grado, GrupoEscolar, GrupoEscolarPayload, Modalidad, Seccion, Turno } from '@/interfaces';
+import { getOrganizacionEscolar } from '@/actions/organizacionEscolarMethods/organizacionMethods';
+import { AnioLectivo, Docente, Grado, GrupoEscolar, GrupoEscolarPayload, Modalidad, OrganizacionEscolar, Seccion, Turno } from '@/interfaces';
 import React, { useEffect, useState } from 'react'
 
 interface GrupoFormProp {
@@ -20,17 +21,16 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
 
     const [seccion, setSeccion] = useState<string>("")
     const [secciones, setSecciones] = useState<Seccion[]>([])
-    const [modalidad, setModalidad] = useState<string>("")
-    const [modalidades, setModalidades] = useState<Modalidad[]>([])
 
     const [turno, setTurno] = useState<string>("")
     const [turnos, setTurnos] = useState<Turno[]>([])
 
-    const [docente, setDocente] = useState<string>("")
+    const [docenteGuia, setDocenteGuia] = useState<string>("")
     const [docentes, setDocentes] = useState<Docente[]>([])
 
     const [organizacionEscolar, setOrganizacionEscolar] = useState<string>("")
-    const [organizacionesEscolares, setOrganizacionesEscolares] = useState<AnioLectivo[]>([])
+    const [organizacionesEscolares, setOrgnizacionesEscolares] = useState<OrganizacionEscolar[]>([])
+
 
     const isEdit = Boolean(defaultValues?.id);
 
@@ -41,24 +41,20 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
                     organizacionEscolarData,
                     gradoData,
                     seccionData,
-                    modalidadData,
+                    docenteGuiaData,
                     turnoData,
-                    docenteData
                 ] = await Promise.all([
-                    getAniosLectivos(),
+                    getOrganizacionEscolar(),
                     getGrados(),
                     getSecciones(),
-                    getModalidades(),
+                    getDocentes(),
                     getTurnos(),
-                    getDocentes()
                 ]);
-
-                setOrganizacionesEscolares(organizacionEscolarData);
+                setOrgnizacionesEscolares(organizacionEscolarData)
                 setGrados(gradoData);
                 setSecciones(seccionData);
-                setModalidades(modalidadData);
+                setDocentes(docenteGuiaData);
                 setTurnos(turnoData);
-                setDocentes(docenteData)
             } catch (error) {
                 console.error("Error al cargar los datos del formulario:", error);
             }
@@ -69,32 +65,29 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            const selectedOrganizacionEScolar = organizacionesEscolares.find((g) => g.id === parseInt(organizacionEscolar));
             const selectedGrado = grados.find((g) => g.id === parseInt(grado));
             const selectedSeccion = secciones.find((s) => s.id === parseInt(seccion));
-            const selectedModalidad = modalidades.find((m) => m.id === parseInt(modalidad));
+            const selectedDocente = docentes.find((m) => m.id === parseInt(docenteGuia));
             const selectedTurno = turnos.find((t) => t.id === parseInt(turno));
-            const selectedDocente = docentes.find((d) => d.id === parseInt(docente));
-            const selectedOrganizacionEscolar = organizacionesEscolares.find((o) => o.id === parseInt(organizacionEscolar));
 
             if (
+                !selectedOrganizacionEScolar ||
                 !selectedGrado ||
                 !selectedSeccion ||
-                !selectedModalidad ||
-                !selectedTurno ||
                 !selectedDocente ||
-                !selectedOrganizacionEscolar
+                !selectedTurno
             ) {
                 console.error("Faltan campos requeridos");
                 return;
             }
 
             const grupoData: GrupoEscolarPayload = {
+                organizacionEscolar: selectedOrganizacionEScolar,
                 grado: selectedGrado,
                 seccion: selectedSeccion,
-                modalidad: selectedModalidad,
+                docenteGuia: selectedDocente,
                 turno: selectedTurno,
-                docente: selectedDocente,
-                organizacionEscolar: selectedOrganizacionEscolar
             }
             if (isEdit && defaultValues?.id) {
                 await updateGrupo(defaultValues.id, grupoData);
@@ -109,12 +102,11 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
 
     useEffect(() => {
         if (defaultValues) {
-            setOrganizacionEscolar(defaultValues.organizacionEscolar?.id?.toString() || "");
+            setOrganizacionEscolar(defaultValues.organizacionEscolar.id.toString() || "");
             setGrado(defaultValues.grado?.id?.toString() || "");
             setSeccion(defaultValues.seccion?.id?.toString() || "");
-            setModalidad(defaultValues.modalidad?.id?.toString() || "");
+            setDocenteGuia(defaultValues.docenteGuia?.id?.toString() || "");
             setTurno(defaultValues.turno?.id?.toString() || "");
-            setDocente(defaultValues.docente?.id?.toString() || "")
         }
     }, [defaultValues])
     return (
@@ -123,16 +115,16 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
                 {isEdit ? "Editar Grupo" : "Agregar Nuevo Grupo"}
             </h2>
             <select
-                name="anio_lectivo"
-                id="anio_lectivo"
+                name="organizacionEscolar"
+                id="organizacionEscolar"
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
                 value={organizacionEscolar}
                 onChange={(e) => setOrganizacionEscolar(e.target.value)}
             >
-                <option value="">Año Lectivo</option>
+                <option value="">Organizacion Escolar</option>
                 {organizacionesEscolares?.map((r) => (
                     <option key={r.id} value={r.id}>
-                        {r.anio_lectivo}
+                        {r.anio_lectivo?.anio_lectivo} - {r.turno.turno} - {r.corte.corte}
                     </option>
                 ))}
             </select>
@@ -165,20 +157,6 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
                 ))}
             </select>
             <select
-                name="modalidad"
-                id="modalidad"
-                className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-                value={modalidad}
-                onChange={(e) => setModalidad(e.target.value)}
-            >
-                <option value="">Modalidad</option>
-                {modalidades?.map((r) => (
-                    <option key={r.id} value={r.id}>
-                        {r.modalidad}
-                    </option>
-                ))}
-            </select>
-            <select
                 name="turno"
                 id="turno"
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
@@ -196,13 +174,13 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
                 name="docente"
                 id="docente"
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-                value={docente}
-                onChange={(e) => setDocente(e.target.value)}
+                value={docenteGuia}
+                onChange={(e) => setDocenteGuia(e.target.value)}
             >
                 <option value="">Docente Guia</option>
                 {docentes?.map((r) => (
                     <option key={r.id} value={r.id}>
-                        {r.nombres}
+                        {r.nombres} {r.apellido_materno} {r.apellido_paterno}
                     </option>
                 ))}
             </select>

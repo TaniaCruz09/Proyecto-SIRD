@@ -1,4 +1,4 @@
-import { Grupos } from '../../grupos/entities/grupos.entity';
+
 import { User } from '../../auth/entities';
 import {
   Column,
@@ -12,6 +12,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import * as moment from 'moment-timezone';
+import { Grupos } from 'src/module/organizacionEscolar/entities/grupos.entity';
 
 @Entity({ schema: 'catalogos', name: 'seccion' })
 export class Seccion {

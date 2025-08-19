@@ -8,16 +8,16 @@ import { DataSource } from 'typeorm';
 import { Repository } from 'typeorm';
 import { Etnia } from '../entities/etnia.entity';
 import { Utilities } from '../../../common/helpers/utilities';
-import { createEtniaDto } from '../dtos/etnia.dto';
+import { CreateEtniaDto } from '../dtos/etnia.dto';
 
 @Injectable()
 export class EtniaService {
   constructor(
     @InjectRepository(Etnia)
     private etniaRepository: Repository<Etnia>,
-  ) {}
+  ) { }
 
-  async create(payload: createEtniaDto): Promise<Etnia> {
+  async create(payload: CreateEtniaDto): Promise<Etnia> {
     try {
       const etnia = await this.etniaRepository.create(payload);
       return await this.etniaRepository.save(etnia);
@@ -44,7 +44,7 @@ export class EtniaService {
     }
   }
 
-  async update(id: number, payload: createEtniaDto): Promise<Etnia> {
+  async update(id: number, payload: CreateEtniaDto): Promise<Etnia> {
     try {
       const etnia = await this.etniaRepository.findOne({ where: { id } });
       if (!etnia) {

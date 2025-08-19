@@ -1,28 +1,28 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query, ParseIntPipe, UseGuards, Req } from '@nestjs/common';
 import { MunicipioService } from '../services/municipio.service';
-import { createMunicipioDto } from '../dtos/municipio.dto';
+import { CreateMunicipioDto } from '../dtos/municipio.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Utilities } from '../../../common/helpers/utilities';
 import { JwtAuthGuard } from '../../auth/guards/jwt.guard';
 
-    @ApiTags('municipio')
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard)
-    @Controller('municipio')
-    export class MunicipioController {
-    constructor(private readonly municipioService: MunicipioService) {}
+@ApiTags('municipio')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller('municipio')
+export class MunicipioController {
+    constructor(private readonly municipioService: MunicipioService) { }
 
     @Get('/')
     async findAll() {
         try {
             const municipio = await this.municipioService.findAll();
             const data = {
-            data: municipio,
-            message: 'ok',
+                data: municipio,
+                message: 'ok',
             };
             return data;
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
@@ -31,18 +31,18 @@ import { JwtAuthGuard } from '../../auth/guards/jwt.guard';
         try {
             const municipio = await this.municipioService.findOne(id);
             const data = {
-            data: municipio,
-            message: 'ok',
+                data: municipio,
+                message: 'ok',
             };
             return data;
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
     //aqui
     @Post('/')
-    async create(@Body() payload: createMunicipioDto, @Req() req){
+    async create(@Body() payload: CreateMunicipioDto, @Req() req) {
         try {
 
             const userId = req.user?.id;
@@ -58,21 +58,21 @@ import { JwtAuthGuard } from '../../auth/guards/jwt.guard';
 
             const newMunicipio = await this.municipioService.create(payload);
             const data = {
-            data: newMunicipio,
-            message: 'Municipio creado correctamente',
+                data: newMunicipio,
+                message: 'Municipio creado correctamente',
             };
             return data;
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
     @Put('/:id')
     async update(
-        @Param('id', ParseIntPipe) id: number, 
-        @Body() payload: createMunicipioDto,
+        @Param('id', ParseIntPipe) id: number,
+        @Body() payload: CreateMunicipioDto,
         @Req() req
-    ){
+    ) {
         try {
             const userId = req.user?.id;
             if (!userId) {
@@ -80,7 +80,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt.guard';
                     message: "Usuario no encontrado",
                     statusCode: 401
                 };
-            } 
+            }
 
             payload.user_create_id = userId;
 
@@ -89,10 +89,10 @@ import { JwtAuthGuard } from '../../auth/guards/jwt.guard';
                 data: municipio,
                 message: 'Municipio actualizado correctamente',
             };
-    } catch (error) {
-        Utilities.catchError (error);
+        } catch (error) {
+            Utilities.catchError(error);
+        }
     }
-}
 
     @Delete('/:id')
     async delete(
@@ -113,8 +113,8 @@ import { JwtAuthGuard } from '../../auth/guards/jwt.guard';
                 message: 'Municipio eliminado correctamente',
             }
         } catch (error) {
-            Utilities.catchError (error)
+            Utilities.catchError(error)
         }
     }
 
-    }
+}

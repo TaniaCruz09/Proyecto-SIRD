@@ -1,11 +1,10 @@
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Docentes } from "../docentes/docentes.entity";
 import { Asignatura } from "../catalogos/entities/asignatura.entity";
-import { Grupos } from "../grupos/entities/grupos.entity";
 import { User } from "../auth/entities";
 import * as moment from 'moment-timezone';
-import { OrganizacionEscolar } from "../grupos/entities/organizacionEscolar.entity";
 import { OrganizacionLaboralAsignaturaGrupo } from "../OrganizacionLaboralAsignaturaGrupo/AsignaturaGrupo.entity";
+import { OrganizacionEscolar } from "../organizacionEscolar/entities/organizacionEscolar.entity";
 
 @Entity({ name: 'organizacionLaboral', schema: 'organizacionlaboral' })
 export class OrganizacionLaboral {
@@ -33,13 +32,13 @@ export class OrganizacionLaboral {
   @JoinColumn({ name: 'asignatura_id' })
   asignatura: Asignatura;
 
-  // @Column({ name: 'asignatura_id', type: 'int4', nullable: true })
-  // asignatura_id: number;
+      // @Column({ name: 'asignatura_id', type: 'int4', nullable: true })
+      // asignatura_id: number;
 
-  // // Relación a grupo académico
-  // @ManyToMany(() => Grupos, (grupos) => grupos.organizacionLaboralAsociada)
-  // @JoinTable({ name: 'organizacionLaboral_tienen_varios_grupos' })
-  // grupos: Grupos[];
+      // // Relación a grupo académico
+      // @ManyToMany(() => Grupos, (grupos) => grupos.organizacionLaboralAsociada)
+      // @JoinTable({ name: 'organizacionLaboral_tienen_varios_grupos' })
+      // grupos: Grupos[];
 
   @Column({ name: 'grupo_id', type: 'int4', nullable: true })
   grupo_id: number;

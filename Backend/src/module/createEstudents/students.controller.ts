@@ -1,12 +1,12 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, Req, UseGuards } from "@nestjs/common";
 import { StudentsDto } from "./student.dto";
 import { StudentService } from "./students.service";
 import { Utilities } from "../../common/helpers/utilities";
 import { JwtAuthGuard } from "../auth/guards/jwt.guard";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+import { FiltrarEstudiantesDto } from "./FiltrarEstudiantesDto";
 
-
-@ApiTags('Estudiantes')
+@ApiTags('student')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('student')
@@ -52,6 +52,12 @@ export class StudentController {
         }
     }
 
+    @Get('/filtrar')
+    async filtrarEstudiantes(@Query() filtro: FiltrarEstudiantesDto) {
+        console.log('Filtro recibido:', filtro);
+        return this.studentService.filtrarEstudiantes(filtro);
+    }
+
     @Get('/:id')
     async getStudentById(@Param('id', ParseIntPipe) id: number) {
         try {
@@ -65,6 +71,7 @@ export class StudentController {
             Utilities.catchError(error)
         }
     }
+
 
     @Put('/:id')
     async updateStudent(
@@ -105,11 +112,11 @@ export class StudentController {
                     statusCode: 401
                 };
             }
-            const student = await this.studentService.deleteStudent(id,userId);
+            const student = await this.studentService.deleteStudent(id, userId);
             return {
                 data: student,
                 message: 'Profession marked as deleted',
-              };
+            };
         } catch (error) {
             Utilities.catchError(error)
         }

@@ -1,23 +1,23 @@
 "use client"
 
-import DeleteModalidadModal from '@/components/modals/catalogo/modalidad/DeleteModalidadModal';
-import EditModalidadModal from '@/components/modals/catalogo/modalidad/EditModalidadModal';
-import { Modalidad } from '@/interfaces';
+import DeleteSexoModal from '@/components/modals/catalogo/generoModals/DeleteGeneroModal';
+import EditSexoModal from '@/components/modals/catalogo/generoModals/EditGeneroModal';
+import { Sexo } from '@/interfaces';
 import React from 'react'
 
-interface ModalidadRowProp{
-    fetchModalidad: ()=> Promise<void>
-    modalidad: Modalidad
+interface GeneroRowProp{
+    fetchGenero: ()=> Promise<void>
+    genero: Sexo
 }
 
-export default function ModalidadRow({fetchModalidad, modalidad}:ModalidadRowProp) {
-  console.log("Modalidades recibidas:", modalidad);
+export default function GeneroRow({fetchGenero, genero}:GeneroRowProp) {
+  console.log("Generos recibidos:", genero);
   return (
     <tr className="hover:bg-gray-100 cursor-pointer">
-        <td className="p-3 border-b border-gray-200">{modalidad.id}</td>
-        <td className="p-3 border-b border-gray-200">{modalidad.modalidad}</td>
-        <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><EditModalidadModal modalidad={modalidad} fetchModalidad={fetchModalidad}/></td>
-        <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><DeleteModalidadModal idEliminar={modalidad.id} fetchModalidades={fetchModalidad}/></td>
+        <td className="p-3 border-b border-gray-200">{genero.id}</td>
+        <td className="p-3 border-b border-gray-200">{genero.gender}</td>
+        <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><EditSexoModal genero={genero} fetchGenero={fetchGenero}/></td>
+        <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><DeleteSexoModal idEliminar={genero.id} fetchGenero={fetchGenero}/></td>
     </tr>
   )
 }

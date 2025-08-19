@@ -2,7 +2,7 @@ import { IsArray, IsDate, IsNotEmpty, IsNumber, IsObject, IsOptional } from "cla
 import { Docentes } from "../docentes/docentes.entity";
 import { Asignatura } from "../catalogos/entities/asignatura.entity";
 import { Grupos } from "../grupos/entities/grupos.entity";
-import { OrganizacionEscolar } from "../grupos/entities/organizacionEscolar.entity";
+import { OrganizacionEscolar } from "../organizacionEscolar/entities/organizacionEscolar.entity";
 
 export class OrganizacionLaboralDTO{
     @IsOptional()

@@ -1,22 +1,28 @@
 import {
+  IsArray,
   IsDate,
   IsNotEmpty,
   IsNumber,
-  IsNumberString,
   IsOptional,
   IsString,
-  MaxLength,
 } from 'class-validator';
+import { Turno } from '../entities/turnos.entity';
+import { Type } from 'class-transformer';
 
-export class createModalidadDto {
+export class CreateModalidadDto {
   @IsOptional()
   @IsNumber()
   id: number;
 
   @IsNotEmpty()
   @IsString()
- // @MaxLength(100)
+  // @MaxLength(100)
   modalidad: string;
+
+  @IsOptional()
+  @IsArray()
+  @Type(() => Turno)
+  turno?: Turno[]
 
   @IsOptional()
   @IsNumber()

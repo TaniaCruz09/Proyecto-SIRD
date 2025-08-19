@@ -2,7 +2,6 @@
 
 import { getGrupos } from '@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods';
 import AddGruposModal from '@/components/modals/organizacionEscolar/gruposEscolares/AddGruposModal';
-import NavbarAdmin from '@/components/navbarAdmin';
 import SearchBar from '@/components/SearchBar';
 import GrupoTable from '@/components/tables/organizacionEscolar/GrupoTable';
 import { GrupoEscolar } from '@/interfaces';
@@ -34,35 +33,30 @@ export default function page() {
 
     //filtro que busca por el nombre
     const filteredGrupo = grupos.filter((u) =>
-        u.organizacionEscolar.anio_lectivo.toString().toLowerCase().includes(searchTerm.toLowerCase())
+        u.grado.grades.toLowerCase().includes(searchTerm.toLowerCase())
     );
     return (
-        <div className="flex h-screen">
-            <div>
-                <NavbarAdmin />
-            </div>
-            <div className="w-screen p-6 bg-gray-100">
-                <div className="flex items-center justify-between">
-                    <h1 className="ml-10 text-2xl font-bold mb-4 tracking-tight text-gray-600 text-center">
-                        Gestion de Grupos Academicos
-                    </h1>
-                    <div className="flex justify-end mr-10 mb-6 mt-5">
-                        <AddGruposModal fetchGrupos={fetchGrupos} />
-                    </div>
+        <div className="mx-6">
+            <div className="flex items-center justify-between">
+                <h1 className="ml-10 text-2xl font-bold mb-4 tracking-tight text-gray-600 text-center">
+                    Gestion de Grupos Academicos
+                </h1>
+                <div className="flex justify-end mr-10 mb-6 mt-5">
+                    <AddGruposModal fetchGrupos={fetchGrupos} />
                 </div>
-                <div className="flex items-center justify-between bg-white border rounded-t-xl">
-                    <h2 className="pl-10 text-xl font-bold text-gray-600">
-                        Listado de grupos Academicos
-                    </h2>
-                    <SearchBar
-                        value={searchTerm}
-                        onChange={setSearchTerm}
-                        onClear={() => setSearchTerm("")}
-                        placeholder="Buscar Año lectivo"
-                    />
-                </div>
-                <GrupoTable grupos={filteredGrupo} fetchGrupos={fetchGrupos} />
             </div>
+            <div className="flex items-center justify-between bg-white border rounded-t-xl">
+                <h2 className="pl-10 text-xl font-bold text-gray-600">
+                    Listado de grupos Academicos
+                </h2>
+                <SearchBar
+                    value={searchTerm}
+                    onChange={setSearchTerm}
+                    onClear={() => setSearchTerm("")}
+                    placeholder="Buscar Año lectivo"
+                />
+            </div>
+            <GrupoTable grupos={filteredGrupo} fetchGrupos={fetchGrupos} />
         </div>
     );
 }

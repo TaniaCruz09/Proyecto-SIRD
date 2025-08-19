@@ -1,5 +1,6 @@
 import { saveModalidad, updateModalidad } from "@/actions/catalogos/modalidadMethods";
-import { Modalidad, Sexo } from "@/interfaces";
+import { saveSexo, updateSexo } from "@/actions/catalogos/sexoMethods";
+import { Sexo } from "@/interfaces";
 import React, { useEffect, useState } from "react";
 
 interface SexoFormProps {
@@ -22,28 +23,28 @@ export default function SexoForm({
       }
     }, [defaultValues]);
 
-    //funcion que gaurda o edita
+    //funcion que guarda o edita
   const handleSubmit = async (e: React.FormEvent)=>{
     e.preventDefault();
     try{
       if(isEdit && defaultValues?.id){
-        await updateModalidad(defaultValues.id, {modalidad: sexo})
+        await updateSexo(defaultValues.id, {gender: sexo})
       } else {
-        await saveModalidad({modalidad: sexo})
+        await saveSexo({gender: sexo})
       }
       onSuccess();
 
     }catch (error) {
-      console.error("Error al guardar o actualizar modalidad:", error);
+      console.error("Error al guardar o actualizar sexo:", error); 
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto px-2">
-      <h2 className="text-xl font-semibold text-gray-700 mb-4">{isEdit ? "Editar Modalidad" : "Agregar Modalidad"}</h2>
+      <h2 className="text-xl font-semibold text-gray-700 mb-4">{isEdit ? "Editar Sexo" : "Agregar Sexo"}</h2>
       <input
         type="text"
-        placeholder="Modalidad"
+        placeholder="Sexo"
         value={sexo}
         onChange={(e) => setSexo(e.target.value)}
         className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"

@@ -1,6 +1,8 @@
-import { saveModalidad, updateModalidad } from "@/actions/catalogos/modalidadMethods";
-import { Modalidad, Municipio } from "@/interfaces";
+import { saveMunicipio, updateMunicipio } from "@/actions/catalogos/municipioMethods";
+import { updateModalidad } from "@/actions/catalogos/modalidadMethods";
+import { Departamento, Municipio, MunicipioPayload } from "@/interfaces";
 import React, { useEffect, useState } from "react";
+import { getDepartamentos } from "@/actions/catalogos/departamentoMethods";
 
 interface MunicipioFormProps {
   defaultValues?: Municipio | null;
@@ -12,43 +14,90 @@ export default function MunicipioForm({
   onSuccess,
 }: MunicipioFormProps) {
   const [municipio, setMunicipio] = useState<string>("");
+  const [departamento, setDepartamento] = useState<Departamento |null>(null);
+  const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
 
   const isEdit = Boolean(defaultValues?.id);
 
-  //rellenar los campos si va a editar
+  // Cargar departamentos
   useEffect(() => {
-      if (defaultValues) {
-        setMunicipio(defaultValues.municipio || "");
-      }
-    }, [defaultValues]);
+  const fetchDepartamentos = async () => {
+    try {
+      const data = await getDepartamentos();
+      setDepartamentos(data);
+    } catch (error) {
+      console.error("Error al cargar departamentos:", error);
+    }
+  };
 
-    //funcion que gaurda o edita
-  const handleSubmit = async (e: React.FormEvent)=>{
+  fetchDepartamentos();
+}, []);
+
+  // Rellenar datos si va a editar
+  useEffect(() => {
+    if (defaultValues) {
+      setMunicipio(defaultValues.municipio || "");
+      setDepartamento(defaultValues.departamento || null);
+    }
+  }, [defaultValues]);
+
+  // Guardar o actualizar
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try{
-      if(isEdit && defaultValues?.id){
-        await updateModalidad(defaultValues.id, {modalidad: municipio})
+
+     // Muestra error o evita enviar el formulario si no hay departamento seleccionado
+    if (!departamento) {
+  alert("Debes seleccionar un departamento");
+  return;
+}
+
+    const municipioData: MunicipioPayload = {
+      municipio,
+      departamento,
+    };
+
+    try {
+      if (isEdit && defaultValues?.id) {
+        await updateMunicipio(defaultValues.id, municipioData);
       } else {
-        await saveModalidad({modalidad: municipio})
+        await saveMunicipio(municipioData);
       }
       onSuccess();
-
-    }catch (error) {
-      console.error("Error al guardar o actualizar modalidad:", error);
+    } catch (error) {
+      console.error("Error al guardar o actualizar municipio:", error);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto px-2">
-      <h2 className="text-xl font-semibold text-gray-700 mb-4">{isEdit ? "Editar Modalidad" : "Agregar Modalidad"}</h2>
+      <h2 className="text-xl font-semibold text-gray-700 mb-4">
+        {isEdit ? "Editar Municipio" : "Agregar Municipio"}
+      </h2>
+
       <input
         type="text"
-        placeholder="Modalidad"
+        placeholder="Municipio"
         value={municipio}
         onChange={(e) => setMunicipio(e.target.value)}
         className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
         required
       />
+
+      <select
+        value={departamento?.id || ""}
+        onChange={(e) => {
+          const selectedDep = departamentos.find (dep => dep.id === Number(e.target.value));   // conveertimos el string de departamento a # para comparar 
+          setDepartamento(selectedDep || null)}} 
+        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+        required
+      >
+        <option value="">Selecciona un departamento</option>
+        {departamentos.map((dep) => (
+          <option key={dep.id} value={dep.id}>
+            {dep.departamento}
+          </option>
+        ))}
+      </select>
 
       <div className="flex justify-center">
         <button

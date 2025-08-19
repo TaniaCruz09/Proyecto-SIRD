@@ -12,17 +12,17 @@ import {
   Req,
 } from '@nestjs/common';
 import { TurnoService } from '../services/turnos.service';
-import { createTurnoDto } from '../dtos/turnos.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Utilities } from '../../../common/helpers/utilities';
 import { JwtAuthGuard } from '../../auth/guards/jwt.guard';
+import { CreateTurnoDto } from '../dtos/turnos.dto';
 
 @ApiTags('Turno')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('turno')
 export class TurnoController {
-  constructor(private readonly turnoService: TurnoService) {}
+  constructor(private readonly turnoService: TurnoService) { }
 
   @Get('/')
   async findAll() {
@@ -53,7 +53,7 @@ export class TurnoController {
   }
 
   @Post('/')
-  async create(@Body() payload: createTurnoDto, @Req() req) {
+  async create(@Body() payload: CreateTurnoDto, @Req() req) {
     try {
       const userId = req.user?.id; // Obtener el ID del usuario autenticado
 
@@ -81,7 +81,7 @@ export class TurnoController {
   @Put('/:id')
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() payload: createTurnoDto,
+    @Body() payload: CreateTurnoDto,
     @Req() req, // Capturar el usuario autenticado
   ) {
     try {

@@ -29,10 +29,11 @@ export class Departamento {
   })
   departamento: string;
 
+  @OneToMany(() => Municipio, (municipio) => municipio.departamento)
+  municipio?: Municipio[];
+
   // @OneToMany(()=> Docentes, (docente)=> docente.departamento)
   // docente?: Docentes;
-  @OneToMany(() => Municipio, (municipio) => municipio.departamento)
-    municipio?: Municipio;
   
 
   @OneToMany(() => StudentEntity, (student) => student.departamento)

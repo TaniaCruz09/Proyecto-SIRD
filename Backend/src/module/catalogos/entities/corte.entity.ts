@@ -4,6 +4,7 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   OneToOne,
@@ -13,6 +14,7 @@ import {
 import * as moment from 'moment-timezone';
 import { User } from '../../auth/entities';
 import { SemestreEntity } from './semestres.entity';
+import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity.';
 
 @Entity({ schema: 'catalogos', name: 'cortes' })
 export class Cortes {
@@ -35,6 +37,9 @@ export class Cortes {
 
   @ManyToOne(() => SemestreEntity, (semestre) => semestre.corte)
   semestre: SemestreEntity;
+
+  @OneToMany(() => OrganizacionEscolar, (org) => org.corte)
+  organizacionesEscolar?: OrganizacionEscolar;
 
   // ID del Usuario que creo el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true })

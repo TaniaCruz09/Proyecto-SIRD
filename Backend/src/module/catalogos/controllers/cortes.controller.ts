@@ -14,7 +14,7 @@ import {
 import { CortesService } from '../services/cortes.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { createCortesDto } from '../dtos/create-corte.dto';
+import { CreateCortesDto } from '../dtos/create-corte.dto';
 import { Utilities } from '../../../common/helpers/utilities';
 
 @ApiTags('Cortes')
@@ -22,10 +22,10 @@ import { Utilities } from '../../../common/helpers/utilities';
 @UseGuards(JwtAuthGuard)
 @Controller('cortes')
 export class CortesController {
-  constructor(private readonly cortesService: CortesService) {}
+  constructor(private readonly cortesService: CortesService) { }
 
   @Post('/')
-  async createcorte(@Body() payload: createCortesDto, @Req() req) {
+  async createcorte(@Body() payload: CreateCortesDto, @Req() req) {
     try {
       const userId = req.user?.id;
 
@@ -80,7 +80,7 @@ export class CortesController {
   @Put('/:id')
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() payload: createCortesDto,
+    @Body() payload: CreateCortesDto,
     @Req() req,
   ) {
     try {

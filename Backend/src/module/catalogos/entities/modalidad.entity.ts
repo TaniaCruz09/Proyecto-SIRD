@@ -1,5 +1,4 @@
 import * as moment from 'moment-timezone';
-import { Grupos } from '../../grupos/entities/grupos.entity';
 import {
   Column,
   CreateDateColumn,
@@ -12,6 +11,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../auth/entities';
+import { Turno } from './turnos.entity';
 
 @Entity({ schema: 'catalogos', name: 'modalidad' })
 export class Modalidad {
@@ -28,8 +28,8 @@ export class Modalidad {
   })
   modalidad: string;
 
-  @OneToMany(() => Grupos, (grupo) => grupo.modalidad)
-  grupos?: Grupos[];
+  @OneToMany(() => Turno, (turno) => turno.modalidad)
+  turnos?: Turno[];
 
   //ID del usuario que creó el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo

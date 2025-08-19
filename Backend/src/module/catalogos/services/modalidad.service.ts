@@ -4,16 +4,16 @@ import { DataSource } from 'typeorm';
 import { Repository } from 'typeorm';
 import { Modalidad } from '../entities/modalidad.entity';
 import { Utilities } from '../../../common/helpers/utilities';
-import { createModalidadDto } from '../dtos/modalidad.dto';
+import { CreateModalidadDto } from '../dtos/modalidad.dto';
 
 @Injectable()
 export class ModalidadService {
   constructor(
     @InjectRepository(Modalidad)
     private modalidadRepository: Repository<Modalidad>,
-  ) {}
+  ) { }
 
-  async create(payload: createModalidadDto): Promise<Modalidad> {
+  async create(payload: CreateModalidadDto): Promise<Modalidad> {
     try {
       const modalidad = await this.modalidadRepository.create(payload);
       return await this.modalidadRepository.save(modalidad);
@@ -45,7 +45,7 @@ export class ModalidadService {
     }
   }
 
-  async update(id: number, payload: createModalidadDto): Promise<Modalidad> {
+  async update(id: number, payload: CreateModalidadDto): Promise<Modalidad> {
     try {
       const modalidad = await this.modalidadRepository.findOne({
         where: { id },

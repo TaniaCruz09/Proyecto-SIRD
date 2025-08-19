@@ -14,7 +14,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { EtniaService } from '../services/etnia.service';
-import { createEtniaDto } from '../dtos/etnia.dto';
+import { CreateEtniaDto } from '../dtos/etnia.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Utilities } from '../../../common/helpers/utilities';
 import { JwtAuthGuard } from 'src/module/auth/guards/jwt.guard';
@@ -24,10 +24,10 @@ import { JwtAuthGuard } from 'src/module/auth/guards/jwt.guard';
 @UseGuards(JwtAuthGuard)
 @Controller('etnia')
 export class EtniaController {
-  constructor(private readonly etniaService: EtniaService) {}
+  constructor(private readonly etniaService: EtniaService) { }
 
   @Post('/')
-  async create(@Body() payload: createEtniaDto, @Req() req) {
+  async create(@Body() payload: CreateEtniaDto, @Req() req) {
     try {
       const userId = req.user?.id; // Obtener el ID del usuario autenticado
 
@@ -83,7 +83,7 @@ export class EtniaController {
   @Put('/:id')
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() payload: createEtniaDto,
+    @Body() payload: CreateEtniaDto,
     @Req() req, // Capturar el usuario autenticado
   ) {
     try {

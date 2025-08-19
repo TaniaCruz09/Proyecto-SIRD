@@ -2,7 +2,7 @@ import BtnOpenEditModal from '@/components/Buttons/btnOpenEditModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase';
 import { AnioLectivo } from '@/interfaces';
-import AñoLectivoForm from '@/components/forms/organizacionEscolarForms/anioLectivoForm';
+import { AnioLectivoForm } from '@/components/forms/catalogoForms/anioLectivoForm';
 
 interface EditAñoLectivoModalProp {
     añoLectivo: AnioLectivo;
@@ -19,8 +19,8 @@ export default function EditAñoLectivoModal({ añoLectivo, fetchAñoLectivo }: 
                     onshowModal={showModal}
                     onCloseModal={() => setShowModal(false)}
                     content={
-                        <AñoLectivoForm
-                            defaultValues={añoLectivo}
+                        <AnioLectivoForm
+                            // defaultValues={añoLectivo}
                             onSuccess={() => {
                                 fetchAñoLectivo();
                                 setShowModal(false);

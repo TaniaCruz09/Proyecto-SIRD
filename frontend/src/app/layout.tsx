@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, } from "next/font/google";
 import "./globals.css";
+import NavbarAdmin from "@/components/navbarAdmin";
+import { ToastProvider } from "@/hooks/use-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,11 +25,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="en">
+      <head>
+        <style>{`
+html {
+  font-family: ${geistSans.style.fontFamily};
+  --font-sans: ${geistSans.variable};
+  --font-mono: ${geistMono.variable};
+}
+        `}</style>
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex h-screen bg-white`}
       >
-        {children}
+        <NavbarAdmin />
+        <main className="w-screen text-center bg-gray-100 overflow-auto">
+          <ToastProvider>
+
+            {children}
+          </ToastProvider>
+        </main>
+
       </body>
     </html>
   );
