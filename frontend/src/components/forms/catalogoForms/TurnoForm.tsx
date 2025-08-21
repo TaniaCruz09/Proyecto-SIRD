@@ -1,6 +1,7 @@
 
+import { getModalidades } from "@/actions/catalogos/modalidadMethods";
 import { saveTurno, updateTurno } from "@/actions/catalogos/turnoMethods";
-import { Turno } from "@/interfaces";
+import { Modalidad, MunicipioPayload, Turno, TurnoPayload } from "@/interfaces";
 import React, { useEffect, useState } from "react";
 
 interface TurnoFormProps {
@@ -13,8 +14,19 @@ export default function TurnoForm({
   onSuccess,
 }: TurnoFormProps) {
   const [turno, setTurno] = useState<string>("");
+  const [modalidad, setModalidad] = useState<Modalidad |null>(null);
+  const [modalidades, setModalidades] = useState<Modalidad[]>([]);
 
   const isEdit = Boolean(defaultValues?.id);
+
+  useEffect(() => {
+    const fetchModalidades = async () => {
+      const data = await getModalidades();
+      setModalidades(data);
+    };
+
+    fetchModalidades();
+  },[]);
 
   //rellenar los campos si va a editar
   useEffect(() => {
@@ -26,11 +38,22 @@ export default function TurnoForm({
   //funcion que gaurda o edita
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!modalidad) {
+      alert("Debes seleccionar una modalidad");
+      return;
+    }
+
+    const turnoData: TurnoPayload = {
+      turno,
+      modalidad,
+    };
+
     try {
       if (isEdit && defaultValues?.id) {
-        await updateTurno(defaultValues.id, { turno: turno })
+        await updateTurno(defaultValues.id, turnoData)
       } else {
-        await saveTurno({ turno: turno })
+        await saveTurno(turnoData)
       }
       onSuccess();
 
@@ -50,6 +73,22 @@ export default function TurnoForm({
         className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
         required
       />
+
+      <select 
+      value={modalidad?.id || ""}
+      onChange={(e) => {
+       const selectedDep = modalidades.find (dep => dep.id === Number(e.target.value));   // conveertimos el string de modalidad a # para comparar 
+          setModalidad(selectedDep || null)}} 
+        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+        required
+      >
+        <option value="">Selecciona una modalidad</option>
+        {modalidades.map((dep) => (
+          <option key={dep.id} value={dep.id}>
+            {dep.modalidad}
+          </option>
+        ))}
+      </select>
 
       <div className="flex justify-center">
         <button
