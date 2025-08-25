@@ -21,6 +21,7 @@ export default function TurnoTable({
             <tr>
               <th className="p-3 border-b border-gray-300">Id</th>
               <th className="p-3 border-b border-gray-300">Turno</th>
+              <th className="p-3 border-b border-gray-300">Modalidades</th>
               <th className="p-1 border-b border-gray-300 text-center">
                 Editar
               </th>
