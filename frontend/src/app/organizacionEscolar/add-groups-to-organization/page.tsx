@@ -25,6 +25,7 @@ import { getSecciones } from "@/actions/catalogos/seccionMethods"
 import { getDocentes } from "@/actions/docentesMethods/docentesMethods"
 import { getTurnos } from "@/actions/catalogos/turnoMethods"
 import GrupoTableForm from "@/components/forms/organizacionEscolarForms/GrupoTableForm"
+import { useRouter } from "next/navigation"
 
 // interface Organization {
 //     cortes: string[]
@@ -45,6 +46,7 @@ export default function OrganizationGroups({ params }: { params: { year: string;
     const modalidad = searchParams.get("modalidad")
     const turnoParam = searchParams.get("turno")
     const idTurno = searchParams.get("idTurno")
+    const router = useRouter()
 
     const [groups, setGroups] = useState<GrupoEscolar[]>([])
 
@@ -266,17 +268,18 @@ export default function OrganizationGroups({ params }: { params: { year: string;
                                         </div>
 
                                         <div className="space-y-2">
-                                            <Link
-                                                href={`/academic-year/${params.year}/organizations/${params.orgId}/groups/${g.id}/subjects`}
-                                            >
-                                                <Button variant="outline" size="sm" className="w-full justify-between bg-transparent">
+                                                <Button
+                                                 variant="outline" size="sm" 
+                                                 className="w-full justify-between bg-transparent"
+                                                 onClick={() => router.push(`/organizacionEscolar/add-clases-organizacion-escolar?idGrupo=${g.id}&docenteId=${g.docenteGuia?.nombres}${g.docenteGuia.apellido_materno} &turno=${turnoParam}&seccion=${g.seccion?.seccion}&grado=${g.grado?.grades}`)}
+                                                 >
                                                     <span className="flex items-center gap-2">
                                                         <BookOpen className="h-4 w-4" />
                                                         Materias
                                                     </span>
                                                     <ChevronRight className="h-4 w-4" />
                                                 </Button>
-                                            </Link>
+                                          
                                         </div>
                                     </CardContent>
                                 </Card>
