@@ -12,6 +12,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+// import { OrganizacionEscolarConAsignaturaService } from 'src/module/organizacionEscolar/services/organizacionEscolarAsignatura.service';
+// import { OrganizacionEscolarConAsignaturas } from 'src/module/organizacionEscolar/entities/organizacionEscolarAsignaturas.entity';
 @Entity({ schema: 'catalogos', name: 'asignatura' })
 export class Asignatura {
   @PrimaryGeneratedColumn()
@@ -22,6 +24,9 @@ export class Asignatura {
     name: 'asignatura',
   })
   asignatura: string;
+
+  // @OneToMany(() => OrganizacionEscolarConAsignaturas, (org) => org.asignaturas)
+  // organizacionEscolarAsignaturas: OrganizacionEscolarConAsignaturas[];
 
   // @OneToMany(() => OrganizacionLaboral, (org) => org.asignatura)
   // organizacionLaboral: OrganizacionLaboral[];

@@ -10,7 +10,7 @@ import { StudetnModule } from './module/createEstudents/students.module';
 import { CalificacionesModule } from './module/calificaciones/calificaciones.module';
 import { CentroModule } from './module/centroEducativo/centro.module';
 import { OrganizacionEscolarModule } from './module/organizacionEscolar/organizacionEscolar.module';
-// import { GruposModule } from './module/grupos/grupos.module';
+
 
 
 @Module({
