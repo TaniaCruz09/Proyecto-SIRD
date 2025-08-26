@@ -55,7 +55,7 @@ export class StudentController {
     @Get('/filtrar')
     async filtrarEstudiantes(@Query() filtro: FiltrarEstudiantesDto) {
         console.log('Filtro recibido:', filtro);
-        return this.studentService.filtrarEstudiantes(filtro);
+        return this.studentService.filtrarEstudiantes(filtro, filtro.anioId);
     }
 
     @Get('/:id')

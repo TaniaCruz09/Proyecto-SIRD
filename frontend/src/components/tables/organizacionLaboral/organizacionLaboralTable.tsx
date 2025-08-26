@@ -167,8 +167,8 @@ export default function OrganizacionLaboralTable({
             </button>
             <AsignaturaGruposForm
               organizacionLaboralId={organizacionLaboralFormId}
-              asignaturasDisponibles={asignaturasDisponibles}
-              gruposDisponibles={gruposDisponibles}
+              // asignaturasDisponibles={asignaturasDisponibles}
+              // gruposDisponibles={gruposDisponibles}
               onSubmitForm={handleSubmit}
               onSuccess={() => {
                 alert("Guardado con éxito");

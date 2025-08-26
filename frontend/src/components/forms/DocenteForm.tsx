@@ -157,33 +157,33 @@ export default function DocenteForm({
 
   //rellena los inputs y select si esta en modo edicion
   useEffect(() => {
-  if (defaultValues) {
-    setNombres(defaultValues.nombres || "");
-    setApellido1(defaultValues.apellido_paterno || "");
-    setApellido2(defaultValues.apellido_materno || "");
-    setCedulaIdentidad(defaultValues.cedula_identidad || "");
-    setSexo(defaultValues.sexo?.id?.toString() || "");
-    setNivelAcademico(defaultValues.nivel_academico?.[0]?.id?.toString() || "");
-    SetProfession(defaultValues.profession?.[0]?.id?.toString() || "");
-    setTelefono(defaultValues.telefono || "");
-    setPais(defaultValues.pais?.id?.toString() || "");
-    setMunicipio(defaultValues.municipio?.id?.toString() || "");
-    setDireccionDomiciliar(defaultValues.direccion_domiciliar || "");
-    setNombreContactoEmergencia(defaultValues.nombre_contacto_emergencia || "");
-    setTelefonoContactoEmergencia(defaultValues.telefono_contacto_emergencia || "");
-     // ✅ Convertir Date a string tipo "YYYY-MM-DD"
-    setFechaNacimiento(
-      defaultValues.fecha_nacimiento
-        ? new Date(defaultValues.fecha_nacimiento).toISOString().split("T")[0]
-        : ""
-    );
-    setFechaContratado(
-      defaultValues.fechaContratado
-        ? new Date(defaultValues.fechaContratado).toISOString().split("T")[0]
-        : ""
-    );
-  }
-}, [defaultValues]);
+    if (defaultValues) {
+      setNombres(defaultValues.nombres || "");
+      setApellido1(defaultValues.apellido_paterno || "");
+      setApellido2(defaultValues.apellido_materno || "");
+      setCedulaIdentidad(defaultValues.cedula_identidad || "");
+      setSexo(defaultValues.sexo?.id?.toString() || "");
+      setNivelAcademico(defaultValues.nivel_academico?.[0]?.id?.toString() || "");
+      SetProfession(defaultValues.profession?.[0]?.id?.toString() || "");
+      setTelefono(defaultValues.telefono || "");
+      setPais(defaultValues.pais?.id?.toString() || "");
+      setMunicipio(defaultValues.municipio?.id?.toString() || "");
+      setDireccionDomiciliar(defaultValues.direccion_domiciliar || "");
+      setNombreContactoEmergencia(defaultValues.nombre_contacto_emergencia || "");
+      setTelefonoContactoEmergencia(defaultValues.telefono_contacto_emergencia || "");
+      // ✅ Convertir Date a string tipo "YYYY-MM-DD"
+      setFechaNacimiento(
+        defaultValues.fecha_nacimiento
+          ? new Date(defaultValues.fecha_nacimiento).toISOString().split("T")[0]
+          : ""
+      );
+      setFechaContratado(
+        defaultValues.fechaContratado
+          ? new Date(defaultValues.fechaContratado).toISOString().split("T")[0]
+          : ""
+      );
+    }
+  }, [defaultValues]);
 
 
   return (
@@ -225,8 +225,8 @@ export default function DocenteForm({
         required
       />
       <select
-        name=""
-        id=""
+        name="sexo"
+        id="sexo"
         className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
         value={sexo}
         onChange={(e) => setSexo(e.target.value)}

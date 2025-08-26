@@ -1,6 +1,17 @@
 import { GrupoEscolarPayload } from "@/interfaces";
 import { feching } from "@/utils/cliente-http";
 
+export async function saveGrupo(grupo: GrupoEscolarPayload) {
+    const endPoint = `/grupos`;
+
+    const response = await feching(endPoint, "no-cache", "POST", grupo);
+
+    if (!response.data || response.error) {
+        throw new Error(response?.error || "Error al enviar el Grupo Academico");
+    }
+    return response.data
+}
+
 export async function getGrupos() {
     const endPoint = `/grupos`;
 
@@ -14,7 +25,7 @@ export async function getGrupos() {
 }
 
 export async function getGruposById(id: number) {
-    const endPoint = `/grupos${id}`;
+    const endPoint = `/grupos/${id}`;
 
     const response = await feching(endPoint, "no-cache", "GET");
 
@@ -25,17 +36,15 @@ export async function getGruposById(id: number) {
     return response.data
 }
 
-export async function saveGrupo(grupo: GrupoEscolarPayload) {
-    const endPoint = `/grupos`;
-
-    const response = await feching(endPoint, "no-cache", "POST", grupo);
-
-    if (!response.data || response.error) {
-        throw new Error(response?.error || "Error al enviar el Grupo Academico");
-    }
+// Obtener grupos de un año escolar específico
+export async function getGruposPorAnio(anioId: number) {
+    const endPoint = `/grupos/grupos-por-anio/${anioId}`
+    const response = await feching(endPoint, "no-cache", "GET");
+    if (!response.data || response.error) throw new Error(response?.error);
 
     return response.data
 }
+
 
 export async function updateGrupo(id: number, grupo: GrupoEscolarPayload) {
     const endPoint = `/grupos/${id}`;

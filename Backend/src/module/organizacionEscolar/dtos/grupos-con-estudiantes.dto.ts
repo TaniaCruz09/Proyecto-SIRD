@@ -1,25 +1,18 @@
-import {
-  IsDate,
-  IsNotEmpty,
-  IsNumber,
-  IsObject,
-  IsOptional,
-} from 'class-validator';
-import { StudentEntity } from '../../createEstudents';
-import { OrganizacionEscolar } from '../entities/organizacionEscolar.entity';
+import { IsDate, IsNotEmpty, IsNumber, IsObject, IsOptional } from "class-validator";
 
-export class CreateOrganizacionConEstudiantesDto {
+
+export class CreateGruposConEstudiantesDto {
   @IsOptional()
   @IsNumber()
   readonly id?: number;
 
-  @IsNotEmpty()
   @IsObject()
-  organizacionEscolar: OrganizacionEscolar;
+  @IsNotEmpty()
+  estudiante: { id: number };;
 
-  @IsNotEmpty()
   @IsObject()
-  estudiante: StudentEntity;
+  @IsNotEmpty()
+  grupo: { id: number };;
 
   @IsOptional()
   @IsNumber()

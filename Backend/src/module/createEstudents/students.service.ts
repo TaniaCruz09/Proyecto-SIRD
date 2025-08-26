@@ -25,9 +25,12 @@ export class StudentService {
     }
     async getStudent(): Promise<StudentEntity[]> {
         try {
-            return await this.StudentRepo.find({
-                relations: ['pais', 'gender', 'departamento', 'municipio']
-            });
+            return await this.StudentRepo.createQueryBuilder('student')
+                .leftJoinAndSelect('student.pais', 'pais')
+                .leftJoinAndSelect('student.gender', 'gender')
+                .leftJoinAndSelect('student.departamento', 'departamento')
+                .leftJoinAndSelect('student.municipio', 'municipio')
+                .getMany()
         } catch (error) {
             Utilities.catchError(error)
         }
@@ -88,7 +91,7 @@ export class StudentService {
         }
     }
 
-    async filtrarEstudiantes(params: FiltrarEstudiantesDto): Promise<any[]> {
+    async filtrarEstudiantes(params: FiltrarEstudiantesDto, anioId?: string): Promise<any[]> {
         const { name, lastName, studentCode } = params;
 
         const qb = this.StudentRepo.createQueryBuilder('student')
@@ -96,17 +99,14 @@ export class StudentService {
             .leftJoinAndSelect('student.gender', 'gender')
             .leftJoinAndSelect('student.departamento', 'departamento')
             .leftJoinAndSelect('student.municipio', 'municipio')
-
-        // Aquí haces LEFT JOIN con la tabla que asigna estudiante a grupo
-        // .leftJoinAndSelect('student.organizacionEscolarconEstudiantes', 'organizacionEscolarconEstudiantes')
-        // .leftJoinAndSelect('organizacionEscolarconEstudiantes.organizacionEscolar', 'organizacionEscolar')
-        // .leftJoinAndSelect('organizacionEscolar.grupo', 'grupo')
-        // .leftJoinAndSelect('grupo.grado', 'grado')
-        // .leftJoinAndSelect('grupo.seccion', 'seccion')
-        // .leftJoinAndSelect('grupo.turno', 'turno')
-        // .leftJoinAndSelect('grupo.modalidad', 'modalidad')
-
-
+            .leftJoinAndSelect('student.gruposConEstudiantes', 'gruposConEstudiantes')
+            .leftJoinAndSelect('gruposConEstudiantes.grupo', 'grupo')
+            .leftJoinAndSelect('grupo.grado', 'grado')
+            .leftJoinAndSelect('grupo.seccion', 'seccion')
+            .leftJoinAndSelect('grupo.turno', 'turno')
+            .leftJoinAndSelect('turno.modalidad', 'modalidad')
+            .leftJoinAndSelect('grupo.organizacionEscolar', 'organizacionEscolar')
+            .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo');
 
 
         if (name) {
@@ -126,9 +126,9 @@ export class StudentService {
 
         // Opcional: mapear para agregar propiedad asignadoGrupo con descripción amigable
         return students.map(student => {
-            const orgEst = student.organizacionEscolarconEstudiantes?.[0]; // primer registro
-            const grupoAsignado = orgEst?.organizacionEscolar
-                ? `${orgEst.organizacionEscolar.grupo.grado.grades} ${orgEst.organizacionEscolar.grupo.seccion.seccion} - ${orgEst.organizacionEscolar.grupo.turno.turno} - ${orgEst.organizacionEscolar.grupo.modalidad.modalidad}`
+            const grupo = student.gruposConEstudiantes?.find(g => g.grupo.organizacionEscolar.anio_lectivo.id === Number(anioId)); // primer registro
+            const grupoAsignado = grupo?.grupo
+                ? `${grupo.grupo.grado.grades} ${grupo.grupo.seccion.seccion} - ${grupo.grupo.turno.turno} - ${grupo.grupo.turno.modalidad.modalidad}`
                 : null;
 
             return {

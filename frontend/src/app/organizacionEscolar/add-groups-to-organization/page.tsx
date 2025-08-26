@@ -5,32 +5,21 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 import { useToast } from "@/hooks/use-toast"
-import { ArrowLeft, Plus, Trash2, Users, GraduationCap, BookOpen, Save, UserCheck, ChevronRight } from "lucide-react"
+import { ArrowLeft, Plus, Trash2, Users, GraduationCap, BookOpen, Save, UserCheck, ChevronRight, Calculator, Badge } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import AddGruposModal from "@/components/modals/organizacionEscolar/gruposEscolares/AddGruposModal"
-import { getGrupos, saveGrupo } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods"
 import type {
-    Docente,
-    Grado,
     GrupoEscolar,
-    GrupoEscolarPayload,
-    OrganizacionEscolar,
-    Seccion,
-    Turno,
 } from "@/interfaces"
-import { getOrganizacionEscolar, getOrganizacionEscolarById } from "@/actions/organizacionEscolarMethods/organizacionMethods"
-import { getGrados } from "@/actions/catalogos/gradoMethods"
-import { getSecciones } from "@/actions/catalogos/seccionMethods"
-import { getDocentes } from "@/actions/docentesMethods/docentesMethods"
-import { getTurnos } from "@/actions/catalogos/turnoMethods"
 import GrupoTableForm from "@/components/forms/organizacionEscolarForms/GrupoTableForm"
+import { getGrupos } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods"
+import { getOrganizacionEscolarById } from "@/actions/organizacionEscolarMethods/organizacionMethods"
 
 // interface Organization {
 //     cortes: string[]
 // }
 
-export default function OrganizationGroups({ params }: { params: { year: string; orgId: string } }) {
+export default function OrganizationGroups() {
     const { toast } = useToast()
 
     // const [organization] = useState<Organization>({
@@ -49,7 +38,6 @@ export default function OrganizationGroups({ params }: { params: { year: string;
     const [groups, setGroups] = useState<GrupoEscolar[]>([])
 
     const [gruposPorOrganizacionData, setGruposPorOrganizacionData] = useState<GrupoEscolar[]>([])
-    const [loading, setLoading] = useState(false)
 
     useEffect(() => {
         fetchGrupos()
@@ -107,6 +95,7 @@ export default function OrganizationGroups({ params }: { params: { year: string;
     const fetchGruposPorOrganizacion = async () => {
         try {
             const response = await getOrganizacionEscolarById(Number(idOrganizacion));
+            console.log("response ===>", response);
             console.log(response.grupos)
             setGruposPorOrganizacionData(response.grupos || []);
         } catch (error: any) {
@@ -123,6 +112,8 @@ export default function OrganizationGroups({ params }: { params: { year: string;
     //     const estudiantes = group.estudiantesActuales || 0
     //     return sum + estudiantes
     //   }, 0)
+
+    // const totalEstudiantes = groups.reduce((sum, group) => sum + group.estudiantesActuales, 0)
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">
@@ -199,7 +190,10 @@ export default function OrganizationGroups({ params }: { params: { year: string;
                     </CardContent>
                 </Card>
             </div>
+            {/* Formulario para agregar grupos */}
             <GrupoTableForm idOrganizacion={Number(idOrganizacion)} idTurno={Number(idTurno)} onSuccess={fetchGruposPorOrganizacion} />
+
+
             {/* Lista de grupos */}
             <Card>
                 <CardHeader>
@@ -222,7 +216,7 @@ export default function OrganizationGroups({ params }: { params: { year: string;
                                     <CardContent className="p-4">
                                         <div className="flex items-center justify-between mb-3">
                                             <h4 className="font-semibold text-slate-800">
-                                                {(g.grado?.grades)} - {g.seccion?.seccion ?? "N/A"}
+                                                {(g.grado?.grades)} - {g.seccion?.seccion ?? "N/A"} - {(g.turno?.turno ?? "N/A")}
                                             </h4>
                                             <Button
                                                 variant="ghost"
@@ -242,41 +236,78 @@ export default function OrganizationGroups({ params }: { params: { year: string;
                                                     {(g.docenteGuia?.nombres)}
                                                 </span>
                                             </div>
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-slate-600">Capacidad:</span>
-                                                {/* <span className="font-medium text-slate-800">{group.capacidadMaxima || "N/A"}</span> */}
-                                            </div>
+
                                             <div className="flex justify-between text-sm">
                                                 <span className="text-slate-600">Estudiantes:</span>
                                                 {/* <span className="font-medium text-slate-800">{group.estudiantesActuales || 0}</span> */}
                                             </div>
-                                            {/* {group.capacidadMaxima && (
-                        <>
-                          <div className="w-full bg-slate-200 rounded-full h-2">
-                            <div
-                              className="bg-emerald-500 h-2 rounded-full transition-all"
-                              style={{ width: `${((group.estudiantesActuales || 0) / group.capacidadMaxima) * 100}%` }}
-                            />
-                          </div>
-                          <Badge variant="secondary" className="w-full justify-center bg-slate-200 text-slate-700">
-                            {group.capacidadMaxima - (group.estudiantesActuales || 0)} cupos disponibles
-                          </Badge>
-                        </>
-                      )} */}
                                         </div>
 
+
                                         <div className="space-y-2">
+                                            {/* <Link
+                        href={`/academic-year/${params.year}/organizations/${params.orgId}/groups/${groups?.id}/subjects`}
+                      >
+                        <Button variant="outline" size="sm" className="w-full justify-between bg-transparent">
+                          <span className="flex items-center gap-2">
+                            <BookOpen className="h-4 w-4" />
+                            Materias 
+                            {/* ({groups?.materiasCount}) */}
+                                            {/* {groups?.materiasGuardadas && (
+                              <Badge className="bg-emerald-100 text-emerald-800 text-xs">Guardadas</Badge>
+                            )} */}
+                                            {/* </span>
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </Link> */}
+
                                             <Link
-                                                href={`/academic-year/${params.year}/organizations/${params.orgId}/groups/${g.id}/subjects`}
+                                                href={`/organizacionEscolar/add-students-to-group?idGrupo=${g.id}&anioLectivo=${anioLectivo}&idAnioLectivo=${idAnioLectivo}&grupo=${`${g.grado.grades} - ${g.seccion.seccion} - ${g.turno.turno}`}&docenteGuia=${g.docenteGuia.nombres}`}
                                             >
-                                                <Button variant="outline" size="sm" className="w-full justify-between bg-transparent">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="w-full justify-between bg-transparent"
+                                                //   disabled={!group.materiasGuardadas} // solo habilitado si las materias están guardadas
+                                                >
                                                     <span className="flex items-center gap-2">
-                                                        <BookOpen className="h-4 w-4" />
-                                                        Materias
+                                                        <Users className="h-4 w-4" />
+                                                        Estudiantes 20
                                                     </span>
                                                     <ChevronRight className="h-4 w-4" />
                                                 </Button>
                                             </Link>
+
+                                            {/* <Link
+                                                href={`/academic-year/${params.year}/organizations/${params.orgId}/groups/${groups.id}/grades`}
+                                            >
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="w-full justify-between bg-transparent"
+                                                    disabled={!group.materiasGuardadas || group.estudiantesActuales === 0}
+                                                >
+                                                    <span className="flex items-center gap-2">
+                                                        <Calculator className="h-4 w-4" />
+                                                        Calificaciones
+                                                    </span>
+                                                    <ChevronRight className="h-4 w-4" />
+                                                </Button>
+                                            </Link> */}
+
+                                            {/* {!group.materiasGuardadas && (
+                                                <p className="text-xs text-amber-600 text-center">
+                                                    {group.materiasCount === 0
+                                                        ? "Agrega y guarda materias antes de inscribir estudiantes"
+                                                        : "Guarda las materias antes de inscribir estudiantes"}
+                                                </p>
+                                            )} */}
+
+                                            {/* {group.materiasGuardadas && group.estudiantesActuales === 0 && (
+                                                <p className="text-xs text-amber-600 text-center">
+                                                    Inscribe estudiantes antes de asignar calificaciones
+                                                </p>
+                                            )} */}
                                         </div>
                                     </CardContent>
                                 </Card>

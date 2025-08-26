@@ -24,9 +24,9 @@ export default function OrganizacionEscolarRow({ fetchOrganizacionEscolar, organ
             <td className="p-3 border-b border-gray-200">
                 {organizacionEscolar.turno.turno}
             </td>
-            <td className="p-3 border-b border-gray-200">
-                {organizacionEscolar.corte.corte}
-            </td>
+            {/* <td className="p-3 border-b border-gray-200">
+                {organizacionEscolar.cortes.corte}
+            </td> */}
             <td className="p-3 px-2 py-2 border-b border-gray-200 text-center">
                 <Link href={`/organizacionEscolar/add-groups-to-organization?idAnioLectivo=${organizacionEscolar.anio_lectivo?.id}&idOrganizacion=${organizacionEscolar.id}&anioLectivo=${organizacionEscolar.anio_lectivo?.anio_lectivo}&modalidad=${organizacionEscolar.turno.modalidad?.modalidad}&turno=${organizacionEscolar.turno.turno}&idTurno=${organizacionEscolar.turno.id}`}>
                     <Button

@@ -58,6 +58,21 @@ export class GruposController {
         }
     }
 
+    @Get('/grupos-por-anio/:anioId')
+    async getGruposPorAnio(@Param('anioId') anioId: number) {
+        try {
+            const grupoPorAnio = await this.grupoService.getGruposPorAnio(anioId);
+            const data = {
+                data: grupoPorAnio,
+                message: 'ok',
+            };
+            return data;
+        } catch (error) {
+            Utilities.catchError(error)
+        }
+    }
+
+
     @Delete('/:id')
     async deleteGrupo(@Param('id', ParseIntPipe) id: number) {
         try {

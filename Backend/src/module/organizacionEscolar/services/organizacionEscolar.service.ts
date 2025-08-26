@@ -1,11 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateOrganizacionEscolarDTO } from '../dtos/organizacionEscolar.dto';
 import { Utilities } from 'src/common/helpers/utilities';
-import { Docentes } from 'src/module/docentes/docentes.entity';
-import { AnioLectivo, Asignatura, Cortes, Modalidad, Turno } from 'src/module/catalogos';
-import { Grupos } from '../entities/grupos.entity';
+import { AnioLectivo, Cortes, Turno } from 'src/module/catalogos';
 import { OrganizacionEscolar } from '../entities/organizacionEscolar.entity';
 
 @Injectable()
@@ -25,33 +23,13 @@ export class OrganizacionEscolarService {
   ) { }
 
   async createOrganizacion(
-    createOrganizacionDto: CreateOrganizacionEscolarDTO,
+    payload: CreateOrganizacionEscolarDTO,
   ): Promise<OrganizacionEscolar> {
     try {
-      const {
-        anio_lectivo,
-        turno,
-        corte,
-        user_create_id,
-      } = createOrganizacionDto;
-
-      const nuevaOrganizacion = this.organizacionEscolarRepo.create({
-        anio_lectivo: await this.anioRepo.findOne({ where: { id: anio_lectivo.id } }),
-
-        turno: await this.turnoRepo.findOne(
-          { where: { id: turno.id } }
-        ),
-
-        corte: await this.cortesRepo.findOne(
-          { where: { id: corte.id } }
-        ),
-
-        user_create_id,
-      });
-      return await this.organizacionEscolarRepo.save(nuevaOrganizacion);
-
+      const nuevaOrganizacion = this.organizacionEscolarRepo.create(payload);
+      return await this.organizacionEscolarRepo.save(nuevaOrganizacion)
     } catch (error) {
-      Utilities.catchError(error);
+      Utilities.catchError(error)
     }
   }
 
@@ -63,13 +41,13 @@ export class OrganizacionEscolarService {
         .leftJoinAndSelect('organizacionEscolar.grupos', 'grupos')
         .leftJoinAndSelect('grupos.grado', 'grado')
         .leftJoinAndSelect('grupos.seccion', 'seccion')
-        // .leftJoinAndSelect('grupos.turno', 'turno')
-        // .leftJoinAndSelect('grupos.modalidad', 'grupo_modalidad')
+        .leftJoinAndSelect('grupos.turno', 'grupo_turno')       // alias único
+        .leftJoinAndSelect('grupo_turno.modalidad', 'grupo_modalidad')  // alias único
         .leftJoinAndSelect('grupos.docenteGuia', 'docenteGuia')
-        .leftJoinAndSelect('organizacionEscolar.turno', 'turno')
-        .leftJoinAndSelect('turno.modalidad', 'modalidad')
-        .leftJoinAndSelect('organizacionEscolar.corte', 'corte')
-        .leftJoinAndSelect('corte.semestre', 'semestre')
+        .leftJoinAndSelect('organizacionEscolar.turno', 'organizacion_turno')
+        .leftJoinAndSelect('organizacion_turno.modalidad', 'organizacion_modalidad')
+        .leftJoinAndSelect('organizacionEscolar.cortes', 'cortes')
+        .leftJoinAndSelect('cortes.semestre', 'semestre')
         .orderBy('anio_lectivo.anio_lectivo', 'DESC')
         .getMany();
 
@@ -86,13 +64,13 @@ export class OrganizacionEscolarService {
         .leftJoinAndSelect('organizacionEscolar.grupos', 'grupos')
         .leftJoinAndSelect('grupos.grado', 'grado')
         .leftJoinAndSelect('grupos.seccion', 'seccion')
-        // .leftJoinAndSelect('grupos.turno', 'turno')
-        // .leftJoinAndSelect('grupos.modalidad', 'grupo_modalidad')
+        .leftJoinAndSelect('grupos.turno', 'grupo_turno')       // alias único
+        .leftJoinAndSelect('grupo_turno.modalidad', 'grupo_modalidad')  // alias único
         .leftJoinAndSelect('grupos.docenteGuia', 'docenteGuia')
-        .leftJoinAndSelect('organizacionEscolar.turno', 'turno')
-        .leftJoinAndSelect('turno.modalidad', 'modalidad')
-        .leftJoinAndSelect('organizacionEscolar.corte', 'corte')
-        .leftJoinAndSelect('corte.semestre', 'semestre')
+        .leftJoinAndSelect('organizacionEscolar.turno', 'organizacion_turno')
+        .leftJoinAndSelect('organizacion_turno.modalidad', 'organizacion_modalidad')
+        .leftJoinAndSelect('organizacionEscolar.cortes', 'cortes')
+        .leftJoinAndSelect('cortes.semestre', 'semestre')
         .where('organizacionEscolar.id = :id', { id })
         .orderBy('anio_lectivo.anio_lectivo', 'DESC')
         .getOne();
@@ -110,7 +88,7 @@ export class OrganizacionEscolarService {
     try {
       const organizacion = await this.organizacionEscolarRepo.findOne({
         where: { id },
-        relations: ['anio_lectivo', "turno", "corte"],
+        relations: ['anio_lectivo', "turno", "cortes"],
       });
       if (!organizacion) {
         throw new NotFoundException('Organizacion Escolar no encontrada');
@@ -135,7 +113,7 @@ export class OrganizacionEscolarService {
     try {
       const organizacion = await this.organizacionEscolarRepo.findOne({
         where: { id },
-        relations: ['anio_lectivo', "turno", "corte"],
+        relations: ['anio_lectivo', "turno", "cortes"],
       });
       if (!organizacion) {
         throw new NotFoundException('Organizacion escolar no encontrada');

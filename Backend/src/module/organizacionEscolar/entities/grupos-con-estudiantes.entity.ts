@@ -1,38 +1,26 @@
 import { StudentEntity } from 'src/module/createEstudents';
-import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToMany,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
 import { User } from '../../auth/entities';
 import * as moment from 'moment-timezone';
-import { OrganizacionEscolar } from './organizacionEscolar.entity';
+import { Grupos } from './grupos.entity';
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-@Entity({ name: 'organizacion_con_estudiante', schema: 'organizacion_escolar' })
-export class OrganizacionConEstudiantes {
+@Entity({ name: "grupos_con_estudiantes", schema: 'organizacion_escolar' })
+export class GruposConEstudiantes {
   @PrimaryGeneratedColumn({
     name: 'id',
     type: 'int2',
   })
   id: number;
 
-  // @ManyToMany(() => Grupos, (grupo) => grupo.grupoConEstudiantes)
-  // grupo: Grupos[];
+  @ManyToOne(() => Grupos, grupo => grupo.gruposConEstudiantes, {
+    onDelete: "CASCADE",
+  })
+  grupo: Grupos;
 
-  @ManyToOne(() => OrganizacionEscolar, { eager: false })
-  @JoinColumn({ name: 'organizacion_escolar_id' })
-  organizacionEscolar: OrganizacionEscolar;
-
-  @ManyToOne(() => StudentEntity, { eager: true })
-  @JoinColumn({ name: 'estudiante_id' })
+  @ManyToOne(() => StudentEntity, estudiante => estudiante.gruposConEstudiantes, {
+    onDelete: "CASCADE",
+  })
   estudiante: StudentEntity;
-
 
   //ID del usuario que creó el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo

@@ -4,6 +4,8 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -13,7 +15,7 @@ import { Grupos } from './grupos.entity';
 import { User } from '../../auth/entities';
 import * as moment from 'moment-timezone';
 import { AnioLectivo } from 'src/module/catalogos/entities/anioLectivo.entity';
-import { SemestreEntity, Turno } from '../../catalogos';
+import { Turno } from '../../catalogos';
 import { Cortes } from '../../catalogos/entities/corte.entity';
 
 @Entity({ name: 'organizacionEscolar', schema: 'organizacion_escolar' })
@@ -29,12 +31,20 @@ export class OrganizacionEscolar {
   @JoinColumn({ name: 'turno_id' })
   turno: Turno;
 
-  @OneToMany(() => SemestreEntity, (semestre) => semestre.organizacionEscolar)
-  semestres: SemestreEntity[];
+  // @OneToMany(() => SemestreEntity, (semestre) => semestre.organizacionEscolar)
+  // semestres: SemestreEntity[];
 
-  @ManyToOne(() => Cortes, (corte) => corte.organizacionesEscolar)
-  @JoinColumn({ name: 'corte_id' })
-  corte: Cortes;
+  // @ManyToOne(() => Cortes, (corte) => corte.organizacionesEscolar)
+  // @JoinColumn({ name: 'corte_id' })
+  // corte: Cortes;
+
+  @ManyToMany(() => Cortes, (corte) => corte.organizacionesEscolar, { cascade: true })
+  @JoinTable({
+    name: 'organizacion_cortes', // tabla intermedia
+    joinColumn: { name: 'organizacion_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'corte_id', referencedColumnName: 'id' },
+  })
+  cortes: Cortes[];
 
   @OneToMany(() => Grupos, (grupos) => grupos.organizacionEscolar)
   grupos?: Grupos[];

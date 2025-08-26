@@ -42,9 +42,9 @@ export class SemestreEntity {
   @OneToMany(() => Cortes, (cortes) => cortes.semestre)
   corte?: Cortes[];
 
-  @ManyToOne(() => OrganizacionEscolar, org => org.semestres, { nullable: true, onDelete: "SET NULL" })
-  @JoinColumn({ name: 'organizacionEscolar_id' })
-  organizacionEscolar?: OrganizacionEscolar;
+  // @ManyToOne(() => OrganizacionEscolar, org => org.semestres, { nullable: true, onDelete: "SET NULL" })
+  // @JoinColumn({ name: 'organizacionEscolar_id' })
+  // organizacionEscolar?: OrganizacionEscolar;
 
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo
   user_create_id: number;

@@ -20,6 +20,7 @@ export class Asignatura {
   @Column({
     type: 'varchar',
     name: 'asignatura',
+    nullable: false,
   })
   asignatura: string;
 

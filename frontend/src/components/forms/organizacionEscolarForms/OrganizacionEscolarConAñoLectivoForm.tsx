@@ -71,22 +71,30 @@ export function OrganizacionEscolarConAnioLectivoForm({ anioLectivo, idAnioLecti
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.modalidad || !formData.turno || formData.cortes.length === 0) {
-            toast({ title: "Campos incompletos", description: "Selecciona modalidad, turno y cortes", variant: "destructive" });
+            toast({
+                title: "Campos incompletos",
+                description: "Selecciona modalidad, turno y cortes",
+                variant: "destructive"
+            });
             return;
         }
 
         setIsLoading(true);
         try {
-            for (const corteId of formData.cortes) {
-                const payload: OrganizacionEscolarPayload = {
-                    anio_lectivo: { id: idAnioLectivo },
-                    turno: { id: parseInt(formData.turno) },
-                    corte: { id: corteId },
-                };
-                await saveOrganizacionEscolar(payload);
-                onSuccess()
-            }
-            toast({ title: "Organización creada", description: "La organización escolar se guardó correctamente" });
+            const payload: OrganizacionEscolarPayload = {
+                anio_lectivo: { id: idAnioLectivo },
+                turno: { id: parseInt(formData.turno) },
+                cortes: formData.cortes.map((id) => ({ id })), // ✅ enviar arreglo de cortes
+            };
+
+            console.log(payload)
+            await saveOrganizacionEscolar(payload); // solo un request
+
+            toast({
+                title: "Organización creada",
+                description: "La organización escolar se guardó correctamente"
+            });
+            onSuccess?.();
             window.location.reload();
         } catch (error) {
             console.error(error);
@@ -95,6 +103,7 @@ export function OrganizacionEscolarConAnioLectivoForm({ anioLectivo, idAnioLecti
             setIsLoading(false);
         }
     };
+
 
     const filteredTurnos = turnos.filter((t) => t.modalidad?.id.toString() === formData.modalidad);
 

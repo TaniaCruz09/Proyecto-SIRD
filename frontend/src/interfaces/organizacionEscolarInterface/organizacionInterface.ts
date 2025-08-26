@@ -10,12 +10,12 @@ export interface OrganizacionEscolar {
     id: number,
     anio_lectivo: AnioLectivo,
     turno: Turno,
-    corte: Corte
-    grupo?: GrupoEscolar,
+    cortes: Corte[]
+    grupos?: GrupoEscolar[],
 }
 
 export interface OrganizacionEscolarPayload {
     anio_lectivo: { id: number };
     turno: { id: number };
-    corte: { id: number };
+    cortes: { id: number }[];
 }

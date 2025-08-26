@@ -1,9 +1,12 @@
 import {
+  ArrayNotEmpty,
+  IsArray,
   IsDate,
   IsNotEmpty,
   IsNumber,
   IsObject,
   IsOptional,
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Grupos } from '../entities/grupos.entity';
@@ -18,23 +21,19 @@ export class CreateOrganizacionEscolarDTO {
 
   @IsNotEmpty()
   @IsObject()
-  @Type(() => AnioLectivo)
-  anio_lectivo: AnioLectivo;
+  anio_lectivo: { id: number };
 
   @IsNotEmpty()
   @IsObject()
-  @Type(() => Turno)
-  turno: Turno;
+  turno: { id: number };
 
   @IsOptional()
   @IsObject()
-  @Type(() => Grupos)
-  grupo?: Grupos[];
+  grupo?: { id: number }[];
 
-  @IsObject()
-  @IsNotEmpty()
-  @Type(() => Cortes)
-  corte: Cortes;
+  @IsArray()
+  @ArrayNotEmpty()
+  cortes: { id: number }[];
 
   @IsOptional()
   @IsNumber()

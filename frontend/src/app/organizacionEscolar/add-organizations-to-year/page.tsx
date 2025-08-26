@@ -7,20 +7,11 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Calendar, GraduationCap, Plus, Settings, Users } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { AnioLectivo, OrganizacionEscolar } from "@/interfaces"
-import { getOrganizacionEscolar, getOrganizacionEscolarById } from "@/actions/organizacionEscolarMethods/organizacionMethods"
-import { useRouter } from "next/navigation"
-import AddOrganizacionEscolarModal from "@/components/modals/organizacionEscolar/organizacion/AddOrganizacionEscolarModal"
-import { getAniosLectivos, getOrganizacionEscolarPorAnio } from "@/actions/catalogos/anioLectivoMethods"
+import { OrganizacionEscolar } from "@/interfaces"
+import { getOrganizacionEscolar } from "@/actions/organizacionEscolarMethods/organizacionMethods"
+import { getOrganizacionEscolarPorAnio } from "@/actions/catalogos/anioLectivoMethods"
 import AddOganizacionEscolarConAnioLectivoModal from "@/components/modals/organizacionEscolar/organizacion/AddOganizacionEscolarConAnioLectivoModal"
 
-interface Organization {
-    id: string
-    modalidad: string
-    turno: string
-    cortes: number
-    grupos: number
-}
 
 export default function AcademicYearOrganizations({ params }: { params: { year: string } }) {
     const [organizacionEscolar, setOrganizacionEscolar] = useState<OrganizacionEscolar[]>([])
@@ -38,7 +29,7 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
         try {
             const response = await getOrganizacionEscolar();
             setOrganizacionEscolar(response);
-        } catch (error: any) {
+        } catch (error) {
             console.error(error);
         }
     };
@@ -100,7 +91,7 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-muted-foreground">Total Grupos</p>
-                                {/* <p className="text-2xl font-bold">{organizations.reduce((acc, org) => acc + org.grupo, 0)}</p> */}
+                                <p className="text-2xl font-bold">{ }</p>
                                 <p></p>
                             </div>
                             <Users className="h-8 w-8 text-muted-foreground" />
@@ -162,9 +153,17 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
                                                     {o.turno?.turno || "Sin turno"}
                                                 </Badge>
                                             </div>
-                                            <div className="flex items-center gap-4 text-sm text-slate-600">
-                                                <span>{o.corte?.corte || "Sin corte"}</span>
-                                                <span>• Grupo</span>
+                                            <div className="flex items-center gap-4 text-sm text-slate-600 flex-wrap">
+                                                {o.cortes && o.cortes.length > 0 ? (
+                                                    o.cortes.map((c) => (
+                                                        <Badge key={c.id} variant="outline" className="bg-rose-100 text-rose-700">
+                                                            {c.corte} - {c.semestre.semestre}
+                                                        </Badge>
+                                                    ))
+                                                ) : (
+                                                    <span>Sin cortes</span>
+                                                )}
+                                                <span>• Grupos: {o.grupos?.length || 0}</span>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">

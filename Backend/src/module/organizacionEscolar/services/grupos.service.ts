@@ -25,26 +25,53 @@ export class GruposService {
 
     async getGrupo(): Promise<Grupos[]> {
         try {
-            const grupo = await this.grupoRepository.find({
-                relations: ["organizacionEscolar", "organizacionEscolar.anio_lectivo", "organizacionEscolar.turno", "organizacionEscolar.corte", "grado", "seccion", "turno", "turno.modalidad", 'docenteGuia']
-            });
-            return grupo;
+            const grupos = await this.grupoRepository
+                .createQueryBuilder("grupo")
+                .leftJoinAndSelect("grupo.organizacionEscolar", "organizacionEscolar")
+                .leftJoinAndSelect("organizacionEscolar.anio_lectivo", "anio_lectivo")
+                .leftJoinAndSelect("organizacionEscolar.turno", "turnoOrganizacion")
+                .leftJoinAndSelect("organizacionEscolar.cortes", "cortes")
+                .leftJoinAndSelect("grupo.grado", "grado")
+                .leftJoinAndSelect("grupo.seccion", "seccion")
+                .leftJoinAndSelect("grupo.turno", "turno")
+                .leftJoinAndSelect("turno.modalidad", "modalidad")
+                .leftJoinAndSelect("grupo.docenteGuia", "docenteGuia")
+                .getMany();
+
+            return grupos;
         } catch (error) {
-            Utilities.catchError(error)
+            Utilities.catchError(error);
         }
     }
+
 
     async getGrupoById(id: number): Promise<Grupos> {
         try {
             const grupo = await this.grupoRepository.findOne({
                 where: { id },
-                relations: ["organizacionEscolar", "organizacionEscolar.anio_lectivo", "organizacionEscolar.turno", "organizacionEscolar.corte", "grado", "seccion", "turno", "turno.modalidad", 'docenteGuia']
+                relations: ["organizacionEscolar", "organizacionEscolar.anio_lectivo", "organizacionEscolar.turno", "organizacionEscolar.cortes", "grado", "seccion", "turno", "turno.modalidad", 'docenteGuia']
             })
             return grupo;
         } catch (error) {
             Utilities.catchError(error)
         }
     }
+
+    async getGruposPorAnio(anioId: number) {
+        const grupos = await this.grupoRepository
+            .createQueryBuilder('grupo')
+            .leftJoinAndSelect('grupo.organizacionEscolar', 'org')
+            .leftJoinAndSelect('org.anio_lectivo', 'anio')
+            .leftJoinAndSelect('grupo.grado', 'grado')
+            .leftJoinAndSelect('grupo.seccion', 'seccion')
+            .leftJoinAndSelect('grupo.turno', 'turno')
+            .leftJoinAndSelect('turno.modalidad', 'modalidad')
+            .where('anio.id = :anioId', { anioId })
+            .getMany();
+
+        return grupos;
+    }
+
 
     async deleteGrupos(id: number): Promise<Grupos> {
         try {

@@ -10,9 +10,9 @@ export default function BtnDelete({ onClick }: BtnDeleteProps) {
     <div>
       <button
         onClick={onClick}
-        className="bg-red-300/50 hover:bg-red-400 text-red-600 text-bold px-4 py-2 rounded-md text-sm cursor-pointer"
+        className="bg-red-300/50 hover:bg-red-300 text-red-600 text-bold px-3 py-2 rounded-sm shadow-md transition cursor-pointer"
       >
-        <RiDeleteBin6Line />
+        <RiDeleteBin6Line size={16} />
       </button>
     </div>
   );

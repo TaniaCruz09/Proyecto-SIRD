@@ -124,7 +124,8 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
                 <option value="">Organizacion Escolar</option>
                 {organizacionesEscolares?.map((r) => (
                     <option key={r.id} value={r.id}>
-                        {r.anio_lectivo?.anio_lectivo} - {r.turno.turno} - {r.corte.corte}
+                        {r.anio_lectivo?.anio_lectivo} - {r.turno.turno} -
+                        {/* {r.corte.corte} */}
                     </option>
                 ))}
             </select>
