@@ -1,5 +1,6 @@
 "use client"
 import { getOrganizacionEscolar } from '@/actions/organizacionEscolarMethods/organizacionMethods';
+import ProtectedRoute from '@/components/hoc/ProtectedRoute';
 import AddOrganizacionEscolarModal from '@/components/modals/organizacionEscolar/organizacion/AddOrganizacionEscolarModal';
 import SearchBar from '@/components/SearchBar';
 import OrganizacionEscolarTable from '@/components/tables/organizacionEscolar/OrganizacionEscolarTable';
@@ -35,6 +36,7 @@ export default function OrganizacionEscolar() {
         u.turno.turno.toString().toLowerCase().includes(searchTerm.toLowerCase())
     );
     return (
+        <ProtectedRoute allowedRoles={['Admin']}>
         <div>
             <div className="flex items-center justify-between">
                 <h1 className="ml-10 text-2xl font-bold mb-4 tracking-tight text-gray-600 text-center">
@@ -57,5 +59,6 @@ export default function OrganizacionEscolar() {
             </div>
             <OrganizacionEscolarTable organizacionEscolar={filteredOrganizacionEscolar} fetchOrganizacionEscolar={fetchOrganizacionEscolar} />
         </div>
+        </ProtectedRoute>
     );
 }

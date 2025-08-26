@@ -24,6 +24,7 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
 
     const idAnioLectivo = searchParams.get("idAnioLectivo")
     const anioLectivo = searchParams.get("anioLectivo")
+   
 
     const fetchOrganizacionEscolar = async () => {
         try {

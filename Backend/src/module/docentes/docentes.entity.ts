@@ -133,6 +133,7 @@ export class Docentes {
   @OneToMany(() => Grupos, (grupo) => grupo.docenteGuia)
   grupos?: Grupos[];
 
+
   // @OneToMany(() => OrganizacionLaboral, (org) => org.docente)
   // organizacionLaboral?: OrganizacionLaboral[];
 

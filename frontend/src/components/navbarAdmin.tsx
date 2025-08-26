@@ -7,32 +7,32 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const authSubmenu = [
-  { label: "Usuarios", href: "/auth/users", icon: FaUser },
-  { label: "Roles", href: "/auth/roles", icon: FaUserPlus },
+  { label: "Usuarios", href: "/auth/users", icon: FaUser, roles: ["Admin"] },
+  { label: "Roles", href: "/auth/roles", icon: FaUserPlus, roles: ["Admin"] },
 ];
 
 const catalogSubmenu = [
-  { label: "Niveles Académicos", href: "/catalogo/nivelAcademico", icon: FaUserPlus },
-  { label: "Asignaturas", href: "/catalogo/asignatura", icon: FaUserPlus },
-  { label: "Cortes", href: "/catalogo/corteEvaluativo", icon: FaUserPlus },
-  { label: "Departamentos", href: "/catalogo/departamento", icon: FaUserPlus },
-  { label: "Etnias", href: "/catalogo/etnia", icon: FaUserPlus },
-  { label: "Género", href: "/catalogo/genero", icon: FaUserPlus },
-  { label: "Grados", href: "/catalogo/grados", icon: FaUserPlus },
-  { label: "Modalidades", href: "/catalogo/modalidad", icon: FaUserPlus },
-  { label: "Municipios", href: "/catalogo/municipio", icon: FaUserPlus },
-  { label: "Países", href: "/catalogo/pais", icon: FaUserPlus },
-  { label: "Profesiones", href: "/catalogo/profesion", icon: FaUserPlus },
-  { label: "Secciones", href: "/catalogo/seccion", icon: FaUserPlus },
-  { label: "Semestres", href: "/catalogo/semestre", icon: FaUserPlus },
-  { label: "Turnos", href: "/catalogo/turnos", icon: FaUserPlus },
-  { label: "Años Lectivos", href: "/catalogo/anioLectivo", icon: FaUserPlus },
+  { label: "Niveles Académicos", href: "/catalogo/nivelAcademico", icon: FaUserPlus, roles: ["Admin"] },
+  { label: "Asignaturas", href: "/catalogo/asignatura", icon: FaUserPlus, roles: ["Admin"] },
+  { label: "Cortes", href: "/catalogo/corteEvaluativo", icon: FaUserPlus, roles: ["Admin"] },
+  { label: "Departamentos", href: "/catalogo/departamento", icon: FaUserPlus, roles: ["Admin"] },
+  { label: "Etnias", href: "/catalogo/etnia", icon: FaUserPlus, roles: ["Admin"] },
+  { label: "Género", href: "/catalogo/genero", icon: FaUserPlus, roles: ["Admin"] },
+  { label: "Grados", href: "/catalogo/grados", icon: FaUserPlus, roles: ["Admin"] },
+  { label: "Modalidades", href: "/catalogo/modalidad", icon: FaUserPlus, roles: ["Admin"] },
+  { label: "Municipios", href: "/catalogo/municipio", icon: FaUserPlus, roles: ["Admin"] },
+  { label: "Países", href: "/catalogo/pais", icon: FaUserPlus, roles: ["Admin"] },
+  { label: "Profesiones", href: "/catalogo/profesion", icon: FaUserPlus, roles: ["Admin"] },
+  { label: "Secciones", href: "/catalogo/seccion", icon: FaUserPlus, roles: ["Admin"] },
+  { label: "Semestres", href: "/catalogo/semestre", icon: FaUserPlus, roles: ["Admin"] },
+  { label: "Turnos", href: "/catalogo/turnos", icon: FaUserPlus, roles: ["Admin"] },
+  { label: "Años Lectivos", href: "/catalogo/anioLectivo", icon: FaUserPlus, roles: ["Admin"] },
 ];
 
 const organizacionEscolarSubmenu = [
-  { label: "Organizacion Escolar", href: "/organizacionEscolar/organizacion", icon: FaUser },
-  { label: "Grupos Educativos", href: "/organizacionEscolar/registerGroups", icon: FaUserPlus },
-  { label: "Grupos con Estudiantes", href: "/organizacionEscolar/gruposConEstudiantes", icon: FaUserPlus },
+  { label: "Organizacion Escolar", href: "/organizacionEscolar/organizacion", icon: FaUser, roles: ["Admin"] },
+  { label: "Grupos Educativos", href: "/organizacionEscolar/registerGroups", icon: FaUserPlus, roles: ["Admin"] },
+  { label: "Grupos con Estudiantes", href: "/organizacionEscolar/gruposConEstudiantes", icon: FaUserPlus, roles: ["Admin"] },
 ];
 
 
@@ -41,6 +41,7 @@ function NavbarAdmin() {
   const [openUsers, setOpenUsers] = useState(false);
   const [openCatalogs, setOpenCatalogs] = useState(false);
   const [openOrganizacionEscolar, setOpenOrganizacionEscolar] = useState(false);
+  const [rol, setRol] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -50,6 +51,10 @@ function NavbarAdmin() {
     if (savedScroll && scrollRef.current) {
       scrollRef.current.scrollTop = parseInt(savedScroll);
     }
+  }, []);
+  useEffect(() => {
+    const storeRol = localStorage.getItem("rol");
+    setRol(storeRol || "");
   }, []);
 
   // Guarda scroll actual antes de navegación
@@ -65,9 +70,10 @@ function NavbarAdmin() {
       : "text-white hover:bg-white hover:text-gray-900";
 
   // Rutas donde no quieres mostrar el navbar
-  const rutasSinNavbar = ["/auth/login"];
+  const rutasSinNavbar = ["/auth/login", "/auth/selectRole"];
 
   if (rutasSinNavbar.includes(pathname)) return null;
+  if (!rol) return null;
 
   return (
     <nav className="w-64 bg-gray-900 text-white h-screen overflow-hidden shadow-md">
@@ -86,61 +92,73 @@ function NavbarAdmin() {
         </Link>
 
         {/* Autenticación */}
-        <button
-          onClick={() => setOpenUsers(!openUsers)}
-          className={`flex items-center justify-between p-3 w-full rounded-md transition`}
-        >
-          <div className="flex items-center gap-3">
-            <FaUsers />
-            <span>Autenticación</span>
-          </div>
-          <FaChevronDown className={`${openUsers ? "rotate-180" : ""} transition`} />
-        </button>
+        {organizacionEscolarSubmenu.some(item => item.roles.includes(rol!)) && (
+          <>
+            <button
+              onClick={() => setOpenUsers(!openUsers)}
+              className={`flex items-center justify-between p-3 w-full rounded-md transition`}
+            >
+              <div className="flex items-center gap-3">
+                <FaUsers />
+                <span>Autenticación</span>
+              </div>
+              <FaChevronDown className={`${openUsers ? "rotate-180" : ""} transition`} />
+            </button>
 
-        {openUsers && (
-          <div className="ml-6 flex flex-col gap-1">
-            {authSubmenu.map(({ label, href, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                scroll={false}
-                className={`flex items-center gap-2 p-2 rounded-md text-sm transition ${isActive(href)}`}
-                onClick={handleSaveScroll}
-              >
-                <Icon className="text-base" />
-                {label}
-              </Link>
-            ))}
-          </div>
+            {openUsers && (
+              <div className="ml-6 flex flex-col gap-1">
+                {authSubmenu
+                  .filter(item => item.roles.includes(rol!)) // solo los que coinciden con rol
+                  .map(({ label, href, icon: Icon }) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      scroll={false}
+                      className={`flex items-center gap-2 p-2 rounded-md text-sm transition ${isActive(href)}`}
+                      onClick={handleSaveScroll}
+                    >
+                      <Icon className="text-base" />
+                      {label}
+                    </Link>
+                  ))}
+              </div>
+            )}
+          </>
         )}
 
         {/* Catálogos */}
-        <button
-          onClick={() => setOpenCatalogs(!openCatalogs)}
-          className={`flex items-center justify-between p-3 w-full rounded-md transition`}
-        >
-          <div className="flex items-center gap-3">
-            <VscFileSubmodule />
-            <span>Catálogos</span>
-          </div>
-          <FaChevronDown className={`${openCatalogs ? "rotate-180" : ""} transition`} />
-        </button>
+        {catalogSubmenu.some(item => item.roles.includes(rol!)) && (
+          <>
+            <button
+              onClick={() => setOpenCatalogs(!openCatalogs)}
+              className={`flex items-center justify-between p-3 w-full rounded-md transition`}
+            >
+              <div className="flex items-center gap-3">
+                <VscFileSubmodule />
+                <span>Catálogos</span>
+              </div>
+              <FaChevronDown className={`${openCatalogs ? "rotate-180" : ""} transition`} />
+            </button>
 
-        {openCatalogs && (
-          <div className="ml-6 flex flex-col gap-1">
-            {catalogSubmenu.map(({ label, href, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                scroll={false}
-                className={`flex items-center gap-2 p-2 rounded-md text-sm transition ${isActive(href)}`}
-                onClick={handleSaveScroll}
-              >
-                <Icon className="text-base" />
-                {label}
-              </Link>
-            ))}
-          </div>
+            {openCatalogs && (
+              <div className="ml-6 flex flex-col gap-1">
+                {catalogSubmenu
+                  .filter(item => item.roles.includes(rol!)) // solo los que coinciden con rol
+                  .map(({ label, href, icon: Icon }) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      scroll={false}
+                      className={`flex items-center gap-2 p-2 rounded-md text-sm transition ${isActive(href)}`}
+                      onClick={handleSaveScroll}
+                    >
+                      <Icon className="text-base" />
+                      {label}
+                    </Link>
+                  ))}
+              </div>
+            )}
+          </>
         )}
 
         <Link
@@ -162,33 +180,33 @@ function NavbarAdmin() {
           <FaCog />
           <span>Estudiantes</span>
         </Link>
-        {/* <Link
-          href="/notasEstudiantes"
-          scroll={false}
-          className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}
-          onClick={handleSaveScroll}
-        > */}
         {/* organizacion Escolar */}
-        <button
-          onClick={() => setOpenOrganizacionEscolar(!openOrganizacionEscolar)}
-          className={`flex items-center justify-between p-3 w-full rounded-md transition ${isActive("")}`}
-        >
-          <div className="flex items-center gap-3">
-            <VscFileSubmodule />
-            <span>Organizacion Escolar</span>
-          </div>
-          <FaChevronDown className={`${openOrganizacionEscolar ? "rotate-180" : ""} transition`} />
-        </button>
+        {organizacionEscolarSubmenu.some(item => item.roles.includes(rol!)) && (
+          <>
+            <button
+              onClick={() => setOpenOrganizacionEscolar(!openOrganizacionEscolar)}
+              className={`flex items-center justify-between p-3 w-full rounded-md transition ${isActive("")}`}
+            >
+              <div className="flex items-center gap-3">
+                <VscFileSubmodule />
+                <span>Organizacion Escolar</span>
+              </div>
+              <FaChevronDown className={`${openOrganizacionEscolar ? "rotate-180" : ""} transition`} />
+            </button>
 
-        {openOrganizacionEscolar && (
-          <div className="ml-6 flex flex-col gap-1">
-            {organizacionEscolarSubmenu.map(({ label, href, icon: Icon }) => (
-              <Link key={href} href={href} className={`flex items-center gap-2 p-2 rounded-md text-sm transition ${isActive(href)}`}>
-                <Icon className="text-base" />
-                {label}
-              </Link>
-            ))}
-          </div>
+            {openOrganizacionEscolar && (
+              <div className="ml-6 flex flex-col gap-1">
+                {organizacionEscolarSubmenu
+                  .filter(item => item.roles.includes(rol!)) // solo los que coinciden con rol
+                  .map(({ label, href, icon: Icon }) => (
+                    <Link key={href} href={href} className={`flex items-center gap-2 p-2 rounded-md text-sm transition ${isActive(href)}`}>
+                      <Icon className="text-base" />
+                      {label}
+                    </Link>
+                  ))}
+              </div>
+            )}
+          </>
         )}
         <Link href="/notasEstudiantes" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}>
           <FaCog />
@@ -204,9 +222,12 @@ function NavbarAdmin() {
           <FaCog />
           <span>Vista docente</span>
         </Link>
+
       </div>
+
     </nav>
   );
+
 }
 
 

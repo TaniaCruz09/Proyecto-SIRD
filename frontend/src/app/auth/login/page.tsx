@@ -2,7 +2,6 @@
 
 import { saveLogin } from '@/actions/authMethods/loginMethods'
 import { useRouter, useSearchParams } from 'next/navigation'
-
 import { useState } from 'react'
 
 export default function LoginPage() {
@@ -18,28 +17,31 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError(null) // Resetear error previo
+    setError(null)
 
-
-    //Enviar datos al backend
     try {
       const data = await saveLogin({ email, password })
       const { token, user } = data
 
-      // Guardamos los datos en localStorage
       localStorage.setItem('token', token)
-      localStorage.setItem('rol', user.roles?.[0]?.rol || '')
       localStorage.setItem('user', JSON.stringify(user))
 
-      router.push('/')
+      // múltiples roles
+      if (user.roles.length > 1) {
+        localStorage.setItem('roles', JSON.stringify(user.roles))
+        router.push("/auth/selectRole")
+      } else {
+        // un solo rol
+        localStorage.setItem('rol', user.roles[0].rol) // ← guardamos string limpio
+        router.push("/")
+      }
     } catch (err: any) {
       if (err.response) {
-        console.log(err.response.data)
         const status = err.response.status
         const message = err.response.data?.message || 'Error desconocido'
 
         if (status === 401) {
-          setError(message)//aqui se muestra el mensaje que viene desde el backend si es usuario no encontrado o credenciales invalidas
+          setError(message)
         } else if (status) {
           setError(`Error del servidor: ${message}`)
         }
@@ -50,17 +52,10 @@ export default function LoginPage() {
       setLoading(false)
     }
   }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-purple-50 via-gray-50 to-purple-100 px-4">
       <div className="w-full max-w-sm">
-
-        {/* <h1 className="text-xl text-center font-bold text-black">
-          Sistema Escolar
-        </h1>
-        <h1 className="text-md text-center text-black mb-5">
-          Instituto Rubén Darío
-        </h1> */}
-
         <form
           onSubmit={handleSubmit}
           className="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-2xl w-full border border-purple-200"
@@ -100,7 +95,7 @@ export default function LoginPage() {
             />
 
             <p className="text-center text-sm text-gray-600">
-              <a href="/crear la pagina" className="text-blue-600 hover:underline">
+              <a href="/recuperar-password" className="text-blue-600 hover:underline">
                 ¿Olvidó su contraseña?
               </a>
             </p>
@@ -116,6 +111,5 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
-
   )
 }
