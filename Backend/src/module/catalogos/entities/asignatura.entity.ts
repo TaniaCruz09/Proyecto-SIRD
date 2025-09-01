@@ -12,8 +12,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-// import { OrganizacionEscolarConAsignaturaService } from 'src/module/organizacionEscolar/services/organizacionEscolarAsignatura.service';
-// import { OrganizacionEscolarConAsignaturas } from 'src/module/organizacionEscolar/entities/organizacionEscolarAsignaturas.entity';
+import { GrupoAsignaturaDocente } from 'src/module/organizacionEscolar/entities/GrupoAsignaturaDocente.entity';
 @Entity({ schema: 'catalogos', name: 'asignatura' })
 export class Asignatura {
   @PrimaryGeneratedColumn()
@@ -26,14 +25,8 @@ export class Asignatura {
   })
   asignatura: string;
 
-  // @OneToMany(() => OrganizacionEscolarConAsignaturas, (org) => org.asignaturas)
-  // organizacionEscolarAsignaturas: OrganizacionEscolarConAsignaturas[];
-
-  // @OneToMany(() => OrganizacionLaboral, (org) => org.asignatura)
-  // organizacionLaboral: OrganizacionLaboral[];
-
-  // @OneToMany(() => OrganizacionLaboralAsignaturaGrupo, (asignaturaGrupo) => asignaturaGrupo.asignatura)
-  // asignaturasGrupos: OrganizacionLaboralAsignaturaGrupo[];
+  @OneToMany(() => GrupoAsignaturaDocente, gad => gad.asignatura)
+  grupoAsignaturaDocente: GrupoAsignaturaDocente[];
 
   // ID del Usuario que creo el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true })
