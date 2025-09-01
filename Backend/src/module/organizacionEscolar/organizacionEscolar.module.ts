@@ -6,26 +6,24 @@ import { GruposService } from './services/grupos.service';
 import { OrganizacionEscolarService } from '../organizacionEscolar/services/organizacionEscolar.service';
 import { OrganizacionEscolarController } from './controllers/organizacionEscolar.controller';
 import { Docentes } from '../docentes/docentes.entity';
-import { AnioLectivo, Asignatura, AsignaturaController, AsignaturaService, Cortes, Modalidad, SemestreEntity, Turno } from '../catalogos';
+import { AnioLectivo, Asignatura, AsignaturaController, AsignaturaService, Cortes, Turno } from '../catalogos';
 import { OrganizacionEscolar } from './entities/organizacionEscolar.entity';
-import { GruposConEstudiantes } from './entities/grupos-con-estudiantes.entity';
-import { GruposConEstudiantesController } from './controllers/grupos-con-estudiantes.controller';
-import { GruposConEstudiantesService } from './services/grupos-con-estudiantes.service';
-
 import { GrupoAsignaturaDocente } from './entities/GrupoAsignaturaDocente.entity';
 import { GrupoAsignaturaDocenteController } from './controllers/grupoAsignaturaDocente.controller';
 import { GrupoAsignaturaDocenteService } from './services/grupoAsignaturaDocente.service';
+import { GrupoAsignaturaConEstudiantesService } from './services/grupo-asignatura-con-estudiantes.service';
+import { GrupoAsignaturaConEstudiantesController } from './controllers/grupo-asignatura-con-estudiantes.controller';
+import { GrupoAsignaturaConEstudiantes } from './entities/grupo-asignatura-con-estudiantes.entity';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([
             Grupos,
             OrganizacionEscolar,
-            GruposConEstudiantes,
+            GrupoAsignaturaConEstudiantes,
             Cortes,
             AnioLectivo,
             Turno,
-            //OrganizacionEscolarConAsignaturas,
             Asignatura,
             GrupoAsignaturaDocente,
             Docentes
@@ -34,16 +32,14 @@ import { GrupoAsignaturaDocenteService } from './services/grupoAsignaturaDocente
     controllers: [
         GruposController,
         OrganizacionEscolarController,
-        GruposConEstudiantesController,
-        //OrganizacionEscolarConAsignaturaController,
+        GrupoAsignaturaConEstudiantesController,
         AsignaturaController,
         GrupoAsignaturaDocenteController
     ],
     providers: [
         GruposService,
         OrganizacionEscolarService,
-        GruposConEstudiantesService,
-        //OrganizacionEscolarConAsignaturaService,
+        GrupoAsignaturaConEstudiantesService,
         AsignaturaService,
         GrupoAsignaturaDocenteService
     ],
