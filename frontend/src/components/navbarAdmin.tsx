@@ -1,5 +1,4 @@
 "use client";
-
 import { memo, useEffect, useRef, useState } from "react";
 import { FaHome, FaUsers, FaUser, FaUserPlus, FaCog, FaChevronDown } from "react-icons/fa";
 import { VscFileSubmodule } from "react-icons/vsc";
@@ -52,6 +51,8 @@ function NavbarAdmin() {
       scrollRef.current.scrollTop = parseInt(savedScroll);
     }
   }, []);
+
+  //activar cuando se trabajen con roles
   useEffect(() => {
     const storeRol = localStorage.getItem("rol");
     setRol(storeRol || "");
@@ -172,7 +173,7 @@ function NavbarAdmin() {
         </Link>
 
         <Link
-          href="/registerEstudent"
+          href="/estudiantes/registerEstudent"
           scroll={false}
           className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/student")}`}
           onClick={handleSaveScroll}
