@@ -5,29 +5,30 @@ import { getCortesEvaluativos } from "@/actions/catalogos/corteEvaluativoMethods
 import { getModalidades } from "@/actions/catalogos/modalidadMethods";
 import { getTurnos } from "@/actions/catalogos/turnoMethods";
 import { saveOrganizacionEscolar } from "@/actions/organizacionEscolarMethods/organizacionMethods";
-import { Modalidad, Turno, Corte, OrganizacionEscolarPayload } from "@/interfaces";
+import { Modalidad, Turno, Corte, OrganizacionEscolarPayload, AnioLectivo } from "@/interfaces";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { GraduationCap, Clock, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getAniosLectivos } from "@/actions/catalogos/anioLectivoMethods";
 
 interface OrganizationEscolarFormProps {
-    anioLectivo: string;
     idAnioLectivo: number;
     onSuccess: () => void | undefined
 }
 
-export function OrganizacionEscolarConAnioLectivoForm({ anioLectivo, idAnioLectivo, onSuccess }: OrganizationEscolarFormProps) {
+export function OrganizacionEscolarConAnioLectivoForm({ idAnioLectivo, onSuccess }: OrganizationEscolarFormProps) {
     const [modalidades, setModalidades] = useState<Modalidad[]>([]);
     const [turnos, setTurnos] = useState<Turno[]>([]);
     const [cortes, setCortes] = useState<Corte[]>([]);
+    const [aniosLectivos, setAniosLectivos] = useState<AnioLectivo[]>([])
 
     const [formData, setFormData] = useState({
         modalidad: "",
         turno: "",
-        cortes: [] as number[],
+        corte: "",
     });
 
     const [isLoading, setIsLoading] = useState(false);
@@ -36,14 +37,16 @@ export function OrganizacionEscolarConAnioLectivoForm({ anioLectivo, idAnioLecti
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [modalidadData, turnosData, cortesData] = await Promise.all([
+                const [modalidadData, turnosData, cortesData, aniosLectivos] = await Promise.all([
                     getModalidades(),
                     getTurnos(),
                     getCortesEvaluativos(),
+                    getAniosLectivos(),
                 ]);
                 setModalidades(modalidadData);
                 setTurnos(turnosData);
                 setCortes(cortesData);
+                setAniosLectivos(aniosLectivos)
             } catch (error) {
                 console.error("Error cargando datos:", error);
             }
@@ -52,25 +55,20 @@ export function OrganizacionEscolarConAnioLectivoForm({ anioLectivo, idAnioLecti
     }, []);
 
     const handleModalidadChange = (modalidad: string) => {
-        setFormData({ modalidad, turno: "", cortes: [] });
+        setFormData({ modalidad, turno: "", corte: "" });
     };
 
     const handleTurnoChange = (turno: string) => {
         setFormData((prev) => ({ ...prev, turno }));
     };
 
-    const handleCorteToggle = (corteId: number) => {
-        setFormData((prev) => ({
-            ...prev,
-            cortes: prev.cortes.includes(corteId)
-                ? prev.cortes.filter((id) => id !== corteId)
-                : [...prev.cortes, corteId],
-        }));
+    const handleCorteSelect = (corteId: string) => {
+        setFormData((prev) => ({ ...prev, corte: corteId }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formData.modalidad || !formData.turno || formData.cortes.length === 0) {
+        if (!formData.modalidad || !formData.turno || formData.corte.length === 0) {
             toast({
                 title: "Campos incompletos",
                 description: "Selecciona modalidad, turno y cortes",
@@ -84,7 +82,7 @@ export function OrganizacionEscolarConAnioLectivoForm({ anioLectivo, idAnioLecti
             const payload: OrganizacionEscolarPayload = {
                 anio_lectivo: { id: idAnioLectivo },
                 turno: { id: parseInt(formData.turno) },
-                cortes: formData.cortes.map((id) => ({ id })), // ✅ enviar arreglo de cortes
+                corte: { id: parseInt(formData.corte) },
             };
 
             console.log(payload)
@@ -113,7 +111,7 @@ export function OrganizacionEscolarConAnioLectivoForm({ anioLectivo, idAnioLecti
                 <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-t-lg">
                     <CardTitle className="flex items-center justify-center gap-2 text-slate-900">
                         <GraduationCap className="h-5 w-5 text-emerald-500" />
-                        Año Lectivo {anioLectivo}
+                        Año Lectivo {aniosLectivos.find(anio => anio.id === idAnioLectivo)?.anio_lectivo || "No disponible"}
                     </CardTitle>
                     <CardDescription className="text-slate-600">
                         Configura la modalidad, turno y cortes académicos
@@ -195,17 +193,18 @@ export function OrganizacionEscolarConAnioLectivoForm({ anioLectivo, idAnioLecti
                                     {cortes.map((c) => (
                                         <div
                                             key={c.id}
-                                            className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${formData.cortes.includes(c.id)
+                                            className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${formData.corte === c.id.toString()
                                                 ? "border-rose-300 bg-rose-50 shadow-sm"
                                                 : "border-slate-200 hover:border-rose-200 hover:bg-slate-50"
                                                 }`}
-                                            onClick={() => handleCorteToggle(c.id)}
+                                            onClick={() => handleCorteSelect(c.id.toString())}
                                         >
                                             <div className="flex items-center gap-3">
                                                 <input
-                                                    type="checkbox"
-                                                    checked={formData.cortes.includes(c.id)}
-                                                    onChange={() => handleCorteToggle(c.id)}
+                                                    type="radio"
+                                                    name="corte"
+                                                    value={c.id}
+                                                    onChange={() => handleCorteSelect(c.id.toString())}
                                                     className="text-rose-500 focus:ring-rose-500 rounded"
                                                 />
                                                 <span className="font-medium text-slate-700">{c.corte} - {c.semestre.semestre}</span>
@@ -219,7 +218,7 @@ export function OrganizacionEscolarConAnioLectivoForm({ anioLectivo, idAnioLecti
                         <Button
                             type="submit"
                             className="w-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm transition-colors"
-                            disabled={isLoading || !formData.modalidad || !formData.turno || formData.cortes.length === 0}
+                            disabled={isLoading || !formData.modalidad || !formData.turno || formData.corte.length === 0}
                         >
                             {isLoading ? "Creando Organización..." : "Crear Organización"}
                         </Button>

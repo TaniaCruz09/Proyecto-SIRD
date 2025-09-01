@@ -1,8 +1,9 @@
+"use client"
 import { getAniosLectivos } from '@/actions/catalogos/anioLectivoMethods';
 import { getCortesEvaluativos } from '@/actions/catalogos/corteEvaluativoMethods';
 import { getTurnos } from '@/actions/catalogos/turnoMethods';
 import { saveOrganizacionEscolar, updateOrganizacionEscolar } from '@/actions/organizacionEscolarMethods/organizacionMethods';
-import { AnioLectivo, Corte, Docente, OrganizacionEscolar, OrganizacionEscolarPayload, Turno } from '@/interfaces';
+import { AnioLectivo, Corte, OrganizacionEscolar, OrganizacionEscolarPayload, Turno } from '@/interfaces';
 import React, { useEffect, useState } from 'react'
 interface OrganizacionFormProp {
     defaultValues?: OrganizacionEscolar | null;
@@ -18,7 +19,6 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
     const [turnos, setTurnos] = useState<Turno[]>([])
 
     const [corte, setCorte] = useState<string>("")
-    // const [corte, setCorte] = useState<string[]>([])
     const [cortes, setCortes] = useState<Corte[]>([])
 
     const isEdit = Boolean(defaultValues?.id);
@@ -50,7 +50,7 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
         try {
             const selectedAnioEscolar = aniosLectivos.find((a) => a.id === parseInt(anioLectivo));
             const selectedTurno = turnos.find((t) => t.id === parseInt(turno));
-            const selectedCorte = cortes.find((c) => c.id === parseInt(corte));;
+            const selectedCorte = cortes.find((c) => c.id === parseInt(corte));
 
             if (
                 !selectedAnioEscolar ||
@@ -81,11 +81,11 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
         if (defaultValues) {
             setAnioLectivo(defaultValues.anio_lectivo?.id?.toString() || "");
             setTurno(defaultValues.turno?.id?.toString() || "");
-            setCorte(defaultValues.corte?.id?.toString() || "");
+            setCorte(defaultValues.corte?.id.toString() || "");
         }
     }, [defaultValues])
     return (
-        <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto px-2">
+        <form onSubmit={handleSubmit} className=" w-full space-y-4 overflow-y-auto px-10">
             <h2 className="text-xl font-semibold text-gray-700">
                 {isEdit ? "Editar Organizacion Escolar" : "Agregar Organizacion Escolar"}
             </h2>
@@ -120,39 +120,20 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
             </select>
             <select
                 name="corte"
-                id="corte"
+                id='corte'
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
                 value={corte}
-                onChange={(e) => setCorte(e.target.value)}
+                onChange={(e) => setCorte(e.target.value)
+                }
             >
                 <option value="">Corte</option>
-                {cortes?.map((c) => (
-                    <option key={c.id} value={c.id}>
-                        {c.corte}
-                    </option>
-                ))}
+                {
+                    cortes?.map((c) => (
+                        <option key={c.id} value={c.id}>
+                            {c.corte}
+                        </option>
+                    ))}
             </select>
-
-            {/* <Select
-                isMulti
-                name="cortes"
-                placeholder="Cortes"
-                options={cortes.map((c) => ({
-                    value: c.id.toString(),
-                    label: c.corte,
-                }))}
-                value={corte.map((id) => {
-                    const found = cortes.find((c) => c.id === parseInt(id));
-                    return {
-                        value: id,
-                        label: found?.corte || '',
-                    };
-                })}
-                onChange={(selectedOptions) =>
-                    setCorte(selectedOptions.map((option) => option.value.toString()))
-                }
-                className="text-black"
-            /> */}
 
             <div className="flex justify-center">
                 <button

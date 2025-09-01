@@ -1,17 +1,14 @@
 "use client"
-
 import { getGrados } from '@/actions/catalogos/gradoMethods';
 import { getSecciones } from '@/actions/catalogos/seccionMethods';
 import { getTurnos } from '@/actions/catalogos/turnoMethods';
 import { getDocentes } from '@/actions/docentesMethods/docentesMethods';
 import { getOrganizacionEscolar } from '@/actions/organizacionEscolarMethods/organizacionMethods';
 import { useToast } from '@/hooks/use-toast';
-import { Docente, Grado, GrupoEscolarPayload, OrganizacionEscolar, Seccion, Turno } from '@/interfaces';
+import { Docente, Grado, GrupoEscolarPayload, Seccion, } from '@/interfaces';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
 import { Plus } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
 import { saveGrupo } from '@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods';
@@ -26,10 +23,9 @@ interface GrupoTableForm {
 export default function GrupoTableForm({ idOrganizacion, idTurno, onSuccess }: GrupoTableForm) {
     const { toast } = useToast()
 
-    const [organizacionesEscolares, setOrganizacionesEscolares] = useState<OrganizacionEscolar[]>([])
+
     const [grados, setGrados] = useState<Grado[]>([])
     const [secciones, setSecciones] = useState<Seccion[]>([])
-    const [turnos, setTurnos] = useState<Turno[]>([])
     const [docentes, setDocentes] = useState<Docente[]>([])
 
     const [formData, setFormData] = useState({
@@ -51,11 +47,9 @@ export default function GrupoTableForm({ idOrganizacion, idTurno, onSuccess }: G
                     getDocentes(),
                     getTurnos(),
                 ])
-                setOrganizacionesEscolares(organizacionEscolarData)
                 setGrados(gradoData)
                 setSecciones(seccionData)
                 setDocentes(docenteGuiaData)
-                setTurnos(turnoData)
             } catch (error) {
                 console.error("Error al cargar los datos del formulario:", error)
                 toast({
@@ -188,7 +182,7 @@ export default function GrupoTableForm({ idOrganizacion, idTurno, onSuccess }: G
                                 <SelectContent>
                                     {docentes.map((docente) => (
                                         <SelectItem key={docente.id} value={docente.id.toString()}>
-                                            {docente.nombres || docente.nombres}
+                                            {`${docente.nombres} ${docente.apellido_paterno} ${docente.apellido_materno}`}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

@@ -14,7 +14,7 @@ import { User } from '../../auth/entities';
 import * as moment from 'moment-timezone';
 import { Docentes } from 'src/module/docentes/docentes.entity';
 import { OrganizacionEscolar } from './organizacionEscolar.entity';
-import { GruposConEstudiantes } from './grupos-con-estudiantes.entity';
+import { GrupoAsignaturaDocente } from './GrupoAsignaturaDocente.entity';
 
 @Entity({ name: 'grupos', schema: 'organizacion_escolar' })
 export class Grupos {
@@ -24,28 +24,24 @@ export class Grupos {
     })
     id: number;
 
-    @ManyToOne(() => OrganizacionEscolar, (organizacionEscolar) => organizacionEscolar.grupos)
-    organizacionEscolar: OrganizacionEscolar;
-
-    @ManyToOne(() => GradesEntity, (grado) => grado.grupos)
+    @ManyToOne(() => GradesEntity, (grado) => grado.grupos, { onDelete: 'CASCADE' })
     grado: GradesEntity;
 
-    @ManyToOne(() => Seccion, (seccion) => seccion.grupos)
+    @ManyToOne(() => Seccion, (seccion) => seccion.grupos, { onDelete: 'CASCADE' })
     seccion: Seccion;
 
-    @ManyToOne(() => Turno, (turno) => turno.grupos)
+    @ManyToOne(() => Turno, (turno) => turno.grupos, { onDelete: 'CASCADE' })
     turno: Turno;
 
-    @ManyToOne(() => Docentes, (docente) => docente.grupos)
+    @ManyToOne(() => OrganizacionEscolar, (organizacionEscolar) => organizacionEscolar.grupos, { eager: true })
+    organizacionEscolar: OrganizacionEscolar;
+
+    @ManyToOne(() => Docentes, (docente) => docente.grupos, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'docente_guia_id' })
     docenteGuia: Docentes;
 
-    @OneToMany(
-        () => GruposConEstudiantes,
-        gruposConEstudiantes => gruposConEstudiantes.grupo,
-    )
-    gruposConEstudiantes: GruposConEstudiantes[];
-
+    @OneToMany(() => GrupoAsignaturaDocente, gad => gad.grupo)
+    grupoAsignaturaDocente: GrupoAsignaturaDocente[];
 
     //ID del usuario que creó el registro
     @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo

@@ -1,121 +1,37 @@
 "use client"
-
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-
-import { useToast } from "@/hooks/use-toast"
-import { ArrowLeft, Plus, Trash2, Users, GraduationCap, BookOpen, Save, UserCheck, ChevronRight, Calculator, Badge } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ArrowLeft, Trash2, Users, GraduationCap, BookOpen, Save, UserCheck, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import type {
-    GrupoEscolar,
+    OrganizacionEscolar,
 } from "@/interfaces"
 import GrupoTableForm from "@/components/forms/organizacionEscolarForms/GrupoTableForm"
-import { getGrupos } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods"
-import { getOrganizacionEscolarById } from "@/actions/organizacionEscolarMethods/organizacionMethods"
 import { useRouter } from "next/navigation"
-
-// interface Organization {
-//     cortes: string[]
-// }
+import { getOrganizacionEscolarById } from "@/actions/organizacionEscolarMethods/organizacionMethods"
 
 export default function OrganizationGroups() {
-    const { toast } = useToast()
-
-    // const [organization] = useState<Organization>({
-    //     cortes: ["1er Corte", "2do Corte", "3er Corte", "4to Corte"],
-    // })
-
     const searchParams = useSearchParams()
+    const idOrganizacion = Number(searchParams.get("idOrganizacion"))
 
-    const idAnioLectivo = searchParams.get("idAnioLectivo")
-    const idOrganizacion = searchParams.get("idOrganizacion")
-    const anioLectivo = searchParams.get("anioLectivo")
-    const modalidad = searchParams.get("modalidad")
-    const turnoParam = searchParams.get("turno")
-    const idTurno = searchParams.get("idTurno")
     const router = useRouter()
 
-    const [groups, setGroups] = useState<GrupoEscolar[]>([])
+    const [organizacionEscolar, setOrganizacionEscolar] = useState<OrganizacionEscolar>()
 
-    const [gruposPorOrganizacionData, setGruposPorOrganizacionData] = useState<GrupoEscolar[]>([])
-
-    useEffect(() => {
-        fetchGrupos()
-        fetchGruposPorOrganizacion()
-    }, [])
-
-    // const addGroup = async () => {
-    //     if (!newGroup.grado || !newGroup.seccion || !newGroup.docenteGuia) {
-    //         toast({
-    //             title: "Error",
-    //             description: "Por favor completa todos los campos requeridos",
-    //             variant: "destructive",
-    //         })
-    //         return
-    //     }
-
-
-
-    // const removeGroup = async (groupId: number) => {
-    //     try {
-    //         // Here you would call your delete API
-    //         // await deleteGrupo(groupId)
-
-    //         // For now, just remove from local state
-    //         setGroups(groups.filter((group) => group.id !== groupId))
-
-    //         toast({
-    //             title: "Éxito",
-    //             description: "Grupo eliminado correctamente",
-    //         })
-    //     } catch (error) {
-    //         console.error("Error al eliminar grupo:", error)
-    //         toast({
-    //             title: "Error",
-    //             description: "No se pudo eliminar el grupo",
-    //             variant: "destructive",
-    //         })
-    //     }
-    // }
-
-    const fetchGrupos = async () => {
+    const fetchOrganizacionEscolarById = async () => {
         try {
-            const response = await getGrupos()
-            setGroups(response)
-        } catch (error) {
-            console.error("Error al cargar grupos:", error)
-            toast({
-                title: "Error",
-                description: "No se pudieron cargar los grupos",
-                variant: "destructive",
-            })
+            const response = await getOrganizacionEscolarById(idOrganizacion)
+            setOrganizacionEscolar(response)
+        } catch (error: unknown) {
+            console.error(error);
         }
     }
 
-    const fetchGruposPorOrganizacion = async () => {
-        try {
-            const response = await getOrganizacionEscolarById(Number(idOrganizacion));
-            console.log("response ===>", response);
-            console.log(response.grupos)
-            setGruposPorOrganizacionData(response.grupos || []);
-        } catch (error: any) {
-            console.error(error);
-        }
-    };
-
-    //   const totalCapacidad = groups.reduce((sum, group) => {
-    //     const capacidad = group.capacidadMaxima || 0
-    //     return sum + capacidad
-    //   }, 0)
-
-    //   const totalEstudiantes = groups.reduce((sum, group) => {
-    //     const estudiantes = group.estudiantesActuales || 0
-    //     return sum + estudiantes
-    //   }, 0)
-
-    // const totalEstudiantes = groups.reduce((sum, group) => sum + group.estudiantesActuales, 0)
+    useEffect(() => {
+        fetchOrganizacionEscolarById()
+    }, [])
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">
@@ -123,7 +39,7 @@ export default function OrganizationGroups() {
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <Link
-                        href={`/organizacionEscolar/add-organizations-to-year?idAnioLectivo=${idAnioLectivo}&anioLectivo=${anioLectivo}`}
+                        href={`/organizacionEscolar/add-organizations-to-year?idAnioLectivo=${organizacionEscolar?.anio_lectivo.id}`}
                     >
                         <Button variant="outline" size="sm">
                             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -133,10 +49,10 @@ export default function OrganizationGroups() {
                     <div>
                         <h1 className="text-2xl font-bold flex items-center gap-2">
                             <Users className="h-6 w-6 text-emerald-600" />
-                            Grupos - {modalidad}
+                            Grupos - {organizacionEscolar?.turno?.modalidad?.modalidad ?? "N/A"}
                         </h1>
                         <p className="text-slate-600 font-bold">
-                            Turno: {turnoParam} • Año Lectivo {anioLectivo}
+                            Turno: {organizacionEscolar?.turno?.turno ?? "N/A"} • Año Lectivo {organizacionEscolar?.anio_lectivo?.anio_lectivo ?? "N/A"}
                         </p>
                     </div>
                 </div>
@@ -149,7 +65,7 @@ export default function OrganizationGroups() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-emerald-700">Total Grupos</p>
-                                <p className="text-2xl font-bold text-emerald-900">{gruposPorOrganizacionData.length}</p>
+                                <p className="text-2xl font-bold text-emerald-900">{organizacionEscolar?.grupos?.length}</p>
                             </div>
                             <GraduationCap className="h-8 w-8 text-emerald-600" />
                         </div>
@@ -160,8 +76,8 @@ export default function OrganizationGroups() {
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-blue-700">Capacidad Total</p>
-                                <p className="text-2xl font-bold text-blue-900">total capacidad</p>
+                                <p className="text-sm font-medium text-blue-700">Total docentes</p>
+                                <p className="text-2xl font-bold text-blue-900">{organizacionEscolar?.grupos?.map((e) => e.docenteGuia).length}</p>
                             </div>
                             <Users className="h-8 w-8 text-blue-600" />
                         </div>
@@ -172,8 +88,11 @@ export default function OrganizationGroups() {
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-violet-700">Estudiantes</p>
-                                <p className="text-2xl font-bold text-violet-900">total estudiantes</p>
+                                <p className="text-sm font-medium text-violet-700">Total Estudiantes</p>
+                                <p className="text-2xl font-bold text-violet-900">
+                                    {/* {organizacionEscolar?.grupos?.map((e) => e.grupoAsignaturaDocente?.map((g) => g.gruposConEstudiantes.map((o) => o.estudiante))).length} */}
+                                    total estudiantes
+                                </p>
                             </div>
                             <BookOpen className="h-8 w-8 text-violet-600" />
                         </div>
@@ -193,7 +112,7 @@ export default function OrganizationGroups() {
                 </Card>
             </div>
             {/* Formulario para agregar grupos */}
-            <GrupoTableForm idOrganizacion={Number(idOrganizacion)} idTurno={Number(idTurno)} onSuccess={fetchGruposPorOrganizacion} />
+            <GrupoTableForm idOrganizacion={Number(idOrganizacion)} idTurno={Number(organizacionEscolar?.turno?.id ?? null)} onSuccess={fetchOrganizacionEscolarById} />
 
 
             {/* Lista de grupos */}
@@ -201,11 +120,11 @@ export default function OrganizationGroups() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-slate-800">
                         <Users className="h-5 w-5" />
-                        Grupos Configurados ({gruposPorOrganizacionData.length})
+                        Grupos Configurados ({organizacionEscolar?.grupos?.length})
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {gruposPorOrganizacionData.length === 0 ? (
+                    {organizacionEscolar?.grupos?.length === 0 ? (
                         <div className="text-center py-12">
                             <GraduationCap className="h-12 w-12 text-slate-400 mx-auto mb-4" />
                             <h3 className="text-lg font-medium text-slate-600 mb-2">No hay grupos configurados</h3>
@@ -213,7 +132,7 @@ export default function OrganizationGroups() {
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {Array.isArray(gruposPorOrganizacionData) && gruposPorOrganizacionData.map((g) => (
+                            {organizacionEscolar?.grupos?.map((g) => (
                                 <Card key={g.id} className="bg-slate-50 border-slate-200 hover:shadow-md transition-shadow">
                                     <CardContent className="p-4">
                                         <div className="flex items-center justify-between mb-3">
@@ -235,7 +154,7 @@ export default function OrganizationGroups() {
                                                 <UserCheck className="h-4 w-4 text-blue-600" />
                                                 <span className="text-slate-600">Docente Guía:</span>
                                                 <span className="font-medium text-slate-800">
-                                                    {(g.docenteGuia?.nombres)}
+                                                    {`${g.docenteGuia?.nombres} ${g.docenteGuia.apellido_paterno}`}
                                                 </span>
                                             </div>
 
@@ -250,7 +169,7 @@ export default function OrganizationGroups() {
                                             <Button
                                                 variant="outline" size="sm"
                                                 className="w-full justify-between bg-transparent"
-                                                onClick={() => router.push(`/organizacionEscolar/add-clases-organizacion-escolar?idGrupo=${g.id}&docenteId=${g.docenteGuia?.nombres}${g.docenteGuia.apellido_materno} &turno=${turnoParam}&seccion=${g.seccion?.seccion}&grado=${g.grado?.grades}`)}
+                                                onClick={() => router.push(`/organizacionEscolar/add-clases-organizacion-escolar?idGrupo=${g.id}&docenteId=${g.docenteGuia?.nombres}${g.docenteGuia.apellido_materno}&turno=${organizacionEscolar?.turno?.turno ?? "N/A"}&seccion=${g.seccion?.seccion}&grado=${g.grado?.grades}`)}
                                             >
 
                                                 <span className="flex items-center gap-2">
@@ -264,7 +183,7 @@ export default function OrganizationGroups() {
                                             <Button
                                                 variant="outline" size="sm"
                                                 className="w-full justify-between bg-transparent"
-                                                onClick={() => router.push(`/organizacionEscolar/add-students-to-group?idGrupo=${g.id}&anioLectivo=${anioLectivo}&idAnioLectivo=${idAnioLectivo}&grupo=${`${g.grado.grades} - ${g.seccion.seccion} - ${g.turno.turno}`}&docenteGuia=${g.docenteGuia.nombres}`)}
+                                                onClick={() => router.push(`/organizacionEscolar/add-students-to-group?idGrupo=${g.id}`)}
                                             >
 
                                                 <span className="flex items-center gap-2">

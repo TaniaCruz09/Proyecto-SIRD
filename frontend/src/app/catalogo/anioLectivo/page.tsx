@@ -1,11 +1,10 @@
 "use client";
-
 import { getAniosLectivos } from "@/actions/catalogos/anioLectivoMethods";
 import AddAniosLectivosModal from "@/components/modals/catalogo/anioLectivoModals/AddAnioLectivoModal";
 import SearchBar from "@/components/SearchBar";
 import AnioLectivoTable from "@/components/tables/catalogo/AnioLectivoTable";
 import { AnioLectivo } from "@/interfaces";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 export default function Page() {
@@ -13,11 +12,18 @@ export default function Page() {
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const idAnioLectivo = searchParams.get("idAnioLectivo");
 
   const fetchAniosLectivos = async () => {
     try {
       const response = await getAniosLectivos();
-      setAniosLectivos(response);
+      if (idAnioLectivo) {
+        const filtered = response.filter((anio: AnioLectivo) => anio.id.toString() === idAnioLectivo);
+        setAniosLectivos(filtered)
+      } else {
+        setAniosLectivos(response || []);
+      }
     } catch (error: any) {
       if (error.message === "Unauthorized") {
         router.push("/auth/login"); // redirigir en cliente

@@ -1,13 +1,12 @@
 'use client'
-
-import { FaUsers, FaUserShield, FaBook, FaChalkboardTeacher, FaGraduationCap, FaCogs } from 'react-icons/fa'
+import { FaUsers, FaUserShield, FaBook, FaGraduationCap } from 'react-icons/fa'
 import { motion } from 'framer-motion'
 import { FaArrowUpRightFromSquare } from 'react-icons/fa6'
 import CerrarSecion from '@/components/cerrarSesion'
 import { AcademicYearsDashboard } from '@/components/organizacionEscolar/tablero-de-años-academicos'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Calendar } from 'lucide-react'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import Link from 'next/link'
+import EstadisticaAdmin from '@/components/EstadisticaAdmin'
 
 export default function HomePage() {
   return (
@@ -97,7 +96,7 @@ export default function HomePage() {
           </Link>
 
           {/* Registro Estudiantes */}
-          <Link href={"/registerEstudent"}>
+          <Link href={"estudiantes/registerEstudent"}>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-70">
               <Card className="bg-gradient-to-br from-amber-200 to-amber-100 hover:from-amber-100 hover:to-amber-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
                 <CardHeader className="flex flex-col items-center">
@@ -113,6 +112,7 @@ export default function HomePage() {
             </motion.div>
           </Link>
         </div>
+        <EstadisticaAdmin />
         <div className="bg-card rounded-lg border border-border p-6 ">
           <AcademicYearsDashboard />
         </div>

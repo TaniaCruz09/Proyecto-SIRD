@@ -1,110 +1,40 @@
 "use client"
-
-import { asignarEstudianteAGrupo, eliminarEstudianteAsignado, getEstudiantesAsignados } from '@/actions/organizacionEscolarMethods/asignacionEstudiantesMethods';
-import BtnDelete from '@/components/Buttons/BtnDelete';
-import BtnMove from '@/components/Buttons/BtnMove';
-import BuscarEstudiantes from '@/components/Filtros/BuscarEstudiantes';
-import ConfirmDeletModal from '@/components/modals/ModalConfirmDeletion';
+import { getGruposById } from '@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods';
+import BuscarYAsignarEstudiantes from '@/components/Filtros/BuscarEstudiantes';
+import DeleteEstudianteDeGrupoModal from '@/components/modals/organizacionEscolar/gruposConEstudiantes/DeleteEstudianteDeGrupoModal';
 import MoveStudentToGroupModal from '@/components/modals/organizacionEscolar/gruposConEstudiantes/Move-student-to-group-modal';
-import { useToast } from '@/hooks/use-toast';
-import { GrupoConEstudiante, GrupoConEstudiantePayload } from '@/interfaces/organizacionEscolarInterface/grupoConEstudianteInterface';
+import { GrupoEscolar } from '@/interfaces';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import Swal from 'sweetalert2';
-
-
 
 export default function AsignarEstudiantesAGrupo() {
-    const { toast } = useToast();
     const searchParams = useSearchParams();
-    const [showConfirm, setShowConfirm] = useState<boolean>(false);
-    const [grupoConEstudianteAEliminar, setGrupoConEstudianteAEliminar] = useState<number | null>(null);
-
     const idGrupo = Number(searchParams.get("idGrupo"));
-    const idAnioLectivo = Number(searchParams.get("idAnioLectivo"));
-    const anioLectivo = searchParams.get("anioLectivo");
-    const grupo = searchParams.get("grupo");
-    const docenteGuia = searchParams.get("docenteGuia");
 
-    const [estudiantes, setEstudiantes] = useState<GrupoConEstudiante[]>([]);
+    const [grupos, setGrupos] = useState<GrupoEscolar>();
 
-    const fetchGrupoConEstudiante = async () => {
-        if (idGrupo) {
-            await getEstudiantesAsignados(idGrupo)
-                .then(data => setEstudiantes(data))
-                .catch(err => {
-                    console.error("Error en el useEffect al obtener estudiantes:", err);
-                    setEstudiantes([]);
-                });
+    const fetchGrupoById = async () => {
+        try {
+            const response = await getGruposById(idGrupo)
+            setGrupos(response)
+        } catch (error) {
+            console.error(error)
         }
     }
 
     useEffect(() => {
-        fetchGrupoConEstudiante()
+        fetchGrupoById()
+
     }, [idGrupo]);
 
-    const handleEliminar = async (relacionId: number) => {
-        try {
-            await eliminarEstudianteAsignado(relacionId);
-            setEstudiantes(prev => prev.filter(est => est.id !== relacionId));
-        } catch (error) {
-            console.error('Error eliminando estudiante asignado:', error);
-        }
-    };
-
-    const handleDeleteClick = (id: number) => {
-        setGrupoConEstudianteAEliminar(id);
-        setShowConfirm(true);
-    };
-
-    const confirmDelete = async () => {
-        if (!grupoConEstudianteAEliminar) return;
-        try {
-            await eliminarEstudianteAsignado(grupoConEstudianteAEliminar);
-            await fetchGrupoConEstudiante();
-        } catch (error) {
-            console.error("Error al eliminar usuario", error);
-        } finally {
-            setShowConfirm(false);
-            setGrupoConEstudianteAEliminar(null);
-        }
-    };
-
-    const handleAsignar = async (student: any) => {
-        console.log(student)
-        const grupoConEstudianteData: GrupoConEstudiantePayload = {
-            grupo: { id: idGrupo },
-            estudiante: { id: student }
-        };
-
-        try {
-            const res = await asignarEstudianteAGrupo(grupoConEstudianteData);
-
-            if (res.error) throw new Error(res.error.message || "Error al asignar el estudiante");
-
-            getEstudiantesAsignados(idGrupo).then(setEstudiantes);
-
-            toast({
-                title: "Éxito",
-                description: "Estudiante asignado correctamente",
-                variant: "default",
-            });
-
-        } catch (error: any) {
-            console.error("Error asignando estudiante:", error);
-            // mensaje que viene del backend
-            const errorMessage =
-                error?.response?.data?.message ||
-                error.message ||
-                "No se pudo asignar el estudiante";
-            await Swal.fire({
-                icon: "warning",
-                title: "No se pudo asignar",
-                text: errorMessage,
-                confirmButtonText: "Entendido"
-            });
-        }
-    };
+    // Sacar info base de la primera organización encontrada
+    const idAnioLectivo = grupos?.organizacionEscolar?.anio_lectivo?.id ?? 0
+    const anioLectivo = grupos?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0
+    const grupo = grupos?.grado.grades ?? "N/A"
+    const docenteGuia = grupos?.docenteGuia.nombres ?? "N/A"
+    const asignaturasDelGrupo = grupos?.grupoAsignaturaDocente ?? [];
+    const gradoId = grupos?.grado.id ?? 0
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
@@ -140,11 +70,35 @@ export default function AsignarEstudiantesAGrupo() {
                                 <p className="text-lg font-bold text-purple-800">{docenteGuia}</p>
                             </div>
                         </div>
+
+                        {/* Sección: Materias y Docentes */}
+                        <div className="bg-white rounded-xl shadow p-4 border border-slate-200 mt-6">
+                            <h3 className="text-lg font-bold text-slate-700 mb-2">Asignaturas y Docentes asignados</h3>
+
+                            {asignaturasDelGrupo.length === 0 ? (
+                                <p className="text-sm text-gray-500">No hay asignaturas asignadas a este grupo</p>
+                            ) : (
+                                <ul className="space-y-2">
+                                    {asignaturasDelGrupo
+                                        // eliminar duplicados por id de asignatura
+                                        .filter((value, index, self) => self.findIndex(v => v.asignatura.id === value.asignatura.id) === index)
+                                        .map((item, index) => (
+                                            <li key={index} className="flex justify-between border-b border-gray-200 pb-1">
+                                                <span className="font-medium text-gray-700">{item.asignatura.asignatura}</span>
+                                                <span className="text-gray-600">
+                                                    {item.docente.nombres} {item.docente.apellido_paterno} {item.docente.apellido_materno}
+                                                </span>
+                                            </li>
+                                        ))}
+                                </ul>
+                            )}
+                        </div>
                     </div>
 
                     {/* Columna 2: buscador */}
                     <div className="flex justify-center lg:justify-end">
-                        <BuscarEstudiantes onSelect={handleAsignar} anioId={idAnioLectivo} />
+                        <BuscarYAsignarEstudiantes anioId={idAnioLectivo} asignaturasDelGrupo={asignaturasDelGrupo}
+                            fetchGrupoConEstudiantes={fetchGrupoById} />
                     </div>
                 </div>
             </div>
@@ -162,33 +116,47 @@ export default function AsignarEstudiantesAGrupo() {
                         <th className="text-left px-4 py-2 font-semibold text-gray-700 border border-gray-300">Estudiantes</th>
                         <th className="text-left px-4 py-2 font-semibold text-gray-700 border border-gray-300">Código Estudiantil</th>
                         <th className="text-left px-4 py-2 font-semibold text-gray-700 border border-gray-300">Sexo</th>
+                        <th className="text-center px-4 py-2 font-semibold text-gray-700 border border-gray-300">Asignaturas</th>
                         <th className="text-center px-4 py-2 font-semibold text-gray-700 border border-gray-300">Traslado</th>
                         <th className="text-center px-4 py-2 font-semibold text-gray-700 border border-gray-300">Eliminar</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {estudiantes.map((rel, index) => (
-                        <tr key={rel.id} className="hover:bg-gray-50 transition-colors">
+                    {(
+                        grupos?.grupoAsignaturaDocente
+                            ?.flatMap(gad => gad.gruposConEstudiantes.map(ge => ge.estudiante))
+                            // eliminar duplicados por id
+                            .filter((value, index, self) => self.findIndex(v => v.id === value.id) === index) ?? []
+                    ).map((estudiante, index) => (
+                        <tr key={estudiante.id} className="hover:bg-gray-50 transition-colors">
                             <td className="text-left px-4 py-2 border border-gray-300">{index + 1}</td>
-                            <td className="text-left px-4 py-2 border border-gray-300">{rel.estudiante.name} {rel.estudiante.lastName}</td>
-                            <td className="text-left px-4 py-2 border border-gray-300">{rel.estudiante.studentCode}</td>
-                            <td className="text-left px-4 py-2 border border-gray-300">{rel.estudiante.gender.gender}</td>
+                            <td className="text-left px-4 py-2 border border-gray-300">
+                                <Link href={"/estudiantes/historial-estudiante"} className='text-blue-900 underline'>
+                                    {estudiante.name} {estudiante.lastName}
+                                </Link>
+                            </td>
+                            <td className="text-left px-4 py-2 border border-gray-300">{estudiante.studentCode}</td>
+                            <td className="text-left px-4 py-2 border border-gray-300">{estudiante.gender?.gender}</td>
+                            <td className="text-left px-4 py-2 border border-gray-300">
+                                {grupos?.grupoAsignaturaDocente
+                                    ?.filter(gad =>
+                                        gad.gruposConEstudiantes.some(ge => ge.estudiante.id === estudiante.id)
+                                    )
+                                    .map(gad => gad.asignatura.asignatura)
+                                    .join(", ") ?? "N/A"}
+                            </td>
                             <td className="px-4 py-2 border border-gray-300 text-center">
                                 <MoveStudentToGroupModal
-                                    grupoConEstudiante={rel}
+                                    gradoId={gradoId}
+                                    grupoOrigenId={idGrupo}
                                     idAnioLectivo={idAnioLectivo}
                                     anioLectivo={anioLectivo}
-                                    studentId={rel.estudiante.id}
-                                    fetchGrupoConEstudiantes={fetchGrupoConEstudiante}
+                                    estudianteId={estudiante.id}
+                                    fetchGrupoConEstudiantes={fetchGrupoById}
                                 />
                             </td>
                             <td className="px-4 py-2 border border-gray-300 text-center">
-                                <BtnDelete onClick={() => handleDeleteClick(rel.id)} />
-                                <ConfirmDeletModal
-                                    onshow={showConfirm}
-                                    onCancel={() => setShowConfirm(false)}
-                                    onConfirm={confirmDelete}
-                                />
+                                <DeleteEstudianteDeGrupoModal grupoId={idGrupo} estudianteId={estudiante.id} fetchGrupoConEstudiantes={fetchGrupoById} />
                             </td>
                         </tr>
                     ))}

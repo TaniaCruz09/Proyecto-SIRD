@@ -5,25 +5,18 @@ import AddDocenteModal from "@/components/modals/docentes/AddDocenteModal";
 import SearchBar from "@/components/SearchBar";
 import DocenteTable from "@/components/tables/DocenteTable";
 import { Docente } from "@/interfaces";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function Page() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [docentes, setDocentes] = useState<Docente[]>([]);
-  const router = useRouter();
 
   const fetchDocentes = async () => {
     try {
       const response = await getDocentes();
       setDocentes(response || []);
-    } catch (error: any) {
-      // console.error("Error al obtener Docentes", error);
-      if (error.message === "Unauthorized") {
-        router.push("/auth/login"); // redirigir en cliente
-      } else {
-        console.error(error);
-      }
+    } catch (error: unknown) {
+      console.error(error);
     }
   };
 

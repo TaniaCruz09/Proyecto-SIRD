@@ -1,5 +1,4 @@
 "use client"
-
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -8,8 +7,7 @@ import { ArrowLeft, Calendar, GraduationCap, Plus, Settings, Users } from "lucid
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { OrganizacionEscolar } from "@/interfaces"
-import { getOrganizacionEscolar } from "@/actions/organizacionEscolarMethods/organizacionMethods"
-import { getOrganizacionEscolarPorAnio } from "@/actions/catalogos/anioLectivoMethods"
+import { getOrganizacionEscolar, getOrganizacionEscolarPorAnio } from "@/actions/organizacionEscolarMethods/organizacionMethods"
 import AddOganizacionEscolarConAnioLectivoModal from "@/components/modals/organizacionEscolar/organizacion/AddOganizacionEscolarConAnioLectivoModal"
 
 
@@ -21,10 +19,7 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
 
 
     const searchParams = useSearchParams();
-
     const idAnioLectivo = searchParams.get("idAnioLectivo")
-    const anioLectivo = searchParams.get("anioLectivo")
-   
 
     const fetchOrganizacionEscolar = async () => {
         try {
@@ -37,8 +32,7 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
     const fetchOrganizacionPorAniLectivo = async () => {
         try {
             const response = await getOrganizacionEscolarPorAnio(Number(idAnioLectivo));
-            console.log("Respuesta de getOrganizacionEscolarPorAnio:", response);
-            setOrganizacionesPorAnioData(response.organizacionEscolar || []);
+            setOrganizacionesPorAnioData(response || []);
         } catch (error: any) {
             console.error(error);
         }
@@ -48,11 +42,6 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
         fetchOrganizacionEscolar();
         fetchOrganizacionPorAniLectivo()
     }, []);
-
-    // //filtro que busca por el nombre
-    // const filteredOrganizacionEscolar = organizacionEscolar.filter((u) =>
-    //     u.anio_lectivo.anio_lectivo.toString().toLowerCase().includes(searchTerm.toLowerCase())
-    // );
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">
@@ -67,7 +56,7 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
                 <div className="ml-7">
                     <h1 className="text-3xl font-bold flex items-center gap-2">
                         <Calendar className="h-8 w-8" />
-                        Año Lectivo {anioLectivo}
+                        Año Lectivo {organizacionesPorAnioData[0]?.anio_lectivo.anio_lectivo}
                     </h1>
                     <p className="text-muted-foreground">Gestiona las organizaciones escolares de este año lectivo</p>
                 </div>
@@ -92,8 +81,9 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-muted-foreground">Total Grupos</p>
-                                <p className="text-2xl font-bold">{ }</p>
-                                <p></p>
+                                <p className="text-2xl font-bold">
+                                    {organizacionEscolar.reduce((acc, e) => acc + (e.grupos?.length || 0), 0)}
+                                </p>
                             </div>
                             <Users className="h-8 w-8 text-muted-foreground" />
                         </div>
@@ -119,7 +109,6 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
                     <h2 className="text-xl font-semibold">Organizaciones Escolares</h2>
                     <AddOganizacionEscolarConAnioLectivoModal
                         idAnioLectivo={Number(idAnioLectivo)}
-                        anioLectivo={anioLectivo || " "}
                         fetchOrganizacionPorAnioLectivo={fetchOrganizacionPorAniLectivo} />
                 </div>
 
@@ -155,15 +144,12 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
                                                 </Badge>
                                             </div>
                                             <div className="flex items-center gap-4 text-sm text-slate-600 flex-wrap">
-                                                {o.cortes && o.cortes.length > 0 ? (
-                                                    o.cortes.map((c) => (
-                                                        <Badge key={c.id} variant="outline" className="bg-rose-100 text-rose-700">
-                                                            {c.corte} - {c.semestre.semestre}
-                                                        </Badge>
-                                                    ))
-                                                ) : (
-                                                    <span>Sin cortes</span>
-                                                )}
+
+                                                <Badge key={o.corte?.id} variant="outline" className="bg-rose-100 text-rose-700">
+                                                    {o.corte?.corte} - {o.corte?.semestre.semestre}
+                                                </Badge>
+
+
                                                 <span>• Grupos: {o.grupos?.length || 0}</span>
                                             </div>
                                         </div>
@@ -172,7 +158,7 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
                                                 <Settings className="h-4 w-4 mr-2" />
                                                 Gestionar
                                             </Button>
-                                            <Link href={`/organizacionEscolar/add-groups-to-organization?idAnioLectivo=${idAnioLectivo}&idOrganizacion=${o.id}&anioLectivo=${anioLectivo}&modalidad=${o.turno.modalidad?.modalidad}&turno=${o.turno.turno}&idTurno=${o.turno.id}`}>
+                                            <Link href={`/organizacionEscolar/add-groups-to-organization?idOrganizacion=${o.id}`}>
                                                 <Button
                                                     variant="outline"
                                                     size="sm"

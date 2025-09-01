@@ -1,12 +1,11 @@
-import { getAniosLectivos } from '@/actions/catalogos/anioLectivoMethods';
+"use client"
 import { getGrados } from '@/actions/catalogos/gradoMethods';
-import { getModalidades } from '@/actions/catalogos/modalidadMethods';
 import { getSecciones } from '@/actions/catalogos/seccionMethods';
 import { getTurnos } from '@/actions/catalogos/turnoMethods';
 import { getDocentes } from '@/actions/docentesMethods/docentesMethods';
 import { saveGrupo, updateGrupo } from '@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods';
 import { getOrganizacionEscolar } from '@/actions/organizacionEscolarMethods/organizacionMethods';
-import { AnioLectivo, Docente, Grado, GrupoEscolar, GrupoEscolarPayload, Modalidad, OrganizacionEscolar, Seccion, Turno } from '@/interfaces';
+import { Docente, Grado, GrupoEscolar, GrupoEscolarPayload, OrganizacionEscolar, Seccion, Turno } from '@/interfaces';
 import React, { useEffect, useState } from 'react'
 
 interface GrupoFormProp {
@@ -125,7 +124,7 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
                 {organizacionesEscolares?.map((r) => (
                     <option key={r.id} value={r.id}>
                         {r.anio_lectivo?.anio_lectivo} - {r.turno.turno} -
-                        {/* {r.corte.corte} */}
+                        {r.turno.modalidad?.modalidad}
                     </option>
                 ))}
             </select>
