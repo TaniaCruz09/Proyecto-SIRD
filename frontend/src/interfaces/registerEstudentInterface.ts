@@ -1,6 +1,7 @@
 import { Municipio } from "./catalogoInterface/MunicipioInterface";
 import { Pais } from "./catalogoInterface/PaisInterface";
 import { Sexo } from "./catalogoInterface/SexoInterface";
+import { GrupoConEstudiante } from "./organizacionEscolarInterface/asignarEstudianteInterface";
 
 
 
@@ -19,6 +20,7 @@ export default interface RegisterEstudent {
     tutorPhoneNumber: string,
     gender: Sexo,
     observations: string
+    grupoAsignaturaConEstudiantes?: GrupoConEstudiante[]
 
     user_create_id?: number | null;
     created_at?: string;

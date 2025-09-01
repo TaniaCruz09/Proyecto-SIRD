@@ -21,7 +21,7 @@ export default function ConfirmDialog({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-white/30 backdrop-blur-[2px] z-50">
-      <div className="bg-white rounded-2xl shadow-lg p-6 w-[90%] max-w-md animate-fadeIn text-center">
+      <div className="bg-white rounded-2xl shadow-lg p-6 w-[90%] max-w-md text-center">
         {/* Icono rojo */}
         <div className="flex justify-center mb-4">
           <div className="bg-red-100 p-4 rounded-full">

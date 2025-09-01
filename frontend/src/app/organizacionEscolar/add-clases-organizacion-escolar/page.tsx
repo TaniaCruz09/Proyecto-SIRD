@@ -41,8 +41,8 @@ export default function AddClasesOrganizacionEscolarPage() {
   const idGrupo = searchParams.get("idGrupo");
   const docenteId = searchParams.get("docenteId");
   const turno = searchParams.get("turno");
-   const grado = searchParams.get("grado")
-    const seccion = searchParams.get("seccion")
+  const grado = searchParams.get("grado")
+  const seccion = searchParams.get("seccion")
 
   // Función para traer las relaciones del grupo
   const fetchRelaciones = async () => {
@@ -152,10 +152,10 @@ export default function AddClasesOrganizacionEscolarPage() {
         <div>
           <strong>Grupo Seleccionado</strong>
           <h2 style={{ color: "#15803d" }}>
-             {grado || "N/A"} ·{" "}{seccion || "N/A"}
+            {grado || "N/A"} ·{" "}{seccion || "N/A"}
           </h2>
           <p>
-           
+
             {docenteId || "N/A"} guía
           </p>
         </div>

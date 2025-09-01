@@ -37,14 +37,16 @@ export async function getGruposById(id: number) {
 }
 
 // Obtener grupos de un año escolar específico
-export async function getGruposPorAnio(anioId: number) {
-    const endPoint = `/grupos/grupos-por-anio/${anioId}`
+export async function getGruposPorAnioYGrado(anioId: number, gradoId: number) {
+    const endPoint = `/grupos/por-anio-y-grado/${anioId}?gradoId=${gradoId}`
+
     const response = await feching(endPoint, "no-cache", "GET");
-    if (!response.data || response.error) throw new Error(response?.error);
 
-    return response.data
+    if (!response || response.error) {
+        throw new Error(response?.error || "Error al obtener los grupos");
+    }
+    return response.data;
 }
-
 
 export async function updateGrupo(id: number, grupo: GrupoEscolarPayload) {
     const endPoint = `/grupos/${id}`;

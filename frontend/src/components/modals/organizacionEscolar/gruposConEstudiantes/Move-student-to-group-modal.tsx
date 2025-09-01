@@ -2,23 +2,21 @@ import React, { useState } from 'react';
 import ModalBase from '../../ModalBase';
 import BtnMove from '@/components/Buttons/BtnMove';
 import MoveStudentToGroupForm from '@/components/forms/organizacionEscolarForms/MoveStudentToGroupForm';
-import { GrupoConEstudiante } from '@/interfaces/organizacionEscolarInterface/grupoConEstudianteInterface';
-
 interface MoveStudentToGroupModalProps {
-    anioLectivo: string | null
-    grupoConEstudiante: GrupoConEstudiante;
+    gradoId: number
+    anioLectivo: number
     idAnioLectivo: number;
-    studentId: number;
+    estudianteId: number;
+    grupoOrigenId: number
     fetchGrupoConEstudiantes: () => Promise<void>;
 }
 
-
-
 export default function MoveStudentToGroupModal({
+    gradoId,
+    grupoOrigenId,
     anioLectivo,
-    grupoConEstudiante,
     idAnioLectivo,
-    studentId,
+    estudianteId,
     fetchGrupoConEstudiantes,
 }: MoveStudentToGroupModalProps) {
     const [showModal, setShowModal] = useState(false)
@@ -32,10 +30,11 @@ export default function MoveStudentToGroupModal({
                     onCloseModal={() => setShowModal(false)}
                     content={
                         <MoveStudentToGroupForm
+                            gradoId={gradoId}
+                            grupoOrigenId={grupoOrigenId}
                             anioLectivo={anioLectivo}
-                            defaultValues={grupoConEstudiante}
                             idAnioLectivo={idAnioLectivo}
-                            studentId={studentId}
+                            estudianteId={estudianteId}
                             onSuccess={() => {
                                 fetchGrupoConEstudiantes();
                                 setShowModal(false)

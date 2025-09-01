@@ -1,24 +1,25 @@
 "use client";
 import { moverEstudianteDeGrupo } from "@/actions/organizacionEscolarMethods/asignacionEstudiantesMethods";
-import { getGruposPorAnio } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods";
+import { getGruposPorAnioYGrado } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods";
 import { GrupoEscolar } from "@/interfaces";
-import { GrupoConEstudiante, GrupoConEstudiantePayload } from "@/interfaces/organizacionEscolarInterface/grupoConEstudianteInterface";
 import { useEffect, useState } from "react";
 
 interface MoveStudentModalProps {
-  defaultValues: GrupoConEstudiante;
   onSuccess: () => void;
+  gradoId: number
   idAnioLectivo: number;
-  studentId: number;
-  anioLectivo: string | null
+  estudianteId: number;
+  anioLectivo: number
+  grupoOrigenId: number
 }
 
 export default function MoveStudentToGroupForm({
-  defaultValues,
   onSuccess,
+  gradoId,
   idAnioLectivo,
-  studentId,
-  anioLectivo
+  estudianteId,
+  anioLectivo,
+  grupoOrigenId
 }: MoveStudentModalProps) {
   const [nuevoGrupoId, setNuevoGrupoId] = useState<number | "">("");
   const [grupos, setGrupos] = useState<GrupoEscolar[]>([]);
@@ -26,57 +27,56 @@ export default function MoveStudentToGroupForm({
   useEffect(() => {
     const fetchGrupos = async () => {
       try {
-        const gruposData = await getGruposPorAnio(idAnioLectivo);
+        const gruposData = await getGruposPorAnioYGrado(idAnioLectivo, gradoId);
         setGrupos(gruposData);
       } catch (error) {
         console.error("Error cargando grupos:", error);
       }
     };
     fetchGrupos();
-  }, [idAnioLectivo]);
+  }, [idAnioLectivo, gradoId]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); // ✅ Evita que recargue la página
+
+    if (!nuevoGrupoId || nuevoGrupoId === 0) {
+      alert("Por favor selecciona un grupo válido");
+      return;
+    }
+
     try {
-      const selectGrupo = grupos.find((g) => g.id === nuevoGrupoId);
+      const result = await moverEstudianteDeGrupo(estudianteId, grupoOrigenId, nuevoGrupoId as number);
 
-      if (!selectGrupo) {
-        console.error("Faltan campos requeridos");
-        return
-      };
-
-      const grupoConEstudianteData: GrupoConEstudiantePayload = {
-        grupo: { id: selectGrupo.id },
-        estudiante: { id: studentId },
-      }
-      console.log(grupoConEstudianteData)
-      await moverEstudianteDeGrupo(defaultValues.id, grupoConEstudianteData);
+      console.log("Estudiante movido:", result);
 
       onSuccess();
-    } catch (error) {
+      alert("Estudiante movido exitosamente!");
+    } catch (error: any) {
       console.error("Error al mover estudiante:", error);
+      alert(error.message || "Ocurrió un error al mover al estudiante");
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto px-2">
-      <h2 className="text-xl font-semibold text-gray-700 mb-5">Mover estudiante a otra seccion</h2>
+      <h2 className="text-xl font-semibold text-gray-700 mb-5">Mover estudiante a otra sección</h2>
       <p className="text-center text-gray-600 mb-6">
         Año lectivo: <span className="font-semibold text-blue-900">{anioLectivo}</span>
       </p>
+
       <label className="text-left block mt-10 mb-2 text-sm font-medium">
         Selecciona el nuevo grupo:
       </label>
       <select
         className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-slate-50 hover:bg-white mb-10 text-sm"
         value={nuevoGrupoId}
-        onChange={(e) => setNuevoGrupoId(Number(e.target.value))}
+        onChange={(e) => setNuevoGrupoId(e.target.value === "" ? "" : Number(e.target.value))}
         required
       >
         <option value="">-- Seleccionar --</option>
         {grupos.map((grupo) => (
           <option key={grupo.id} value={grupo.id}>
-            {`${grupo.grado.grades} - ${grupo.seccion.seccion} - ${grupo.turno.turno} de de ${grupo.turno.modalidad?.modalidad}`}
+            {`${grupo.grado.grades} - ${grupo.seccion.seccion} - ${grupo.turno.turno} de ${grupo.turno.modalidad?.modalidad}`}
           </option>
         ))}
       </select>

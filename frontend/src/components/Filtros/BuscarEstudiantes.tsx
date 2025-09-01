@@ -1,14 +1,19 @@
 "use client"
-
+import { asignarEstudianteAGrupo } from "@/actions/organizacionEscolarMethods/asignacionEstudiantesMethods";
 import { getFiltarStudent } from "@/actions/resgisterEstudentMethods/regiterEstudentMethods";
+import { GrupoConEstudiantePayload } from "@/interfaces/organizacionEscolarInterface/asignarEstudianteInterface";
+import { GrupoConAsignaturasResponse } from "@/interfaces/organizacionEscolarInterface/gruposConAsignaturas";
 import { useState } from "react";
+import { useToast } from '@/hooks/use-toast';
 
 interface BuscarEstudiantesProp {
     anioId: number
-    onSelect: (student: any) => void
+    asignaturasDelGrupo: GrupoConAsignaturasResponse[]
+    fetchGrupoConEstudiantes: () => Promise<void>;
 }
 
-export default function BuscarEstudiantes({ onSelect, anioId }: BuscarEstudiantesProp) {
+export default function BuscarYAsignarEstudiantes({ anioId, asignaturasDelGrupo, fetchGrupoConEstudiantes }: BuscarEstudiantesProp) {
+    const { toast } = useToast();
     const [filters, setFilters] = useState({ name: "", lastName: "", studentCode: "" });
     const [results, setResults] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
@@ -29,6 +34,40 @@ export default function BuscarEstudiantes({ onSelect, anioId }: BuscarEstudiante
             console.error("Error buscando estudiantes", error);
         }
         setLoading(false);
+    };
+
+    //funcion para asignar
+    const handleAsignar = async (student: any) => {
+        if (!asignaturasDelGrupo?.length) return;
+
+        try {
+            // Crear un array de promesas para cada asignación
+            const asignaciones = asignaturasDelGrupo.map(gad => {
+                const grupoConEstudianteData: GrupoConEstudiantePayload = {
+                    grupoAsignaturaDocente: { id: gad.id },
+                    estudiante: { id: student.id || student }
+                };
+                return asignarEstudianteAGrupo(grupoConEstudianteData);
+            });
+
+            // Ejecutar todas las promesas en paralelo
+            const resultados = await Promise.all(asignaciones);
+
+            // Verificar si alguna devolvió error
+            const error = resultados.find(res => res.error);
+            if (error) throw new Error(error.error?.message || "Error al asignar algún estudiante");
+
+            await fetchGrupoConEstudiantes(); // refresca la lista
+
+            toast({
+                title: "Éxito",
+                description: "Estudiante asignado correctamente",
+                variant: "default",
+            });
+
+        } catch (error: any) {
+            console.error("Error asignando estudiante:", error);
+        }
     };
 
     return (
@@ -123,7 +162,7 @@ export default function BuscarEstudiantes({ onSelect, anioId }: BuscarEstudiante
                         >
                             {loading ? (
                                 <>
-                                    <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                                    <svg className=" w-5 h-5" fill="none" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path
                                             className="opacity-75"
@@ -189,7 +228,7 @@ export default function BuscarEstudiantes({ onSelect, anioId }: BuscarEstudiante
                                             </div>
                                             <button
                                                 onClick={() => {
-                                                    onSelect(student.id)
+                                                    handleAsignar(student.id)
                                                     setFilters({ name: "", lastName: "", studentCode: "" })
                                                     setResults([])
                                                 }}

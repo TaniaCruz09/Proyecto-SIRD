@@ -1,5 +1,6 @@
 import { Asignatura } from "../catalogoInterface/AsignaturaInterface";
 import { Docente } from "../DocenteInterface";
+import { GrupoConEstudiante } from "./asignarEstudianteInterface";
 import { GrupoEscolar } from "./grupoInterface";
 
 // Una asignatura con su docente asignado
@@ -20,4 +21,5 @@ export interface GrupoConAsignaturasResponse {
   grupo: GrupoEscolar; // el objeto grupo completo
   asignatura: Asignatura; // el objeto asignatura completo
   docente: Docente; // el objeto docente completo
+  gruposConEstudiantes: GrupoConEstudiante[]
 }

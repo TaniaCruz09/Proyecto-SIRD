@@ -1,9 +1,9 @@
 
-import { GrupoConEstudiante, GrupoConEstudiantePayload } from "@/interfaces/organizacionEscolarInterface/grupoConEstudianteInterface";
+import { GrupoConEstudiantePayload } from "@/interfaces/organizacionEscolarInterface/asignarEstudianteInterface";
 import { feching } from "@/utils/cliente-http";
 
 export async function asignarEstudianteAGrupo(payload: GrupoConEstudiantePayload) {
-    const endopoint = `/gruposConEstudiantes/asignar`
+    const endopoint = `/grupo-asignatura-estudiantes/asignar`
 
     const response = await feching(endopoint, 'no-cache', 'POST', payload)
 
@@ -13,19 +13,8 @@ export async function asignarEstudianteAGrupo(payload: GrupoConEstudiantePayload
     return response.data
 }
 
-export async function getEstudiantesAsignados(idGrupo: number) {
-    const endpoint = `/gruposConEstudiantes/obtenerEstudiantes?grupoId=${idGrupo}`;
-    const response = await feching(endpoint, 'no-cache', 'GET');
-
-    if (!response || response.error) {
-        throw new Error(response?.error);
-    }
-
-    return response;
-}
-
 export async function getGrupoEscolarConEstudiantes() {
-    const endPoint = `/gruposConEstudiantes`;
+    const endPoint = `/grupo-asignatura-estudiantes`;
 
     const response = await feching(endPoint, "no-cache", "GET");
 
@@ -36,20 +25,45 @@ export async function getGrupoEscolarConEstudiantes() {
     return response.data
 }
 
-export async function eliminarEstudianteAsignado(IdGrupoConEstudiante: number) {
-    const endPoint = `/gruposConEstudiantes/${IdGrupoConEstudiante}`;
+export async function getEstudiantesAsignados(idGrupo: number) {
+    const endpoint = `/grupo-asignatura-estudiantes/obtenerEstudiantes-por-grupo/${idGrupo}`;
+    const response = await feching(endpoint, 'no-cache', 'GET');
+
+    if (!response.data || response.error) {
+        throw new Error(response?.error);
+    }
+
+    return response.data;
+}
+
+// Cambiar a un estudiante de grupo
+export const moverEstudianteDeGrupo = async (
+    estudianteId: number,
+    grupoOrigenId: number,
+    grupoDestinoId: number
+) => {
+    const body = {
+        estudianteId,
+        grupoOrigenId,
+        grupoDestinoId
+    };
+
+    const endPoint = `/grupo-asignatura-estudiantes/mover-estudiante`;
+
+    const response = await feching(endPoint, "no-cache", "POST", body);
+
+    if (!response.data || response.error) {
+        throw new Error(response?.error || 'Error al mover al estudiante');
+    }
+
+    return response.data;
+};
+
+
+export async function eliminarEstudianteAsignado(grupoId: number, estudianteId: number) {
+    const endPoint = `/grupo-asignatura-estudiantes/grupo/${grupoId}/estudiante/${estudianteId}`;
     const response = await feching(endPoint, "no-cache", "DELETE")
     return response.data;
 }
 
-//cambiar a un estudiante de grupo
-export const moverEstudianteDeGrupo = async (id: number, nuevoGrupoConEstudiante: GrupoConEstudiantePayload) => {
-    const endPoint = `/gruposConEstudiantes/${id}`
-
-    const response = await feching(endPoint, "no-cache", "PUT", nuevoGrupoConEstudiante)
-    if (!response.data || response.error) {
-        throw new Error(response?.error)
-    }
-    return response.data
-}
 
