@@ -32,8 +32,8 @@ export class AnioLectivoService {
                 .leftJoinAndSelect("anioLectivo.organizacionEscolar", "organizacionEscolar")
                 .leftJoinAndSelect("organizacionEscolar.turno", "turno")
                 .leftJoinAndSelect("turno.modalidad", "modalidad")
-                .leftJoinAndSelect("organizacionEscolar.cortes", "cortes")
-                .leftJoinAndSelect("cortes.semestre", "semestre")
+                .leftJoinAndSelect("organizacionEscolar.corte", "corte")
+                .leftJoinAndSelect("corte.semestre", "semestre")
                 .orderBy('anioLectivo.anio_lectivo', 'DESC')
                 .getMany();
             return anioLectivo;
@@ -41,28 +41,6 @@ export class AnioLectivoService {
             Utilities.catchError(error);
         }
     }
-
-    async getOrganizacionEscolarPorAnio(id: number): Promise<AnioLectivo | null> {
-        try {
-            const anioLectivo = await this.anioLectivoRepo
-                .createQueryBuilder("anioLectivo")
-                .leftJoinAndSelect("anioLectivo.organizacionEscolar", "organizacionEscolar")
-                .leftJoinAndSelect("organizacionEscolar.turno", "turno")
-                .leftJoinAndSelect("turno.modalidad", "modalidad")
-                .leftJoinAndSelect("organizacionEscolar.cortes", "cortes")
-                .leftJoinAndSelect("cortes.semestre", "semestre")
-                .leftJoinAndSelect("organizacionEscolar.grupos", "grupos")
-                .where("anioLectivo.id = :id", { id })
-                .orderBy("anioLectivo.anio_lectivo", "DESC")
-                .getOne();
-
-            return anioLectivo ?? null;
-        } catch (error) {
-            Utilities.catchError(error);
-            return null;
-        }
-    }
-
 
     async editAnioLectivo(
         id: number,

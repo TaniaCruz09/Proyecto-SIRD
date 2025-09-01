@@ -70,22 +70,6 @@ export class AnioLectivoController {
         }
     }
 
-    @Get('/:id')
-    async getAnioLectivoById(@Param('id', ParseIntPipe) id: number) {
-        try {
-            const anioLectivo = await this.anioLectivoService.getOrganizacionEscolarPorAnio(
-                id
-            );
-            const data = {
-                data: anioLectivo,
-                message: 'ok',
-            };
-            return data;
-        } catch (error) {
-            Utilities.catchError(error);
-        }
-    }
-
     @Put('/:id')
     async editarAnioLectivo(
         @Param('id', ParseIntPipe) id: number,
