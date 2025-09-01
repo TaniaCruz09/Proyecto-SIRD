@@ -26,7 +26,6 @@ export class GenderService {
     async getGender() {
         try {
             const gender = await this.GenderRepo.find();
-            console.log(gender)
             return gender;
         } catch (error) {
             Utilities.catchError(error)
@@ -54,7 +53,7 @@ export class GenderService {
 
             // Actualizar solo los campos enviados, conservando los valores previos
             Object.assign(gender, payload);
-    
+
             // Asignar la fecha de actualización y el usuario que modifica
             gender.update_at = new Date();
             gender.user_update_id;
@@ -65,7 +64,7 @@ export class GenderService {
         }
     }
 
-    async deleteGender(id: number, userId:number): Promise<GenderEntity> {
+    async deleteGender(id: number, userId: number): Promise<GenderEntity> {
         try {
             const gender = await this.GenderRepo.findOne({
                 where: { id: id }
@@ -73,7 +72,7 @@ export class GenderService {
             if (!gender) {
                 throw new NotFoundException("Profesión no encontrada");
             }
-    
+
             // Registrar el usuario que eliminó y la fecha de eliminación
             gender.deleted_at = new Date();
             gender.deleted_at_id = userId;

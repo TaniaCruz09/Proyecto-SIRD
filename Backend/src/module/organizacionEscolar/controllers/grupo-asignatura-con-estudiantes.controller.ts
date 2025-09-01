@@ -12,7 +12,6 @@ export class GrupoAsignaturaConEstudiantesController {
 
     @Post('asignar')
     async asignar(@Body() dto: AsignarEstudianteAGrupoDto) {
-        console.log(dto)
         try {
             const grupo_con_estudiante = await this.grupoAsignaturaConEstudiantesService.saveEstudianteAGrupo(dto);
             const data = {

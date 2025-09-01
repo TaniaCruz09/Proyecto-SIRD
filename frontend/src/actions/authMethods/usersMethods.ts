@@ -5,7 +5,7 @@ import { Role } from "@/interfaces/AuthInterface";
 import { feching } from "@/utils/cliente-http";
 
 
-interface UserData{ 
+interface UserData {
     name: string,
     email: string,
     password: string,
@@ -13,12 +13,12 @@ interface UserData{
     roles?: number[]
 }
 
-export async function getUser(){
+export async function getUser() {
     const endPoint = `/users`;
 
     const response = await feching(endPoint, "no-cache", "GET");
 
-    if(!response || response.error){
+    if (!response || response.error) {
         throw new Error(response?.error || "error desconocido desde el front de obtener todos los usuario")
     }
 
@@ -30,20 +30,19 @@ export async function getUserById(id: number) {
 
     const response = await feching(endPoint, "no-cache", "GET");
 
-    if(!response || response.error){
+    if (!response || response.error) {
         throw new Error(response?.error || "error desconocido desde el front de obtener un usuario")
     }
 
     return response;
-    
+
 }
-export async function saveUser({name, email, password, docente, roles= []}: UserData){
-    const data = {name, email, password, docente, roles};
-    console.log(data, "esa es la repuesta")
+export async function saveUser({ name, email, password, docente, roles = [] }: UserData) {
+    const data = { name, email, password, docente, roles };
     const endPoint = `/users`;
     const response = await feching(endPoint, "no-cache", "POST", data);
 
-    if(!response || response.error){
+    if (!response || response.error) {
         throw new Error(response?.error || "error desconocido desde el front de agragar usuario")
     }
 
@@ -53,38 +52,37 @@ export async function saveUser({name, email, password, docente, roles= []}: User
 
 //hice esta funcion ya que actualmente el sistema primero crea el usuario luego le asigna el rol
 export async function assignRoleToUser(userId: number, roles: number[]) {
-  const endPoint = `/asignar-roles/${userId}`;
-  const response = await feching(endPoint, "no-cache", "POST", { userId, roles });
-console.log(response, "esa es la repuesta")
-  if (!response || response.error) {
-    throw new Error(response?.error || "Error al asignar rol al usuario");
-  }
+    const endPoint = `/asignar-roles/${userId}`;
+    const response = await feching(endPoint, "no-cache", "POST", { userId, roles });
+    if (!response || response.error) {
+        throw new Error(response?.error || "Error al asignar rol al usuario");
+    }
 
-  return response;
+    return response;
 }
 
-export async function updateUser(id: number, {name, email, password, docente, roles=[]}: UserData) {
-    const data = {name, email, password, docente, roles};
+export async function updateUser(id: number, { name, email, password, docente, roles = [] }: UserData) {
+    const data = { name, email, password, docente, roles };
     const endPoint = `/users/${id}`;
 
     const response = await feching(endPoint, "no-cache", "PUT", data);
 
-     if(!response || response.error){
+    if (!response || response.error) {
         throw new Error(response?.error || "error desconocido desde el front de actualizar usuario")
     }
 
-    return response; 
+    return response;
 }
 
-export async function deleteUser(id:number) {
+export async function deleteUser(id: number) {
     const endPoint = `/users/${id}`;
 
     const response = await feching(endPoint, "no-cache", "DELETE");
 
-    if(!response || response.error){
+    if (!response || response.error) {
         throw new Error(response?.error || "error desconocido desde el front de eliminar usuario")
     }
 
-    return response; 
+    return response;
 }
 
