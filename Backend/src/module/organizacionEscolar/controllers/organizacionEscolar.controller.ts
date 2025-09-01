@@ -15,6 +15,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt.guard';
 import { CreateOrganizacionEscolarDTO } from '../../organizacionEscolar/dtos/organizacionEscolar.dto';
 import { Utilities } from '../../../common/helpers/utilities';
 import { OrganizacionEscolarService } from '../services/organizacionEscolar.service';
+import { OrganizacionEscolar } from '../entities/organizacionEscolar.entity';
 
 @ApiTags('OrganizacionEscolar')
 @ApiBearerAuth()
@@ -78,6 +79,20 @@ export class OrganizacionEscolarController {
       );
       const data = {
         data: organizacion,
+        message: 'ok',
+      };
+      return data;
+    } catch (error) {
+      Utilities.catchError(error);
+    }
+  }
+
+  @Get("/por-anio/:anioId")
+  async getOrganizacionPorAnio(@Param('anioId', ParseIntPipe) anioId: number) {
+    try {
+      const organizaciones = await this.organizacionService.getOrganizacionesByAnio(anioId);
+      const data = {
+        data: organizaciones,
         message: 'ok',
       };
       return data;
