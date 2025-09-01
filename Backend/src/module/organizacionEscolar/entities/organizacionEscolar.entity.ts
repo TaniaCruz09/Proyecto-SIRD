@@ -4,8 +4,6 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -31,26 +29,12 @@ export class OrganizacionEscolar {
   @JoinColumn({ name: 'turno_id' })
   turno: Turno;
 
-  // @OneToMany(() => SemestreEntity, (semestre) => semestre.organizacionEscolar)
-  // semestres: SemestreEntity[];
-
-  // @ManyToOne(() => Cortes, (corte) => corte.organizacionesEscolar)
-  // @JoinColumn({ name: 'corte_id' })
-  // corte: Cortes;
-
-  @ManyToMany(() => Cortes, (corte) => corte.organizacionesEscolar, { cascade: true })
-  @JoinTable({
-    name: 'organizacion_cortes', // tabla intermedia
-    joinColumn: { name: 'organizacion_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'corte_id', referencedColumnName: 'id' },
-  })
-  cortes: Cortes[];
+  @ManyToOne(() => Cortes, (corte) => corte.organizacionEscolar, { cascade: true })
+  @JoinColumn({ name: 'corte_id' })
+  corte: Cortes;
 
   @OneToMany(() => Grupos, (grupos) => grupos.organizacionEscolar)
   grupos?: Grupos[];
-
-  // @OneToMany(() => OrganizacionLaboral, (org) => org.añolectivo)
-  // organizacionLaboral?: OrganizacionLaboral[];
 
   //ID del usuario que creó el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo

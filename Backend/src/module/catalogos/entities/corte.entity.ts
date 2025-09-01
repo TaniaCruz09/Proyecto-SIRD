@@ -6,6 +6,7 @@ import {
   JoinColumn,
   ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -36,8 +37,8 @@ export class Cortes {
   @ManyToOne(() => SemestreEntity, (semestre) => semestre.corte)
   semestre: SemestreEntity;
 
-  @ManyToMany(() => OrganizacionEscolar, (org) => org.cortes)
-  organizacionesEscolar: OrganizacionEscolar[];
+  @OneToMany(() => OrganizacionEscolar, (organizacionEscolar) => organizacionEscolar.corte)
+  organizacionEscolar?: OrganizacionEscolar[];
 
   // ID del Usuario que creo el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true })

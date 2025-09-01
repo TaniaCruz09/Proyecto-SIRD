@@ -6,14 +6,7 @@ import {
   IsNumber,
   IsObject,
   IsOptional,
-  ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
-import { Grupos } from '../entities/grupos.entity';
-import { AnioLectivo } from '../../catalogos/entities/anioLectivo.entity';
-import { Turno } from '../../catalogos';
-import { Cortes } from 'src/module/catalogos/entities/corte.entity';
-
 export class CreateOrganizacionEscolarDTO {
   @IsOptional()
   @IsNumber()
@@ -31,9 +24,9 @@ export class CreateOrganizacionEscolarDTO {
   @IsObject()
   grupo?: { id: number }[];
 
-  @IsArray()
-  @ArrayNotEmpty()
-  cortes: { id: number }[];
+  @IsNotEmpty()
+  @IsObject()
+  corte: { id: number };
 
   @IsOptional()
   @IsNumber()
