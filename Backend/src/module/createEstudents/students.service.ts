@@ -99,8 +99,9 @@ export class StudentService {
             .leftJoinAndSelect('student.gender', 'gender')
             .leftJoinAndSelect('student.departamento', 'departamento')
             .leftJoinAndSelect('student.municipio', 'municipio')
-            .leftJoinAndSelect('student.gruposConEstudiantes', 'gruposConEstudiantes')
-            .leftJoinAndSelect('gruposConEstudiantes.grupo', 'grupo')
+            .leftJoinAndSelect('student.grupoAsignaturaConEstudiantes', 'grupoAsignaturaConEstudiantes')
+            .leftJoinAndSelect('grupoAsignaturaConEstudiantes.grupoAsignaturaDocente', 'grupoAsignaturaDocente')
+            .leftJoinAndSelect('grupoAsignaturaDocente.grupo', 'grupo')
             .leftJoinAndSelect('grupo.grado', 'grado')
             .leftJoinAndSelect('grupo.seccion', 'seccion')
             .leftJoinAndSelect('grupo.turno', 'turno')
@@ -126,9 +127,9 @@ export class StudentService {
 
         // Opcional: mapear para agregar propiedad asignadoGrupo con descripción amigable
         return students.map(student => {
-            const grupo = student.gruposConEstudiantes?.find(g => g.grupo.organizacionEscolar.anio_lectivo.id === Number(anioId)); // primer registro
-            const grupoAsignado = grupo?.grupo
-                ? `${grupo.grupo.grado.grades} ${grupo.grupo.seccion.seccion} - ${grupo.grupo.turno.turno} - ${grupo.grupo.turno.modalidad.modalidad}`
+            const grupo = student.grupoAsignaturaConEstudiantes?.find(g => g.grupoAsignaturaDocente.grupo.organizacionEscolar.anio_lectivo.id === Number(anioId)); // primer registro
+            const grupoAsignado = grupo?.grupoAsignaturaDocente.grupo
+                ? `${grupo.grupoAsignaturaDocente.grupo.grado.grades} ${grupo.grupoAsignaturaDocente.grupo.seccion.seccion} - ${grupo.grupoAsignaturaDocente.grupo.turno.turno} - ${grupo.grupoAsignaturaDocente.grupo.turno.modalidad.modalidad}`
                 : null;
 
             return {

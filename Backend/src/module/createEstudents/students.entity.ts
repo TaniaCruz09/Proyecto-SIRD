@@ -14,7 +14,7 @@ import { Departamento, GenderEntity, Municipio, Pais } from '../catalogos';
 
 import * as moment from 'moment-timezone';
 import { User } from '../auth/entities';
-import { GruposConEstudiantes } from '../organizacionEscolar/entities/grupos-con-estudiantes.entity';
+import { GrupoAsignaturaConEstudiantes } from '../organizacionEscolar/entities/grupo-asignatura-con-estudiantes.entity';
 
 @Entity({ name: 'student', schema: 'estudiante' })
 export class StudentEntity {
@@ -164,10 +164,10 @@ export class StudentEntity {
   municipio: Municipio;
 
   @OneToMany(
-    () => GruposConEstudiantes,
+    () => GrupoAsignaturaConEstudiantes,
     gruposConEstudiantes => gruposConEstudiantes.estudiante,
   )
-  gruposConEstudiantes: GruposConEstudiantes[];
+  grupoAsignaturaConEstudiantes: GrupoAsignaturaConEstudiantes[];
 
 
 }
