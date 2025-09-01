@@ -21,6 +21,7 @@ export default function AnioLectivoTable({
             <tr>
               <th className="p-3 border-b border-gray-300">Id</th>
               <th className="p-3 border-b border-gray-300">Años Lectivos</th>
+              <th className="p-3 border-b border-gray-300">Estado</th>
               <th className="p-1 border-b border-gray-300 text-center">
                 Editar
               </th>
