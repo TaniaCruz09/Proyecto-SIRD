@@ -32,7 +32,7 @@ export class AuthService {
       }
 
       // Generar el token
-      const payloadJwt = { sub: user.id, name: user.name };
+      const payloadJwt = { sub: user.id, name: user.name, email: user.name, roles: user.roles };
       const token = await this.jwtService.signAsync(payloadJwt);
 
       // Limpiar el objeto user (remover token antes de devolverlo)
