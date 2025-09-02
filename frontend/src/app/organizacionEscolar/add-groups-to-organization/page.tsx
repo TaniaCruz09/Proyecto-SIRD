@@ -169,7 +169,7 @@ export default function OrganizationGroups() {
                                             <Button
                                                 variant="outline" size="sm"
                                                 className="w-full justify-between bg-transparent"
-                                                onClick={() => router.push(`/organizacionEscolar/add-clases-organizacion-escolar?idGrupo=${g.id}&docenteId=${g.docenteGuia?.nombres}${g.docenteGuia.apellido_materno}&turno=${organizacionEscolar?.turno?.turno ?? "N/A"}&seccion=${g.seccion?.seccion}&grado=${g.grado?.grades}`)}
+                                                onClick={() => router.push(`/organizacionEscolar/add-clases-organizacion-escolar?idGrupo=${g.id}`)}
                                             >
 
                                                 <span className="flex items-center gap-2">
@@ -178,7 +178,6 @@ export default function OrganizationGroups() {
                                                 </span>
                                                 <ChevronRight className="h-4 w-4" />
                                             </Button>
-
 
                                             <Button
                                                 variant="outline" size="sm"

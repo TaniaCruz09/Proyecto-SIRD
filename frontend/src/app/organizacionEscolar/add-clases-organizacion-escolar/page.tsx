@@ -11,12 +11,13 @@ import {
   getGrupoConAsignaturaById,
   saveGrupoConAsignatura,
 } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/grupoConAsignaturasMethos";
-import { Asignatura, Docente } from "@/interfaces";
+import { Asignatura, Docente, GrupoEscolar } from "@/interfaces";
 import { getAsignaturas } from "@/actions/catalogos/asignaturaMethods";
 import { useSearchParams } from "next/navigation";
 import { getDocentes } from "@/actions/docentesMethods/docentesMethods";
 import EditarMateriaForm from "@/components/forms/EditarMateriaForm";
 import ConfirmDialog from "@/components/modals/organizacionEscolar/grupoConAsignatura/ConfirmAccion";
+import { getGruposById } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods";
 
 export default function AddClasesOrganizacionEscolarPage() {
   const [grupoConAsignaturas, setGrupoConAsignaturas] = useState<GrupoConAsignaturasResponse[]>([]);
@@ -38,11 +39,25 @@ export default function AddClasesOrganizacionEscolarPage() {
 
 
   const searchParams = useSearchParams();
-  const idGrupo = searchParams.get("idGrupo");
-  const docenteId = searchParams.get("docenteId");
-  const turno = searchParams.get("turno");
-  const grado = searchParams.get("grado")
-  const seccion = searchParams.get("seccion")
+  const idGrupo = Number(searchParams.get("idGrupo"));
+   const [grupos, setGrupos] = useState<GrupoEscolar>();
+   const fetchGrupoById = async () => {
+           try {
+               const response = await getGruposById(idGrupo)
+               setGrupos(response)
+           } catch (error) {
+               console.error(error)
+           }
+       }
+   
+       useEffect(() => {
+           fetchGrupoById()
+   
+       }, [idGrupo]);
+  const grupo = grupos?.grado.grades ?? "N/A"
+    const docenteGuia = grupos?.docenteGuia.nombres ?? "N/A"
+    const docenteGuiaApellidos = grupos?.docenteGuia.apellido_materno ?? "N/A"
+    const seccion = grupos?.seccion.seccion ?? "N/A"
 
   // Función para traer las relaciones del grupo
   const fetchRelaciones = async () => {
@@ -152,11 +167,11 @@ export default function AddClasesOrganizacionEscolarPage() {
         <div>
           <strong>Grupo Seleccionado</strong>
           <h2 style={{ color: "#15803d" }}>
-            {grado || "N/A"} ·{" "}{seccion || "N/A"}
+           Docente Guia: {docenteGuia || "N/A"}{docenteGuiaApellidos || "N/A"}
           </h2>
           <p>
 
-            {docenteId || "N/A"} guía
+            grupo: {grupo|| "N/A"} { seccion|| "N/A"} 
           </p>
         </div>
         <div style={{ textAlign: "right" }}>
