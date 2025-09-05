@@ -8,6 +8,7 @@ import { Asignatura } from "src/module/catalogos";
 import { Docentes } from "src/module/docentes/docentes.entity";
 import { CrearGrupoAsignaturaDocenteDto } from "../dtos/grupoAsignaturaDocente";
 import { ActualizarGrupoAsignaturaDocenteDto } from "../dtos/grupoAsignaturaDocenteUpdate";
+import { Utilities } from "src/common/helpers/utilities";
 
 @Injectable()
 export class GrupoAsignaturaDocenteService {
@@ -67,26 +68,55 @@ export class GrupoAsignaturaDocenteService {
 }
 
 
-  // Obtener todas las asignaciones
+  // Obtener todas las asignaciones (con joins explícitos)
   async obtenerTodasAsignaciones() {
-    return this.gadRepository.find({
-      relations: ["grupo","grupo.docenteGuia", "asignatura", "docente"],
-    });
+    try {
+      return this.gadRepository
+        .createQueryBuilder("gad")
+        .leftJoinAndSelect("gad.grupo", "grupo")
+        .leftJoinAndSelect("grupo.organizacionEscolar", "org")
+        .leftJoinAndSelect("org.anio_lectivo", "anio")
+        .leftJoinAndSelect("org.turno", "turnoOrganizacion")
+        .leftJoinAndSelect("org.corte", "corte")
+        .leftJoinAndSelect("grupo.grado", "grado")
+        .leftJoinAndSelect("grupo.seccion", "seccion")
+        .leftJoinAndSelect("grupo.turno", "turno")
+        .leftJoinAndSelect("turno.modalidad", "modalidad")
+        .leftJoinAndSelect("grupo.docenteGuia", "docenteGuia")
+        .leftJoinAndSelect("gad.asignatura", "asignatura")
+        .leftJoinAndSelect("gad.docente", "docente")
+        .getMany();
+    } catch (error) {
+      Utilities.catchError(error);
+    }
   }
 
   // Obtener asignaciones de un grupo específico
   async obtenerAsignacionesPorGrupo(grupoId: number) {
-    return this.gadRepository.find({
-      where: { grupo: { id: grupoId } },
-      relations: ["grupo", "grupo.docenteGuia","asignatura", "docente"],
-    });
+    try {
+      return this.gadRepository
+        .createQueryBuilder("gad")
+        .leftJoinAndSelect("gad.grupo", "grupo")
+        .leftJoinAndSelect("grupo.organizacionEscolar", "org")
+        .leftJoinAndSelect("org.anio_lectivo", "anio")
+        .leftJoinAndSelect("grupo.grado", "grado")
+        .leftJoinAndSelect("grupo.seccion", "seccion")
+        .leftJoinAndSelect("grupo.turno", "turno")
+        .leftJoinAndSelect("grupo.docenteGuia", "docenteGuia")
+        .leftJoinAndSelect("gad.asignatura", "asignatura")
+        .leftJoinAndSelect("gad.docente", "docente")
+        .where("grupo.id = :grupoId", { grupoId })
+        .getMany();
+    } catch (error) {
+      Utilities.catchError(error);
+    }
   }
 
   // Obtener asignación por su ID
   async obtenerAsignacionPorId(id: number) {
     const asignacion = await this.gadRepository.findOne({
       where: { id },
-      relations: ["grupo", "grupo.docenteGuia",,"asignatura", "docente"],
+      relations: ["grupo", "grupo.docenteGuia","asignatura", "docente"],
     });
     if (!asignacion) throw new Error(`Asignación con id ${id} no encontrada`);
     return asignacion;
