@@ -44,7 +44,19 @@ export class StudentService {
                 .leftJoinAndSelect('student.gender', 'gender')
                 .leftJoinAndSelect('student.departamento', 'departamento')
                 .leftJoinAndSelect('student.municipio', 'municipio')
+                .leftJoinAndSelect('student.grupoAsignaturaConEstudiantes', 'grupoAsignaturaConEstudiantes')
+                .leftJoinAndSelect('grupoAsignaturaConEstudiantes.grupoAsignaturaDocente', 'grupoAsignaturaDocente')
+                .leftJoinAndSelect('grupoAsignaturaDocente.grupo', 'grupo')
+                .leftJoinAndSelect('grupo.organizacionEscolar', 'organizacionEscolar')
+                .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo')
+                .leftJoinAndSelect('grupo.grado', 'grado')
+                .leftJoinAndSelect('grupo.seccion', 'seccion')
+                .leftJoinAndSelect('grupo.turno', 'turno')
+                .leftJoinAndSelect('grupo.docenteGuia', 'DocenteGuia')
+                .leftJoinAndSelect('grupo.grupoAsignaturaDocente', 'grupoAsignaturaDocenteDeGrupo')
+                .leftJoinAndSelect('grupoAsignaturaDocenteDeGrupo.asignatura', 'asignatura')
                 .where('student.id = :id', { id })
+                // .distinctOn(["grupo.id"]) // <-- evita duplicados por grupo
                 .getOne()
             return student;
         } catch (error) {
