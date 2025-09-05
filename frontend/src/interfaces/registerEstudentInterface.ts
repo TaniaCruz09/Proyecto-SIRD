@@ -22,6 +22,16 @@ export default interface RegisterEstudent {
     observations: string
     grupoAsignaturaConEstudiantes?: GrupoConEstudiante[]
 
+
+    phone?: string,
+    email?: string,
+
+    currentGrade: string
+    currentYear: string
+    gpa: number
+    profileImage?: string | null
+    academicHistory: AcademicYear[]
+
     user_create_id?: number | null;
     created_at?: string;
     update_at?: string;
@@ -29,6 +39,18 @@ export default interface RegisterEstudent {
     deleted_at?: string | null;
     deleted_at_id?: number | null;
 }
+
+export interface AcademicYear {
+    id: Number
+    year: string
+    grade: string
+    gpa: number
+    isActive: "completed" | "current"
+    subjects: string[]
+    teacher: string
+}
+
+
 export interface RegisterEstudentPayload {
     name: string,
     lastName: string,
