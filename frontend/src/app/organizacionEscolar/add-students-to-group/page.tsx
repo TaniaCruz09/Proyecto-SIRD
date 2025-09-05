@@ -131,7 +131,7 @@ export default function AsignarEstudiantesAGrupo() {
                         <tr key={estudiante.id} className="hover:bg-gray-50 transition-colors">
                             <td className="text-left px-4 py-2 border border-gray-300">{index + 1}</td>
                             <td className="text-left px-4 py-2 border border-gray-300">
-                                <Link href={"/estudiantes/historial-estudiante"} className='text-blue-900 underline'>
+                                <Link href={`/estudiantes/historial-estudiante?estudianteId=${estudiante.id}`} className='text-blue-900 underline'>
                                     {estudiante.name} {estudiante.lastName}
                                 </Link>
                             </td>
