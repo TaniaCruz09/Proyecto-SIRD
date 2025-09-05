@@ -3,32 +3,20 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Calendar, GraduationCap, Plus, Settings, Users } from "lucide-react"
+import { ArrowLeft, Calendar, GraduationCap, Settings, Users } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { OrganizacionEscolar } from "@/interfaces"
-import { getOrganizacionEscolar, getOrganizacionEscolarPorAnio } from "@/actions/organizacionEscolarMethods/organizacionMethods"
+import { getOrganizacionEscolarPorAnio } from "@/actions/organizacionEscolarMethods/organizacionMethods"
 import AddOganizacionEscolarConAnioLectivoModal from "@/components/modals/organizacionEscolar/organizacion/AddOganizacionEscolarConAnioLectivoModal"
 
 
-export default function AcademicYearOrganizations({ params }: { params: { year: string } }) {
-    const [organizacionEscolar, setOrganizacionEscolar] = useState<OrganizacionEscolar[]>([])
+export default function AcademicYearOrganizations() {
     const [organizacionesPorAnioData, setOrganizacionesPorAnioData] = useState<OrganizacionEscolar[]>([])
-    const [searchTerm, setSearchTerm] = useState<string>("");
-
-
 
     const searchParams = useSearchParams();
     const idAnioLectivo = searchParams.get("idAnioLectivo")
 
-    const fetchOrganizacionEscolar = async () => {
-        try {
-            const response = await getOrganizacionEscolar();
-            setOrganizacionEscolar(response);
-        } catch (error) {
-            console.error(error);
-        }
-    };
     const fetchOrganizacionPorAniLectivo = async () => {
         try {
             const response = await getOrganizacionEscolarPorAnio(Number(idAnioLectivo));
@@ -39,7 +27,6 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
     };
 
     useEffect(() => {
-        fetchOrganizacionEscolar();
         fetchOrganizacionPorAniLectivo()
     }, []);
 
@@ -62,47 +49,6 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
                 </div>
             </div>
 
-            {/* Estadísticas */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Organizaciones</p>
-                                <p className="text-2xl font-bold">{organizacionesPorAnioData.length}</p>
-                            </div>
-                            <GraduationCap className="h-8 w-8 text-muted-foreground" />
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Total Grupos</p>
-                                <p className="text-2xl font-bold">
-                                    {organizacionEscolar.reduce((acc, e) => acc + (e.grupos?.length || 0), 0)}
-                                </p>
-                            </div>
-                            <Users className="h-8 w-8 text-muted-foreground" />
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Cortes por Org.</p>
-                                <p className="text-2xl font-bold">4</p>
-                            </div>
-                            <Settings className="h-8 w-8 text-muted-foreground" />
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
             {/* Lista de organizaciones */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -120,12 +66,9 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
                             <p className="text-muted-foreground mb-4">
                                 Comienza agregando tu primera organización escolar para este año lectivo.
                             </p>
-                            <Link href={`/academic-year/${params.year}/create-organization`}>
-                                <Button>
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Crear Primera Organización
-                                </Button>
-                            </Link>
+                            <AddOganizacionEscolarConAnioLectivoModal
+                                idAnioLectivo={Number(idAnioLectivo)}
+                                fetchOrganizacionPorAnioLectivo={fetchOrganizacionPorAniLectivo} />
                         </CardContent>
                     </Card>
                 ) : (
@@ -144,12 +87,9 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
                                                 </Badge>
                                             </div>
                                             <div className="flex items-center gap-4 text-sm text-slate-600 flex-wrap">
-
                                                 <Badge key={o.corte?.id} variant="outline" className="bg-rose-100 text-rose-700">
                                                     {o.corte?.corte} - {o.corte?.semestre.semestre}
                                                 </Badge>
-
-
                                                 <span>• Grupos: {o.grupos?.length || 0}</span>
                                             </div>
                                         </div>
