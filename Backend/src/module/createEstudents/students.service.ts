@@ -1,10 +1,11 @@
-import { ILike, Repository } from "typeorm";
+import { DeepPartial, ILike, Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { StudentEntity } from "./students.entity";
 import { StudentsDto } from "./student.dto";
 import { Utilities } from "../../common/helpers/utilities";
 import { FiltrarEstudiantesDto } from "./FiltrarEstudiantesDto";
+import { UpdateStudentsDto } from "./updateStudent.dto";
 
 
 @Injectable()
@@ -14,15 +15,39 @@ export class StudentService {
         private readonly StudentRepo: Repository<StudentEntity>,
     ) { }
 
+
+
     async created(payload: StudentsDto): Promise<StudentEntity> {
         try {
-            const student = await this.StudentRepo.create(payload);
+            const studentData: DeepPartial<StudentEntity> = {
+                name: payload.name,
+                lastName: payload.lastName,
+                studentCode: payload.studentCode,
+                identityCard: payload.identityCard,
+                dateBirt: payload.dateBirt,
+                address: payload.address,
+                tutorName: payload.tutorName,
+                tutorIdentityCard: payload.tutorIdentityCard,
+                tutorPhoneNumber: payload.tutorPhoneNumber,
+                observations: payload.observations,
+                phone: payload.phone,
+                profileImage: payload.profileImage,
+
+                gender: payload.gender ? { id: Number(payload.gender) } as any : undefined,
+                pais: payload.pais ? { id: Number(payload.pais) } as any : undefined,
+                municipio: payload.municipio ? { id: Number(payload.municipio) } as any : undefined,
+                departamento: payload.departamento ? { id: Number(payload.departamento) } as any : undefined,
+            };
+
+            const student = this.StudentRepo.create(studentData);
             return await this.StudentRepo.save(student);
         } catch (error) {
-            Utilities.catchError(error)
+            Utilities.catchError(error); // asegúrate que hace throw
         }
-
     }
+
+
+
     async getStudent(): Promise<StudentEntity[]> {
         try {
             return await this.StudentRepo.createQueryBuilder('student')
@@ -64,9 +89,17 @@ export class StudentService {
         }
     }
 
-    async updateStudent(id: number, payload: StudentsDto): Promise<StudentEntity> {
+    async updateStudent(id: number, payload: UpdateStudentsDto): Promise<StudentEntity> {
         try {
-            const student = await this.StudentRepo.findOne({ where: { id } });
+            const student = await this.StudentRepo.findOne({
+                where: { id },
+                relations: [
+                    'gender',
+                    'pais',
+                    'departamento',
+                    'municipio',
+                ]
+            });
             if (!student) {
                 throw new NotFoundException("Profesión no encontrada");
             }
@@ -76,7 +109,7 @@ export class StudentService {
 
             // Asignar la fecha de actualización y el usuario que modifica
             student.update_at = new Date();
-            student.user_update_id;
+            student.user_update_id = payload.user_update_id;
 
 
             return await this.StudentRepo.save(student)
