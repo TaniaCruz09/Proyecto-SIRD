@@ -1,12 +1,10 @@
 "use client";
-
 import { RiDeleteBin6Line } from "react-icons/ri";
 import BtnOpenEditModal from "../Buttons/btnOpenEditModal";
-import { useEffect, useState } from "react";
 import ModalBase from "../modals/ModalBase";
-import UserForm from "../forms/UserForm";
-import Role from "@/interfaces/AuthInterface";
 import RoleForm from "../forms/RoleForm";
+import { Role } from "@/interfaces/AuthInterface";
+import { useState } from "react";
 
 interface RolRowProps {
   rol: Role;
@@ -28,9 +26,8 @@ export default function RolRow({
       <td className="p-3 border-b border-gray-200">{rol.id}</td>
       <td className="p-3 border-b border-gray-200">{rol.rol}</td>
       <td className="p-3 border-b border-gray-200 ">
-        <span className={`px-2 py-1 rounded text-xs font-semibold ${
-          rol.isActive ? "bg-green-500/30 text-green-600" : "text-red-600 bg-red-500/30"
-        }`}>
+        <span className={`px-2 py-1 rounded text-xs font-semibold ${rol.isActive ? "bg-green-500/30 text-green-600" : "text-red-600 bg-red-500/30"
+          }`}>
           {rol.isActive ? "Activo" : "Inactivo"}
         </span>
       </td>
