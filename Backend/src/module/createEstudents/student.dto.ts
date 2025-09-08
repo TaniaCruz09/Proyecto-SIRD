@@ -1,7 +1,5 @@
-import { IsDate, IsNotEmpty, IsNumber, IsObject, IsOptional, IsString, MaxLength, maxLength } from "class-validator";
-import { Unique } from "typeorm";
-import { Departamento, GenderEntity, Municipio, Pais } from "../catalogos";
-
+import { IsDate, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength } from "class-validator";
+import { Transform } from "class-transformer";
 
 export class StudentsDto {
     @IsOptional()
@@ -20,28 +18,36 @@ export class StudentsDto {
 
     @IsOptional()
     @IsString()
-    @Unique(['studentCode'])
     readonly studentCode: string;
-    
+
     @IsOptional()
     @IsString()
     readonly identityCard: string;
 
     @IsOptional()
     @IsDate()
+    @Transform(({ value }) => value ? new Date(value) : null)
     readonly dateBirt: Date;
-    
+
     @IsNotEmpty()
-    @IsObject()
-    pais: Pais;
+    @IsNumber()
+    @Transform(({ value }) => Number(value))
+    pais: number;
+
+    @IsNotEmpty()
+    @IsNumber()
+    @Transform(({ value }) => Number(value))
+    municipio: number;
 
     @IsOptional()
-    @IsObject()
-    departamento: Departamento;
+    @IsNumber()
+    @Transform(({ value }) => value ? Number(value) : null)
+    departamento?: number;
 
     @IsNotEmpty()
-    @IsObject()
-    municipio: Municipio;
+    @IsNumber()
+    @Transform(({ value }) => Number(value))
+    gender: number;
 
     @IsOptional()
     @IsString()
@@ -62,37 +68,23 @@ export class StudentsDto {
     @MaxLength(8)
     readonly tutorPhoneNumber: string;
 
-    @IsNotEmpty()
-    @IsObject()
-    gender: GenderEntity;
-
     @IsOptional()
     @IsString()
     readonly observations: string;
 
     @IsOptional()
-    @IsNumber()
-    user_create_id: number;
+    @IsString()
+    profileImage?: string;
 
     @IsOptional()
-    @IsDate()
-    created_at: Date
-    
-    @IsOptional()
-    @IsDate()
-    update_at: Date
+    @IsString()
+    phone?: string;
 
+    @IsInt()
     @IsOptional()
-    @IsNumber()
-    user_update_id: number;
+    user_create_id?: number;
 
+    @IsInt()
     @IsOptional()
-    @IsDate()
-    deleted_at: Date;
-
-    @IsOptional()
-    @IsNumber()
-    deleted_at_id: number;
-    
-
+    user_update_id?: number;
 }
