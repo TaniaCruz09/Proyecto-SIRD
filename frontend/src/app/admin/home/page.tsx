@@ -96,7 +96,7 @@ export default function HomePage() {
           </Link>
 
           {/* Registro Estudiantes */}
-          <Link href={"estudiantes/registerEstudent"}>
+          <Link href={"/registerEstudent"}>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-70">
               <Card className="bg-gradient-to-br from-amber-200 to-amber-100 hover:from-amber-100 hover:to-amber-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
                 <CardHeader className="flex flex-col items-center">
