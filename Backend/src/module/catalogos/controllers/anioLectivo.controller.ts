@@ -16,7 +16,7 @@ import { Utilities } from '../../../common/helpers/utilities';
 import { CreateAnioLectivoDTO } from '../dtos/anioLectivo.dto';
 import { AnioLectivoService } from '../services/anioLectivo.service';
 
-@ApiTags('anioLectvio')
+@ApiTags('anioLectivo')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('anioLectivo')
@@ -60,6 +60,20 @@ export class AnioLectivoController {
     async getAnioLectivo() {
         try {
             const anioLectivo = await this.anioLectivoService.getAnioLectivo();
+            const data = {
+                data: anioLectivo,
+                message: 'Ok',
+            };
+            return data;
+        } catch (error) {
+            Utilities.catchError(error);
+        }
+    }
+
+    @Get('/:id')
+    async getAnioLectivoById(@Param('id', ParseIntPipe) id: number) {
+        try {
+            const anioLectivo = await this.anioLectivoService.getAnioLectivoById(id);
             const data = {
                 data: anioLectivo,
                 message: 'Ok',

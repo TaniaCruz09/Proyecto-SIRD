@@ -42,6 +42,27 @@ export class AnioLectivoService {
         }
     }
 
+    async getAnioLectivoById(id: number): Promise<AnioLectivo> {
+        try {
+            const anioLectivo = await this.anioLectivoRepo
+                .createQueryBuilder("anio_lectivo")
+                .leftJoinAndSelect("anio_lectivo.organizacionEscolar", "organizacionEscolar")
+                .leftJoinAndSelect("organizacionEscolar.turno", "turno")
+                .leftJoinAndSelect("turno.modalidad", "modalidad")
+                .leftJoinAndSelect("organizacionEscolar.corte", "corte")
+                .leftJoinAndSelect("corte.semestre", "semestre")
+                .leftJoinAndSelect("organizacionEscolar.grupos", "grupos")
+                .where("anio_lectivo.id = :id", { id })
+                .orderBy("anio_lectivo.anio_lectivo", "DESC")
+                .getOne();
+
+            return anioLectivo
+        } catch (error) {
+            Utilities.catchError(error);
+            return null;
+        }
+    }
+
     async editAnioLectivo(
         id: number,
         payload: CreateAnioLectivoDTO,
