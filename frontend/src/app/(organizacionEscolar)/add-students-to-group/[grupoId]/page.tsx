@@ -3,20 +3,19 @@ import { getGruposById } from '@/actions/organizacionEscolarMethods/GrupoEscolar
 import BuscarYAsignarEstudiantes from '@/components/Filtros/BuscarEstudiantes';
 import DeleteEstudianteDeGrupoModal from '@/components/modals/organizacionEscolar/gruposConEstudiantes/DeleteEstudianteDeGrupoModal';
 import MoveStudentToGroupModal from '@/components/modals/organizacionEscolar/gruposConEstudiantes/Move-student-to-group-modal';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { GrupoEscolar } from '@/interfaces';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function AsignarEstudiantesAGrupo() {
-    const searchParams = useSearchParams();
-    const idGrupo = Number(searchParams.get("idGrupo"));
-
+    const { grupoId } = useParams();
     const [grupos, setGrupos] = useState<GrupoEscolar>();
 
     const fetchGrupoById = async () => {
         try {
-            const response = await getGruposById(idGrupo)
+            const response = await getGruposById(Number(grupoId))
             setGrupos(response)
         } catch (error) {
             console.error(error)
@@ -26,7 +25,7 @@ export default function AsignarEstudiantesAGrupo() {
     useEffect(() => {
         fetchGrupoById()
 
-    }, [idGrupo]);
+    }, [grupoId]);
 
     // Sacar info base de la primera organización encontrada
     const idAnioLectivo = grupos?.organizacionEscolar?.anio_lectivo?.id ?? 0
@@ -131,7 +130,26 @@ export default function AsignarEstudiantesAGrupo() {
                         <tr key={estudiante.id} className="hover:bg-gray-50 transition-colors">
                             <td className="text-left px-4 py-2 border border-gray-300">{index + 1}</td>
                             <td className="text-left px-4 py-2 border border-gray-300">
-                                <Link href={`/estudiantes/historial-estudiante?estudianteId=${estudiante.id}`} className='text-blue-900 underline'>
+                                <Avatar className="w-10 h-10 border-2 border-green-200">
+                                    {estudiante.profileImage ? (
+                                        <AvatarImage
+                                            src={`${process.env.NEXT_PUBLIC_API_UPLOADS}${estudiante.profileImage}` || "/placeholder.svg"}
+                                            alt={estudiante.name}
+                                        />
+                                    ) : (
+                                        <AvatarFallback className="text-md font-bold bg-green-100 text-green-700">
+                                            {`${estudiante.name.split(" ")
+                                                .map((n: string) => n[0])
+                                                .join("")
+                                                .slice(0, 1)}${estudiante.lastName.split("")
+                                                    .map((n: string) => n[0])
+                                                    .join("")
+                                                    .slice(0, 1)}`}
+                                        </AvatarFallback>
+                                    )}
+                                </Avatar></td>
+                            <td className="text-left px-4 py-2 border border-gray-300">
+                                <Link href={`/historial-estudiante/${estudiante.id}`} className='text-blue-900 underline'>
                                     {estudiante.name} {estudiante.lastName}
                                 </Link>
                             </td>
@@ -148,7 +166,7 @@ export default function AsignarEstudiantesAGrupo() {
                             <td className="px-4 py-2 border border-gray-300 text-center">
                                 <MoveStudentToGroupModal
                                     gradoId={gradoId}
-                                    grupoOrigenId={idGrupo}
+                                    grupoOrigenId={Number(grupoId)}
                                     idAnioLectivo={idAnioLectivo}
                                     anioLectivo={anioLectivo}
                                     estudianteId={estudiante.id}
@@ -156,7 +174,7 @@ export default function AsignarEstudiantesAGrupo() {
                                 />
                             </td>
                             <td className="px-4 py-2 border border-gray-300 text-center">
-                                <DeleteEstudianteDeGrupoModal grupoId={idGrupo} estudianteId={estudiante.id} fetchGrupoConEstudiantes={fetchGrupoById} />
+                                <DeleteEstudianteDeGrupoModal grupoId={Number(grupoId)} estudianteId={estudiante.id} fetchGrupoConEstudiantes={fetchGrupoById} />
                             </td>
                         </tr>
                     ))}

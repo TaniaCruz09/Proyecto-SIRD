@@ -17,14 +17,13 @@ import {
 } from "lucide-react"
 import RegisterEstudent, { AcademicYear } from "@/interfaces/registerEstudentInterface"
 import EditStudentModal from "@/components/modals/Estudiantes/EditStudentModal"
-import { useSearchParams } from "next/navigation"
+import { useParams } from "next/navigation"
 
 export default function StudentProfile() {
     const [studentData, setStudentData] = useState<RegisterEstudent | null>(null)
     const [loading, setLoading] = useState(true)
 
-    const searchParams = useSearchParams();
-    const estudianteId = searchParams.get("estudianteId")
+    const { estudianteId } = useParams();
 
     // Fetch del estudiante
     const fetchEstudianteById = async () => {
@@ -121,7 +120,7 @@ export default function StudentProfile() {
                             <Avatar className="w-32 h-32 border-4 border-green-200">
                                 {studentData.profileImage ? (
                                     <AvatarImage
-                                        src={studentData.profileImage || "/placeholder.svg"}
+                                        src={`${process.env.NEXT_PUBLIC_API_UPLOADS}${studentData.profileImage}` || "/placeholder.svg"}
                                         alt={studentData.name}
                                     />
                                 ) : null}

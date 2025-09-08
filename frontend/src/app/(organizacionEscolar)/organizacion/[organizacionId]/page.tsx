@@ -5,33 +5,27 @@ import AddOrganizacionEscolarModal from '@/components/modals/organizacionEscolar
 import SearchBar from '@/components/SearchBar';
 import OrganizacionEscolarTable from '@/components/tables/organizacionEscolar/OrganizacionEscolarTable';
 import type { OrganizacionEscolar } from '@/interfaces';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
 
 export default function OrganizacionEscolar() {
     const [organizacionEscolar, setOrganizacionEscolar] = useState<OrganizacionEscolar[]>([])
     const [searchTerm, setSearchTerm] = useState<string>("");
 
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const idOrganizacion = searchParams.get("idOrganizacion");
+    const { organizacionId } = useParams();
 
     const fetchOrganizacionEscolar = async () => {
         try {
             const response = await getOrganizacionEscolar();
             // Si viene con idOrganizacion, filtramos automáticamente
-            if (idOrganizacion) {
-                const filtered = response.filter((org: OrganizacionEscolar) => org.id.toString() === idOrganizacion);
+            if (organizacionId) {
+                const filtered = response.filter((org: OrganizacionEscolar) => org.id.toString() === organizacionId);
                 setOrganizacionEscolar(filtered);
             } else {
                 setOrganizacionEscolar(response || []);
             }
-        } catch (error: any) {
-            if (error.message === "Unauthorized") {
-                router.push("/auth/login"); // redirigir en cliente
-            } else {
-                console.error(error);
-            }
+        } catch (error: unknown) {
+            console.error(error);
         }
     }
 

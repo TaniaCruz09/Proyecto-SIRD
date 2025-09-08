@@ -5,29 +5,28 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Calendar, GraduationCap, Settings, Users } from "lucide-react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
-import { OrganizacionEscolar } from "@/interfaces"
-import { getOrganizacionEscolarPorAnio } from "@/actions/organizacionEscolarMethods/organizacionMethods"
+import { useParams } from "next/navigation"
+import { AnioLectivo } from "@/interfaces"
 import AddOganizacionEscolarConAnioLectivoModal from "@/components/modals/organizacionEscolar/organizacion/AddOganizacionEscolarConAnioLectivoModal"
+import { getAnioLectivoById } from "@/actions/catalogos/anioLectivoMethods"
 
 
 export default function AcademicYearOrganizations() {
-    const [organizacionesPorAnioData, setOrganizacionesPorAnioData] = useState<OrganizacionEscolar[]>([])
+    const [anioLectivoConOrganizacion, setAnioLectivoConOrganizacion] = useState<AnioLectivo | null>(null);
 
-    const searchParams = useSearchParams();
-    const idAnioLectivo = searchParams.get("idAnioLectivo")
+    const { anioLectivoId } = useParams();
 
-    const fetchOrganizacionPorAniLectivo = async () => {
+    const fetchOrganizacionPorAnioLectivo = async () => {
         try {
-            const response = await getOrganizacionEscolarPorAnio(Number(idAnioLectivo));
-            setOrganizacionesPorAnioData(response || []);
+            const response = await getAnioLectivoById(Number(anioLectivoId));
+            setAnioLectivoConOrganizacion(response || []);
         } catch (error: any) {
             console.error(error);
         }
     };
 
     useEffect(() => {
-        fetchOrganizacionPorAniLectivo()
+        fetchOrganizacionPorAnioLectivo()
     }, []);
 
     return (
@@ -43,7 +42,7 @@ export default function AcademicYearOrganizations() {
                 <div className="ml-7">
                     <h1 className="text-3xl font-bold flex items-center gap-2">
                         <Calendar className="h-8 w-8" />
-                        Año Lectivo {organizacionesPorAnioData[0]?.anio_lectivo.anio_lectivo}
+                        Año Lectivo {anioLectivoConOrganizacion?.anio_lectivo}
                     </h1>
                     <p className="text-muted-foreground">Gestiona las organizaciones escolares de este año lectivo</p>
                 </div>
@@ -54,11 +53,11 @@ export default function AcademicYearOrganizations() {
                 <div className="flex items-center justify-between">
                     <h2 className="text-xl font-semibold">Organizaciones Escolares</h2>
                     <AddOganizacionEscolarConAnioLectivoModal
-                        idAnioLectivo={Number(idAnioLectivo)}
-                        fetchOrganizacionPorAnioLectivo={fetchOrganizacionPorAniLectivo} />
+                        idAnioLectivo={Number(anioLectivoId)}
+                        fetchOrganizacionPorAnioLectivo={fetchOrganizacionPorAnioLectivo} />
                 </div>
 
-                {organizacionesPorAnioData.length === 0 ? (
+                {anioLectivoConOrganizacion?.organizacionEscolar?.length === 0 ? (
                     <Card className="border-2 border-dashed">
                         <CardContent className="p-12 text-center">
                             <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -67,13 +66,13 @@ export default function AcademicYearOrganizations() {
                                 Comienza agregando tu primera organización escolar para este año lectivo.
                             </p>
                             <AddOganizacionEscolarConAnioLectivoModal
-                                idAnioLectivo={Number(idAnioLectivo)}
-                                fetchOrganizacionPorAnioLectivo={fetchOrganizacionPorAniLectivo} />
+                                idAnioLectivo={Number(anioLectivoId)}
+                                fetchOrganizacionPorAnioLectivo={fetchOrganizacionPorAnioLectivo} />
                         </CardContent>
                     </Card>
                 ) : (
                     <div className="grid gap-4">
-                        {Array.isArray(organizacionesPorAnioData) && organizacionesPorAnioData.map((o) => (
+                        {anioLectivoConOrganizacion?.organizacionEscolar.map((o) => (
                             <Card key={o.id} className="hover:shadow-md transition-shadow">
                                 <CardContent className="p-6">
                                     <div className="flex items-center justify-between">
@@ -98,7 +97,7 @@ export default function AcademicYearOrganizations() {
                                                 <Settings className="h-4 w-4 mr-2" />
                                                 Gestionar
                                             </Button>
-                                            <Link href={`/organizacionEscolar/add-groups-to-organization?idOrganizacion=${o.id}`}>
+                                            <Link href={`/add-groups-to-organization/${o.id}`}>
                                                 <Button
                                                     variant="outline"
                                                     size="sm"

@@ -25,7 +25,7 @@ export default function RegistroEstudiantes() {
 
     //filtro que busca por el nombre
     const filteredStudent = student.filter((u) =>
-        u.name.toLowerCase().includes(searchTerm.toLowerCase())
+        u.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     return (
         <div className="mx-6">
