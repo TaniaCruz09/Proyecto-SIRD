@@ -25,17 +25,6 @@ export async function getOrganizacionEscolarById(id: number) {
     return response.data
 }
 
-export async function getOrganizacionEscolarPorAnio(anioId: number) {
-    const endpoint = `/organizacionEscolar/por-anio/${anioId}`
-
-    const response = await feching(endpoint, "no-cache", "GET");
-
-    if (!response.data || response.error) {
-        throw new Error(response?.error || "Error al obtener");
-
-    } return response.data
-}
-
 export async function saveOrganizacionEscolar(organizacionEscolar: OrganizacionEscolarPayload) {
     const endPoint = `/organizacionEscolar`;
 
