@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateOrganizacionEscolarDTO } from '../dtos/organizacionEscolar.dto';
 import { Utilities } from 'src/common/helpers/utilities';
@@ -68,29 +68,6 @@ export class OrganizacionEscolarService {
     } catch (error) {
       Utilities.catchError(error);
     }
-  }
-
-  async getOrganizacionesByAnio(anioId: number): Promise<OrganizacionEscolar[]> {
-    try {
-      const organizaciones = await this.organizacionEscolarRepo
-        .createQueryBuilder("organizacionEscolar")
-        .leftJoinAndSelect("organizacionEscolar.anio_lectivo", "anio_lectivo")
-        .leftJoinAndSelect("organizacionEscolar.turno", "turno")
-        .leftJoinAndSelect("turno.modalidad", "modalidad")
-        .leftJoinAndSelect("organizacionEscolar.corte", "corte")
-        .leftJoinAndSelect("corte.semestre", "semestre")
-        .leftJoinAndSelect("organizacionEscolar.grupos", "grupos")
-        .where("anio_lectivo.id = :anioId", { anioId })
-        .orderBy("anio_lectivo.anio_lectivo", "DESC")
-        .getMany();
-
-      return organizaciones;
-    } catch (error) {
-      Utilities.catchError(error);
-      return null;
-    }
-
-
   }
 
   async editOrganizacion(
