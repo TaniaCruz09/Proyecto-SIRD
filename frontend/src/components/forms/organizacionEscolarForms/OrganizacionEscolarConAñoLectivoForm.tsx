@@ -1,5 +1,4 @@
 "use client"
-
 import React, { useEffect, useState } from "react";
 import { getCortesEvaluativos } from "@/actions/catalogos/corteEvaluativoMethods";
 import { getModalidades } from "@/actions/catalogos/modalidadMethods";

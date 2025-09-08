@@ -8,32 +8,32 @@ interface DeleteSexoModalProps {
   fetchGenero: () => Promise<void>;
 }
 
-export default function DeleteSexoModal({idEliminar, fetchGenero}:DeleteSexoModalProps) {
-    const [generoToDelete, setGeneroToDelete] = useState<number | null>(null);
-      const [showConfirm, setShowConfirm] = useState<boolean>(false);
+export default function DeleteSexoModal({ idEliminar, fetchGenero }: DeleteSexoModalProps) {
+  const [generoToDelete, setGeneroToDelete] = useState<number | null>(null);
+  const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
-      const handleDeleteClick = (id: number)=>{
-        setGeneroToDelete(id);
-        setShowConfirm(true);
-      }
+  const handleDeleteClick = (id: number) => {
+    setGeneroToDelete(id);
+    setShowConfirm(true);
+  }
 
-      const confirmDelete = async ()=>{
-        if(!generoToDelete) return;
-        try{
-            await deleteSexo(generoToDelete);
-            await fetchGenero();
-        } catch (error) {
-            console.error("error al eliminar la sexo", error)
-        } finally {
-            setShowConfirm(false);
-            setGeneroToDelete(null)
-        }
-      } 
-    
+  const confirmDelete = async () => {
+    if (!generoToDelete) return;
+    try {
+      await deleteSexo(generoToDelete);
+      await fetchGenero();
+    } catch (error) {
+      console.error("error al eliminar la sexo", error)
+    } finally {
+      setShowConfirm(false);
+      setGeneroToDelete(null)
+    }
+  }
+
   return (
     <div>
-        <BtnDelete onClick={()=> handleDeleteClick(idEliminar)}/>
-        <ConfirmDeletModal onshow={showConfirm} onCancel={()=> setShowConfirm(false)} onConfirm={confirmDelete}/>
+      <BtnDelete onClick={() => handleDeleteClick(idEliminar)} />
+      <ConfirmDeletModal onshow={showConfirm} onCancel={() => setShowConfirm(false)} onConfirm={confirmDelete} />
     </div>
   )
 }

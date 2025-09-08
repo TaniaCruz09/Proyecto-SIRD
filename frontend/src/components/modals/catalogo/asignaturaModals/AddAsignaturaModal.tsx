@@ -4,25 +4,25 @@ import ModalBase from '../../ModalBase'
 import AsignaturaForm from '@/components/forms/catalogoForms/AsignaturaForm';
 
 
-interface AddAsignaturaModalProp{
-    fetchAsignaturas: () => Promise<void>
+interface AddAsignaturaModalProp {
+  fetchAsignaturas: () => Promise<void>
 }
 
-export default function AddAsignaturaModal({fetchAsignaturas}: AddAsignaturaModalProp) {
-    const [showModal, setShowModal] = useState<boolean>(false);
+export default function AddAsignaturaModal({ fetchAsignaturas }: AddAsignaturaModalProp) {
+  const [showModal, setShowModal] = useState<boolean>(false);
   return (
     <div>
-        <BtnOpenAddModal onClick={()=> setShowModal(true)}/>
-        {showModal && (
+      <BtnOpenAddModal onClick={() => setShowModal(true)} />
+      {showModal && (
         <ModalBase
           onshowModal={showModal}
           onCloseModal={() => setShowModal(false)}
           content={
             <AsignaturaForm
-            onSuccess={()=>{
+              onSuccess={() => {
                 fetchAsignaturas()
                 setShowModal(false)
-            }}
+              }}
             />
           }
         />

@@ -6,10 +6,10 @@ import ModalBase from "../ModalBase";
 import RegisterEstudentForm from "@/components/forms/registerStudentForm";
 
 interface AddStudentModalProp {
-    fetchStudent: () => Promise<void>
+  fetchStudent: () => Promise<void>
 }
 
-export default function AddStudentModal({fetchStudent}: AddStudentModalProp) {
+export default function AddStudentModal({ fetchStudent }: AddStudentModalProp) {
   const [showModal, setShowModal] = useState<boolean>(false);
   return (
     <div>
@@ -20,10 +20,10 @@ export default function AddStudentModal({fetchStudent}: AddStudentModalProp) {
           onCloseModal={() => setShowModal(false)}
           content={
             <RegisterEstudentForm
-            onSucess={()=>{
+              onSucess={() => {
                 fetchStudent()
                 setShowModal(false)
-            }}
+              }}
             />
           }
         />

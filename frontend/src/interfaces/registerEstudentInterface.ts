@@ -21,15 +21,13 @@ export default interface RegisterEstudent {
     gender: Sexo,
     observations: string
     grupoAsignaturaConEstudiantes?: GrupoConEstudiante[]
-
-
+    profileImage?: string | null
     phone?: string,
-    email?: string,
 
+    email?: string,
     currentGrade: string
     currentYear: string
     gpa: number
-    profileImage?: string | null
     academicHistory: AcademicYear[]
 
     user_create_id?: number | null;
@@ -64,7 +62,9 @@ export interface RegisterEstudentPayload {
     tutorIdentityCard: string,
     tutorPhoneNumber: string,
     gender: Sexo,
-    observations: string
+    observations: string,
+    profileImage?: string | null
+    phone?: string,
 
     user_create_id?: number | null;
     created_at?: string;
