@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Calendar, BookOpen, Settings, Eye, GraduationCap, Link } from "lucide-react"
+import { Plus, Calendar, Settings, Eye, GraduationCap } from "lucide-react"
 import { getAniosLectivos } from "@/actions/catalogos/anioLectivoMethods"
 import { AnioLectivo } from "@/interfaces"
 import { useRouter } from "next/navigation"
@@ -135,7 +135,7 @@ export function AcademicYearsDashboard() {
                                                             variant="outline"
                                                             size="sm"
                                                             className="flex-1 text-xs h-7 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
-                                                            onClick={() => router.push(`/organizacionEscolar/add-groups-to-organization?idOrganizacion=${org.id}`)}
+                                                            onClick={() => router.push(`/add-groups-to-organization/${org.id}`)}
                                                         >
                                                             <Eye className="h-3 w-3 mr-1" />
                                                             Ver
@@ -144,7 +144,7 @@ export function AcademicYearsDashboard() {
                                                             variant="outline"
                                                             size="sm"
                                                             className="flex-1 text-xs h-7 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
-                                                            onClick={() => router.push(`/organizacionEscolar/organizacion?idOrganizacion=${org.id}`)}
+                                                            onClick={() => router.push(`/organizacion/=${org.id}`)}
                                                         >
                                                             <Settings className="h-3 w-3 mr-1" />
                                                             Gestionar
@@ -160,7 +160,7 @@ export function AcademicYearsDashboard() {
                                         <h3 className="text-lg font-semibold mb-2 text-slate-700">Sin organizaciones escolares</h3>
                                         <p className="text-slate-500 text-center mb-4">Este año lectivo no tiene organizaciones aún</p>
 
-                                        <Button onClick={() => router.push(`/organizacionEscolar/add-organizations-to-year?idAnioLectivo=${anioLectivo.id}`)} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm">
+                                        <Button onClick={() => router.push(`/add-organizations-to-year/${anioLectivo.id}`)} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm">
                                             <Plus className="h-4 w-4" />
                                             Agregar Organización Escolar
 
@@ -174,7 +174,7 @@ export function AcademicYearsDashboard() {
                                         variant="outline"
                                         size="sm"
                                         className="flex items-center gap-2 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
-                                        onClick={() => router.push(`/organizacionEscolar/add-organizations-to-year?idAnioLectivo=${anioLectivo.id}`)}
+                                        onClick={() => router.push(`/add-organizations-to-year/${anioLectivo.id}`)}
                                     >
                                         <Eye className="h-4 w-4" />
                                         organización del año lectivo
