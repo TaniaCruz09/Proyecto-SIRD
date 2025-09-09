@@ -35,6 +35,16 @@ export default function ModalDetalleDocente({
               <strong>Sexo:</strong> {docente.sexo?.gender ?? "N/A"}
             </div>
             <div>
+              <strong>cargo_nominal</strong> {docente.cargo_nominal ?? "N/A"}
+            </div>
+            <div>
+              <strong>cargo_real:</strong> {docente.cargo_real ?? "N/A"}
+            </div>
+            <div>
+              <strong>Unidad_administrativa</strong> {docente.unidad_administrativa ?? "N/A"}
+            </div>
+          
+            <div>
               <strong>Nivel Académico:</strong>{" "}
               {docente.nivel_academico.length > 0
                 ? docente.nivel_academico

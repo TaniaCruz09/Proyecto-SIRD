@@ -18,7 +18,9 @@ import {
   Profesion,
   Sexo,
 } from "@/interfaces";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { User } from "lucide-react";
 
 interface DocenteFormProps {
   defaultValues?: Docente | null;
@@ -46,7 +48,11 @@ export default function DocenteForm({
     useState<string>("");
   const [telefonoContactoEmergencia, setTelefonoContactoEmergencia] =
     useState<string>("");
-
+    const [cargo_nominal, setCargoNominal] = useState<string>("");
+    const [cargo_real, setCargoReal] = useState <string> ("")
+    const [unidad_administrativa, setUnidadAdministrativa] = useState<string>("")
+    const [file, setFile] = useState<File | null>(null)
+    
   const [sexos, setSexos] = useState<Sexo[]>([]);
   const [nivelesAcademicos, setNivelesAcademicos] = useState<NivelAcademico[]>(
     []
@@ -56,6 +62,10 @@ export default function DocenteForm({
   const [municipios, setMunicipios] = useState<Municipio[]>([]);
 
   const isEdit = Boolean(defaultValues?.id);
+
+   const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+   const [preview, setPreview] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -85,7 +95,11 @@ export default function DocenteForm({
     };
 
     fetchData();
-  }, []);
+
+    if (defaultValues?.foto_docente) {
+      setPreview(defaultValues.foto_docente)
+    }
+  }, [defaultValues]);
 
   //funcion con la que enviamos los datos para agregar un nuevo usuario
   const handleSubmit = async (e: React.FormEvent) => {
@@ -117,6 +131,7 @@ export default function DocenteForm({
       }
 
       const docenteData: DocentePayload = {
+
         nombres,
         apellido_paterno: apellido1,
         apellido_materno: apellido2,
@@ -127,6 +142,10 @@ export default function DocenteForm({
         fechaContratado: fechaContratado ? new Date(fechaContratado) : undefined,
         nombre_contacto_emergencia: nmobreContactoemergencia,
         telefono_contacto_emergencia: telefonoContactoEmergencia,
+        unidad_administrativa: unidad_administrativa,
+        cargo_nominal: cargo_nominal,
+        cargo_real: cargo_real,
+
 
         sexo: selectedSexo,
         pais: selectedPais,
@@ -134,13 +153,25 @@ export default function DocenteForm({
         nivel_academico: [selectedNivelAcademico],
         profession: [selectedProfesion],
 
-        // Opcionales:
-        user_create_id: null,
-        created_at: undefined,
-        update_at: undefined,
-        user_update_id: null,
-        deleted_at: null,
-        deleted_at_id: null,
+    //     formData.append("nombres", nombres);
+    // formData.append("apellido_paterno", apellido1);
+    // formData.append("apellido_materno", apellido2);
+    // formData.append("cedula_identidad", cedulaIdentidad);
+    // formData.append("telefono", telefono);
+    // formData.append("fecha_nacimiento", fechaNacimiento);
+    // formData.append("direccion_domiciliar", direccionDomiciliar);
+    // formData.append("fechaContratado", fechaContratado);
+    // formData.append("nombre_contacto_emergencia", nmobreContactoemergencia);
+    // formData.append("telefono_contacto_emergencia", telefonoContactoEmergencia);
+    // formData.append("unidad_administrativa", unidad_administrativa);
+    // formData.append("cargo_nominal", cargo_nominal);
+    // formData.append("cargo_real", cargo_real);
+
+    // formData.append("sexoId", sexo);
+    // formData.append("paisId", pais);
+    // formData.append("municipioId", municipio);
+    // formData.append("nivelAcademicoId", nivelAcademico);
+    // formData.append("profesionId", profession);
       };
 
       if (isEdit && defaultValues?.id) {
@@ -171,6 +202,9 @@ export default function DocenteForm({
     setDireccionDomiciliar(defaultValues.direccion_domiciliar || "");
     setNombreContactoEmergencia(defaultValues.nombre_contacto_emergencia || "");
     setTelefonoContactoEmergencia(defaultValues.telefono_contacto_emergencia || "");
+    setUnidadAdministrativa(defaultValues.unidad_administrativa || "")
+    setCargoNominal(defaultValues.cargo_nominal || "");
+    setCargoReal(defaultValues.cargo_real || "");
      // ✅ Convertir Date a string tipo "YYYY-MM-DD"
     setFechaNacimiento(
       defaultValues.fecha_nacimiento
@@ -185,12 +219,54 @@ export default function DocenteForm({
   }
 }, [defaultValues]);
 
+  const handleClick = ()=> {
+    fileInputRef.current?.click()
+  }
+
+  const handlefileChange = (event: React.ChangeEvent<HTMLInputElement>)=> {
+    const selectedFile = event.target.files?.[0]
+    if (!selectedFile) return
+
+    setFile(selectedFile)
+      const url = URL.createObjectURL(selectedFile)
+      setPreview(url)
+
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto px-2">
       <h2 className="text-xl font-semibold text-gray-700">
         {isEdit ? "Editar Docente" : "Agregar Docente"}
       </h2>
+
+      <div className="flex flex-col items-center">
+        <Avatar className="w-22 h-22 border-4 border-green-200 cursor-pointer"
+        onClick={handleClick}>
+
+                    {preview ? (
+                        <AvatarImage
+                            src={preview}
+                            alt={"Foto del docente"}
+                        />
+                    ) : (
+
+                    <AvatarFallback className="text-md font-bold bg-green-100 text-green-700">
+                        {nombres && apellido1
+                        ?`${nombres[0] ?? ""}
+                        ${apellido1[0] ?? ""}`: 
+                        <User className="w-10 h-10"/>
+                        }
+                    </AvatarFallback>
+                    )}
+                </Avatar>
+                    <input
+                    type="file"
+                    accept = "image/*"
+                    ref={fileInputRef}
+                    onChange={handlefileChange}
+                    className="hidden"
+                    />
+      </div>
 
       <input
         type="text"
@@ -223,6 +299,33 @@ export default function DocenteForm({
         onChange={(e) => setCedulaIdentidad(e.target.value)}
         className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
         required
+      />
+
+      <input
+      type= "text"
+      placeholder="Cargo Nominal"
+      value={cargo_nominal}
+      onChange={(e) => setCargoNominal(e.target.value)}
+      className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+      required
+      />
+
+      <input 
+      type="text"
+      placeholder="Cargo real"
+      value={cargo_real}
+      onChange={(e) => setCargoReal(e.target.value)}
+      className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+      required
+      />
+
+      <input
+      type="text"
+      placeholder="Unidad_administrativa"
+      value={unidad_administrativa}
+      onChange={(e) => setUnidadAdministrativa(e.target.value)}
+      className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+      required
       />
       <select
         name=""

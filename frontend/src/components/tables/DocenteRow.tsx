@@ -4,6 +4,8 @@ import EditDocenteModal from '../modals/docentes/EditDocenteModal'
 import DeleteDocenteModal from '../modals/docentes/DeleteDocenteModal'
 import { Docente } from '@/interfaces'
 import { TbEyePlus } from 'react-icons/tb'
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
+import { useRef } from 'react'
 
 interface DocenteRowProps {
   fetchDocentes: ()=> Promise<void>
@@ -12,13 +14,59 @@ interface DocenteRowProps {
 }
 
 export default function DocenteRow({fetchDocentes, docente, onShowDetail}: DocenteRowProps) {
-  return (
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  const handleClick = ()=> {
+    fileInputRef.current?.click()
+  }
+
+  const handlefileChange = (event: React.ChangeEvent<HTMLInputElement>)=> {
+    const file = event.target.files?.[0]
+    if (file){
+      const previewUrl = URL.createObjectURL(file)
+      console.log("archivo seleccionado", file)
+      console.log("vista previa", previewUrl)
+    }
+  }
+    return (
     <tr className="hover:bg-gray-100 cursor-pointer">
         <td className="p-3 border-b border-gray-200">{docente.id}</td>
+        <td className="p-3 border-b border-gray-200 cursor-pointer">
+          <Avatar className="w-10 h-10 border-2 border-green-200">
+                    {docente.foto_docente? (
+                        <AvatarImage
+                            src={docente.foto_docente || "/placeholder.svg"}
+                            alt={docente.nombres}
+                        />
+                    ) : (
+
+                    <AvatarFallback className="text-md font-bold bg-green-100 text-green-700">
+                        {`${docente.nombres.split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .slice(0, 1)}${docente.apellido_paterno.split("")
+                                .map((n) => n[0])
+                                .join("")
+                                .slice(0, 1)}`}
+                    </AvatarFallback>
+                    )}
+                </Avatar>
+                    <input
+                    type="file"
+                    accept = "image/*"
+                    ref={fileInputRef}
+                    onChange={handlefileChange}
+                    className="hidden"
+                    />
+                  </td>
         <td className="p-3 border-b border-gray-200">{docente.nombres}</td>
         <td className="p-3 border-b border-gray-200">{docente.apellido_paterno}</td>
         <td className="p-3 border-b border-gray-200">{docente.apellido_materno}</td>
         <td className="p-3 border-b border-gray-200">{docente.telefono}</td>
+        {/* <td className="p-3 border-b border-gray-200">{docente.cargo_nominal}</td>
+        <td className="p-3 border-b border-gray-200">{docente.cargo_real}</td> */}
+
         <td className="p-3 px-2 py-2 border-b border-gray-200 text-center">
           <button onClick={(e) => {
             e.stopPropagation();

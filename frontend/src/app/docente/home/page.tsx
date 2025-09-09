@@ -1,12 +1,19 @@
 'use client'
 
-import { FaChartBar, FaUsers, FaCogs } from 'react-icons/fa'
+import { FaChartBar, FaUsers, FaCogs, FaUser } from 'react-icons/fa'
 import { motion } from 'framer-motion'
 import { FaArrowUpRightFromSquare } from 'react-icons/fa6'
 import CerrarSecion from '@/components/cerrarSesion'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import AddDepartamentoModal from '@/components/modals/catalogo/departamentoModals/AddDepartamentoModal'
+import { getDepartamentos } from '@/actions/catalogos/departamentoMethods'
 
 export default function HomePage() {
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false)
+  
   return (
     <div className="mx-6">
       <div className="flex items-center justify-between">
@@ -14,6 +21,10 @@ export default function HomePage() {
           Página de inicio
         </h2>
         <CerrarSecion />
+        <FaUser
+            className="text-2xl text-blue-900 cursor-pointer"
+            
+          />
       </div>
       <h2 className="text-2xl md:text-3xl font-bold text-blue-900 drop-shadow-md mb-6">
         Bienvenido Docente al Sistema de Calificaciones SIRD

@@ -4,6 +4,7 @@ import { Docentes } from './docentes.entity';
 import { Repository } from 'typeorm';
 import { DocentesDTO } from './docentes.dto';
 import { Utilities } from '../../common/helpers/utilities';
+import { UpdateDocentesDTO } from './updateDocentedto';
 
 @Injectable()
 export class DocentesService {
@@ -22,6 +23,24 @@ export class DocentesService {
       Utilities.catchError(error);
     }
   }
+
+  async getDocenteByUserId(userId: number): Promise<Docentes> {
+  try {
+    const docente = await this.docenteRepository.findOne({
+      where: { user_create_id: userId },
+      relations: ['sexo', 'nivel_academico', 'profession', 'pais', 'municipio', 'User'],
+    });
+
+    if (!docente) {
+      throw new NotFoundException('Docente no encontrado');
+    }
+
+    return docente;
+  } catch (error) {
+    Utilities.catchError(error);
+  }
+}
+
 
   async getDocente(): Promise<Docentes[]> {
     try {
@@ -58,7 +77,7 @@ export class DocentesService {
     }
   }
 
-  async editDocente(id: number, payload: DocentesDTO): Promise<Docentes> {
+  async editDocente(id: number, payload: UpdateDocentesDTO): Promise<Docentes> {
     try {
       const docente = await this.docenteRepository.findOne({
         where: { id },
@@ -113,4 +132,5 @@ export class DocentesService {
       Utilities.catchError(error);
     }
   }
+
 }

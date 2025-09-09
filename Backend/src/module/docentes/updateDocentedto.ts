@@ -18,83 +18,83 @@ import {
 } from '../catalogos';
 import { Grupos } from '../organizacionEscolar/entities/grupos.entity';
 
-export class DocentesDTO {
+export class UpdateDocentesDTO {
   @IsOptional()
   @IsNumber()
   readonly id?: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @MaxLength(100)
-  nombres: string;
+  nombres?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @MaxLength(50)
-  apellido_paterno: string;
+  apellido_paterno?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @MaxLength(50)
-  apellido_materno: string;
+  apellido_materno?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @MaxLength(16)
-  cedula_identidad: string;
+  cedula_identidad?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsObject()
-  sexo: GenderEntity;
-
-  @IsNotEmpty()
-  @IsArray()
-  nivel_academico: AcademicLevelEntity[];
-
-  @IsNotEmpty()
-  @IsArray()
-  profession: ProfessionsEntity[];
+  sexo?: GenderEntity;
 
   @IsOptional()
   @IsArray()
-  grupos: Grupos[];
+  nivel_academico?: AcademicLevelEntity[];
 
-  @IsNotEmpty()
+  @IsOptional()
+  @IsArray()
+  profession?: ProfessionsEntity[];
+
+  @IsOptional()
+  @IsArray()
+  grupos?: Grupos[];
+
+  @IsOptional()
   @IsString()
-  telefono: string;
+  telefono?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsDate()
-  fecha_nacimiento: Date;
+  fecha_nacimiento?: Date;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsObject()
-  pais: Pais;
+  pais?: Pais;
 
   // @IsNotEmpty()
   // @IsObject()
   // departamento: Departamento;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsObject()
-  municipio: Municipio;
+  municipio?: Municipio;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  direccion_domiciliar: string;
+  direccion_domiciliar?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsDate()
-  fechaContratado: Date;
+  fechaContratado?: Date;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @MaxLength(150)
-  nombre_contacto_emergencia: string;
+  nombre_contacto_emergencia?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  telefono_contacto_emergencia: string;
+  telefono_contacto_emergencia?: string;
 
   //
   @IsOptional()
@@ -115,25 +115,25 @@ export class DocentesDTO {
 
   @IsOptional()
   @IsNumber()
-  user_create_id: number;
+  user_create_id?: number;
 
   @IsOptional()
   @IsDate()
-  created_at: Date;
+  created_at?: Date;
 
   @IsOptional()
   @IsDate()
-  update_at: Date;
+  update_at?: Date;
 
   @IsOptional()
   @IsNumber()
-  user_update_id: number;
+  user_update_id?: number;
 
   @IsOptional()
   @IsDate()
-  deleted_at: Date;
+  deleted_at?: Date;
 
   @IsOptional()
   @IsNumber()
-  deleted_at_id: number;
+  deleted_at_id?: number;
 }
