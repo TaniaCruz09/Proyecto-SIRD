@@ -12,16 +12,16 @@ export async function getAniosLectivos() {
     } return response.data
 }
 
-// export async function getOrganizacionEscolarPorAnio(id: number) {
-//     const endpoint = `/anioLectivo/${id}`
+export async function getAnioLectivoById(id: number) {
+    const endpoint = `/anioLectivo/${id}`
 
-//     const response = await feching(endpoint, "no-cache", "GET");
+    const response = await feching(endpoint, "no-cache", "GET");
 
-//     if (!response.data || response.error) {
-//         throw new Error(response?.error || "Error al obtener");
+    if (!response.data || response.error) {
+        throw new Error(response?.error || "Error al obtener");
 
-//     } return response.data
-// }
+    } return response.data
+}
 
 export async function saveAnioLectivo(anio_lectivo: AnioLectivoPayload) {
     const endpoint = `/anioLectivo`

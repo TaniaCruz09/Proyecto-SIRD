@@ -32,7 +32,7 @@ export async function getEstudentById(id: number) {
     return response.data
 }
 
-export async function saveStudent(student: RegisterEstudentPayload) {
+export async function saveStudent(student: FormData) {
     const endPoint = '/student'
     console.log(student, 'este es el estudiante que se envia al back')
     const response = await feching(endPoint, 'no-cache', 'POST', student)
@@ -43,7 +43,7 @@ export async function saveStudent(student: RegisterEstudentPayload) {
     return response.data
 }
 
-export async function ActualizarStudent(id: number, student: RegisterEstudentPayload) {
+export async function ActualizarStudent(id: number, student: FormData) {
     console.log(student, 'este es el estudiante que se envia al back para actualizar')
     const endPoint = `/student/${id}`
     const response = await feching(endPoint, 'no-cache', 'PUT', student)

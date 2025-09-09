@@ -8,32 +8,32 @@ interface DeleteAñoLectivoModalProps {
   fetchAñoLectivo: () => Promise<void>;
 }
 
-export default function DeleteAñoLectivoModal({idEliminar, fetchAñoLectivo}:DeleteAñoLectivoModalProps) {
-    const [AñoLectivoToDelete, setAñoLectivoToDelete] = useState<number | null>(null);
-      const [showConfirm, setShowConfirm] = useState<boolean>(false);
+export default function DeleteAñoLectivoModal({ idEliminar, fetchAñoLectivo }: DeleteAñoLectivoModalProps) {
+  const [AñoLectivoToDelete, setAñoLectivoToDelete] = useState<number | null>(null);
+  const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
-      const handleDeleteClick = (id: number)=>{
-        setAñoLectivoToDelete(id);
-        setShowConfirm(true);
-      }
+  const handleDeleteClick = (id: number) => {
+    setAñoLectivoToDelete(id);
+    setShowConfirm(true);
+  }
 
-      const confirmDelete = async ()=>{
-        if(!AñoLectivoToDelete) return;
-        try{
-            await deleteAnioLectivo(AñoLectivoToDelete);
-            await fetchAñoLectivo();
-        } catch (error) {
-            console.error("error al eliminar la año lectivo", error)
-        } finally {
-            setShowConfirm(false);
-            setAñoLectivoToDelete(null)
-        }
-      } 
-    
+  const confirmDelete = async () => {
+    if (!AñoLectivoToDelete) return;
+    try {
+      await deleteAnioLectivo(AñoLectivoToDelete);
+      await fetchAñoLectivo();
+    } catch (error) {
+      console.error("error al eliminar la año lectivo", error)
+    } finally {
+      setShowConfirm(false);
+      setAñoLectivoToDelete(null)
+    }
+  }
+
   return (
     <div>
-        <BtnDelete onClick={()=> handleDeleteClick(idEliminar)}/>
-        <ConfirmDeletModal onshow={showConfirm} onCancel={()=> setShowConfirm(false)} onConfirm={confirmDelete}/>
+      <BtnDelete onClick={() => handleDeleteClick(idEliminar)} />
+      <ConfirmDeletModal onshow={showConfirm} onCancel={() => setShowConfirm(false)} onConfirm={confirmDelete} />
     </div>
   )
 }

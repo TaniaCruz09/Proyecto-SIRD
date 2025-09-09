@@ -3,44 +3,30 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Calendar, GraduationCap, Plus, Settings, Users } from "lucide-react"
+import { ArrowLeft, Calendar, GraduationCap, Settings, Users } from "lucide-react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
-import { OrganizacionEscolar } from "@/interfaces"
-import { getOrganizacionEscolar, getOrganizacionEscolarPorAnio } from "@/actions/organizacionEscolarMethods/organizacionMethods"
+import { useParams } from "next/navigation"
+import { AnioLectivo } from "@/interfaces"
 import AddOganizacionEscolarConAnioLectivoModal from "@/components/modals/organizacionEscolar/organizacion/AddOganizacionEscolarConAnioLectivoModal"
+import { getAnioLectivoById } from "@/actions/catalogos/anioLectivoMethods"
 
 
-export default function AcademicYearOrganizations({ params }: { params: { year: string } }) {
-    const [organizacionEscolar, setOrganizacionEscolar] = useState<OrganizacionEscolar[]>([])
-    const [organizacionesPorAnioData, setOrganizacionesPorAnioData] = useState<OrganizacionEscolar[]>([])
-    const [searchTerm, setSearchTerm] = useState<string>("");
+export default function AcademicYearOrganizations() {
+    const [anioLectivoConOrganizacion, setAnioLectivoConOrganizacion] = useState<AnioLectivo | null>(null);
 
+    const { anioLectivoId } = useParams();
 
-
-    const searchParams = useSearchParams();
-    const idAnioLectivo = searchParams.get("idAnioLectivo")
-
-    const fetchOrganizacionEscolar = async () => {
+    const fetchOrganizacionPorAnioLectivo = async () => {
         try {
-            const response = await getOrganizacionEscolar();
-            setOrganizacionEscolar(response);
-        } catch (error) {
-            console.error(error);
-        }
-    };
-    const fetchOrganizacionPorAniLectivo = async () => {
-        try {
-            const response = await getOrganizacionEscolarPorAnio(Number(idAnioLectivo));
-            setOrganizacionesPorAnioData(response || []);
+            const response = await getAnioLectivoById(Number(anioLectivoId));
+            setAnioLectivoConOrganizacion(response || []);
         } catch (error: any) {
             console.error(error);
         }
     };
 
     useEffect(() => {
-        fetchOrganizacionEscolar();
-        fetchOrganizacionPorAniLectivo()
+        fetchOrganizacionPorAnioLectivo()
     }, []);
 
     return (
@@ -56,51 +42,10 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
                 <div className="ml-7">
                     <h1 className="text-3xl font-bold flex items-center gap-2">
                         <Calendar className="h-8 w-8" />
-                        Año Lectivo {organizacionesPorAnioData[0]?.anio_lectivo.anio_lectivo}
+                        Año Lectivo {anioLectivoConOrganizacion?.anio_lectivo}
                     </h1>
                     <p className="text-muted-foreground">Gestiona las organizaciones escolares de este año lectivo</p>
                 </div>
-            </div>
-
-            {/* Estadísticas */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Organizaciones</p>
-                                <p className="text-2xl font-bold">{organizacionesPorAnioData.length}</p>
-                            </div>
-                            <GraduationCap className="h-8 w-8 text-muted-foreground" />
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Total Grupos</p>
-                                <p className="text-2xl font-bold">
-                                    {organizacionEscolar.reduce((acc, e) => acc + (e.grupos?.length || 0), 0)}
-                                </p>
-                            </div>
-                            <Users className="h-8 w-8 text-muted-foreground" />
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Cortes por Org.</p>
-                                <p className="text-2xl font-bold">4</p>
-                            </div>
-                            <Settings className="h-8 w-8 text-muted-foreground" />
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
 
             {/* Lista de organizaciones */}
@@ -108,11 +53,11 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
                 <div className="flex items-center justify-between">
                     <h2 className="text-xl font-semibold">Organizaciones Escolares</h2>
                     <AddOganizacionEscolarConAnioLectivoModal
-                        idAnioLectivo={Number(idAnioLectivo)}
-                        fetchOrganizacionPorAnioLectivo={fetchOrganizacionPorAniLectivo} />
+                        idAnioLectivo={Number(anioLectivoId)}
+                        fetchOrganizacionPorAnioLectivo={fetchOrganizacionPorAnioLectivo} />
                 </div>
 
-                {organizacionesPorAnioData.length === 0 ? (
+                {anioLectivoConOrganizacion?.organizacionEscolar?.length === 0 ? (
                     <Card className="border-2 border-dashed">
                         <CardContent className="p-12 text-center">
                             <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -120,17 +65,14 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
                             <p className="text-muted-foreground mb-4">
                                 Comienza agregando tu primera organización escolar para este año lectivo.
                             </p>
-                            <Link href={`/academic-year/${params.year}/create-organization`}>
-                                <Button>
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Crear Primera Organización
-                                </Button>
-                            </Link>
+                            <AddOganizacionEscolarConAnioLectivoModal
+                                idAnioLectivo={Number(anioLectivoId)}
+                                fetchOrganizacionPorAnioLectivo={fetchOrganizacionPorAnioLectivo} />
                         </CardContent>
                     </Card>
                 ) : (
                     <div className="grid gap-4">
-                        {Array.isArray(organizacionesPorAnioData) && organizacionesPorAnioData.map((o) => (
+                        {anioLectivoConOrganizacion?.organizacionEscolar.map((o) => (
                             <Card key={o.id} className="hover:shadow-md transition-shadow">
                                 <CardContent className="p-6">
                                     <div className="flex items-center justify-between">
@@ -144,12 +86,9 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
                                                 </Badge>
                                             </div>
                                             <div className="flex items-center gap-4 text-sm text-slate-600 flex-wrap">
-
                                                 <Badge key={o.corte?.id} variant="outline" className="bg-rose-100 text-rose-700">
                                                     {o.corte?.corte} - {o.corte?.semestre.semestre}
                                                 </Badge>
-
-
                                                 <span>• Grupos: {o.grupos?.length || 0}</span>
                                             </div>
                                         </div>
@@ -158,7 +97,7 @@ export default function AcademicYearOrganizations({ params }: { params: { year: 
                                                 <Settings className="h-4 w-4 mr-2" />
                                                 Gestionar
                                             </Button>
-                                            <Link href={`/organizacionEscolar/add-groups-to-organization?idOrganizacion=${o.id}`}>
+                                            <Link href={`/add-groups-to-organization/${o.id}`}>
                                                 <Button
                                                     variant="outline"
                                                     size="sm"

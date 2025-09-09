@@ -87,20 +87,6 @@ export class OrganizacionEscolarController {
     }
   }
 
-  @Get("/por-anio/:anioId")
-  async getOrganizacionPorAnio(@Param('anioId', ParseIntPipe) anioId: number) {
-    try {
-      const organizaciones = await this.organizacionService.getOrganizacionesByAnio(anioId);
-      const data = {
-        data: organizaciones,
-        message: 'ok',
-      };
-      return data;
-    } catch (error) {
-      Utilities.catchError(error);
-    }
-  }
-
   @Put('/:id')
   async editarOrganizacion(
     @Param('id', ParseIntPipe) id: number,

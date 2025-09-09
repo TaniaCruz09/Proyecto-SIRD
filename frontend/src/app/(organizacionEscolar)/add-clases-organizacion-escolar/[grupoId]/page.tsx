@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import {
   GrupoConAsignaturasPayload,
@@ -13,7 +12,7 @@ import {
 } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/grupoConAsignaturasMethos";
 import { Asignatura, Docente, GrupoEscolar } from "@/interfaces";
 import { getAsignaturas } from "@/actions/catalogos/asignaturaMethods";
-import { useSearchParams } from "next/navigation";
+import { useParams, } from "next/navigation";
 import { getDocentes } from "@/actions/docentesMethods/docentesMethods";
 import EditarMateriaForm from "@/components/forms/EditarMateriaForm";
 import ConfirmDialog from "@/components/modals/organizacionEscolar/grupoConAsignatura/ConfirmAccion";
@@ -37,32 +36,32 @@ export default function AddClasesOrganizacionEscolarPage() {
     onConfirm: () => { },
   });
 
+  const { grupoId } = useParams();
 
-  const searchParams = useSearchParams();
-  const idGrupo = Number(searchParams.get("idGrupo"));
-   const [grupos, setGrupos] = useState<GrupoEscolar>();
-   const fetchGrupoById = async () => {
-           try {
-               const response = await getGruposById(idGrupo)
-               setGrupos(response)
-           } catch (error) {
-               console.error(error)
-           }
-       }
-   
-       useEffect(() => {
-           fetchGrupoById()
-   
-       }, [idGrupo]);
+  const [grupos, setGrupos] = useState<GrupoEscolar>();
+
+  const fetchGrupoById = async () => {
+    try {
+      const response = await getGruposById(Number(grupoId))
+      setGrupos(response)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  useEffect(() => {
+    fetchGrupoById()
+
+  }, [grupoId]);
   const grupo = grupos?.grado.grades ?? "N/A"
-    const docenteGuia = grupos?.docenteGuia.nombres ?? "N/A"
-    const docenteGuiaApellidos = grupos?.docenteGuia.apellido_materno ?? "N/A"
-    const seccion = grupos?.seccion.seccion ?? "N/A"
+  const docenteGuia = grupos?.docenteGuia.nombres ?? "N/A"
+  const docenteGuiaApellidos = grupos?.docenteGuia.apellido_materno ?? "N/A"
+  const seccion = grupos?.seccion.seccion ?? "N/A"
 
   // Función para traer las relaciones del grupo
   const fetchRelaciones = async () => {
-    if (!idGrupo) return;
-    const relacionesArray = await getGrupoConAsignaturaById(Number(idGrupo));
+    if (!grupoId) return;
+    const relacionesArray = await getGrupoConAsignaturaById(Number(grupoId));
     const relacionesUnicas = relacionesArray.filter(
       (rel: GrupoConAsignaturasResponse, index: number, self: GrupoConAsignaturasResponse[]) =>
         index === self.findIndex((r) => r.asignatura.id === rel.asignatura.id)
@@ -73,7 +72,7 @@ export default function AddClasesOrganizacionEscolarPage() {
 
   useEffect(() => {
     async function fetchData() {
-      if (!idGrupo) return;
+      if (!grupoId) return;
       try {
         await fetchRelaciones();
         setMateriasDisponibles(await getAsignaturas());
@@ -83,7 +82,7 @@ export default function AddClasesOrganizacionEscolarPage() {
       }
     }
     fetchData();
-  }, [idGrupo]);
+  }, [grupoId]);
 
   // Función para eliminar una asignatura
   const handleEliminarAsignatura = (asignaturaId: number) => {
@@ -93,7 +92,7 @@ export default function AddClasesOrganizacionEscolarPage() {
       onConfirm: async () => {
         try {
           setLoading(true);
-          const res = await eliminarUnaAsignaturaAsignatura(Number(idGrupo), asignaturaId);
+          const res = await eliminarUnaAsignaturaAsignatura(Number(grupoId), asignaturaId);
           console.log(res?.message || "Asignatura eliminada correctamente ✅");
           await fetchRelaciones();
         } catch (error: any) {
@@ -114,7 +113,7 @@ export default function AddClasesOrganizacionEscolarPage() {
       onConfirm: async () => {
         try {
           setLoading(true);
-          const res = await eliminarGrupoConTodasSusAsignatura(Number(idGrupo));
+          const res = await eliminarGrupoConTodasSusAsignatura(Number(grupoId));
           console.log(res?.message || "Todas las asignaturas eliminadas ✅");
           await fetchRelaciones();
         } catch (error: any) {
@@ -141,7 +140,7 @@ export default function AddClasesOrganizacionEscolarPage() {
     }
 
     const payload: GrupoConAsignaturasPayload = {
-      grupoId: Number(idGrupo),
+      grupoId: Number(grupoId),
       asignaturasConDocentes: [{ asignaturaId: selectedAsignatura, docenteId: selectedDocente }],
     };
 
@@ -155,7 +154,7 @@ export default function AddClasesOrganizacionEscolarPage() {
     }
   };
 
-  if (!idGrupo) return <p>Cargando...</p>;
+  if (!grupoId) return <p>Cargando...</p>;
 
   return (
     <div style={{ padding: "20px", maxWidth: "900px", margin: "0 auto" }}>
@@ -167,11 +166,11 @@ export default function AddClasesOrganizacionEscolarPage() {
         <div>
           <strong>Grupo Seleccionado</strong>
           <h2 style={{ color: "#15803d" }}>
-           Docente Guia: {docenteGuia || "N/A"}{docenteGuiaApellidos || "N/A"}
+            Docente Guia: {docenteGuia || "N/A"}{docenteGuiaApellidos || "N/A"}
           </h2>
           <p>
 
-            grupo: {grupo|| "N/A"} { seccion|| "N/A"} 
+            grupo: {grupo || "N/A"} {seccion || "N/A"}
           </p>
         </div>
         <div style={{ textAlign: "right" }}>

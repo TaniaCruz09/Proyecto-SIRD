@@ -8,32 +8,32 @@ interface DeleteSemestreModalProps {
   fetchSemestres: () => Promise<void>;
 }
 
-export default function DeleteSemestreModal({idEliminar, fetchSemestres}:DeleteSemestreModalProps) {
-    const [semestreToDelete, setSemestreToDelete] = useState<number | null>(null);
-      const [showConfirm, setShowConfirm] = useState<boolean>(false);
+export default function DeleteSemestreModal({ idEliminar, fetchSemestres }: DeleteSemestreModalProps) {
+  const [semestreToDelete, setSemestreToDelete] = useState<number | null>(null);
+  const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
-      const handleDeleteClick = (id: number)=>{
-        setSemestreToDelete(id);
-        setShowConfirm(true);
-      }
+  const handleDeleteClick = (id: number) => {
+    setSemestreToDelete(id);
+    setShowConfirm(true);
+  }
 
-      const confirmDelete = async ()=>{
-        if(!semestreToDelete) return;
-        try{
-            await deleteSemestre(semestreToDelete);
-            await fetchSemestres();
-        } catch (error) {
-            console.error("error al eliminar el Semestre", error)
-        } finally {
-            setShowConfirm(false);
-            setSemestreToDelete(null)
-        }
-      } 
-    
+  const confirmDelete = async () => {
+    if (!semestreToDelete) return;
+    try {
+      await deleteSemestre(semestreToDelete);
+      await fetchSemestres();
+    } catch (error) {
+      console.error("error al eliminar el Semestre", error)
+    } finally {
+      setShowConfirm(false);
+      setSemestreToDelete(null)
+    }
+  }
+
   return (
     <div>
-        <BtnDelete onClick={()=> handleDeleteClick(idEliminar)}/>
-        <ConfirmDeletModal onshow={showConfirm} onCancel={()=> setShowConfirm(false)} onConfirm={confirmDelete}/>
+      <BtnDelete onClick={() => handleDeleteClick(idEliminar)} />
+      <ConfirmDeletModal onshow={showConfirm} onCancel={() => setShowConfirm(false)} onConfirm={confirmDelete} />
     </div>
   )
 }

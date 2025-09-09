@@ -29,9 +29,8 @@ const catalogSubmenu = [
 ];
 
 const organizacionEscolarSubmenu = [
-  { label: "Organizacion Escolar", href: "/organizacionEscolar/organizacion", icon: FaUser, roles: ["Admin"] },
-  { label: "Grupos Educativos", href: "/organizacionEscolar/registerGroups", icon: FaUserPlus, roles: ["Admin"] },
-  { label: "Grupos con Estudiantes", href: "/organizacionEscolar/gruposConEstudiantes", icon: FaUserPlus, roles: ["Admin"] },
+  { label: "Organizacion Escolar", href: "/organizacion", icon: FaUser, roles: ["Admin"] },
+  { label: "Grupos Educativos", href: "/registerGroups", icon: FaUserPlus, roles: ["Admin"] },
 ];
 
 
@@ -173,7 +172,7 @@ function NavbarAdmin() {
         </Link>
 
         <Link
-          href="/estudiantes/registerEstudent"
+          href="/registerEstudent"
           scroll={false}
           className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/student")}`}
           onClick={handleSaveScroll}
@@ -209,7 +208,7 @@ function NavbarAdmin() {
             )}
           </>
         )}
-        <Link href="/notasEstudiantes" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}>
+        <Link href="/esquela-calificaciones" className={`flex items-center gap-3 p-3 rounded-md transition ${isActive("/estudiantes")}`}>
           <FaCog />
           <span>Calificaciones</span>
         </Link>

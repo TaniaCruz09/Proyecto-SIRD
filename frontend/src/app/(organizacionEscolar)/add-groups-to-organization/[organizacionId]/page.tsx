@@ -4,25 +4,21 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Trash2, Users, GraduationCap, BookOpen, Save, UserCheck, ChevronRight } from "lucide-react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import type {
     OrganizacionEscolar,
 } from "@/interfaces"
 import GrupoTableForm from "@/components/forms/organizacionEscolarForms/GrupoTableForm"
-import { useRouter } from "next/navigation"
 import { getOrganizacionEscolarById } from "@/actions/organizacionEscolarMethods/organizacionMethods"
 
 export default function OrganizationGroups() {
-    const searchParams = useSearchParams()
-    const idOrganizacion = Number(searchParams.get("idOrganizacion"))
-
+    const { organizacionId } = useParams();
     const router = useRouter()
-
     const [organizacionEscolar, setOrganizacionEscolar] = useState<OrganizacionEscolar>()
 
     const fetchOrganizacionEscolarById = async () => {
         try {
-            const response = await getOrganizacionEscolarById(idOrganizacion)
+            const response = await getOrganizacionEscolarById(Number(organizacionId))
             setOrganizacionEscolar(response)
         } catch (error: unknown) {
             console.error(error);
@@ -39,7 +35,7 @@ export default function OrganizationGroups() {
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <Link
-                        href={`/organizacionEscolar/add-organizations-to-year?idAnioLectivo=${organizacionEscolar?.anio_lectivo.id}`}
+                        href={`/add-organizations-to-year?idAnioLectivo=${organizacionEscolar?.anio_lectivo.id}`}
                     >
                         <Button variant="outline" size="sm">
                             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -112,7 +108,7 @@ export default function OrganizationGroups() {
                 </Card>
             </div>
             {/* Formulario para agregar grupos */}
-            <GrupoTableForm idOrganizacion={Number(idOrganizacion)} idTurno={Number(organizacionEscolar?.turno?.id ?? null)} onSuccess={fetchOrganizacionEscolarById} />
+            <GrupoTableForm idOrganizacion={Number(organizacionId)} idTurno={Number(organizacionEscolar?.turno?.id ?? null)} onSuccess={fetchOrganizacionEscolarById} />
 
 
             {/* Lista de grupos */}
@@ -169,7 +165,7 @@ export default function OrganizationGroups() {
                                             <Button
                                                 variant="outline" size="sm"
                                                 className="w-full justify-between bg-transparent"
-                                                onClick={() => router.push(`/organizacionEscolar/add-clases-organizacion-escolar?idGrupo=${g.id}`)}
+                                                onClick={() => router.push(`/add-clases-organizacion-escolar/${g.id}`)}
                                             >
 
                                                 <span className="flex items-center gap-2">
@@ -182,7 +178,7 @@ export default function OrganizationGroups() {
                                             <Button
                                                 variant="outline" size="sm"
                                                 className="w-full justify-between bg-transparent"
-                                                onClick={() => router.push(`/organizacionEscolar/add-students-to-group?idGrupo=${g.id}`)}
+                                                onClick={() => router.push(`/add-students-to-group/${g.id}`)}
                                             >
 
                                                 <span className="flex items-center gap-2">

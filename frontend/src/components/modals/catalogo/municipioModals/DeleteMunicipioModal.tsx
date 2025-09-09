@@ -8,32 +8,32 @@ interface DeleteMunicipioModalProps {
   fetchMunicipios: () => Promise<void>;
 }
 
-export default function DeleteMunicipioModal({idEliminar, fetchMunicipios}:DeleteMunicipioModalProps) {
-    const [municipioToDelete, setMunicipioToDelete] = useState<number | null>(null);
-      const [showConfirm, setShowConfirm] = useState<boolean>(false);
+export default function DeleteMunicipioModal({ idEliminar, fetchMunicipios }: DeleteMunicipioModalProps) {
+  const [municipioToDelete, setMunicipioToDelete] = useState<number | null>(null);
+  const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
-      const handleDeleteClick = (id: number)=>{
-        setMunicipioToDelete(id);
-        setShowConfirm(true);
-      }
+  const handleDeleteClick = (id: number) => {
+    setMunicipioToDelete(id);
+    setShowConfirm(true);
+  }
 
-      const confirmDelete = async ()=>{
-        if(!municipioToDelete) return;
-        try{
-            await deleteMunicipio(municipioToDelete);
-            await fetchMunicipios();
-        } catch (error) {
-            console.error("error al eliminar la municipio", error)
-        } finally {
-            setShowConfirm(false);
-            setMunicipioToDelete(null)
-        }
-      } 
-    
+  const confirmDelete = async () => {
+    if (!municipioToDelete) return;
+    try {
+      await deleteMunicipio(municipioToDelete);
+      await fetchMunicipios();
+    } catch (error) {
+      console.error("error al eliminar la municipio", error)
+    } finally {
+      setShowConfirm(false);
+      setMunicipioToDelete(null)
+    }
+  }
+
   return (
     <div>
-        <BtnDelete onClick={()=> handleDeleteClick(idEliminar)}/>
-        <ConfirmDeletModal onshow={showConfirm} onCancel={()=> setShowConfirm(false)} onConfirm={confirmDelete}/>
+      <BtnDelete onClick={() => handleDeleteClick(idEliminar)} />
+      <ConfirmDeletModal onshow={showConfirm} onCancel={() => setShowConfirm(false)} onConfirm={confirmDelete} />
     </div>
   )
 }

@@ -45,7 +45,7 @@ export default function HomePage() {
           title="Gestión de Estudiantes"
           description="Administra los datos de los estudiantes fácilmente"
           bgColor='bg-yellow-500/40 hover:shadow-2xl hover:bg-yellow-400/60'
-          href='estudiantes/registerEstudent'
+          href='registerEstudent'
         />
 
         {/* Tarjeta 3 */}

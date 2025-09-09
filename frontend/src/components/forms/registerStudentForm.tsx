@@ -4,8 +4,10 @@ import { getPaises } from "@/actions/catalogos/paisMethods";
 import { getSexos } from "@/actions/catalogos/sexoMethods";
 import { ActualizarStudent, saveStudent } from "@/actions/resgisterEstudentMethods/regiterEstudentMethods";
 import { Municipio, Pais, Sexo } from "@/interfaces";
-import RegisterEstudent, { RegisterEstudentPayload } from "@/interfaces/registerEstudentInterface";
-import { useEffect, useState } from "react";
+import RegisterEstudent from "@/interfaces/registerEstudentInterface";
+import { useEffect, useRef, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { User } from "lucide-react";
 
 interface RegisterEstudentProps {
     defeaultValues?: RegisterEstudent | null;
@@ -13,33 +15,22 @@ interface RegisterEstudentProps {
 }
 
 export default function RegisterEstudentForm({ defeaultValues, onSucess }: RegisterEstudentProps) {
-    const [name, setName] = useState<string>("")
-    const [lastName, setLastName] = useState<string>("");
-    const [studentCode, setStudentCode] = useState<string>("");
-    const [identityCard, setIdentityCard] = useState<string>("");
-    const [dateBirt, setDateBirt] = useState<string>("");
-    const [address, setAddress] = useState<string>("");
-    const [tutorName, setTutorName] = useState<string>("");
-    const [tutorIdentityCard, setTutorIdentityCard] = useState<string>("");
-    const [tutorPhoneNumber, setTutorPhoneNumber] = useState<string>("");
-    const [gender, setGender] = useState<string>("");
-    const [observations, setObservations] = useState<string>("");
-    const [pais, setPais] = useState<string>("");
-    const [municipio, setMunicipio] = useState<string>("");
+    const [formValues, setFormValues] = useState({ name: "", lastName: "", studentCode: "", identityCard: "", dateBirt: "", address: "", tutorName: "", tutorIdentityCard: "", tutorPhoneNumber: "", gender: "", observations: "", pais: "", municipio: "", telefono: "" })
 
     const [generos, setGeneros] = useState<Sexo[]>([]);
     const [paises, setPaises] = useState<Pais[]>([]);
     const [municipios, setMunicipios] = useState<Municipio[]>([]);
+    const [file, setFile] = useState<File | null>(null)
+    const [preview, setPreview] = useState<string | null>(null)
+
+    const fileInputRef = useRef<HTMLInputElement | null>(null)
     const isEdit = Boolean(defeaultValues?.id)
 
+    // Fetch catálogos
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [
-                    generosData,
-                    paisesData,
-                    municipiosData
-                ] = await Promise.all([
+                const [generosData, paisesData, municipiosData] = await Promise.all([
                     getSexos(),
                     getPaises(),
                     getMunicipios()
@@ -53,127 +44,154 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
         };
         fetchData();
     }, [])
+
+    // Inicializar valores si estamos editando
+    useEffect(() => {
+        if (defeaultValues) {
+            setFormValues({
+                name: defeaultValues.name,
+                lastName: defeaultValues.lastName,
+                studentCode: defeaultValues.studentCode,
+                identityCard: defeaultValues.identityCard,
+                dateBirt: defeaultValues.dateBirt
+                    ? new Date(defeaultValues.dateBirt).toISOString().split("T")[0]
+                    : "",
+                address: defeaultValues.address,
+                tutorName: defeaultValues.tutorName,
+                tutorIdentityCard: defeaultValues.tutorIdentityCard,
+                tutorPhoneNumber: defeaultValues.tutorPhoneNumber,
+                gender: defeaultValues.gender?.id?.toString() || "",
+                observations: defeaultValues.observations,
+                pais: defeaultValues.pais?.id?.toString() || "",
+                municipio: defeaultValues.municipio?.id?.toString() || "",
+                telefono: defeaultValues.phone || "",
+            });
+
+            if (defeaultValues.profileImage) {
+                setPreview(`${process.env.NEXT_PUBLIC_API_UPLOADS}${defeaultValues.profileImage}`);
+            }
+        }
+    }, [defeaultValues]);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormValues(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFile = e.target.files?.[0]
+        if (!selectedFile) return;
+        setFile(selectedFile);
+        setPreview(URL.createObjectURL(selectedFile));
+    }
+
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const selectedSexo = generos.find((s) => s.id === parseInt(gender))
-            const selectedPais = paises.find((p) => p.id === parseInt(pais));
-            const selectedMunicipio = municipios.find(
-                (m) => m.id === parseInt(municipio)
-            );
-            if (
-                !selectedSexo ||
-                !selectedPais ||
-                !selectedMunicipio
-            ) {
-                console.error("Faltan campos requeridos");
-                return;
-            }
+            const data = new FormData();
+            Object.entries(formValues).forEach(([key, value]) => {
+                data.append(key, value);
+            });
+            if (file) data.append("profileImage", file);
 
-            const registerStudentData: RegisterEstudentPayload = {
-                name: name,
-                lastName: lastName,
-                studentCode: studentCode,
-                identityCard: identityCard,
-                dateBirt: new Date(dateBirt),
-                address: address,
-                tutorName: tutorName,
-                tutorIdentityCard: tutorIdentityCard,
-                tutorPhoneNumber: tutorPhoneNumber,
-                observations: observations,
-                gender: selectedSexo,
-                pais: selectedPais,
-                municipio: selectedMunicipio,
-                // Opcionales:
-                user_create_id: null,
-                created_at: undefined,
-                update_at: undefined,
-                user_update_id: null,
-                deleted_at: null,
-                deleted_at_id: null,
-            }
             if (isEdit && defeaultValues?.id) {
-                await ActualizarStudent(defeaultValues.id, registerStudentData);
+                await ActualizarStudent(defeaultValues.id, data);
             } else {
-                await saveStudent(registerStudentData);
+                await saveStudent(data);
             }
-            onSucess?.();
 
+            onSucess?.();
         } catch (error) {
             console.error("Error al guardar el estudiante:", error);
         }
+    };
 
-    }
-
-    useEffect(() => {
-        if (defeaultValues) {
-            setName(defeaultValues.name);
-            setLastName(defeaultValues.lastName);
-            setStudentCode(defeaultValues.studentCode);
-            setIdentityCard(defeaultValues.identityCard);
-            setDateBirt(defeaultValues.dateBirt ? new Date(defeaultValues.dateBirt).toISOString().split("T")[0] : "");
-            setAddress(defeaultValues.address);
-            setTutorName(defeaultValues.tutorName);
-            setTutorIdentityCard(defeaultValues.tutorIdentityCard);
-            setTutorPhoneNumber(defeaultValues.tutorPhoneNumber);
-            setGender(defeaultValues.gender?.id?.toString() || "");
-            setObservations(defeaultValues.observations);
-            setPais(defeaultValues.pais?.id?.toString() || "");
-            setMunicipio(defeaultValues.municipio?.id?.toString() || "");
-        }
-    }, [defeaultValues]);
     return (
         <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto px-2">
             <h2 className="text-xl font-semibold text-gray-700">
                 {isEdit ? "Editar Estudiante" : "Agregar Estudiante"}
             </h2>
 
+            <div className="flex flex-col items-center">
+
+                <Avatar className="w-22 h-22 border-4 border-green-200 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                    {preview ? (
+                        <AvatarImage
+                            src={preview}
+                            alt="Foto del estudiante"
+                        />
+                    ) : (
+                        <AvatarFallback className="text-md font-bold bg-green-100 text-green-700">
+                            {formValues.name && formValues.lastName
+                                ? `${formValues.name[0] ?? ""}${formValues.lastName[0] ?? ""}`
+                                : <User className="w-10 h-10" />
+                            }
+                        </AvatarFallback>
+                    )}
+                </Avatar>
+                {/* Input oculto */}
+                <input
+                    type="file"
+                    accept="image/*"
+                    name="profileImage"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    className="hidden"
+                />
+
+            </div>
             <input
                 type="text"
+                name="name"
                 placeholder="Nombres"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={formValues.name}
+                onChange={handleInputChange}
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
                 required
             />
             <input
                 type="text"
+                name="lastName"
                 placeholder="Apellidos"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
+                value={formValues.lastName}
+                onChange={handleInputChange}
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
                 required
             />
             <input
                 type="text"
+                name="studentCode"
                 placeholder="codigo del estudiante"
-                value={studentCode}
-                onChange={(e) => setStudentCode(e.target.value)}
+                value={formValues.studentCode}
+                onChange={handleInputChange}
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
                 required
             />
             <input
                 type="text"
+                name="identityCard"
                 placeholder="Cedula Identidad"
-                value={identityCard}
-                onChange={(e) => setIdentityCard(e.target.value)}
+                value={formValues.identityCard}
+                onChange={handleInputChange}
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
                 required
             />
             <input
                 type="date"
+                name="dateBirt"
                 placeholder="Fecha de nacimiento"
-                value={dateBirt}
-                onChange={(e) => setDateBirt(e.target.value)}
+                value={formValues.dateBirt}
+                onChange={handleInputChange}
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
                 required
             />
             <select
-                name=""
+                name="gender"
                 id=""
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-                value={gender}
-                onChange={(e) => setGender(e.target.value)}
+                value={formValues.gender}
+                onChange={handleInputChange}
             >
                 <option value="">Sexo</option>
                 {generos?.map((r) => (
@@ -183,42 +201,53 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
                 ))}
             </select>
             <select
-                name=""
+                name="municipio"
                 id=""
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-                value={municipio}
-                onChange={(e) => setMunicipio(e.target.value)}
+                value={formValues.municipio}
+                onChange={handleInputChange}
             >
                 <option value="">Municipio de origen</option>
                 {municipios?.map((r) => (
                     <option key={r.id} value={r.id}>
-                        
+
                         {r.municipio}
                     </option>
                 ))}
             </select>
             <input
                 type="text"
-                placeholder="Nombre del tutor"
-                value={tutorName}
-                onChange={(e) => setTutorName(e.target.value)}
+                name="telefono"
+                placeholder="Telefono del estudiante"
+                value={formValues.telefono}
+                onChange={handleInputChange}
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
                 required
             />
             <input
                 type="text"
+                name="tutorName"
+                placeholder="Nombre del tutor"
+                value={formValues.tutorName}
+                onChange={handleInputChange}
+                className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+                required
+            />
+            <input
+                type="text"
+                name="tutorIdentityCard"
                 placeholder="Cedula del tutor"
-                value={tutorIdentityCard}
-                onChange={(e) => setTutorIdentityCard(e.target.value)}
+                value={formValues.tutorIdentityCard}
+                onChange={handleInputChange}
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
                 required
             />
             <select
-                name=""
+                name="pais"
                 id=""
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-                value={pais}
-                onChange={(e) => setPais(e.target.value)}
+                value={formValues.pais}
+                onChange={handleInputChange}
             >
                 <option value="">Pais de origen</option>
                 {paises?.map((r) => (
@@ -229,25 +258,28 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
             </select>
             <input
                 type="text"
+                name="observations"
                 placeholder="Observacion"
-                value={observations}
-                onChange={(e) => setObservations(e.target.value)}
+                value={formValues.observations}
+                onChange={handleInputChange}
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
                 required
             />
             <input
                 type="text"
+                name="address"
                 placeholder="Direccion domiciliar"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
+                value={formValues.address}
+                onChange={handleInputChange}
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
                 required
             />
             <input
                 type="text"
+                name="tutorPhoneNumber"
                 placeholder="Numero de telefono del tutor"
-                value={tutorPhoneNumber}
-                onChange={(e) => setTutorPhoneNumber(e.target.value)}
+                value={formValues.tutorPhoneNumber}
+                onChange={handleInputChange}
                 className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
                 required
             />
