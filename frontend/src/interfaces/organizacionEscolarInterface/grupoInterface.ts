@@ -6,6 +6,8 @@ import { Turno } from "../catalogoInterface/TurnoInterface";
 import { Docente } from "../DocenteInterface";
 import { AnioLectivo } from "../catalogoInterface/AnioLectivo";
 import { OrganizacionEscolar } from "./organizacionInterface";
+import { GrupoConEstudiante } from "./asignarEstudianteInterface";
+import { GrupoConAsignaturasResponse } from "./gruposConAsignaturas";
 
 export interface GrupoEscolar {
     id: number,
@@ -14,6 +16,7 @@ export interface GrupoEscolar {
     turno: Turno,
     organizacionEscolar: OrganizacionEscolar,
     docenteGuia: Docente,
+    grupoAsignaturaDocente?: GrupoConAsignaturasResponse[]
     user_create_id?: number | null;
     created_at?: string;
     update_at?: string;

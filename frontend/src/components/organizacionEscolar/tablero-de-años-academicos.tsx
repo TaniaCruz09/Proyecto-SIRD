@@ -1,31 +1,28 @@
 "use client"
-
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Calendar, BookOpen, Users, Settings, Eye, GraduationCap, Link } from "lucide-react"
+import { Plus, Calendar, Settings, Eye, GraduationCap } from "lucide-react"
 import { getAniosLectivos } from "@/actions/catalogos/anioLectivoMethods"
-import { AnioLectivo, OrganizacionEscolar } from "@/interfaces"
+import { AnioLectivo } from "@/interfaces"
 import { useRouter } from "next/navigation"
 import AddAniosLectivosModal from "../modals/catalogo/anioLectivoModals/AddAnioLectivoModal"
-import { getOrganizacionEscolar } from "@/actions/organizacionEscolarMethods/organizacionMethods"
-
+import SearchBar from "../SearchBar"
 
 export function AcademicYearsDashboard() {
     const [anioLectivos, setAniosLectivos] = useState<AnioLectivo[]>([]);
+    const [searchTerm, setSearchTerm] = useState<string>("");
+    const [currentPage, setCurrentPage] = useState<number>(1)
+    const itemsPerPage = 3
     const router = useRouter();
 
     const fetchAniosLectivos = async () => {
         try {
             const response = await getAniosLectivos();
             setAniosLectivos(response);
-        } catch (error: any) {
-            if (error.message === "Unauthorized") {
-                router.push("/auth/login"); // redirigir en cliente
-            } else {
-                console.error(error);
-            }
+        } catch (error: unknown) {
+            console.error(error);
         }
     };
 
@@ -33,8 +30,6 @@ export function AcademicYearsDashboard() {
         fetchAniosLectivos();
     }, []);
 
-    //filtro
-    const filteredAnioLectivo = anioLectivos.filter((u) => u.anio_lectivo);
 
     const getStatusColor = (isActive: boolean) => {
         switch (isActive) {
@@ -62,73 +57,38 @@ export function AcademicYearsDashboard() {
         }
     }
 
-    const totalOrganizations = anioLectivos.reduce((sum, year) => sum + year.organizacionEscolar.length, 0)
-    // const totalGroups = anioLectivos.reduce(
-    //     (sum, year) => sum + year.organizacionEscolar.reduce((orgSum, org) => orgSum + org.grupo[0], 0),
-    //     0,
-    // )
-    // const totalStudents = anioLectivos.reduce(
-    //     (sum, year) => sum + year.organizations.reduce((orgSum, org) => orgSum + org.studentsCount, 0),
-    //     0,
-    // )
+    //filtro
+    const filteredAnioLectivo = anioLectivos.filter((u) =>
+        u.anio_lectivo.toString().toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    //paginacion
+    const totalPages = Math.ceil(filteredAnioLectivo.length / itemsPerPage)
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const paginatedData = filteredAnioLectivo.slice(startIndex, startIndex + itemsPerPage)
 
     return (
         <div className="space-y-6 ">
-            {/* Header con estadísticas */}
-            <div className="bg-slate-50/50 rounded-lg p-4 border border-slate-200">
-                <h3 className="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
-                    <BookOpen className="h-4 w-4" />
-                    Resumen Ejecutivo
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div className="bg-white rounded-md p-3 border border-slate-200 shadow-sm">
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-medium text-slate-500">Años Lectivos</span>
-                            <Calendar className="h-3 w-3 text-indigo-400" />
-                        </div>
-                        <div className="text-lg font-bold text-slate-700">{filteredAnioLectivo.length}</div>
-                        <div className="text-xs text-slate-400">
-                            {anioLectivos.filter((year) => year.isActive === true).length} activos
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-md p-3 border border-slate-200 shadow-sm">
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-medium text-slate-500">Organizaciones</span>
-                            <GraduationCap className="h-3 w-3 text-indigo-400" />
-                        </div>
-                        <div className="text-lg font-bold text-slate-700">{totalOrganizations}</div>
-                        <div className="text-xs text-slate-400">Total registradas</div>
-                    </div>
-
-                    <div className="bg-white rounded-md p-3 border border-slate-200 shadow-sm">
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-medium text-slate-500">Profesores</span>
-                            <Users className="h-3 w-3 text-indigo-400" />
-                        </div>
-                        <div className="text-lg font-bold text-slate-700">{ }</div>
-                        <div className="text-xs text-slate-400">total docentes</div>
-                    </div>
-
-                    <div className="bg-white rounded-md p-3 border border-slate-200 shadow-sm">
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-medium text-slate-500">Estudiantes</span>
-                            <Users className="h-3 w-3 text-indigo-400" />
-                        </div>
-                        <div className="text-lg font-bold text-slate-700">total estudiantes</div>
-                        <div className="text-xs text-slate-400">Capacidad total</div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Botón para crear nuevo año lectivo */}
+            {/* Encabezado y buscador */}
             <div className="flex justify-between items-center text-left">
                 <div>
                     <h2 className="text-2xl font-bold text-slate-800">Años Lectivos</h2>
                     <p className="text-slate-600 mt-1 text-sm">
-                        Agrega un nuevo año lectivo, crea la organizacion escolar, forma los grupos correspondientes, asigna materias y agrega estudiantes.
+                        Agrega un nuevo año lectivo, crea la organizacion escolar, forma los grupos <br />correspondientes, asigna materias y agrega los estudiantes.
                     </p>
                 </div>
+                <SearchBar
+                    value={searchTerm}
+                    onChange={(val) => {
+                        setSearchTerm(val)
+                        setCurrentPage(1) // reset página al buscar
+                    }}
+                    onClear={() => {
+                        setSearchTerm("")
+                        setCurrentPage(1)
+                    }}
+                    placeholder="Buscar año lectivo"
+                />
                 <AddAniosLectivosModal fetchAniosLectivos={fetchAniosLectivos} />
             </div>
 
@@ -144,41 +104,38 @@ export function AcademicYearsDashboard() {
                 </Card>
             ) : (
                 <div className="space-y-6">
-                    {filteredAnioLectivo.map((year) => (
-                        <Card key={year.id} className="hover:shadow-lg transition-all duration-200 border-slate-200 bg-white">
+                    {paginatedData.map((anioLectivo) => (
+                        <Card key={anioLectivo.id} className="hover:shadow-lg transition-all duration-200 border-slate-200 bg-white">
                             <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <CardTitle className="text-xl flex items-center gap-2 text-slate-800">
                                             <Calendar className="h-5 w-5" />
-                                            Año Lectivo {year.anio_lectivo}
+                                            Año Lectivo {anioLectivo.anio_lectivo}
                                         </CardTitle>
                                         <CardDescription className="text-slate-500">
-                                            Creado el {new Date(year.created_at).toLocaleDateString()}
+                                            Creado el {new Date(anioLectivo.created_at).toLocaleDateString()}
                                         </CardDescription>
                                     </div>
-                                    <Badge className={getStatusColor(year.isActive)}>{getStatusText(year.isActive)}</Badge>
+                                    <Badge className={getStatusColor(anioLectivo.isActive)}>{getStatusText(anioLectivo.isActive)}</Badge>
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {year.organizacionEscolar.length > 0 ? (
+                                {anioLectivo.organizacionEscolar.length > 0 ? (
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        {year.organizacionEscolar.map((org) => (
+                                        {anioLectivo.organizacionEscolar.map((org) => (
                                             <Card key={org.id} className="border-2 border-dashed border-slate-200 bg-slate-50/30">
                                                 <CardHeader className="pb-2">
                                                     <CardTitle className="text-sm font-medium text-slate-700">{org.turno?.turno || "Sin modalidad"}</CardTitle>
                                                     <CardDescription className="text-xs text-slate-500">{org.turno?.modalidad?.modalidad || "Sin modalidad"}</CardDescription>
                                                 </CardHeader>
                                                 <CardContent className="pt-0">
-                                                    <div className="flex justify-between text-xs text-slate-500">
-                                                        <span>{ } grupos</span>
-                                                        <span>{ } estudiantes</span>
-                                                    </div>
                                                     <div className="flex gap-1 mt-2">
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
                                                             className="flex-1 text-xs h-7 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
+                                                            onClick={() => router.push(`/add-groups-to-organization/${org.id}`)}
                                                         >
                                                             <Eye className="h-3 w-3 mr-1" />
                                                             Ver
@@ -187,6 +144,7 @@ export function AcademicYearsDashboard() {
                                                             variant="outline"
                                                             size="sm"
                                                             className="flex-1 text-xs h-7 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
+                                                            onClick={() => router.push(`/organizacion/=${org.id}`)}
                                                         >
                                                             <Settings className="h-3 w-3 mr-1" />
                                                             Gestionar
@@ -202,7 +160,7 @@ export function AcademicYearsDashboard() {
                                         <h3 className="text-lg font-semibold mb-2 text-slate-700">Sin organizaciones escolares</h3>
                                         <p className="text-slate-500 text-center mb-4">Este año lectivo no tiene organizaciones aún</p>
 
-                                        <Button onClick={() => router.push(`/organizacionEscolar/add-organizations-to-year?idAnioLectivo=${year.id}&anioLectivo=${year.anio_lectivo}`)} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm">
+                                        <Button onClick={() => router.push(`/add-organizations-to-year/${anioLectivo.id}`)} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm">
                                             <Plus className="h-4 w-4" />
                                             Agregar Organización Escolar
 
@@ -216,12 +174,13 @@ export function AcademicYearsDashboard() {
                                         variant="outline"
                                         size="sm"
                                         className="flex items-center gap-2 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
+                                        onClick={() => router.push(`/add-organizations-to-year/${anioLectivo.id}`)}
                                     >
                                         <Eye className="h-4 w-4" />
-                                        Ver Año Completo
+                                        organización del año lectivo
                                     </Button>
                                     <Button
-                                        onClick={() => router.push(`/organizacionEscolar/add-organizations-to-year?idAnioLectivo=${year.id}&anioLectivo=${year.anio_lectivo}`)}
+                                        onClick={() => router.push(`/catalogo/anioLectivo?idAnioLectivo=${anioLectivo.id}`)}
                                         variant="outline"
                                         size="sm"
                                         className="flex items-center gap-2 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
@@ -229,18 +188,35 @@ export function AcademicYearsDashboard() {
                                         <Settings className="h-4 w-4" />
                                         Gestionar Año
                                     </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="flex items-center gap-2 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
-                                    >
-                                        <BookOpen className="h-4 w-4" />
-                                        Reportes
-                                    </Button>
                                 </div>
                             </CardContent>
                         </Card>
                     ))}
+
+                    {/* Controles de paginación */}
+                    {totalPages > 1 && (
+                        <div className="flex justify-center items-center gap-2 pt-4">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={currentPage === 1}
+                                onClick={() => setCurrentPage((prev) => prev - 1)}
+                            >
+                                Anterior
+                            </Button>
+                            <span className="text-sm text-slate-600">
+                                Página {currentPage} de {totalPages}
+                            </span>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={currentPage === totalPages}
+                                onClick={() => setCurrentPage((prev) => prev + 1)}
+                            >
+                                Siguiente
+                            </Button>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

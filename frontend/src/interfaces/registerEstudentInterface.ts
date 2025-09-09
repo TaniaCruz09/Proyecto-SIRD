@@ -1,6 +1,7 @@
 import { Municipio } from "./catalogoInterface/MunicipioInterface";
 import { Pais } from "./catalogoInterface/PaisInterface";
 import { Sexo } from "./catalogoInterface/SexoInterface";
+import { GrupoConEstudiante } from "./organizacionEscolarInterface/asignarEstudianteInterface";
 
 
 
@@ -19,6 +20,15 @@ export default interface RegisterEstudent {
     tutorPhoneNumber: string,
     gender: Sexo,
     observations: string
+    grupoAsignaturaConEstudiantes?: GrupoConEstudiante[]
+    profileImage?: string | null
+    phone?: string,
+
+    email?: string,
+    currentGrade: string
+    currentYear: string
+    gpa: number
+    academicHistory: AcademicYear[]
 
     user_create_id?: number | null;
     created_at?: string;
@@ -27,6 +37,18 @@ export default interface RegisterEstudent {
     deleted_at?: string | null;
     deleted_at_id?: number | null;
 }
+
+export interface AcademicYear {
+    id: Number
+    year: string
+    grade: string
+    gpa: number
+    isActive: "completed" | "current"
+    subjects: string[]
+    teacher: string
+}
+
+
 export interface RegisterEstudentPayload {
     name: string,
     lastName: string,
@@ -40,7 +62,9 @@ export interface RegisterEstudentPayload {
     tutorIdentityCard: string,
     tutorPhoneNumber: string,
     gender: Sexo,
-    observations: string
+    observations: string,
+    profileImage?: string | null
+    phone?: string,
 
     user_create_id?: number | null;
     created_at?: string;

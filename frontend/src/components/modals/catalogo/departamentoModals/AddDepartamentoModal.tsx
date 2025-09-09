@@ -3,25 +3,25 @@ import React, { useState } from 'react'
 import ModalBase from '../../ModalBase'
 import DepartamentoForm from '@/components/forms/catalogoForms/DepartamentoForm'
 
-interface AddDepartamentoModalProp{
-    fetchDepartamento: () => Promise<void>
+interface AddDepartamentoModalProp {
+  fetchDepartamento: () => Promise<void>
 }
 
-export default function AddDepartamentoModal({fetchDepartamento}: AddDepartamentoModalProp) {
-    const [showModal, setShowModal] = useState<boolean>(false);
+export default function AddDepartamentoModal({ fetchDepartamento }: AddDepartamentoModalProp) {
+  const [showModal, setShowModal] = useState<boolean>(false);
   return (
     <div>
-        <BtnOpenAddModal onClick={()=> setShowModal(true)}/>
-        {showModal && (
+      <BtnOpenAddModal onClick={() => setShowModal(true)} />
+      {showModal && (
         <ModalBase
           onshowModal={showModal}
           onCloseModal={() => setShowModal(false)}
           content={
             <DepartamentoForm
-            onSuccess={()=>{
+              onSuccess={() => {
                 fetchDepartamento()
                 setShowModal(false)
-            }}
+              }}
             />
           }
         />

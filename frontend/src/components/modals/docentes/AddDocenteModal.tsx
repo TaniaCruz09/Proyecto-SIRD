@@ -5,10 +5,10 @@ import ModalBase from "../ModalBase";
 import DocenteForm from "@/components/forms/DocenteForm";
 
 interface AddDocenteModalProp {
-    fetchDocentes: () => Promise<void>
+  fetchDocentes: () => Promise<void>
 }
 
-export default function AddDocenteModal({fetchDocentes}: AddDocenteModalProp) {
+export default function AddDocenteModal({ fetchDocentes }: AddDocenteModalProp) {
   const [showModal, setShowModal] = useState<boolean>(false);
   return (
     <div>
@@ -19,10 +19,10 @@ export default function AddDocenteModal({fetchDocentes}: AddDocenteModalProp) {
           onCloseModal={() => setShowModal(false)}
           content={
             <DocenteForm
-            onSuccess={()=>{
+              onSuccess={() => {
                 fetchDocentes()
                 setShowModal(false)
-            }}
+              }}
             />
           }
         />

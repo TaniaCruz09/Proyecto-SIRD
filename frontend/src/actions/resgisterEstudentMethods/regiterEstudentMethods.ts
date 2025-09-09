@@ -14,8 +14,8 @@ export async function getRegisterEstudent() {
     return response.data
 }
 
-export async function getFiltarStudent(params: string) {
-    const endPoint = `/student/filtrar?${params}`
+export async function getFiltarStudent(params: string, anioId: number) {
+    const endPoint = `/student/filtrar?${params}&anioId=${anioId}`
     const response = await feching(endPoint, 'no-cache', 'GET')
     if (!response || response.error) {
         throw new Error(response?.error)
@@ -32,7 +32,7 @@ export async function getEstudentById(id: number) {
     return response.data
 }
 
-export async function saveStudent(student: RegisterEstudentPayload) {
+export async function saveStudent(student: FormData) {
     const endPoint = '/student'
     console.log(student, 'este es el estudiante que se envia al back')
     const response = await feching(endPoint, 'no-cache', 'POST', student)
@@ -43,7 +43,7 @@ export async function saveStudent(student: RegisterEstudentPayload) {
     return response.data
 }
 
-export async function ActualizarStudent(id: number, student: RegisterEstudentPayload) {
+export async function ActualizarStudent(id: number, student: FormData) {
     console.log(student, 'este es el estudiante que se envia al back para actualizar')
     const endPoint = `/student/${id}`
     const response = await feching(endPoint, 'no-cache', 'PUT', student)

@@ -6,14 +6,18 @@ export const feching = async (
   method: string,
   body: any = null
 ) => {
-  const headers = await getHeadersGlobal();
+  // Detectamos si es FormData
+  const isFormData = body instanceof FormData;
+  const headers = await getHeadersGlobal(body);
+
+
   const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${endPoint}`;
 
   const options: RequestInit = {
     method,
     cache,
     headers,
-    body: body ? JSON.stringify(body) : undefined,
+    body: isFormData ? body : body ? JSON.stringify(body) : undefined,
   };
 
   try {

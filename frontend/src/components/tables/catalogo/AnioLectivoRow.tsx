@@ -5,19 +5,27 @@ import EditAñoLectivoModal from '@/components/modals/catalogo/anioLectivoModals
 import { AnioLectivo } from '@/interfaces';
 import React from 'react'
 
-interface AnioLectivoRowProp{
-    fetchAniosLectivos: ()=> Promise<void>
-    anioLectivo: AnioLectivo
+interface AnioLectivoRowProp {
+  fetchAniosLectivos: () => Promise<void>
+  anioLectivo: AnioLectivo
 }
 
-export default function AnioLectivoRow({fetchAniosLectivos, anioLectivo}:AnioLectivoRowProp) {
-  console.log("Año lectivo recibidas:", anioLectivo);
+export default function AnioLectivoRow({ fetchAniosLectivos, anioLectivo }: AnioLectivoRowProp) {
+
   return (
     <tr className="hover:bg-gray-100 cursor-pointer">
-        <td className="p-3 border-b border-gray-200">{anioLectivo.id}</td>
-        <td className="p-3 border-b border-gray-200">{anioLectivo.anio_lectivo}</td>
-        <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><EditAñoLectivoModal añoLectivo={anioLectivo} fetchAñoLectivo={fetchAniosLectivos}/></td>
-        <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><DeleteAñoLectivoModal idEliminar={anioLectivo.id} fetchAñoLectivo={fetchAniosLectivos}/></td>
+      <td className="p-3 border-b border-gray-200">{anioLectivo.id}</td>
+      <td className="p-3 border-b border-gray-200">{anioLectivo.anio_lectivo}</td>
+      <td className="p-3 border-b border-gray-200">
+        <span
+          className={`px-2 py-1 font-medium ${anioLectivo.isActive ? "text-green-500" : "text-red-500"
+            }`}
+        >
+          {anioLectivo.isActive ? "Activo" : "Inactivo"}
+        </span>
+      </td>
+      <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><EditAñoLectivoModal añoLectivo={anioLectivo} fetchAñoLectivo={fetchAniosLectivos} /></td>
+      <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><DeleteAñoLectivoModal idEliminar={anioLectivo.id} fetchAñoLectivo={fetchAniosLectivos} /></td>
     </tr>
   )
 }

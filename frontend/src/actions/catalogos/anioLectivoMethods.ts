@@ -12,7 +12,7 @@ export async function getAniosLectivos() {
     } return response.data
 }
 
-export async function getOrganizacionEscolarPorAnio(id: number) {
+export async function getAnioLectivoById(id: number) {
     const endpoint = `/anioLectivo/${id}`
 
     const response = await feching(endpoint, "no-cache", "GET");

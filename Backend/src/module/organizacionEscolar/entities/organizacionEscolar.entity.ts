@@ -13,7 +13,7 @@ import { Grupos } from './grupos.entity';
 import { User } from '../../auth/entities';
 import * as moment from 'moment-timezone';
 import { AnioLectivo } from 'src/module/catalogos/entities/anioLectivo.entity';
-import { SemestreEntity, Turno } from '../../catalogos';
+import { Turno } from '../../catalogos';
 import { Cortes } from '../../catalogos/entities/corte.entity';
 
 @Entity({ name: 'organizacionEscolar', schema: 'organizacion_escolar' })
@@ -29,18 +29,12 @@ export class OrganizacionEscolar {
   @JoinColumn({ name: 'turno_id' })
   turno: Turno;
 
-  @OneToMany(() => SemestreEntity, (semestre) => semestre.organizacionEscolar)
-  semestres: SemestreEntity[];
-
-  @ManyToOne(() => Cortes, (corte) => corte.organizacionesEscolar)
+  @ManyToOne(() => Cortes, (corte) => corte.organizacionEscolar, { cascade: true })
   @JoinColumn({ name: 'corte_id' })
   corte: Cortes;
 
   @OneToMany(() => Grupos, (grupos) => grupos.organizacionEscolar)
   grupos?: Grupos[];
-
-  // @OneToMany(() => OrganizacionLaboral, (org) => org.añolectivo)
-  // organizacionLaboral?: OrganizacionLaboral[];
 
   //ID del usuario que creó el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo

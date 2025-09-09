@@ -1,10 +1,11 @@
-import { ILike, Repository } from "typeorm";
+import { DeepPartial, ILike, Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { StudentEntity } from "./students.entity";
 import { StudentsDto } from "./student.dto";
 import { Utilities } from "../../common/helpers/utilities";
 import { FiltrarEstudiantesDto } from "./FiltrarEstudiantesDto";
+import { UpdateStudentsDto } from "./updateStudent.dto";
 
 
 @Injectable()
@@ -14,20 +15,47 @@ export class StudentService {
         private readonly StudentRepo: Repository<StudentEntity>,
     ) { }
 
+
+
     async created(payload: StudentsDto): Promise<StudentEntity> {
         try {
-            const student = await this.StudentRepo.create(payload);
+            const studentData: DeepPartial<StudentEntity> = {
+                name: payload.name,
+                lastName: payload.lastName,
+                studentCode: payload.studentCode,
+                identityCard: payload.identityCard,
+                dateBirt: payload.dateBirt,
+                address: payload.address,
+                tutorName: payload.tutorName,
+                tutorIdentityCard: payload.tutorIdentityCard,
+                tutorPhoneNumber: payload.tutorPhoneNumber,
+                observations: payload.observations,
+                phone: payload.phone,
+                profileImage: payload.profileImage,
+
+                gender: payload.gender ? { id: Number(payload.gender) } as any : undefined,
+                pais: payload.pais ? { id: Number(payload.pais) } as any : undefined,
+                municipio: payload.municipio ? { id: Number(payload.municipio) } as any : undefined,
+                departamento: payload.departamento ? { id: Number(payload.departamento) } as any : undefined,
+            };
+
+            const student = this.StudentRepo.create(studentData);
             return await this.StudentRepo.save(student);
         } catch (error) {
-            Utilities.catchError(error)
+            Utilities.catchError(error); // asegúrate que hace throw
         }
-
     }
+
+
+
     async getStudent(): Promise<StudentEntity[]> {
         try {
-            return await this.StudentRepo.find({
-                relations: ['pais', 'gender', 'departamento', 'municipio']
-            });
+            return await this.StudentRepo.createQueryBuilder('student')
+                .leftJoinAndSelect('student.pais', 'pais')
+                .leftJoinAndSelect('student.gender', 'gender')
+                .leftJoinAndSelect('student.departamento', 'departamento')
+                .leftJoinAndSelect('student.municipio', 'municipio')
+                .getMany()
         } catch (error) {
             Utilities.catchError(error)
         }
@@ -41,7 +69,19 @@ export class StudentService {
                 .leftJoinAndSelect('student.gender', 'gender')
                 .leftJoinAndSelect('student.departamento', 'departamento')
                 .leftJoinAndSelect('student.municipio', 'municipio')
+                .leftJoinAndSelect('student.grupoAsignaturaConEstudiantes', 'grupoAsignaturaConEstudiantes')
+                .leftJoinAndSelect('grupoAsignaturaConEstudiantes.grupoAsignaturaDocente', 'grupoAsignaturaDocente')
+                .leftJoinAndSelect('grupoAsignaturaDocente.grupo', 'grupo')
+                .leftJoinAndSelect('grupo.organizacionEscolar', 'organizacionEscolar')
+                .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo')
+                .leftJoinAndSelect('grupo.grado', 'grado')
+                .leftJoinAndSelect('grupo.seccion', 'seccion')
+                .leftJoinAndSelect('grupo.turno', 'turno')
+                .leftJoinAndSelect('grupo.docenteGuia', 'DocenteGuia')
+                .leftJoinAndSelect('grupo.grupoAsignaturaDocente', 'grupoAsignaturaDocenteDeGrupo')
+                .leftJoinAndSelect('grupoAsignaturaDocenteDeGrupo.asignatura', 'asignatura')
                 .where('student.id = :id', { id })
+                // .distinctOn(["grupo.id"]) // <-- evita duplicados por grupo
                 .getOne()
             return student;
         } catch (error) {
@@ -49,9 +89,17 @@ export class StudentService {
         }
     }
 
-    async updateStudent(id: number, payload: StudentsDto): Promise<StudentEntity> {
+    async updateStudent(id: number, payload: UpdateStudentsDto): Promise<StudentEntity> {
         try {
-            const student = await this.StudentRepo.findOne({ where: { id } });
+            const student = await this.StudentRepo.findOne({
+                where: { id },
+                relations: [
+                    'gender',
+                    'pais',
+                    'departamento',
+                    'municipio',
+                ]
+            });
             if (!student) {
                 throw new NotFoundException("Profesión no encontrada");
             }
@@ -61,7 +109,7 @@ export class StudentService {
 
             // Asignar la fecha de actualización y el usuario que modifica
             student.update_at = new Date();
-            student.user_update_id;
+            student.user_update_id = payload.user_update_id;
 
 
             return await this.StudentRepo.save(student)
@@ -88,7 +136,7 @@ export class StudentService {
         }
     }
 
-    async filtrarEstudiantes(params: FiltrarEstudiantesDto): Promise<any[]> {
+    async filtrarEstudiantes(params: FiltrarEstudiantesDto, anioId?: string): Promise<any[]> {
         const { name, lastName, studentCode } = params;
 
         const qb = this.StudentRepo.createQueryBuilder('student')
@@ -96,17 +144,15 @@ export class StudentService {
             .leftJoinAndSelect('student.gender', 'gender')
             .leftJoinAndSelect('student.departamento', 'departamento')
             .leftJoinAndSelect('student.municipio', 'municipio')
-
-        // Aquí haces LEFT JOIN con la tabla que asigna estudiante a grupo
-        // .leftJoinAndSelect('student.organizacionEscolarconEstudiantes', 'organizacionEscolarconEstudiantes')
-        // .leftJoinAndSelect('organizacionEscolarconEstudiantes.organizacionEscolar', 'organizacionEscolar')
-        // .leftJoinAndSelect('organizacionEscolar.grupo', 'grupo')
-        // .leftJoinAndSelect('grupo.grado', 'grado')
-        // .leftJoinAndSelect('grupo.seccion', 'seccion')
-        // .leftJoinAndSelect('grupo.turno', 'turno')
-        // .leftJoinAndSelect('grupo.modalidad', 'modalidad')
-
-
+            .leftJoinAndSelect('student.grupoAsignaturaConEstudiantes', 'grupoAsignaturaConEstudiantes')
+            .leftJoinAndSelect('grupoAsignaturaConEstudiantes.grupoAsignaturaDocente', 'grupoAsignaturaDocente')
+            .leftJoinAndSelect('grupoAsignaturaDocente.grupo', 'grupo')
+            .leftJoinAndSelect('grupo.grado', 'grado')
+            .leftJoinAndSelect('grupo.seccion', 'seccion')
+            .leftJoinAndSelect('grupo.turno', 'turno')
+            .leftJoinAndSelect('turno.modalidad', 'modalidad')
+            .leftJoinAndSelect('grupo.organizacionEscolar', 'organizacionEscolar')
+            .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo');
 
 
         if (name) {
@@ -126,9 +172,9 @@ export class StudentService {
 
         // Opcional: mapear para agregar propiedad asignadoGrupo con descripción amigable
         return students.map(student => {
-            const orgEst = student.organizacionEscolarconEstudiantes?.[0]; // primer registro
-            const grupoAsignado = orgEst?.organizacionEscolar
-                ? `${orgEst.organizacionEscolar.grupo.grado.grades} ${orgEst.organizacionEscolar.grupo.seccion.seccion} - ${orgEst.organizacionEscolar.grupo.turno.turno} - ${orgEst.organizacionEscolar.grupo.modalidad.modalidad}`
+            const grupo = student.grupoAsignaturaConEstudiantes?.find(g => g.grupoAsignaturaDocente.grupo.organizacionEscolar.anio_lectivo.id === Number(anioId)); // primer registro
+            const grupoAsignado = grupo?.grupoAsignaturaDocente.grupo
+                ? `${grupo.grupoAsignaturaDocente.grupo.grado.grades} ${grupo.grupoAsignaturaDocente.grupo.seccion.seccion} - ${grupo.grupoAsignaturaDocente.grupo.turno.turno} - ${grupo.grupoAsignaturaDocente.grupo.turno.modalidad.modalidad}`
                 : null;
 
             return {

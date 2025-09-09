@@ -11,7 +11,7 @@ export interface OrganizacionEscolar {
     anio_lectivo: AnioLectivo,
     turno: Turno,
     corte: Corte
-    grupo?: GrupoEscolar,
+    grupos?: GrupoEscolar[],
 }
 
 export interface OrganizacionEscolarPayload {

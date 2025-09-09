@@ -3,25 +3,25 @@ import React, { useState } from 'react'
 import ModalBase from '../../ModalBase'
 import TurnoForm from '@/components/forms/catalogoForms/TurnoForm'
 
-interface AddTurnoModalProp{
-    fetchTurno: () => Promise<void>
+interface AddTurnoModalProp {
+  fetchTurno: () => Promise<void>
 }
 
-export default function AddTurnoModal({fetchTurno}: AddTurnoModalProp) {
-    const [showModal, setShowModal] = useState<boolean>(false);
+export default function AddTurnoModal({ fetchTurno }: AddTurnoModalProp) {
+  const [showModal, setShowModal] = useState<boolean>(false);
   return (
     <div>
-        <BtnOpenAddModal onClick={()=> setShowModal(true)}/>
-        {showModal && (
+      <BtnOpenAddModal onClick={() => setShowModal(true)} />
+      {showModal && (
         <ModalBase
           onshowModal={showModal}
           onCloseModal={() => setShowModal(false)}
           content={
             <TurnoForm
-            onSuccess={()=>{
+              onSuccess={() => {
                 fetchTurno()
                 setShowModal(false)
-            }}
+              }}
             />
           }
         />

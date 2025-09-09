@@ -6,11 +6,10 @@ import { OrganizacionEscolarConAnioLectivoForm } from '@/components/forms/organi
 
 interface AddOganizacionEscolarConAnioLectivoModalProp {
     fetchOrganizacionPorAnioLectivo: () => Promise<void>
-    anioLectivo: string;
     idAnioLectivo: number
 }
 
-export default function AddOganizacionEscolarConAnioLectivoModal({ fetchOrganizacionPorAnioLectivo, anioLectivo, idAnioLectivo }: AddOganizacionEscolarConAnioLectivoModalProp) {
+export default function AddOganizacionEscolarConAnioLectivoModal({ fetchOrganizacionPorAnioLectivo, idAnioLectivo }: AddOganizacionEscolarConAnioLectivoModalProp) {
     const [showModal, setShowModal] = useState<boolean>(false);
     return (
         <div>
@@ -22,7 +21,6 @@ export default function AddOganizacionEscolarConAnioLectivoModal({ fetchOrganiza
                         onCloseModal={() => setShowModal(false)}
                         content={
                             <OrganizacionEscolarConAnioLectivoForm
-                                anioLectivo={anioLectivo}
                                 idAnioLectivo={idAnioLectivo}
                                 onSuccess={() => {
                                     fetchOrganizacionPorAnioLectivo()

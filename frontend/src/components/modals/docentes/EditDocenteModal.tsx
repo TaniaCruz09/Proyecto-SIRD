@@ -8,32 +8,32 @@ import { useState } from 'react';
 
 
 interface EditDocenteModalProps {
-    docente: Docente
-    fetchDocentes: () => Promise<void>;
+  docente: Docente
+  fetchDocentes: () => Promise<void>;
 }
 
-export default function EditDocenteModal({docente, fetchDocentes}:EditDocenteModalProps) {
-    const [showModal, setShowModal] = useState(false);
+export default function EditDocenteModal({ docente, fetchDocentes }: EditDocenteModalProps) {
+  const [showModal, setShowModal] = useState(false);
 
   return (
     <div>
-        {/* //llamo al componente con el diseño del boton de editar */}
-        <BtnOpenEditModal onClick={() => setShowModal(true)}/>
-            {showModal && (
-          <ModalBase
-            onshowModal={showModal}
-            onCloseModal={() => setShowModal(false)}
-            content={
-              <DocenteForm
-                defaultValues={docente}
-                onSuccess={() => {
-                  fetchDocentes();
-                  setShowModal(false);
-                }}
-              />
-            }
-          />
-        )}
+      {/* //llamo al componente con el diseño del boton de editar */}
+      <BtnOpenEditModal onClick={() => setShowModal(true)} />
+      {showModal && (
+        <ModalBase
+          onshowModal={showModal}
+          onCloseModal={() => setShowModal(false)}
+          content={
+            <DocenteForm
+              defaultValues={docente}
+              onSuccess={() => {
+                fetchDocentes();
+                setShowModal(false);
+              }}
+            />
+          }
+        />
+      )}
     </div>
   )
 }

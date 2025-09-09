@@ -15,6 +15,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt.guard';
 import { CreateOrganizacionEscolarDTO } from '../../organizacionEscolar/dtos/organizacionEscolar.dto';
 import { Utilities } from '../../../common/helpers/utilities';
 import { OrganizacionEscolarService } from '../services/organizacionEscolar.service';
+import { OrganizacionEscolar } from '../entities/organizacionEscolar.entity';
 
 @ApiTags('OrganizacionEscolar')
 @ApiBearerAuth()

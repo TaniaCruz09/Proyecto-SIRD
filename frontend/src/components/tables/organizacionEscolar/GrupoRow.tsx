@@ -17,9 +17,8 @@ export default function GrupoRow({ fetchGrupos, grupo, onShowDetail }: GrupoRowP
     return (
         <tr className="hover:bg-gray-100 cursor-pointer">
             <td className="p-3 border-b border-gray-200">{grupo.id}</td>
-            <td className="p-3 border-b border-gray-200">{grupo.organizacionEscolar?.anio_lectivo?.anio_lectivo || "sin año lectivo"} -{" "}
-                {grupo.organizacionEscolar?.turno?.turno || "sin turno"} -{" "}
-                {grupo.organizacionEscolar?.corte?.corte || "sin corte"}</td>
+            <td className="p-3 border-b border-gray-200">{grupo.organizacionEscolar?.anio_lectivo?.anio_lectivo || "sin año lectivo"} - {grupo.turno?.turno || "sin turno"} - {grupo.turno.modalidad?.modalidad || "sin modalidad"}
+            </td>
             <td className="p-3 border-b border-gray-200">{grupo.grado.grades}</td>
             <td className="p-3 border-b border-gray-200">{grupo.seccion.seccion}</td>
             <td className="p-3 border-b border-gray-200">{grupo.turno.turno}</td>

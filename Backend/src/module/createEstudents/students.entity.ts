@@ -6,15 +6,13 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Departamento, GenderEntity, Municipio, Pais } from '../catalogos';
-
 import * as moment from 'moment-timezone';
 import { User } from '../auth/entities';
-import { OrganizacionConEstudiantes } from '../organizacionEscolar/entities/organizacionConEstudiante';
+import { GrupoAsignaturaConEstudiantes } from '../organizacionEscolar/entities/grupo-asignatura-con-estudiantes.entity';
 
 @Entity({ name: 'student', schema: 'estudiante' })
 export class StudentEntity {
@@ -99,6 +97,20 @@ export class StudentEntity {
   })
   observations: string;
 
+  @Column({
+    name: 'foto',
+    type: 'varchar',
+    nullable: true,
+  })
+  profileImage?: string;
+
+  @Column({
+    name: 'telefono',
+    type: 'varchar',
+    nullable: true,
+  })
+  phone?: string;
+
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo
   user_create_id: number;
 
@@ -163,7 +175,9 @@ export class StudentEntity {
   @JoinColumn({ name: 'municipio_id' })
   municipio: Municipio;
 
-  @OneToMany(() => OrganizacionConEstudiantes, (oe) => oe.estudiante)
-  organizacionEscolarconEstudiantes?: OrganizacionConEstudiantes;
-
+  @OneToMany(
+    () => GrupoAsignaturaConEstudiantes,
+    gruposConEstudiantes => gruposConEstudiantes.estudiante,
+  )
+  grupoAsignaturaConEstudiantes: GrupoAsignaturaConEstudiantes[];
 }

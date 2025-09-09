@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UpdateGrupoDto } from '../../organizacionEscolar/dtos/Update-grupo.dto';
 import { CreateGrupoDto } from '../../organizacionEscolar/dtos/grupos.dto';
@@ -52,6 +52,22 @@ export class GruposController {
                 message: 'ok',
             };
 
+            return data;
+        } catch (error) {
+            Utilities.catchError(error)
+        }
+    }
+
+    @Get('/por-anio-y-grado/:anioId')
+    async getGruposPorAnioYGrado(
+        @Param('anioId', ParseIntPipe) anioId: number,
+        @Query('gradoId', ParseIntPipe) gradoId: number) {
+        try {
+            const grupos = await this.grupoService.getGruposPorAnioYGrado(anioId, gradoId);
+            const data = {
+                data: grupos,
+                message: 'ok',
+            };
             return data;
         } catch (error) {
             Utilities.catchError(error)

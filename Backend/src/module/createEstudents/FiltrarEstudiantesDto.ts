@@ -12,4 +12,8 @@ export class FiltrarEstudiantesDto {
     @IsOptional()
     @IsString()
     studentCode?: string;
+
+    @IsOptional()
+    @IsString()
+    anioId?: string;
 }

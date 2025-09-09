@@ -1,10 +1,13 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { StudentsDto } from "./student.dto";
 import { StudentService } from "./students.service";
 import { Utilities } from "../../common/helpers/utilities";
 import { JwtAuthGuard } from "../auth/guards/jwt.guard";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { FiltrarEstudiantesDto } from "./FiltrarEstudiantesDto";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { diskStorage } from 'Multer'
+import { extname } from "path";
 
 @ApiTags('student')
 @ApiBearerAuth()
@@ -14,7 +17,22 @@ export class StudentController {
     constructor(private readonly studentService: StudentService) { }
 
     @Post('/')
-    async createStudent(@Body() payload: StudentsDto, @Req() req) {
+    @UseInterceptors(
+        FileInterceptor("profileImage", {
+            storage: diskStorage({
+                destination: "./uploads/students", //carpeta donde se guardan las fotos
+                filename: (req, file, cb) => {
+                    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+                    cb(null, uniqueSuffix + extname(file.originalname))
+                }
+            })
+        })
+    )
+    async createStudent(
+        @Body() payload: StudentsDto,
+        @Req() req,
+        @UploadedFile() file: Express.Multer.File
+    ) {
         try {
             const userId = req.user?.id; // Obtener el ID del usuario autenticado
 
@@ -27,6 +45,11 @@ export class StudentController {
 
             // Agregar el user_update_id al payload
             payload.user_create_id = userId;
+
+            if (file) {
+                payload.profileImage = `/uploads/students/${file.filename}`
+            }
+
             const newStudent = await this.studentService.created(payload);
             const data = {
                 data: newStudent,
@@ -54,8 +77,7 @@ export class StudentController {
 
     @Get('/filtrar')
     async filtrarEstudiantes(@Query() filtro: FiltrarEstudiantesDto) {
-        console.log('Filtro recibido:', filtro);
-        return this.studentService.filtrarEstudiantes(filtro);
+        return this.studentService.filtrarEstudiantes(filtro, filtro.anioId);
     }
 
     @Get('/:id')
@@ -74,10 +96,23 @@ export class StudentController {
 
 
     @Put('/:id')
+    @UseInterceptors(
+        FileInterceptor("profileImage", {
+            storage: diskStorage({
+                destination: "./uploads/students",
+                filename: (req, file, cb) => {
+                    const uniqueSuffix =
+                        Date.now() + "-" + Math.round(Math.random() * 1e9);
+                    cb(null, uniqueSuffix + extname(file.originalname));
+                },
+            }),
+        })
+    )
     async updateStudent(
         @Param('id', ParseIntPipe) id: number,
         @Body() payload: StudentsDto,
-        @Req() req // Capturar el usuario 
+        @Req() req, // Capturar el usuario 
+        @UploadedFile() file: Express.Multer.File
     ) {
         try {
             const userId = req.user?.id; // Obtener el ID del usuario autenticado
@@ -91,6 +126,11 @@ export class StudentController {
 
             // Agregar el user_update_id al payload
             payload.user_update_id = userId;
+
+            if (file) {
+                payload.profileImage = `/uploads/students/${file.filename}`;
+            }
+
             const student = await this.studentService.updateStudent(id, payload);
             return {
                 data: student,

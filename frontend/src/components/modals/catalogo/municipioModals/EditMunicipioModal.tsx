@@ -5,31 +5,31 @@ import ModalBase from '../../ModalBase';
 import { Municipio } from '@/interfaces';
 import MunicipioForm from '@/components/forms/catalogoForms/MunicipioForm';
 
-interface EditMunicipioModalProp{
+interface EditMunicipioModalProp {
     municipio: Municipio;
     fetchMunicipio: () => Promise<void>;
 }
 
-export default function EditMunicipioModal({municipio: municipio, fetchMunicipio}:EditMunicipioModalProp) {
+export default function EditMunicipioModal({ municipio: municipio, fetchMunicipio }: EditMunicipioModalProp) {
     const [showModal, setShowModal] = useState(false);
-  return (
-    <div>
-        <BtnOpenEditModal onClick={()=> setShowModal(true)}/>
+    return (
+        <div>
+            <BtnOpenEditModal onClick={() => setShowModal(true)} />
             {showModal && (
                 <ModalBase
-                onshowModal={showModal}
-                onCloseModal={()=> setShowModal(false)}
-                content={
-                    <MunicipioForm
-                    defaultValues={municipio}
-                    onSuccess={()=>{
-                        fetchMunicipio();
-                        setShowModal(false);
-                    }}
-                    />
-                }
+                    onshowModal={showModal}
+                    onCloseModal={() => setShowModal(false)}
+                    content={
+                        <MunicipioForm
+                            defaultValues={municipio}
+                            onSuccess={() => {
+                                fetchMunicipio();
+                                setShowModal(false);
+                            }}
+                        />
+                    }
                 />
             )}
-    </div>
-  )
+        </div>
+    )
 }
