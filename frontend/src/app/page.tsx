@@ -24,7 +24,7 @@ export default function Home() {
         router.push('admin/home')
         break
       case 'Docente':
-        router.push('docente/home')
+        router.push('docentes/home')
         break
       default:
         router.push('/auth/login') // o ruta genérica
