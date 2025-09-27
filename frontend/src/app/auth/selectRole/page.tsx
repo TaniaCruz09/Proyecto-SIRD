@@ -15,7 +15,7 @@ interface Role {
 
 export default function SelectRolePage() {
   const router = useRouter()
-  const { login, rol, loading } = useAuth() // usamos login para seleccionar rol y loading para skeleton
+  const { login, loading } = useAuth()
   const [roles, setRoles] = useState<Role[]>([])
   const [selectedRole, setSelectedRole] = useState<string>('')
 
@@ -27,27 +27,33 @@ export default function SelectRolePage() {
     }
 
     try {
-      const parsedRoles: Role[] = JSON.parse(storedRoles).map((r: any) => {
-        if (r.rol === 'Admin') {
+      const parsedRoles: string[] = JSON.parse(storedRoles) // ahora es array de strings
+      const mappedRoles: Role[] = parsedRoles.map((r) => {
+        if (r === 'Admin') {
           return {
-            ...r,
+            rol: r,
             title: 'Administrador',
             description: 'Administra el sistema completo',
             icon: <FaUserShield className="text-white text-2xl" />,
           }
         }
-        if (r.rol === 'Docente') {
+        if (r === 'Docente') {
           return {
-            ...r,
+            rol: r,
             title: 'Docente',
             description: 'Accede a tus clases y estudiantes',
             icon: <FaChalkboardTeacher className="text-white text-2xl" />,
           }
         }
-        return r
+        return {
+          rol: r,
+          title: r,
+          description: '',
+          icon: <div />
+        }
       })
 
-      setRoles(parsedRoles)
+      setRoles(mappedRoles)
     } catch (error) {
       console.error('Error parseando roles desde localStorage:', error)
       router.push('/auth/login')
@@ -56,15 +62,13 @@ export default function SelectRolePage() {
 
   const handleSubmit = async () => {
     if (!selectedRole) return
-    await login(selectedRole) // login actualiza rol y localStorage
+    await login(selectedRole)
 
-    // Redirigir según rol
     if (selectedRole === 'Admin') router.push('/admin/home')
     else if (selectedRole === 'Docente') router.push('/docente/home')
     else router.push('/auth/login')
   }
 
-  // Skeleton mientras carga roles/rol actual
   if (loading || !roles.length) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
@@ -86,9 +90,9 @@ export default function SelectRolePage() {
         </p>
 
         <div className="grid grid-cols-1 gap-4">
-          {roles.map((role, idx) => (
+          {roles.map((role) => (
             <div
-              key={role.rol + idx}
+              key={role.rol} // 🔹 ahora es único porque role.rol es string
               onClick={() => setSelectedRole(role.rol)}
               className={`cursor-pointer flex items-center gap-4 p-4 rounded-xl transition-shadow border
                 ${selectedRole === role.rol ? 'border-blue-500 shadow-lg bg-blue-50' : 'border-gray-200 hover:shadow-md hover:bg-gray-50'}`}

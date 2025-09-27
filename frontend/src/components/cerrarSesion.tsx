@@ -34,7 +34,7 @@ export default function CerrarSesion() {
 
       {/* Pantalla completa blanca con spinner */}
       {isLoggingOut && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white">
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white w-full h-full">
           <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600 mb-4"></div>
           <p className="text-gray-600 text-lg">Saliendo...</p>
         </div>

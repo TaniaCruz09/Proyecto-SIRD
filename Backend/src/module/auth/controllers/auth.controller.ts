@@ -80,7 +80,6 @@ export class AuthController {
     @Body() body: { role: string },
   ) {
     const { role } = body;
-
     if (!role) {
       throw new BadRequestException('Debe seleccionar un rol');
     }
@@ -91,20 +90,30 @@ export class AuthController {
         throw new BadRequestException('No hay token válido');
       }
 
+      // Decodificar token básico
       const payload = this.jwtService.decode(token) as any;
       if (!payload) {
         throw new BadRequestException('Token inválido');
       }
 
-      // Crear token definitivo con rol seleccionado
-      const newToken = this.jwtService.sign({
-        sub: payload.sub,
-        name: payload.name,
-        email: payload.email,
-        roles: [role],
-      });
+      // 🔁 Volver a buscar el usuario completo en la BD
+      const user = await this.authService.findUserById(payload.sub);
+      if (!user) throw new BadRequestException('Usuario no encontrado');
 
-      console.log("Nuevo token generado:", newToken);
+      // Buscar el rol seleccionado dentro de sus roles
+      const selectedRole = user.roles.find((r) => r.rol === role);
+      if (!selectedRole) {
+        throw new BadRequestException('El rol seleccionado no pertenece al usuario');
+      }
+
+      // Crear token completo con rol + datos extra
+      const newToken = this.jwtService.sign({
+        sub: user.id,
+        name: user.name,
+        email: user.email,
+        roles: [role],
+        docente: user.docente ? { id: user.docente.id, nombre: user.docente.nombres } : null,
+      });
 
       res.cookie('token', newToken, {
         httpOnly: true,
@@ -112,12 +121,22 @@ export class AuthController {
         sameSite: 'lax',
       });
 
-      return { message: 'Rol seleccionado correctamente', role, payload };
+      return {
+        message: 'Rol seleccionado correctamente',
+        role,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          docente: user.docente,
+        },
+      };
     } catch (err) {
       console.error('Error en /auth/select-role:', err);
       throw new BadRequestException('Error al seleccionar rol');
     }
   }
+
 
   @Post('logout')
   logout(@Res({ passthrough: true }) res: Response) {

@@ -1,12 +1,14 @@
 'use client'
 
-import { saveLogin } from '@/actions/authMethods/loginMethods'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
+import { saveLogin } from '@/actions/authMethods/loginMethods'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function LoginPage() {
   const router = useRouter()
+  const { login } = useAuth() // usar AuthContext
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setSowPassword] = useState(false)
@@ -26,16 +28,16 @@ export default function LoginPage() {
       localStorage.setItem('user', JSON.stringify(user))
 
       if (autoSelectRole && roles.length === 1) {
-        // Solo un rol → redirige automáticamente
-        localStorage.setItem('rol', roles[0])
+        // 🔹 Solo un rol → login automático usando AuthContext
+        await login(roles[0]) // actualiza rol y docente
         router.push(roles[0] === 'Admin' ? '/admin/home' : '/docente/home')
       } else {
-        // Varios roles → guardar y pasar a seleccionar
+        // Varios roles → guardar roles y pasar a seleccionar
         localStorage.setItem('roles', JSON.stringify(roles))
         router.push('/auth/selectRole')
       }
     } catch (err: any) {
-      console.error('❌ Error al iniciar sesión:', err)
+      console.error('Error al iniciar sesión:', err)
       setError(err.response?.data?.message || 'Error desconocido')
     } finally {
       setLoading(false)
@@ -68,9 +70,9 @@ export default function LoginPage() {
               required
             />
 
-             <div className="relative">
+            <div className="relative">
               <input
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Contraseña"
@@ -82,7 +84,7 @@ export default function LoginPage() {
                 onClick={() => setSowPassword(!showPassword)}
                 className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
               >
-                {showPassword ? <FaEyeSlash /> : <FaEye/>}
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
 
