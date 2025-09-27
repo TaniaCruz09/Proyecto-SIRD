@@ -49,8 +49,10 @@ export async function getCurrentUser() {
   try {
     const response = await feching(endPoint, "no-cache", "GET")
     return response
-  } catch (error) {
-    console.error("Error en getCurrentUser:", error)
+  } catch (error: any) {
+    if (error?.response?.status !== 401) {
+      console.error("Error en getCurrentUser:", error)
+    }
     throw error
   }
 }
