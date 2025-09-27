@@ -3,11 +3,13 @@
 import { saveLogin } from '@/actions/authMethods/loginMethods'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { FaEye, FaEyeSlash } from 'react-icons/fa'
 
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setSowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -66,14 +68,23 @@ export default function LoginPage() {
               required
             />
 
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Contraseña"
-              className="w-full p-3 border rounded-xl border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-400 text-black"
-              required
-            />
+             <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Contraseña"
+                className="w-full p-3 border rounded-xl border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-400 text-black pr-12"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setSowPassword(!showPassword)}
+                className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye/>}
+              </button>
+            </div>
 
             <p className="text-center text-sm text-gray-600">
               <a href="/recuperar-password" className="text-blue-600 hover:underline">
