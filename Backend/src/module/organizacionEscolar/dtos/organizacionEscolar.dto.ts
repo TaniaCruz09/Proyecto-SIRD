@@ -1,6 +1,4 @@
 import {
-  ArrayNotEmpty,
-  IsArray,
   IsDate,
   IsNotEmpty,
   IsNumber,
@@ -23,10 +21,6 @@ export class CreateOrganizacionEscolarDTO {
   @IsOptional()
   @IsObject()
   grupo?: { id: number }[];
-
-  @IsNotEmpty()
-  @IsObject()
-  corte: { id: number };
 
   @IsOptional()
   @IsNumber()

@@ -1,6 +1,5 @@
 import {
   IsDate,
-  IsNotEmpty,
   IsNumber,
   IsObject,
   IsOptional,
@@ -12,13 +11,17 @@ export class UpdateOrganizacionEscolarDTO {
   @IsNumber()
   readonly id?: number;
 
-  @IsNotEmpty()
-  @IsNumber()
-  anio_lectivo?: number;
+  @IsOptional()
+  @IsObject()
+  anio_lectivo?: { id: number };
 
   @IsOptional()
   @IsObject()
-  grupo?: Grupos[];
+  turno?: { id: number };
+
+  @IsOptional()
+  @IsObject()
+  grupo?: { id: number }[];
 
   @IsOptional()
   @IsNumber()

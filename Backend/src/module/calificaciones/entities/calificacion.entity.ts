@@ -1,4 +1,4 @@
-import { Asignatura } from 'src/module/catalogos';
+import { Asignatura, Cortes } from 'src/module/catalogos';
 import { StudentEntity } from 'src/module/createEstudents';
 import {
   Column,
@@ -7,7 +7,6 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-
 @Entity({ schema: 'calificaciones', name: 'calificaciones' })
 export class Calificaciones {
   @PrimaryGeneratedColumn('increment', {
@@ -35,4 +34,8 @@ export class Calificaciones {
     type: 'int4',
   })
   notaCuantitativa?: number;
+
+  @ManyToOne(() => Cortes, (corte) => corte.calificacion, { cascade: true })
+  @JoinColumn({ name: 'corte_id' })
+  corte: Cortes;
 }

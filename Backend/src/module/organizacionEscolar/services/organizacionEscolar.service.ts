@@ -34,8 +34,6 @@ export class OrganizacionEscolarService {
         .leftJoinAndSelect('grupos.docenteGuia', 'docenteGuia')
         .leftJoinAndSelect('organizacionEscolar.turno', 'turno')
         .leftJoinAndSelect('turno.modalidad', 'modalidad')
-        .leftJoinAndSelect('organizacionEscolar.corte', 'corte')
-        .leftJoinAndSelect('corte.semestre', 'semestre')
         .orderBy('anio_lectivo.anio_lectivo', 'DESC')
         .getMany();
 
@@ -58,8 +56,6 @@ export class OrganizacionEscolarService {
         .leftJoinAndSelect('grupos.docenteGuia', 'docenteGuia')
         .leftJoinAndSelect('organizacionEscolar.turno', 'organizacion_turno')
         .leftJoinAndSelect('organizacion_turno.modalidad', 'organizacion_modalidad')
-        .leftJoinAndSelect('organizacionEscolar.corte', 'corte')
-        .leftJoinAndSelect('corte.semestre', 'semestre')
         .where('organizacionEscolar.id = :id', { id })
         .orderBy('anio_lectivo.anio_lectivo', 'DESC')
         .getOne();
@@ -77,7 +73,7 @@ export class OrganizacionEscolarService {
     try {
       const organizacion = await this.organizacionEscolarRepo.findOne({
         where: { id },
-        relations: ['anio_lectivo', "turno", "corte"],
+        relations: ['anio_lectivo', "turno"],
       });
       if (!organizacion) {
         throw new NotFoundException('Organizacion Escolar no encontrada');
@@ -102,7 +98,7 @@ export class OrganizacionEscolarService {
     try {
       const organizacion = await this.organizacionEscolarRepo.findOne({
         where: { id },
-        relations: ['anio_lectivo', "turno", "corte"],
+        relations: ['anio_lectivo', "turno"],
       });
       if (!organizacion) {
         throw new NotFoundException('Organizacion escolar no encontrada');
