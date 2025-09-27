@@ -2,10 +2,12 @@
 
 import { createContext, useState, useEffect, ReactNode, useContext } from 'react'
 import { useRouter } from 'next/navigation'
-import { getCurrentUser, logoutUser, SelectRole } from '@/actions/authMethods/loginMethods'
+import { SelectRole, logoutUser } from '@/actions/authMethods/loginMethods'
+import { Docente } from '@/interfaces'
 
 interface AuthContextProps {
     rol: string | null
+    docente: Docente | null
     login: (newRol?: string) => Promise<void>
     logout: () => Promise<void>
     loading: boolean
@@ -16,52 +18,36 @@ const AuthContext = createContext<AuthContextProps | undefined>(undefined)
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const router = useRouter()
     const [rol, setRol] = useState<string | null>(null)
+    const [docente, setDocente] = useState<Docente | null>(null)
     const [hydrated, setHydrated] = useState(false)
-    const [loading, setLoading] = useState(true) // control de carga
+    const [loading, setLoading] = useState(true)
 
-    // Inicializar rol desde localStorage y backend
-    const fetchRol = async () => {
-        try {
-            setLoading(true)
-            const data = await getCurrentUser()
-
-            const currentRol = data.user.roles?.[0] || null
-            if (currentRol) {
-                setRol(currentRol)
-                localStorage.setItem("rol", currentRol)
-            } else {
-                setRol(null)
-                localStorage.removeItem("rol")
-            }
-        } catch (err: any) {
-            // ✅ No mostrar error si es 401 (sin token)
-            if (err?.response?.status !== 401) {
-                console.error("Error al obtener rol:", err)
-            }
-            setRol(null)
-            localStorage.removeItem("rol")
-        } finally {
-            setHydrated(true)
-            setLoading(false)
-        }
-    }
-
-
-    // Llamada inicial
+    // Inicializar desde localStorage si existe
     useEffect(() => {
-        fetchRol()
+        const storedRol = localStorage.getItem('rol')
+        if (storedRol) setRol(storedRol)
+        setHydrated(true)
+        setLoading(false)
     }, [])
 
     const login = async (newRol?: string) => {
         try {
             setLoading(true)
+            let userData: any = null
+
             if (newRol) {
-                await SelectRole({ role: newRol })
+                // Llamada a SelectRole si se pasa un rol
+                const response = await SelectRole({ role: newRol })
+                userData = response.user
+                setRol(response.role)
+                localStorage.setItem('rol', response.role)
             }
-            await fetchRol()
+
+            // Actualizar docente si existe
+            if (userData?.docente) setDocente(userData.docente)
         } catch (err) {
-            console.error("Error al hacer login:", err)
-            router.push("/auth/login")
+            console.error('Error al hacer login:', err)
+            router.push('/auth/login')
         } finally {
             setLoading(false)
         }
@@ -72,10 +58,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setLoading(true)
             await logoutUser()
             setRol(null)
-            localStorage.removeItem("rol")
-            router.push("/auth/login")
+            setDocente(null)
+            localStorage.removeItem('rol')
+            router.push('/auth/login')
         } catch (err) {
-            console.error("Error en logout:", err)
+            console.error('Error en logout:', err)
         } finally {
             setLoading(false)
         }
@@ -84,7 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!hydrated) return null
 
     return (
-        <AuthContext.Provider value={{ rol, login, logout, loading }}>
+        <AuthContext.Provider value={{ rol, docente, login, logout, loading }}>
             {children}
         </AuthContext.Provider>
     )

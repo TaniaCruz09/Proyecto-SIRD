@@ -38,18 +38,10 @@ export const feching = async (
 
     return responseData;
   } catch (error: any) {
-    // Verificamos si el error tiene respuesta del servidor
-    const status = error?.response?.status;
-
-    // ✅ Solo mostramos en consola los errores que NO sean 401 (sin token)
-    if (status !== 401) {
-      console.error(
-        "❌ Error en feching():",
-        error instanceof Error ? error.message : JSON.stringify(error)
-      );
-    }
-
-    // Re-lanzamos el error para que el componente que llamó pueda manejarlo
-    throw error;
+    console.error(
+      "❌ Error en feching():",
+      error instanceof Error ? error.message : JSON.stringify(error)
+    );
+    throw error; // Re-lanzamos el error para que el componente lo maneje
   }
 };

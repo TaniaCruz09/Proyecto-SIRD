@@ -65,4 +65,9 @@ export class AuthService {
     };
     return this.jwtService.sign(payloadJwt);
   }
+
+  async findUserById(id: number) {
+    return await this.usersServices.getUserById(id);
+  }
+
 }
