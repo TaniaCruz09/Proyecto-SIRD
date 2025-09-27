@@ -7,14 +7,6 @@ const getHeadersGlobal = (body?: any) => {
     "api-key": apiKey || "",
   };
 
-  // Solo añadir Authorization si estamos en cliente y existe token
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("token");
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-  }
-
   // Si NO es FormData, agregamos Content-Type JSON
   if (!(body instanceof FormData)) {
     headers["Content-Type"] = "application/json; charset=utf-8";
