@@ -79,9 +79,6 @@ export function AnioLectivoForm({
                     <li>
                       • <strong>Turno:</strong>
                     </li>
-                    <li>
-                      • <strong>Cortes:</strong>
-                    </li>
                   </ul>
                 </div>
               </div>
