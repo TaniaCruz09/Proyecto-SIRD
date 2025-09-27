@@ -53,6 +53,16 @@ export class AuthService {
       console.error('Error en login:', error); // Para depurar en consola
       throw new InternalServerErrorException('Error interno del servidor');
     }
+  }
 
+  // 👉 NUEVO MÉTODO: genera un token "básico" sin roles
+  async createBasicToken(user: any) {
+    const payloadJwt = {
+      sub: user.id,
+      name: user.name,
+      email: user.email,
+      roles: [], // vacío hasta que elija rol en /select-role
+    };
+    return this.jwtService.sign(payloadJwt);
   }
 }
