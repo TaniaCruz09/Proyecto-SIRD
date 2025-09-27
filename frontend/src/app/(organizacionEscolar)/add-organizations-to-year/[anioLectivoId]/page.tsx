@@ -86,9 +86,6 @@ export default function AcademicYearOrganizations() {
                                                 </Badge>
                                             </div>
                                             <div className="flex items-center gap-4 text-sm text-slate-600 flex-wrap">
-                                                <Badge key={o.corte?.id} variant="outline" className="bg-rose-100 text-rose-700">
-                                                    {o.corte?.corte} - {o.corte?.semestre.semestre}
-                                                </Badge>
                                                 <span>• Grupos: {o.grupos?.length || 0}</span>
                                             </div>
                                         </div>
