@@ -23,8 +23,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const fetchRol = async () => {
         try {
             setLoading(true)
-
-            // 🔸 Primero intenta obtener del backend
             const data = await getCurrentUser()
 
             const currentRol = data.user.roles?.[0] || null
@@ -35,8 +33,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 setRol(null)
                 localStorage.removeItem("rol")
             }
-        } catch (err) {
-            console.error("Error al obtener rol:", err)
+        } catch (err: any) {
+            // ✅ No mostrar error si es 401 (sin token)
+            if (err?.response?.status !== 401) {
+                console.error("Error al obtener rol:", err)
+            }
             setRol(null)
             localStorage.removeItem("rol")
         } finally {
@@ -44,6 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setLoading(false)
         }
     }
+
 
     // Llamada inicial
     useEffect(() => {
