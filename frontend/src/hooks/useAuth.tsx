@@ -25,7 +25,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Inicializar desde localStorage si existe
     useEffect(() => {
         const storedRol = localStorage.getItem('rol')
+        const storedDocente = localStorage.getItem('docente')
+
         if (storedRol) setRol(storedRol)
+        if (storedDocente) setDocente(JSON.parse(storedDocente))
+
         setHydrated(true)
         setLoading(false)
     }, [])
@@ -44,7 +48,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
 
             // Actualizar docente si existe
-            if (userData?.docente) setDocente(userData.docente)
+            if (userData?.docente) {
+                setDocente(userData.docente)
+                localStorage.setItem('docente', JSON.stringify(userData.docente))
+            }
         } catch (err) {
             console.error('Error al hacer login:', err)
             router.push('/auth/login')
@@ -60,6 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setRol(null)
             setDocente(null)
             localStorage.removeItem('rol')
+            localStorage.removeItem('docente')
             router.push('/auth/login')
         } catch (err) {
             console.error('Error en logout:', err)
