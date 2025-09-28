@@ -14,9 +14,21 @@ const authSubmenu = [
 ]
 
 const catalogSubmenu = [
-  { label: 'Niveles Académicos', href: '/catalogo/nivelAcademico', icon: FaUserPlus },
+  { label: 'Años Lectivos', href: '/catalogo/anioLectivo', icon: FaUserPlus },
   { label: 'Asignaturas', href: '/catalogo/asignatura', icon: FaUserPlus },
   { label: 'Cortes', href: '/catalogo/corteEvaluativo', icon: FaUserPlus },
+  { label: 'Departamentos', href: '/catalogo/departamento', icon: FaUserPlus },
+  { label: 'Etnias', href: '/catalogo/etnia', icon: FaUserPlus },
+  { label: 'Sexos', href: '/catalogo/genero', icon: FaUserPlus },
+  { label: 'Grados', href: '/catalogo/grados', icon: FaUserPlus },
+  { label: 'Modalidades', href: '/catalogo/modalidad', icon: FaUserPlus },
+  { label: 'Municipios', href: '/catalogo/municipio', icon: FaUserPlus },
+  { label: 'Niveles Académicos', href: '/catalogo/nivelAcademico', icon: FaUserPlus },
+  { label: 'Paises', href: '/catalogo/pais', icon: FaUserPlus },
+  { label: 'Profesiones', href: '/catalogo/profesion', icon: FaUserPlus },
+  { label: 'Secciones', href: '/catalogo/seccion', icon: FaUserPlus },
+  { label: 'Semestres', href: '/catalogo/semestre', icon: FaUserPlus },
+  { label: 'Turnos', href: '/catalogo/turno', icon: FaUserPlus },
 ]
 
 const organizacionEscolarSubmenu = [
@@ -68,33 +80,20 @@ function NavbarAdmin() {
   if (!rol) return null
 
   return (
-    <nav className="w-64 bg-gray-900 text-white h-screen overflow-hidden shadow-md">
+    <nav className="w-70 bg-gray-900 text-white h-screen overflow-hidden shadow-md">
       <div ref={scrollRef} className="h-full overflow-y-auto p-4 space-y-2">
-        {/* Home */}
-        {rol === 'Admin' && (
-          <Link
-            href="/admin/home"
-            className={`flex items-center gap-3 p-3 rounded-md transition ${isActive('/admin/home')}`}
-            onClick={handleSaveScroll}
-          >
-            <FaHome />
-            <span>Home Admin</span>
-          </Link>
-        )}
-        {rol === 'Docente' && (
-          <Link
-            href="/docente/home"
-            className={`flex items-center gap-3 p-3 rounded-md transition ${isActive('/docente/home')}`}
-            onClick={handleSaveScroll}
-          >
-            <FaHome />
-            <span>Home Docente</span>
-          </Link>
-        )}
-
         {/* Solo Admin */}
         {rol === 'Admin' && (
           <>
+            <Link
+              href="/admin/home"
+              className={`flex items-center gap-3 p-3 rounded-md transition ${isActive('/admin/home')}`}
+              onClick={handleSaveScroll}
+            >
+              <FaHome />
+              <span>Home Admin</span>
+            </Link>
+
             <button
               onClick={() => setOpenUsers(!openUsers)}
               className="flex items-center justify-between p-3 w-full rounded-md transition"
@@ -172,7 +171,27 @@ function NavbarAdmin() {
                 ))}
               </div>
             )}
+
+            <Link
+              href="/docente/registerDocente"
+              className={`flex items-center gap-3 p-3 rounded-md transition ${isActive('/esquela-calificaciones')}`}
+            >
+              <FaHome />
+              <span>Registro Docente</span>
+            </Link>
           </>
+        )}
+
+        {/* Solo Docentes */}
+        {rol === 'Docente' && (
+          <Link
+            href="/docente/home"
+            className={`flex items-center gap-3 p-3 rounded-md transition ${isActive('/docente/home')}`}
+            onClick={handleSaveScroll}
+          >
+            <FaHome />
+            <span>Home Docente</span>
+          </Link>
         )}
 
         {/* Links compartidos */}
