@@ -2,33 +2,16 @@
 import { FaUsers, FaUserShield, FaBook, FaGraduationCap } from 'react-icons/fa'
 import { motion } from 'framer-motion'
 import { FaArrowUpRightFromSquare } from 'react-icons/fa6'
-import CerrarSecion from '@/components/cerrarSesion'
 import { AcademicYearsDashboard } from '@/components/organizacionEscolar/tablero-de-años-academicos'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import Link from 'next/link'
 import EstadisticaAdmin from '@/components/EstadisticaAdmin'
+import Header from '@/components/Header'
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-gradient-to-r from-gray-50 to-purple-50 border-b border-gray-200 py-2">
-        <div className="max-w-7xl mx-auto px-5">
-          <div className="flex items-center justify-between">
-            {/* Título y subtítulo */}
-            <div>
-              <h1 className="text-2xl font-bold text-black mb-0.5">
-                Sistema de Calificaciones SIRD
-              </h1>
-              <p className="text-gray-600 text-sm">
-                Panel de Administración
-              </p>
-            </div>
-
-            {/* Botón o componente de cierre de sesión */}
-            <CerrarSecion />
-          </div>
-        </div>
-      </header>
+      <Header title='Sistema de Calificaciones SIRD' subTitle='Panel de Administración' />
       <main className="max-w-7xl mx-auto px-6">
         <div className="m-5">
           <h2 className="text-2xl font-bold text-foreground mb-3">Bienvenido Administrador</h2>
