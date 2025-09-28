@@ -28,13 +28,7 @@ export class UserService {
   async findByEmail(email: string) {
     const user = await this.userRepository.findOne({
       where: { email },
-      relations: ['roles', 'docente'],
-      // select: {
-      //     id: true,
-      //     email: true,
-      //     name: true,
-      //     password: true
-      // },
+      relations: ['roles', 'docente', 'docente.profession'],
     });
 
     if (!user) {
@@ -61,7 +55,7 @@ export class UserService {
         name = docenteEntity.nombres; // o el campo que tenga el nombre
       }
       // Crear usuario
-      const newUser = this.userRepository.create({ name, email, password, docente: docente ? { id: docente.id } as any : null,roles: roles?.map((roleId) => ({ id: roleId })), });
+      const newUser = this.userRepository.create({ name, email, password, docente: docente ? { id: docente.id } as any : null, roles: roles?.map((roleId) => ({ id: roleId })), });
       const savedUser = await this.userRepository.save(newUser);
 
       // Generar el token
@@ -76,10 +70,10 @@ export class UserService {
       await this.userRepository.save(savedUser);
 
       // Retornar con relaciones
-    return await this.userRepository.findOne({
-      where: { id: savedUser.id },
-      relations: ['roles', 'docente'],
-    });
+      return await this.userRepository.findOne({
+        where: { id: savedUser.id },
+        relations: ['roles', 'docente'],
+      });
     } catch (error) {
       throw new InternalServerErrorException(error);
     }
@@ -92,45 +86,45 @@ export class UserService {
 
   async getUserById(id: number): Promise<User> {
     try {
-      const user = await this.userRepository.findOne({ where: { id }, relations: ['roles', 'docente'] });
+      const user = await this.userRepository.findOne({ where: { id }, relations: ['roles', 'docente', 'docente.profession'] });
       return user;
     } catch (error) {
       Utilities.catchError(error);
     }
   }
 
-async updated(id: number, payload: UserPartialTypeDto) {
-  const oldUser = await this.userRepository.findOne({
-    where: { id },
-    relations: ['roles', 'docente'],
-  });
+  async updated(id: number, payload: UserPartialTypeDto) {
+    const oldUser = await this.userRepository.findOne({
+      where: { id },
+      relations: ['roles', 'docente'],
+    });
 
-  if (!oldUser) throw new NotFoundException('No se encontró el usuario');
+    if (!oldUser) throw new NotFoundException('No se encontró el usuario');
 
-  // Actualizar campos básicos
-  oldUser.name = payload.name ?? oldUser.name;
-  oldUser.email = payload.email ?? oldUser.email;
-  if (payload.password) {
-    oldUser.password = await bcrypt.hash(payload.password, SetupEnum.SALTORROUND);
+    // Actualizar campos básicos
+    oldUser.name = payload.name ?? oldUser.name;
+    oldUser.email = payload.email ?? oldUser.email;
+    if (payload.password) {
+      oldUser.password = await bcrypt.hash(payload.password, SetupEnum.SALTORROUND);
+    }
+
+    // Actualizar docente
+    if (payload.docente) {
+      const docenteEntity = await this.userRepository.manager.findOne(Docentes, { where: { id: payload.docente.id } });
+      if (!docenteEntity) throw new NotFoundException('Docente no encontrado');
+      oldUser.docente = docenteEntity;
+      if (!payload.name) oldUser.name = docenteEntity.nombres;
+    }
+
+    // Actualizar roles correctamente
+    if (payload.roles) {
+      oldUser.roles = payload.roles.map((roleId) =>
+        this.userRepository.manager.create(Role, { id: roleId })
+      );
+    }
+
+    return await this.userRepository.save(oldUser);
   }
-
-  // Actualizar docente
-  if (payload.docente) {
-    const docenteEntity = await this.userRepository.manager.findOne(Docentes, { where: { id: payload.docente.id } });
-    if (!docenteEntity) throw new NotFoundException('Docente no encontrado');
-    oldUser.docente = docenteEntity;
-    if (!payload.name) oldUser.name = docenteEntity.nombres;
-  }
-
-  // Actualizar roles correctamente
-  if (payload.roles) {
-    oldUser.roles = payload.roles.map((roleId) =>
-      this.userRepository.manager.create(Role, { id: roleId })
-    );
-  }
-
-  return await this.userRepository.save(oldUser);
-}
 
 
 
