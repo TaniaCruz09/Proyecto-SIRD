@@ -155,7 +155,7 @@ export default function HomePage() {
                     </span>
 
                     <CardHeader>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 mt-3">
                         <div className="p-3 bg-blue-100 rounded-lg">
                           <GraduationCap className="text-blue-600 w-6 h-6" />
                         </div>
