@@ -32,8 +32,6 @@ export class AnioLectivoService {
                 .leftJoinAndSelect("anioLectivo.organizacionEscolar", "organizacionEscolar")
                 .leftJoinAndSelect("organizacionEscolar.turno", "turno")
                 .leftJoinAndSelect("turno.modalidad", "modalidad")
-                .leftJoinAndSelect("organizacionEscolar.corte", "corte")
-                .leftJoinAndSelect("corte.semestre", "semestre")
                 .orderBy('anioLectivo.anio_lectivo', 'DESC')
                 .getMany();
             return anioLectivo;
@@ -49,8 +47,6 @@ export class AnioLectivoService {
                 .leftJoinAndSelect("anio_lectivo.organizacionEscolar", "organizacionEscolar")
                 .leftJoinAndSelect("organizacionEscolar.turno", "turno")
                 .leftJoinAndSelect("turno.modalidad", "modalidad")
-                .leftJoinAndSelect("organizacionEscolar.corte", "corte")
-                .leftJoinAndSelect("corte.semestre", "semestre")
                 .leftJoinAndSelect("organizacionEscolar.grupos", "grupos")
                 .where("anio_lectivo.id = :id", { id })
                 .orderBy("anio_lectivo.anio_lectivo", "DESC")

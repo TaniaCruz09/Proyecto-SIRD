@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { FaUserShield, FaChalkboardTeacher } from 'react-icons/fa'
+import { useAuth } from '@/hooks/useAuth'
 import { JSX } from 'react/jsx-runtime'
 
 interface Role {
@@ -14,6 +15,7 @@ interface Role {
 
 export default function SelectRolePage() {
   const router = useRouter()
+  const { login, loading } = useAuth()
   const [roles, setRoles] = useState<Role[]>([])
   const [selectedRole, setSelectedRole] = useState<string>('')
 
@@ -24,36 +26,63 @@ export default function SelectRolePage() {
       return
     }
 
-    const parsedRoles = JSON.parse(storedRoles).map((r: any) => {
-      if (r.rol === 'Admin') {
-        return {
-          rol: 'Admin',
-          title: 'Administrador',
-          description: 'Administra el sistema completo, usuarios, configuraciones y reportes',
-          icon: <FaUserShield className="text-white text-2xl" />,
+    try {
+      const parsedRoles: string[] = JSON.parse(storedRoles) // ahora es array de strings
+      const mappedRoles: Role[] = parsedRoles.map((r) => {
+        if (r === 'Admin') {
+          return {
+            rol: r,
+            title: 'Administrador',
+            description: 'Administra el sistema completo',
+            icon: <FaUserShield className="text-white text-2xl" />,
+          }
         }
-      } else if (r.rol === 'Docente') {
-        return {
-          rol: 'Docente',
-          title: 'Docente',
-          description: 'Accede a tus clases, estudiantes y registro de notas',
-          icon: <FaChalkboardTeacher className="text-white text-2xl" />,
+        if (r === 'Docente') {
+          return {
+            rol: r,
+            title: 'Docente',
+            description: 'Accede a tus clases y estudiantes',
+            icon: <FaChalkboardTeacher className="text-white text-2xl" />,
+          }
         }
-      }
-      return r
-    })
+        return {
+          rol: r,
+          title: r,
+          description: '',
+          icon: <div />
+        }
+      })
 
-    setRoles(parsedRoles)
+      setRoles(mappedRoles)
+    } catch (error) {
+      console.error('Error parseando roles desde localStorage:', error)
+      router.push('/auth/login')
+    }
   }, [router])
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedRole) return
-    localStorage.setItem('rol', selectedRole)
-    router.push('/') // redirige a home, donde controlas las rutas por rol
+    await login(selectedRole)
+
+    if (selectedRole === 'Admin') router.push('/admin/home')
+    else if (selectedRole === 'Docente') router.push('/docente/home')
+    else router.push('/auth/login')
+  }
+
+  if (loading || !roles.length) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
+        <div className="w-full max-w-lg space-y-4">
+          <div className="animate-pulse h-6 bg-gray-300 rounded"></div>
+          <div className="animate-pulse h-6 bg-gray-300 rounded"></div>
+          <div className="animate-pulse h-40 bg-gray-300 rounded"></div>
+        </div>
+      </div>
+    )
   }
 
   return (
-   <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 via-gray-200 to-gray-400 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 via-gray-200 to-gray-400 px-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8">
         <h1 className="text-2xl font-bold text-center mb-2 text-gray-800">Selecciona tu Rol</h1>
         <p className="text-center text-gray-600 mb-6">
@@ -63,7 +92,7 @@ export default function SelectRolePage() {
         <div className="grid grid-cols-1 gap-4">
           {roles.map((role) => (
             <div
-              key={role.rol}
+              key={role.rol} // 🔹 ahora es único porque role.rol es string
               onClick={() => setSelectedRole(role.rol)}
               className={`cursor-pointer flex items-center gap-4 p-4 rounded-xl transition-shadow border
                 ${selectedRole === role.rol ? 'border-blue-500 shadow-lg bg-blue-50' : 'border-gray-200 hover:shadow-md hover:bg-gray-50'}`}

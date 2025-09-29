@@ -14,7 +14,6 @@ import { User } from '../../auth/entities';
 import * as moment from 'moment-timezone';
 import { AnioLectivo } from 'src/module/catalogos/entities/anioLectivo.entity';
 import { Turno } from '../../catalogos';
-import { Cortes } from '../../catalogos/entities/corte.entity';
 
 @Entity({ name: 'organizacionEscolar', schema: 'organizacion_escolar' })
 export class OrganizacionEscolar {
@@ -28,10 +27,6 @@ export class OrganizacionEscolar {
   @ManyToOne(() => Turno, (turno) => turno.organizacionEscolar)
   @JoinColumn({ name: 'turno_id' })
   turno: Turno;
-
-  @ManyToOne(() => Cortes, (corte) => corte.organizacionEscolar, { cascade: true })
-  @JoinColumn({ name: 'corte_id' })
-  corte: Cortes;
 
   @OneToMany(() => Grupos, (grupos) => grupos.organizacionEscolar)
   grupos?: Grupos[];

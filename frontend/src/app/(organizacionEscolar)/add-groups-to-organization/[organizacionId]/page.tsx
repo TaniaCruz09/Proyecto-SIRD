@@ -99,8 +99,8 @@ export default function OrganizationGroups() {
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-rose-700">Cortes Activos</p>
-                                <p className="text-2xl font-bold text-rose-900">cortes</p>
+                                <p className="text-sm font-medium text-rose-700"> ya no existe Activos</p>
+                                <p className="text-2xl font-bold text-rose-900">cort ya no existe aqui</p>
                             </div>
                             <Save className="h-8 w-8 text-rose-600" />
                         </div>

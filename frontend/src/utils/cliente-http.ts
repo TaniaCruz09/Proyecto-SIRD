@@ -4,12 +4,11 @@ export const feching = async (
   endPoint: string,
   cache: RequestCache = "no-cache",
   method: string,
-  body: any = null
+  body: any = null,
 ) => {
   // Detectamos si es FormData
   const isFormData = body instanceof FormData;
   const headers = await getHeadersGlobal(body);
-
 
   const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${endPoint}`;
 
@@ -18,6 +17,7 @@ export const feching = async (
     cache,
     headers,
     body: isFormData ? body : body ? JSON.stringify(body) : undefined,
+    credentials: 'include', // envía cookies en cada request
   };
 
   try {
@@ -25,11 +25,6 @@ export const feching = async (
     const contentType = res.headers.get("content-type");
     const isJSON = contentType?.includes("application/json");
     const responseData = isJSON ? await res.json() : await res.text();
-
-    if (res.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = '/auth/login?expired=true';
-    }
 
     if (!res.ok) {
       throw {
@@ -42,8 +37,11 @@ export const feching = async (
     }
 
     return responseData;
-  } catch (error) {
-    console.error("❌ Error en feching():", error instanceof Error ? error.message : JSON.stringify(error));
-    throw error;
+  } catch (error: any) {
+    console.error(
+      "❌ Error en feching():",
+      error instanceof Error ? error.message : JSON.stringify(error)
+    );
+    throw error; // Re-lanzamos el error para que el componente lo maneje
   }
 };

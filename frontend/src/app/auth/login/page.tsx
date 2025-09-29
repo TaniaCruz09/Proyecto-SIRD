@@ -1,20 +1,19 @@
 'use client'
 
-import { saveLogin } from '@/actions/authMethods/loginMethods'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
+import { saveLogin } from '@/actions/authMethods/loginMethods'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function LoginPage() {
+  const router = useRouter()
+  const { login } = useAuth() // usar AuthContext
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setSowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
-
-  const searchParams = useSearchParams()
-  const sessionExpired = searchParams.get('expired') === 'true'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,34 +21,24 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      const data = await saveLogin({ email, password })
-      const { token, user } = data
+      const res = await saveLogin({ email, password })
+      const { user, roles, autoSelectRole } = res
 
-      localStorage.setItem('token', token)
+      // Guardar datos del usuario
       localStorage.setItem('user', JSON.stringify(user))
 
-      // múltiples roles
-      if (user.roles.length > 1) {
-        localStorage.setItem('roles', JSON.stringify(user.roles))
-        router.push("/auth/selectRole")
+      if (autoSelectRole && roles.length === 1) {
+        // 🔹 Solo un rol → login automático usando AuthContext
+        await login(roles[0]) // actualiza rol y docente
+        router.push(roles[0] === 'Admin' ? '/admin/home' : '/docente/home')
       } else {
-        // un solo rol
-        localStorage.setItem('rol', user.roles[0].rol) // ← guardamos string limpio
-        router.push("/")
+        // Varios roles → guardar roles y pasar a seleccionar
+        localStorage.setItem('roles', JSON.stringify(roles))
+        router.push('/auth/selectRole')
       }
     } catch (err: any) {
-      if (err.response) {
-        const status = err.response.status
-        const message = err.response.data?.message || 'Error desconocido'
-
-        if (status === 401) {
-          setError(message)
-        } else if (status) {
-          setError(`Error del servidor: ${message}`)
-        }
-      } else {
-        setError('Error de red, intenta de nuevo')
-      }
+      console.error('Error al iniciar sesión:', err)
+      setError(err.response?.data?.message || 'Error desconocido')
     } finally {
       setLoading(false)
     }
@@ -72,12 +61,6 @@ export default function LoginPage() {
 
             {error && <p className="text-red-500 text-center">{error}</p>}
 
-            {sessionExpired && (
-              <p className="text-yellow-600 bg-yellow-100 border border-yellow-300 p-3 rounded text-sm text-center">
-                Tu sesión ha caducado. Por favor, inicia sesión nuevamente.
-              </p>
-            )}
-
             <input
               type="email"
               value={email}
@@ -87,9 +70,9 @@ export default function LoginPage() {
               required
             />
 
-             <div className="relative">
+            <div className="relative">
               <input
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Contraseña"
@@ -101,7 +84,7 @@ export default function LoginPage() {
                 onClick={() => setSowPassword(!showPassword)}
                 className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
               >
-                {showPassword ? <FaEyeSlash /> : <FaEye/>}
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
 

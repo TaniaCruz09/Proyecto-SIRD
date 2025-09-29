@@ -1,9 +1,8 @@
 "use client"
 import { getAniosLectivos } from '@/actions/catalogos/anioLectivoMethods';
-import { getCortesEvaluativos } from '@/actions/catalogos/corteEvaluativoMethods';
 import { getTurnos } from '@/actions/catalogos/turnoMethods';
 import { saveOrganizacionEscolar, updateOrganizacionEscolar } from '@/actions/organizacionEscolarMethods/organizacionMethods';
-import { AnioLectivo, Corte, OrganizacionEscolar, OrganizacionEscolarPayload, Turno } from '@/interfaces';
+import { AnioLectivo, OrganizacionEscolar, OrganizacionEscolarPayload, Turno } from '@/interfaces';
 import React, { useEffect, useState } from 'react'
 interface OrganizacionFormProp {
     defaultValues?: OrganizacionEscolar | null;
@@ -18,9 +17,6 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
     const [turno, setTurno] = useState<string>("")
     const [turnos, setTurnos] = useState<Turno[]>([])
 
-    const [corte, setCorte] = useState<string>("")
-    const [cortes, setCortes] = useState<Corte[]>([])
-
     const isEdit = Boolean(defaultValues?.id);
 
     useEffect(() => {
@@ -29,15 +25,12 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
                 const [
                     anioLectivoData,
                     turnoData,
-                    cortesData
                 ] = await Promise.all([
                     getAniosLectivos(),
                     getTurnos(),
-                    getCortesEvaluativos()
                 ]);
                 setAniosLectivos(anioLectivoData);
                 setTurnos(turnoData);
-                setCortes(cortesData);
             } catch (error) {
                 console.error("Error al cargar los datos del formulario:", error);
             }
@@ -50,12 +43,9 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
         try {
             const selectedAnioEscolar = aniosLectivos.find((a) => a.id === parseInt(anioLectivo));
             const selectedTurno = turnos.find((t) => t.id === parseInt(turno));
-            const selectedCorte = cortes.find((c) => c.id === parseInt(corte));
 
             if (
-                !selectedAnioEscolar ||
-                !selectedTurno ||
-                !selectedCorte
+                !selectedAnioEscolar || !selectedTurno
             ) {
                 console.error("Faltan campos requeridos");
                 return;
@@ -64,7 +54,6 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
             const organizacionEscolarData: OrganizacionEscolarPayload = {
                 anio_lectivo: selectedAnioEscolar,
                 turno: selectedTurno,
-                corte: selectedCorte,
             }
             if (isEdit && defaultValues?.id) {
                 await updateOrganizacionEscolar(defaultValues.id, organizacionEscolarData);
@@ -81,7 +70,6 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
         if (defaultValues) {
             setAnioLectivo(defaultValues.anio_lectivo?.id?.toString() || "");
             setTurno(defaultValues.turno?.id?.toString() || "");
-            setCorte(defaultValues.corte?.id.toString() || "");
         }
     }, [defaultValues])
     return (
@@ -117,22 +105,6 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
                         {t.turno}
                     </option>
                 ))}
-            </select>
-            <select
-                name="corte"
-                id='corte'
-                className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-                value={corte}
-                onChange={(e) => setCorte(e.target.value)
-                }
-            >
-                <option value="">Corte</option>
-                {
-                    cortes?.map((c) => (
-                        <option key={c.id} value={c.id}>
-                            {c.corte}
-                        </option>
-                    ))}
             </select>
 
             <div className="flex justify-center">

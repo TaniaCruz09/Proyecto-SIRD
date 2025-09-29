@@ -20,7 +20,7 @@ export default function EditAñoLectivoModal({ añoLectivo, fetchAñoLectivo }: 
                     onCloseModal={() => setShowModal(false)}
                     content={
                         <AnioLectivoForm
-                            // defaultValues={añoLectivo}
+                            defaultValues={añoLectivo}
                             onSuccess={() => {
                                 fetchAñoLectivo();
                                 setShowModal(false);
