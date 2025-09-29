@@ -17,8 +17,14 @@ import { getDocentes } from "@/actions/docentesMethods/docentesMethods";
 import EditarMateriaForm from "@/components/forms/EditarMateriaForm";
 import ConfirmDialog from "@/components/modals/organizacionEscolar/grupoConAsignatura/ConfirmAccion";
 import { getGruposById } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods";
+import { useQuery } from "@tanstack/react-query";
 
 export default function AddClasesOrganizacionEscolarPage() {
+  useQuery({
+    queryKey: ['grupoId'],
+    queryFn: async () => await getGruposById(Number(useParams().grupoId))
+  });
+
   const [grupoConAsignaturas, setGrupoConAsignaturas] = useState<GrupoConAsignaturasResponse[]>([]);
   const [materiasDisponibles, setMateriasDisponibles] = useState<Asignatura[]>([]);
   const [docentesDisponibles, setDocentesDisponibles] = useState<Docente[]>([]);

@@ -215,7 +215,7 @@ export function EsquelaRow() {
     return (
         <div className="w-full space-y-6 bg-gradient-to-br from-rose-50 via-pink-50 to-white min-h-screen p-4">
             <EsquelaHead
-                schoolName="Instituto Nacional San José"
+                schoolName="Instituto Ruben Dario"
                 grade="11° Grado"
                 section="A"
                 shift="Matutino"
