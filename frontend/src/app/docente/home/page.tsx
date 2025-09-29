@@ -5,16 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { BookOpen, GraduationCap, FileText, Search, ClipboardList } from "lucide-react"
-import CerrarSecion from '@/components/cerrarSesion'
-import { FaArrowUpRightFromSquare, FaBook, FaUsers, FaUserShield } from "react-icons/fa6"
+import { BookOpen, GraduationCap, FileText, Search } from "lucide-react"
+import { FaArrowUpRightFromSquare, FaBookOpen, FaUsers, FaPrint } from "react-icons/fa6"
 import Link from "next/link"
 import { motion } from 'framer-motion'
 import { useAuth } from "@/hooks/useAuth"
 import { getDocenteById } from "@/actions/docentesMethods/docentesMethods"
 import { GrupoEscolar } from "@/interfaces"
 import Header from "@/components/Header"
-import { FaBookOpen, FaClipboardList, FaGraduationCap, FaPrint, FaStarHalfAlt } from "react-icons/fa"
 
 export default function HomePage() {
   const { docente } = useAuth();
@@ -27,29 +25,24 @@ export default function HomePage() {
 
     const fetchDocente = async () => {
       try {
-        // res ya es el objeto JSON del docente
         const res = await getDocenteById(docente.id)
         console.log(res)
 
         if (!res || !res.id) throw new Error("Error al obtener datos del docente")
 
-        // Mapear la respuesta a tu estructura de GradeClass
-        const mappedClasses: GrupoEscolar[] = res.grupos.map((g: any) => ({
-          id: g.id,
-          grado: g.grado,
-          seccion: g.seccion,
-          turno: g.turno,
-          organizacionEscolar: g.organizacionEscolar,
-          docenteGuia: g.docenteGuia,
-          // propiedades opcionales
-          grupoAsignaturaDocente: g.grupoAsignaturaDocente,
-          user_create_id: g.user_create_id,
-          created_at: g.created_at,
-          update_at: g.update_at,
-          user_update_id: g.user_update_id,
-          deleted_at: g.deleted_at,
-          deleted_at_id: g.deleted_at_id
-        }))
+        // Mapeamos grupos válidos (solo si tienen organizacionEscolar)
+        const mappedClasses: GrupoEscolar[] = (res.grupos || [])
+          .filter((g: any) => g.organizacionEscolar !== null)
+          .map((g: any) => ({
+            id: g.id,
+            grado: g.grado,
+            seccion: g.seccion,
+            turno: g.turno,
+            organizacionEscolar: g.organizacionEscolar,
+            docenteGuia: g.docenteGuia,
+            grupoAsignaturaDocente: g.grupoAsignaturaDocente,
+          }))
+
         setGrupos(mappedClasses)
       } catch (error) {
         console.error("Error fetching docente:", error)
@@ -59,14 +52,21 @@ export default function HomePage() {
     fetchDocente()
   }, [docente?.id])
 
-  // Separar activo e inactivos
-  //const grupoActivo = grupos.find((c) => c.organizacionEscolar.anio_lectivo.isActive)  encontraba solo uno
-  const gruposActivos = grupos.filter((c) => c.organizacionEscolar.anio_lectivo.isActive)
-  const gruposInactivos = grupos.filter((c) => !c.organizacionEscolar.anio_lectivo.isActive)
+  // Filtrar activos e inactivos de forma segura
+  const gruposActivos = grupos.filter(
+    (c) => c.organizacionEscolar?.anio_lectivo?.isActive
+  )
+  const gruposInactivos = grupos.filter(
+    (c) => !c.organizacionEscolar?.anio_lectivo?.isActive
+  )
 
   // Filtrar histórico
   const filteredHistoricalClasses = gruposInactivos.filter(
-    (g) => searchYear === "" || g.organizacionEscolar.anio_lectivo.anio_lectivo.toString().includes(searchYear)
+    (g) =>
+      searchYear === "" ||
+      g.organizacionEscolar?.anio_lectivo?.anio_lectivo
+        .toString()
+        .includes(searchYear)
   )
 
   return (
@@ -76,7 +76,7 @@ export default function HomePage() {
         <main className="flex-1">
           <div className="mb-5">
             <h2 className="text-2xl font-bold text-foreground mb-1">{`Bienvenida Prof. ${docente?.nombres} ${docente?.apellido_paterno}`}</h2>
-            <p className=" text-muted-foreground">{`Docente de ${docente?.profession?.map((p: any) => p.profession).join(', ')} / podrá acceder a sus grados y registrar calificaciones`}</p>
+            <p className="text-muted-foreground">{`Docente de ${docente?.profession?.map((p: any) => p.profession).join(', ')} / podrá acceder a sus grados y registrar calificaciones`}</p>
           </div>
 
           {/* Accesos Directos */}
@@ -86,10 +86,8 @@ export default function HomePage() {
               <p className="pl-2">Accesos directos</p>
             </div>
 
-            {/* Tarjetas de acceso directo */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 place-items-center">
-
-              {/* Card 1: Asignar Calificaciones */}
+              {/* Card 1 */}
               <Link href={"/auth/users"}>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-67">
                   <Card className="bg-gradient-to-br from-blue-200 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
@@ -103,6 +101,7 @@ export default function HomePage() {
                   </Card>
                 </motion.div>
               </Link>
+              {/* Card 2 */}
               <Link href={"/calificaciones"}>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-67">
                   <Card className="bg-gradient-to-br from-emerald-200 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
@@ -116,6 +115,7 @@ export default function HomePage() {
                   </Card>
                 </motion.div>
               </Link>
+              {/* Card 3 */}
               <Link href={"/registerDocente"}>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-67">
                   <Card className="bg-gradient-to-br from-amber-200 to-amber-100 hover:from-amber-100 hover:to-amber-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
@@ -132,25 +132,26 @@ export default function HomePage() {
             </div>
           </section>
 
-          {gruposActivos.length > 0 && (
+          {/* Si no hay grupos activos */}
+          {gruposActivos.length === 0 ? (
+            <Card className="text-center py-10 mt-6">
+              <CardContent>
+                <BookOpen className="w-10 h-10 text-gray-400 mx-auto mb-3" />
+                <p className="text-gray-600 font-medium">
+                  Aún no tienes asignado ningún grado en un año activo.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
             <section className="mb-5">
               <h3 className="text-lg text-left font-semibold text-foreground ml-4">
                 Año en Proceso
               </h3>
-
-              <div
-                className={`grid gap-6 ${gruposActivos.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"
-                  }`}
-              >
+              <div className={`grid gap-6 ${gruposActivos.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"}`}>
                 {gruposActivos.map((grupo) => (
-                  <Card
-                    key={grupo.id}
-                    className="relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all"
-                  >
+                  <Card key={grupo.id} className="relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all">
                     <span className="absolute top-3 right-5">
-                      <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200">
-                        Activo
-                      </Badge>
+                      <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200">Activo</Badge>
                     </span>
 
                     <CardHeader>
@@ -196,9 +197,6 @@ export default function HomePage() {
               </div>
             </section>
           )}
-
-
-
         </main>
 
         {/* Sidebar Historial */}
