@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { BookOpen, GraduationCap, FileText, Search } from "lucide-react"
+import { BookOpen, GraduationCap, FileText, Search, ClipboardList } from "lucide-react"
 import CerrarSecion from '@/components/cerrarSesion'
 import { FaArrowUpRightFromSquare, FaBook, FaUsers, FaUserShield } from "react-icons/fa6"
 import Link from "next/link"
@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth"
 import { getDocenteById } from "@/actions/docentesMethods/docentesMethods"
 import { GrupoEscolar } from "@/interfaces"
 import Header from "@/components/Header"
+import { FaBookOpen, FaClipboardList, FaGraduationCap, FaPrint, FaStarHalfAlt } from "react-icons/fa"
 
 export default function HomePage() {
   const { docente } = useAuth();
@@ -69,46 +70,61 @@ export default function HomePage() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-purple-50">
-      <Header title={`Bienvenida Prof. ${docente?.nombres} ${docente?.apellido_paterno}`} subTitle={docente?.profession?.map((p: any) => p.profession).join(', ')} />
-      <div className="container mx-auto px-6 py-8 flex gap-8">
+    <div className="min-h-screen bg-purple-100/30">
+      <Header title='Sistema de Calificaciones SIRD' subTitle='Home Docente' />
+      <div className="container mx-auto px-6 py-7 flex gap-8">
         <main className="flex-1">
+          <div className="mb-5">
+            <h2 className="text-2xl font-bold text-foreground mb-1">{`Bienvenida Prof. ${docente?.nombres} ${docente?.apellido_paterno}`}</h2>
+            <p className=" text-muted-foreground">{`Docente de ${docente?.profession?.map((p: any) => p.profession).join(', ')} / podrá acceder a sus grados y registrar calificaciones`}</p>
+          </div>
+
           {/* Accesos Directos */}
-          <section className="mb-8">
-            <div className="flex items-center bg-gradient-to-b from-gray-50 to-purple-50 rounded-xl pl-3 font-semibold text-black mb-4">
+          <section className="mb-7">
+            <div className="flex items-center bg-purple-100/30 rounded-xl pl-3 font-semibold text-black">
               <FaArrowUpRightFromSquare />
               <p className="pl-2">Accesos directos</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            {/* Tarjetas de acceso directo */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 place-items-center">
+
+              {/* Card 1: Asignar Calificaciones */}
               <Link href={"/auth/users"}>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-67">
                   <Card className="bg-gradient-to-br from-blue-200 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
                     <CardContent className="text-center">
-                      <FaUserShield className="text-black text-2xl mb-2" />
-                      <div className="text-lg font-bold text-slate-800">Usuarios y Roles</div>
-                      <p className="text-sm text-slate-600">Gestiona los usuarios del sistema y sus permisos</p>
+                      <CardHeader className="flex flex-col items-center">
+                        <FaBookOpen className="text-blue-900 text-2xl" />
+                      </CardHeader>
+                      <div className="text-lg font-bold text-slate-800">Calificaciones</div>
+                      <p className="text-sm text-slate-600">Asignar las calificaciones</p>
                     </CardContent>
                   </Card>
                 </motion.div>
               </Link>
               <Link href={"/calificaciones"}>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-67">
                   <Card className="bg-gradient-to-br from-emerald-200 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
                     <CardContent className="text-center">
-                      <FaBook className="text-black text-2xl mb-2" />
-                      <div className="text-lg font-bold text-slate-800">Calificaciones</div>
-                      <p className="text-sm text-slate-600">Administra las calificaciones de los grados y más</p>
+                      <CardHeader className="flex flex-col items-center">
+                        <FaUsers className="text-emerald-900 text-2xl" />
+                      </CardHeader>
+                      <div className="text-lg font-bold text-slate-800">Listado de Estudiantes</div>
+                      <p className="text-sm text-slate-600">Ver listado de estudiantes</p>
                     </CardContent>
                   </Card>
                 </motion.div>
               </Link>
               <Link href={"/registerDocente"}>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
-                  <Card className="bg-gradient-to-br from-purple-200 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-67">
+                  <Card className="bg-gradient-to-br from-amber-200 to-amber-100 hover:from-amber-100 hover:to-amber-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
                     <CardContent className="text-center">
-                      <FaUsers className="text-black text-2xl mb-2" />
-                      <div className="text-lg font-bold text-slate-800">Registro de Docentes</div>
-                      <p className="text-sm text-slate-600">Agrega o edita los docentes del sistema</p>
+                      <CardHeader className="flex flex-col items-center">
+                        <FaPrint className="text-yellow-700 text-2xl" />
+                      </CardHeader>
+                      <div className="text-lg font-bold text-slate-800">Reportes de Esquelas</div>
+                      <p className="text-sm text-slate-600">Descarga reportes de esquelas</p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -117,17 +133,26 @@ export default function HomePage() {
           </section>
 
           {gruposActivos.length > 0 && (
-            <section className="mb-8">
-              <h3 className="text-xl text-left font-semibold text-foreground mb-2">
-                Años en Proceso
+            <section className="mb-5">
+              <h3 className="text-lg text-left font-semibold text-foreground ml-4">
+                Año en Proceso
               </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div
+                className={`grid gap-6 ${gruposActivos.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"
+                  }`}
+              >
                 {gruposActivos.map((grupo) => (
                   <Card
                     key={grupo.id}
-                    className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all"
+                    className="relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all"
                   >
+                    <span className="absolute top-3 right-5">
+                      <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200">
+                        Activo
+                      </Badge>
+                    </span>
+
                     <CardHeader>
                       <div className="flex items-center gap-4">
                         <div className="p-3 bg-blue-100 rounded-lg">
@@ -147,11 +172,11 @@ export default function HomePage() {
                     <CardContent className="pt-0">
                       <div className="grid grid-cols-3 gap-4 mb-4">
                         <div className="bg-gray-100 rounded-lg p-3 text-center">
-                          <div className="text-2xl font-bold text-gray-800">falta estudiantes</div>
+                          <div className="text-2xl font-bold text-gray-800">0</div>
                           <div className="text-gray-500 text-sm">Estudiantes</div>
                         </div>
                         <div className="bg-gray-100 rounded-lg p-3 text-center">
-                          <div className="text-2xl font-bold text-gray-800">falta promedio</div>
+                          <div className="text-2xl font-bold text-gray-800">0</div>
                           <div className="text-gray-500 text-sm">Promedio</div>
                         </div>
                         <div className="bg-gray-100 rounded-lg p-3 text-center">
@@ -171,6 +196,8 @@ export default function HomePage() {
               </div>
             </section>
           )}
+
+
 
         </main>
 
@@ -196,12 +223,12 @@ export default function HomePage() {
                   <CardContent>
                     <div className="flex justify-between items-center mb-2">
                       <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                        <BookOpen className="w-4 h-4 text-blue-500" /> {classData.grado.grades} - {classData.seccion.seccion}
+                        <BookOpen className="w-4 h-4 text-blue-500" /> {classData.grado.grades} - {classData.seccion.seccion} - {classData.turno.turno}
                       </div>
                       <Badge variant="outline" className="text-xs">{classData.organizacionEscolar.anio_lectivo.anio_lectivo}</Badge>
                     </div>
                     <p className="text-xs text-gray-500 mb-1">
-                      {classData.organizacionEscolar.turno?.modalidad?.modalidad ?? "sin modalidad"}
+                      {classData.turno.modalidad?.modalidad}
                     </p>
                     <div className="flex justify-between text-xs text-gray-500 mb-2">
                       <span>Estudiantes: falta</span>
