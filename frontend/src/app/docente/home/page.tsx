@@ -13,11 +13,13 @@ import { useAuth } from "@/hooks/useAuth"
 import { getDocenteById } from "@/actions/docentesMethods/docentesMethods"
 import { GrupoEscolar } from "@/interfaces"
 import Header from "@/components/Header"
+import { useRouter } from "next/navigation"
 
 export default function HomePage() {
   const { docente } = useAuth();
   const [grupos, setGrupos] = useState<GrupoEscolar[]>([])
   const [searchYear, setSearchYear] = useState("")
+  const router = useRouter()
 
   // Obtener las clases desde el backend
   useEffect(() => {
@@ -188,7 +190,7 @@ export default function HomePage() {
                         </div>
                       </div>
 
-                      <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600 rounded-lg py-2 flex justify-center items-center gap-2">
+                      <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600 rounded-lg py-2 flex justify-center items-center gap-2" onClick={() => router.push(`/esquela-calificaciones/${grupo.id}`)}>
                         <FileText className="w-4 h-4" /> Ver Esquela
                       </Button>
                     </CardContent>
@@ -232,7 +234,7 @@ export default function HomePage() {
                       <span>Estudiantes: falta</span>
                       <span>Promedio: falta</span>
                     </div>
-                    <Button size="sm" variant="outline" className="w-full text-xs">
+                    <Button size="sm" variant="outline" className="w-full text-xs " onClick={() => router.push(`/esquela-calificaciones/${classData.id}`)}>
                       <FileText className="w-3 h-3 mr-1" /> Ver Esquela
                     </Button>
                   </CardContent>
