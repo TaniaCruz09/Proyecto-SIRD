@@ -179,6 +179,14 @@ function NavbarAdmin() {
               <FaHome />
               <span>Registro Docente</span>
             </Link>
+
+            <Link
+              href="/registerEstudent"
+              className={`flex items-center gap-3 p-3 rounded-md transition ${isActive('/esquela-calificaciones')}`}
+            >
+              <FaHome />
+              <span>Registro Estudiante</span>
+            </Link>
           </>
         )}
 

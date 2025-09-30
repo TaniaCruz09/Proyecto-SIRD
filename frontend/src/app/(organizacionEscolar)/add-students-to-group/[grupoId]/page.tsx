@@ -112,6 +112,7 @@ export default function AsignarEstudiantesAGrupo() {
                 <thead className="bg-gray-200">
                     <tr>
                         <th className="text-left px-4 py-2 font-semibold text-gray-700 border border-gray-300">Nº</th>
+                        <th className="text-left px-4 py-2 font-semibold text-gray-700 border border-gray-300">Foto</th>
                         <th className="text-left px-4 py-2 font-semibold text-gray-700 border border-gray-300">Estudiantes</th>
                         <th className="text-left px-4 py-2 font-semibold text-gray-700 border border-gray-300">Código Estudiantil</th>
                         <th className="text-left px-4 py-2 font-semibold text-gray-700 border border-gray-300">Sexo</th>
