@@ -12,5 +12,8 @@ export interface User {
   docente: Docente | null,
   name: string;
   email: string;
-  roles?: Role[]
+  roles?: Role[],
+  resetCode?: string;
+  resetCodeExpire?: Date;
+  code: string;
 }

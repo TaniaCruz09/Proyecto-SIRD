@@ -243,16 +243,20 @@ export function EsquelaRow({ grupoId }: EsquelaRowProps) {
     const docenteGuia = grupos?.docenteGuia.nombres ?? "N/A"
     const asignaturasDelGrupo = grupos?.grupoAsignaturaDocente ?? [];
     const gradoId = grupos?.grado.id ?? 0
+    const section = grupos?.seccion.seccion ?? "N/A"
+    const modalidad = grupos?.turno.modalidad?.modalidad ?? "N/A"
+    const shift = grupos?.turno.turno ?? "N/A"
+  
     return (
-        <div className="w-full space-y-6 bg-gradient-to-br from-rose-50 via-pink-50 to-white min-h-screen p-4">
+        <div className="w-full space-y-6 bg-gradient-to-br from-rose-50 via-pink-50 to-white min-h-screen p-4 ">
             <EsquelaHead
                 schoolName="Instituto Ruben Dario"
-                grade="11° Grado"
-                section="A"
-                shift="Matutino"
-                year="2024"
-                modality="Bachillerato en Ciencias y Letras"
-                teacherName="Prof. Ana María Rodríguez"
+                grade={grupo}
+                section={section}
+                shift={shift}
+                year={anioLectivo}
+                modality={modalidad}
+                teacherName={docenteGuia}
             />
 
             <Card className="w-full shadow-2xl border-0 bg-white/95 backdrop-blur-sm">

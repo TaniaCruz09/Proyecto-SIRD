@@ -63,7 +63,7 @@ function NavbarAdmin() {
   const isActive = (route: string) =>
     pathname === route ? 'bg-indigo-600 text-white' : 'text-white hover:bg-white hover:text-gray-900'
 
-  const rutasSinNavbar = ['/', '/auth/login', '/auth/selectRole']
+  const rutasSinNavbar = ['/', '/auth/login', '/auth/selectRole', 'recuperarContrasena']
   if (rutasSinNavbar.includes(pathname)) return null
 
   // Skeleton mientras carga rol

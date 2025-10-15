@@ -5,7 +5,6 @@ import { FaArrowUpRightFromSquare } from 'react-icons/fa6'
 import { AcademicYearsDashboard } from '@/components/organizacionEscolar/tablero-de-años-academicos'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import Link from 'next/link'
-import EstadisticaAdmin from '@/components/EstadisticaAdmin'
 import Header from '@/components/Header'
 
 export default function HomePage() {
