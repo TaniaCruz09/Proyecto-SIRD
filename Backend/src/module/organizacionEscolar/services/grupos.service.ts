@@ -58,6 +58,8 @@ export class GruposService {
                 .leftJoinAndSelect("grupo.docenteGuia", "docenteGuia")
                 .leftJoinAndSelect("grupo.grupoAsignaturaDocente", "grupoAsignaturaDocente")
                 .leftJoinAndSelect("grupoAsignaturaDocente.asignatura", "asignatura")
+                .leftJoinAndSelect("asignatura.calificacion", "calificacion")
+                .leftJoinAndSelect("calificacion.corte", "corte")
                 .leftJoinAndSelect("grupoAsignaturaDocente.docente", "docente")
                 .leftJoinAndSelect("grupoAsignaturaDocente.gruposConEstudiantes", "gruposConEstudiantes")
                 .leftJoinAndSelect("gruposConEstudiantes.estudiante", "estudiante")

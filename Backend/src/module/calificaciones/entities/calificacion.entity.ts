@@ -19,7 +19,7 @@ export class Calificaciones {
   @JoinColumn({ name: 'estudiante_id' })
   estudiante: StudentEntity;
 
-  @ManyToOne(() => Asignatura, (asignatura) => asignatura.id)
+  @ManyToOne(() => Asignatura, (asignatura) => asignatura.calificacion)
   @JoinColumn({ name: 'asignatura_id' })
   asignatura: Asignatura;
 

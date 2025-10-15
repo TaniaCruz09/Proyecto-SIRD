@@ -21,7 +21,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 @UseGuards(JwtAuthGuard)
 @Controller('docentes')
 export class DocenteController {
-  constructor(private readonly registroService: DocentesService) {}
+  constructor(private readonly registroService: DocentesService) { }
 
   @Post('/')
   async createDocente(@Body() createDocenteDto: DocentesDTO, @Req() req) {
@@ -69,6 +69,20 @@ export class DocenteController {
   async getDocenteById(@Param('id', ParseIntPipe) id: number) {
     try {
       const docente = await this.registroService.getDocenteById(id);
+      const data = {
+        data: docente,
+        message: 'Ok',
+      };
+      return data;
+    } catch (error) {
+      Utilities.catchError(error);
+    }
+  }
+
+  @Get('/getGradosByDocenteId/:id')
+  async getGradosByDocenteId(@Param('id', ParseIntPipe) id: number) {
+    try {
+      const docente = await this.registroService.getGradosByDocenteId(id);
       const data = {
         data: docente,
         message: 'Ok',

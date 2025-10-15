@@ -27,6 +27,7 @@ html {
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex h-screen bg-white`}
       >
         <ClientProviders>{children}</ClientProviders>
+
       </body>
     </html>
   );
