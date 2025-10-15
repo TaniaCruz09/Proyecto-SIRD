@@ -42,17 +42,6 @@ html {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex h-screen bg-white`}
       >
-
-        {/* <QueryClientProvider client={queryClient}>
-        <NavbarAdmin />
-        <main className="w-screen text-center bg-gray-100 overflow-auto">
-          <ToastProvider>
-
-            {children}
-          </ToastProvider>
-        </main>
-        </QueryClientProvider> */}
-
         <AuthProvider>
           <NavbarAdmin />
           <main className="w-screen text-center bg-gray-100 overflow-auto">

@@ -56,7 +56,27 @@ export class DocentesService {
         .leftJoinAndSelect("turno.modalidad", "modalidad")
         .leftJoinAndSelect('grupos.organizacionEscolar', 'organizacionEscolar')
         .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo')
+        .where('docente.id = :id', { id })
+        .getOne()
+      return docente;
+    } catch (error) {
+      Utilities.catchError(error);
+    }
+  }
+
+  async getGradosByDocenteId(id: number): Promise<Docentes> {
+    try {
+      const docente = await this.docenteRepository
+        .createQueryBuilder('docente')
         .leftJoinAndSelect('docente.grupoAsignaturaDocente', 'grupoAsignaturaDocente')
+        .leftJoinAndSelect('grupoAsignaturaDocente.grupo', 'grupo')
+        .leftJoinAndSelect('grupo.grado', 'grado')
+        .leftJoinAndSelect('grupo.seccion', 'seccion')
+        .leftJoinAndSelect('grupo.turno', 'turno')
+        .leftJoinAndSelect('turno.modalidad', 'modalidad')
+        .leftJoinAndSelect('grupo.organizacionEscolar', 'organizacionEscolar')
+        .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo')
+        .leftJoinAndSelect('grupoAsignaturaDocente.asignatura', 'asignatura')
         .where('docente.id = :id', { id })
         .getOne()
       return docente;

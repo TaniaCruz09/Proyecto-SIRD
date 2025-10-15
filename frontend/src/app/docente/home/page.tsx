@@ -28,7 +28,6 @@ export default function HomePage() {
     const fetchDocente = async () => {
       try {
         const res = await getDocenteById(docente.id)
-        console.log(res)
 
         if (!res || !res.id) throw new Error("Error al obtener datos del docente")
 
@@ -90,7 +89,7 @@ export default function HomePage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 place-items-center">
               {/* Card 1 */}
-              <Link href={"/auth/users"}>
+              <Link href={"/docente/gruposAsignados"}>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-67">
                   <Card className="bg-gradient-to-br from-blue-200 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
                     <CardContent className="text-center">

@@ -27,6 +27,19 @@ export async function getDocenteById(id: number) {
 
 }
 
+export async function getGradosByDocenteId(id: number) {
+    const endPoint = `/docentes/getGradosByDocenteId/${id}`;
+
+    const response = await feching(endPoint, "no-cache", "GET");
+
+    if (!response.data || response.error) {
+        throw new Error(response?.error || "error desconocido desde el front de obtener un usuario")
+    }
+
+    return response.data;
+
+}
+
 export async function saveDocente(docente: DocentePayload) {
     const endPoint = `/docentes`;
     console.log(docente, 'este es el docente que se envia al back')
@@ -35,14 +48,14 @@ export async function saveDocente(docente: DocentePayload) {
     if (!response.data || response.error) {
         throw new Error(response?.error || "error desconocido desde el front de agragar docente")
     }
- 
+
     return response.data;
-    
+
 }
 
 export async function updateDocente(id: number, docente: DocentePayload) {
     const endPoint = `/docentes/${id}`;
-console.log(docente, 'este es el docente que se envia al back para actualizar')
+    console.log(docente, 'este es el docente que se envia al back para actualizar')
     const response = await feching(endPoint, "no-cache", "PUT", docente);
     if (!response || response.error) {
         throw new Error(response?.error || "error desconocido desde el front de actualizar docente")
