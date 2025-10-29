@@ -12,8 +12,7 @@ import {
 import * as moment from 'moment-timezone';
 import { User } from '../../auth/entities';
 import { SemestreEntity } from './semestres.entity';
-import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity';
-import { Calificaciones } from 'src/module/calificaciones/entities/calificacion.entity';
+import { EsquelaRow } from '../../calificaciones/esquelas_rows/esquelas_rows.entity';
 
 @Entity({ schema: 'catalogos', name: 'cortes' })
 export class Cortes {
@@ -37,8 +36,8 @@ export class Cortes {
   @ManyToOne(() => SemestreEntity, (semestre) => semestre.corte)
   semestre: SemestreEntity;
 
-  @OneToMany(() => Calificaciones, (calificacion) => calificacion.corte)
-  calificacion?: Calificaciones[];
+  @OneToMany(() => EsquelaRow, (calificacion) => calificacion.corte)
+  calificacion?: EsquelaRow[];
 
   // ID del Usuario que creo el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true })

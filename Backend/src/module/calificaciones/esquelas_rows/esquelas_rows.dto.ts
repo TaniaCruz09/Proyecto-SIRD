@@ -2,7 +2,7 @@ import { IsNotEmpty, IsNumber, IsObject, IsOptional, IsString } from "class-vali
 import { Asignatura, Cortes } from "src/module/catalogos";
 import { StudentEntity } from "src/module/createEstudents";
 
-export class CreateCalificacionDto {
+export class CreateEsquelaRowDto {
     @IsOptional()
     @IsNumber()
     readonly id: number;

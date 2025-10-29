@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { CalificacionesService } from './calificaciones.service';
-import { CalificacionesController } from './calificaciones.controller';
-import { Calificaciones } from './entities/calificacion.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { EsquelaRow } from './esquelas_rows/esquelas_rows.entity';
+import { EsquelaRowController } from './esquelas_rows/esquelas_rows.controller';
+import { EsquelaRowService } from './esquelas_rows/esquelas_rows.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Calificaciones])] ,
-  controllers: [CalificacionesController],
-  providers: [CalificacionesService],
+  imports: [TypeOrmModule.forFeature([EsquelaRow])],
+  controllers: [EsquelaRowController],
+  providers: [EsquelaRowService],
 })
-export class CalificacionesModule {}
+export class CalificacionesModule { }
