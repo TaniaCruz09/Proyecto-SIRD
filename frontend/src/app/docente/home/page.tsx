@@ -146,7 +146,7 @@ export default function HomePage() {
           ) : (
             <section className="mb-5">
               <h3 className="text-lg text-left font-semibold text-foreground ml-4">
-                Año en Proceso
+                Grado Guia
               </h3>
               <div className={`grid gap-6 ${gruposActivos.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"}`}>
                 {gruposActivos.map((grupo) => (
