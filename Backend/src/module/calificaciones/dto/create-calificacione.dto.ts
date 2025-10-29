@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsNumber, IsObject, IsOptional, IsString } from "class-validator";
-import { Asignatura } from "src/module/catalogos";
+import { Asignatura, Cortes } from "src/module/catalogos";
 import { StudentEntity } from "src/module/createEstudents";
 
 export class CreateCalificacionDto {
@@ -22,4 +22,7 @@ export class CreateCalificacionDto {
     @IsOptional()
     @IsNumber()
     notaCuantitativa: number
+
+    @IsNotEmpty()
+    corte: Cortes;
 }

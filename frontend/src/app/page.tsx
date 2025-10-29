@@ -3,33 +3,25 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function Home() {
+export default function IndexRedirect() {
   const router = useRouter()
 
   useEffect(() => {
-  const token = localStorage.getItem("token")
-  const rol = localStorage.getItem("rol")
+    // Siempre redirige al login
+    const timer = setTimeout(() => {
+      router.push('/auth/login')
+    })
 
-  if (!token || !rol) {
-    localStorage.removeItem("token")
-    localStorage.removeItem("rol")
-    router.push("/auth/login?expired=true")
-    return
-  }
-
-
-    // Redirigir según rol guardado
-    switch (rol) {
-      case 'Admin':
-        router.push('admin/home')
-        break
-      case 'Docente':
-        router.push('docente/home')
-        break
-      default:
-        router.push('/auth/login') // o ruta genérica
-    }
+    return () => clearTimeout(timer)
   }, [router])
 
-  return <p>Redirigiendo...</p>
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600 mx-auto mb-4">
+        </div>
+        <p className="text-gray-600 text-lg">Redirigiendo al login...</p>
+      </div>
+    </div>)
 }

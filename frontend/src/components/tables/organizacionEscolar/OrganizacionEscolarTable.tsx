@@ -1,6 +1,5 @@
-import { GrupoEscolar, OrganizacionEscolar } from '@/interfaces'
+import { OrganizacionEscolar } from '@/interfaces'
 import React, { useState } from 'react'
-import GrupoRow from './GrupoRow';
 import OrganizacionEscolarRow from './OrganizacionEscolarRow';
 
 interface OrganizacionEscolarTableProps {
@@ -24,7 +23,6 @@ export default function OrganizacionEscolarTable({ organizacionEscolar, fetchOrg
                             <th className="p-3 border-b border-gray-300">Id</th>
                             <th className="p-3 border-b border-gray-300">Año Lectivo</th>
                             <th className="p-3 border-b border-gray-300">Turno</th>
-                            <th className="p-3 border-b border-gray-300">Corte</th>
                             <th className="p-1 border-b border-gray-300 text-center">Grupos</th>
                             <th className="p-1 border-b border-gray-300 text-center">Editar</th>
                             <th className="p-1 border-b border-gray-300 text-center">Eliminar</th>

@@ -4,6 +4,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent } from "@/components/ui/card"
 import { EsquelaHead } from "./EsquelaHead"
+import { useParams } from "next/navigation"
+import { useEffect, useState } from "react"
+import { getGruposById } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods"
+import { GrupoEscolar } from "@/interfaces"
 
 interface Student {
     id: string
@@ -211,11 +215,38 @@ function calculateFinalGrade(mathFinal: number, spanishFinal: number, scienceFin
     return Math.round(total / 3)
 }
 
-export function EsquelaRow() {
+interface EsquelaRowProps {
+    grupoId: number;
+}
+
+export function EsquelaRow({ grupoId }: EsquelaRowProps) {
+    const [grupos, setGrupos] = useState<GrupoEscolar>();
+
+    const fetchGrupoById = async () => {
+        try {
+            const response = await getGruposById(Number(grupoId))
+            setGrupos(response)
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    useEffect(() => {
+        fetchGrupoById()
+
+    }, [grupoId]);
+
+    // Sacar info base de la primera organización encontrada
+    const idAnioLectivo = grupos?.organizacionEscolar?.anio_lectivo?.id ?? 0
+    const anioLectivo = grupos?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0
+    const grupo = grupos?.grado.grades ?? "N/A"
+    const docenteGuia = grupos?.docenteGuia.nombres ?? "N/A"
+    const asignaturasDelGrupo = grupos?.grupoAsignaturaDocente ?? [];
+    const gradoId = grupos?.grado.id ?? 0
     return (
         <div className="w-full space-y-6 bg-gradient-to-br from-rose-50 via-pink-50 to-white min-h-screen p-4">
             <EsquelaHead
-                schoolName="Instituto Nacional San José"
+                schoolName="Instituto Ruben Dario"
                 grade="11° Grado"
                 section="A"
                 shift="Matutino"
@@ -231,13 +262,16 @@ export function EsquelaRow() {
                             <TableHeader>
                                 <TableRow className="bg-gradient-to-r from-rose-100 to-pink-100 hover:from-rose-100 hover:to-pink-100 border-b-2 border-rose-200">
                                     <TableHead className="font-bold text-rose-900 border-r border-rose-200 bg-white text-center min-w-[80px]">
-                                        Avatar
+                                        Nº
                                     </TableHead>
                                     <TableHead className="font-bold text-rose-900 border-r border-rose-200 bg-white text-center min-w-[80px]">
-                                        Código
+                                        Foto
+                                    </TableHead>
+                                    <TableHead className="font-bold text-rose-900 border-r border-rose-200 bg-white text-center min-w-[80px]">
+                                        Estudiante
                                     </TableHead>
                                     <TableHead className="font-bold text-rose-900 border-r border-rose-200 bg-white text-center min-w-[200px]">
-                                        Nombre Completo
+                                        Código
                                     </TableHead>
                                     <TableHead className="font-bold text-rose-900 border-r border-rose-200 text-center bg-white min-w-[60px]">
                                         Sexo
@@ -270,6 +304,7 @@ export function EsquelaRow() {
                                 </TableRow>
 
                                 <TableRow className="bg-rose-50 hover:bg-rose-50 border-b border-rose-200">
+                                    <TableHead className="border-r border-rose-200"></TableHead>
                                     <TableHead className="border-r border-rose-200"></TableHead>
                                     <TableHead className="border-r border-rose-200"></TableHead>
                                     <TableHead className="border-r border-rose-200"></TableHead>
@@ -412,6 +447,7 @@ export function EsquelaRow() {
                                     <TableHead className="border-r border-rose-200"></TableHead>
                                     <TableHead className="border-r border-rose-200"></TableHead>
                                     <TableHead className="border-r border-rose-200"></TableHead>
+                                    <TableHead className="border-r border-rose-200"></TableHead>
 
                                     {Array.from({ length: 7 }, (_, i) => (
                                         <>
@@ -470,67 +506,76 @@ export function EsquelaRow() {
 
                             <TableBody>
 
-                                {sampleStudents.map((student, index) => {
-                                    const mathFirstSem = calculateFirstSemester(student.mathematics)
-                                    const mathSecondSem = calculateSecondSemester(student.mathematics)
-                                    const mathFinal = calculateSubjectFinal(mathFirstSem.quantitative, mathSecondSem.quantitative)
+                                {(
+                                    grupos?.grupoAsignaturaDocente
+                                        ?.flatMap(gad => gad.gruposConEstudiantes.map(ge => ge.estudiante))
+                                        // eliminar duplicados por id
+                                        .filter((value, index, self) => self.findIndex(v => v.id === value.id) === index) ?? []
+                                ).map((estudiante, index) => {
+                                    // const mathFirstSem = calculateFirstSemester(student.)
+                                    // const mathSecondSem = calculateSecondSemester(student.mathematics)
+                                    // const mathFinal = calculateSubjectFinal(mathFirstSem.quantitative, mathSecondSem.quantitative)
 
-                                    const spanishFirstSem = calculateFirstSemester(student.spanish)
-                                    const spanishSecondSem = calculateSecondSemester(student.spanish)
-                                    const spanishFinal = calculateSubjectFinal(
-                                        spanishFirstSem.quantitative,
-                                        spanishSecondSem.quantitative,
-                                    )
+                                    // const spanishFirstSem = calculateFirstSemester(student.spanish)
+                                    // const spanishSecondSem = calculateSecondSemester(student.spanish)
+                                    // const spanishFinal = calculateSubjectFinal(
+                                    //     spanishFirstSem.quantitative,
+                                    //     spanishSecondSem.quantitative,
+                                    // )
 
-                                    const scienceFirstSem = calculateFirstSemester(student.science)
-                                    const scienceSecondSem = calculateSecondSemester(student.science)
-                                    const scienceFinal = calculateSubjectFinal(
-                                        scienceFirstSem.quantitative,
-                                        scienceSecondSem.quantitative,
-                                    )
+                                    // const scienceFirstSem = calculateFirstSemester(student.science)
+                                    // const scienceSecondSem = calculateSecondSemester(student.science)
+                                    // const scienceFinal = calculateSubjectFinal(
+                                    //     scienceFirstSem.quantitative,
+                                    //     scienceSecondSem.quantitative,
+                                    // )
 
-                                    const finalGrade = calculateFinalGrade(
-                                        mathFinal.quantitative,
-                                        spanishFinal.quantitative,
-                                        scienceFinal.quantitative,
-                                    )
+                                    // const finalGrade = calculateFinalGrade(
+                                    //     mathFinal.quantitative,
+                                    //     spanishFinal.quantitative,
+                                    //     scienceFinal.quantitative,
+                                    // )
 
                                     return (
                                         <TableRow
-                                            key={student.id ?? index}
+                                            key={estudiante.id ?? index}
                                             className={`hover:bg-rose-50 transition-colors ${index % 2 === 0 ? "bg-white" : "bg-rose-25"} border-b border-rose-200`}
                                         >
+                                            <TableCell className="border-r border-rose-200 font-bold text-primary text-center">
+                                                {index + 1}
+                                            </TableCell>
                                             <TableCell className="border-r border-rose-200">
                                                 <Avatar className="h-12 w-12 ring-2 ring-rose-200">
-                                                    {student.avatar && (
-                                                        <AvatarImage src={student.avatar || "/placeholder.svg"} alt={student.fullName} />
+                                                    {estudiante.profileImage && (
+                                                        <AvatarImage src={`${process.env.NEXT_PUBLIC_API_UPLOADS}${estudiante.profileImage}` || "/placeholder.svg"}
+                                                            alt={estudiante.name} />
                                                     )}
                                                     <AvatarFallback className="bg-rose-100 text-rose-700 font-bold text-sm">
-                                                        {getInitials(student.fullName)}
+                                                        {getInitials(estudiante.name)}
                                                     </AvatarFallback>
                                                 </Avatar>
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 font-bold text-primary text-center">
-                                                {student.code}
+                                                {estudiante.name}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 font-semibold text-foreground">
-                                                {student.fullName}
+                                                {estudiante.studentCode}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center font-bold text-foreground">
-                                                {student.gender}
+                                                {estudiante.gender.gender}
                                             </TableCell>
 
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-emerald-50 min-w-[50px]">
-                                                {student.mathematics.quantitative1}
+                                            {/* <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-emerald-50 min-w-[50px]">
+                                                {estudiante.mathematics.quantitative1}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-emerald-700 bg-emerald-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.mathematics.quantitative1)}
+                                                {getQualitativeGrade(estudiante.mathematics.quantitative1)}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-emerald-50 min-w-[50px]">
-                                                {student.mathematics.quantitative2}
+                                                {estudiante.mathematics.quantitative2}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-emerald-700 bg-emerald-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.mathematics.quantitative2)}
+                                                {getQualitativeGrade(estudiante.mathematics.quantitative2)}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-emerald-200 text-emerald-900 min-w-[50px]">
                                                 {mathFirstSem.quantitative}
@@ -539,16 +584,16 @@ export function EsquelaRow() {
                                                 {mathFirstSem.qualitative}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-emerald-50 min-w-[50px]">
-                                                {student.mathematics.quantitative3}
+                                                {estudiante.mathematics.quantitative3}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-emerald-700 bg-emerald-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.mathematics.quantitative3)}
+                                                {getQualitativeGrade(estudiante.mathematics.quantitative3)}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-emerald-50 min-w-[50px]">
-                                                {student.mathematics.quantitative4}
+                                                {estudiante.mathematics.quantitative4}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-emerald-700 bg-emerald-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.mathematics.quantitative4)}
+                                                {getQualitativeGrade(estudiante.mathematics.quantitative4)}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-emerald-200 text-emerald-900 min-w-[50px]">
                                                 {mathSecondSem.quantitative}
@@ -564,16 +609,16 @@ export function EsquelaRow() {
                                             </TableCell>
 
                                             <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-amber-50 min-w-[50px]">
-                                                {student.spanish.quantitative1}
+                                                {estudiante.spanish.quantitative1}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-amber-700 bg-amber-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.spanish.quantitative1)}
+                                                {getQualitativeGrade(estudiante.spanish.quantitative1)}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-amber-50 min-w-[50px]">
-                                                {student.spanish.quantitative2}
+                                                {estudiante.spanish.quantitative2}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-amber-700 bg-amber-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.spanish.quantitative2)}
+                                                {getQualitativeGrade(estudiante.spanish.quantitative2)}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-amber-200 text-amber-900 min-w-[50px]">
                                                 {spanishFirstSem.quantitative}
@@ -582,16 +627,16 @@ export function EsquelaRow() {
                                                 {spanishFirstSem.qualitative}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-amber-50 min-w-[50px]">
-                                                {student.spanish.quantitative3}
+                                                {estudiante.spanish.quantitative3}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-amber-700 bg-amber-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.spanish.quantitative3)}
+                                                {getQualitativeGrade(estudiante.spanish.quantitative3)}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-amber-50 min-w-[50px]">
-                                                {student.spanish.quantitative4}
+                                                {estudiante.spanish.quantitative4}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-amber-700 bg-amber-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.spanish.quantitative4)}
+                                                {getQualitativeGrade(estudiante.spanish.quantitative4)}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-amber-200 text-amber-900 min-w-[50px]">
                                                 {spanishSecondSem.quantitative}
@@ -607,16 +652,16 @@ export function EsquelaRow() {
                                             </TableCell>
 
                                             <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-violet-50 min-w-[50px]">
-                                                {student.science.quantitative1}
+                                                {estudiante.science.quantitative1}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-violet-700 bg-violet-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.science.quantitative1)}
+                                                {getQualitativeGrade(estudiante.science.quantitative1)}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-violet-50 min-w-[50px]">
-                                                {student.science.quantitative2}
+                                                {estudiante.science.quantitative2}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-violet-700 bg-violet-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.science.quantitative2)}
+                                                {getQualitativeGrade(estudiante.science.quantitative2)}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-violet-200 text-violet-900 min-w-[50px]">
                                                 {scienceFirstSem.quantitative}
@@ -625,16 +670,16 @@ export function EsquelaRow() {
                                                 {scienceFirstSem.qualitative}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-violet-50 min-w-[50px]">
-                                                {student.science.quantitative3}
+                                                {estudiante.science.quantitative3}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-violet-700 bg-violet-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.science.quantitative3)}
+                                                {getQualitativeGrade(estudiante.science.quantitative3)}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-violet-50 min-w-[50px]">
-                                                {student.science.quantitative4}
+                                                {estudiante.science.quantitative4}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-violet-700 bg-violet-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.science.quantitative4)}
+                                                {getQualitativeGrade(estudiante.science.quantitative4)}
                                             </TableCell>
                                             <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-violet-200 text-violet-900 min-w-[50px]">
                                                 {scienceSecondSem.quantitative}
@@ -662,7 +707,7 @@ export function EsquelaRow() {
                                                         {getQualitativeGrade(finalGrade)}
                                                     </span>
                                                 </div>
-                                            </TableCell>
+                                            </TableCell> */}
                                         </TableRow>
                                     )
                                 })}

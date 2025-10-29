@@ -3,7 +3,11 @@ import { Geist, Geist_Mono, } from "next/font/google";
 import "./globals.css";
 import NavbarAdmin from "@/components/navbarAdmin";
 import { ToastProvider } from "@/hooks/use-toast";
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query"
+import { AuthProvider } from '@/hooks/useAuth'
 
+
+const queryClient = new QueryClient();
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -38,6 +42,8 @@ html {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex h-screen bg-white`}
       >
+
+        {/* <QueryClientProvider client={queryClient}>
         <NavbarAdmin />
         <main className="w-screen text-center bg-gray-100 overflow-auto">
           <ToastProvider>
@@ -45,6 +51,16 @@ html {
             {children}
           </ToastProvider>
         </main>
+        </QueryClientProvider> */}
+
+        <AuthProvider>
+          <NavbarAdmin />
+          <main className="w-screen text-center bg-gray-100 overflow-auto">
+            <ToastProvider>
+              {children}
+            </ToastProvider>
+          </main>
+        </AuthProvider>
 
       </body>
     </html>

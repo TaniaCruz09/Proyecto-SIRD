@@ -11,7 +11,7 @@ export class DocentesService {
   constructor(
     @InjectRepository(Docentes)
     private readonly docenteRepository: Repository<Docentes>,
-  ) {}
+  ) { }
 
   async createDocente(createDocenteDto: DocentesDTO): Promise<Docentes> {
     try {
@@ -61,16 +61,23 @@ export class DocentesService {
 
   async getDocenteById(id: number): Promise<Docentes> {
     try {
-      const docente = await this.docenteRepository.findOne({
-        where: { id },
-        relations: [
-          'sexo',
-          'nivel_academico',
-          'profession',
-          'pais',
-          'municipio',
-        ],
-      });
+      const docente = await this.docenteRepository
+        .createQueryBuilder('docente')
+        .leftJoinAndSelect('docente.sexo', 'sexo')
+        .leftJoinAndSelect('docente.nivel_academico', 'nivel_academico')
+        .leftJoinAndSelect('docente.profession', 'profession')
+        .leftJoinAndSelect('docente.pais', 'pais')
+        .leftJoinAndSelect('docente.municipio', 'municipio')
+        .leftJoinAndSelect('docente.grupos', 'grupos')
+        .leftJoinAndSelect('grupos.grado', 'grado')
+        .leftJoinAndSelect('grupos.seccion', 'seccion')
+        .leftJoinAndSelect('grupos.turno', 'turno')
+        .leftJoinAndSelect("turno.modalidad", "modalidad")
+        .leftJoinAndSelect('grupos.organizacionEscolar', 'organizacionEscolar')
+        .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo')
+        .leftJoinAndSelect('docente.grupoAsignaturaDocente', 'grupoAsignaturaDocente')
+        .where('docente.id = :id', { id })
+        .getOne()
       return docente;
     } catch (error) {
       Utilities.catchError(error);

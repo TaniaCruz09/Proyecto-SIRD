@@ -17,6 +17,7 @@ export function AcademicYearsDashboard() {
     const itemsPerPage = 3
     const router = useRouter();
 
+
     const fetchAniosLectivos = async () => {
         try {
             const response = await getAniosLectivos();
@@ -124,7 +125,7 @@ export function AcademicYearsDashboard() {
                                 {anioLectivo.organizacionEscolar.length > 0 ? (
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         {anioLectivo.organizacionEscolar.map((org) => (
-                                            <Card key={org.id} className="border-2 border-dashed border-slate-200 bg-slate-50/30">
+                                            <Card key={org.id} className="border-2 border-dashed border-gray-300 bg-gray-50 hover:shadow-md transition-shadow">
                                                 <CardHeader className="pb-2">
                                                     <CardTitle className="text-sm font-medium text-slate-700">{org.turno?.turno || "Sin modalidad"}</CardTitle>
                                                     <CardDescription className="text-xs text-slate-500">{org.turno?.modalidad?.modalidad || "Sin modalidad"}</CardDescription>

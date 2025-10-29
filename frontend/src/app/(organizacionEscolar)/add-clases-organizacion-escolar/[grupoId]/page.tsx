@@ -19,6 +19,11 @@ import ConfirmDialog from "@/components/modals/organizacionEscolar/grupoConAsign
 import { getGruposById } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods";
 
 export default function AddClasesOrganizacionEscolarPage() {
+  // useQuery({
+  //   queryKey: ['grupoId'],
+  //   queryFn: async () => await getGruposById(Number(useParams().grupoId))
+  // });
+
   const [grupoConAsignaturas, setGrupoConAsignaturas] = useState<GrupoConAsignaturasResponse[]>([]);
   const [materiasDisponibles, setMateriasDisponibles] = useState<Asignatura[]>([]);
   const [docentesDisponibles, setDocentesDisponibles] = useState<Docente[]>([]);
@@ -37,6 +42,7 @@ export default function AddClasesOrganizacionEscolarPage() {
   });
 
   const { grupoId } = useParams();
+
 
   const [grupos, setGrupos] = useState<GrupoEscolar>();
 
