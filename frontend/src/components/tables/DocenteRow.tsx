@@ -5,7 +5,7 @@ import DeleteDocenteModal from '../modals/docentes/DeleteDocenteModal'
 import { Docente } from '@/interfaces'
 import { TbEyePlus } from 'react-icons/tb'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 
 interface DocenteRowProps {
   fetchDocentes: ()=> Promise<void>
@@ -16,6 +16,7 @@ interface DocenteRowProps {
 export default function DocenteRow({fetchDocentes, docente, onShowDetail}: DocenteRowProps) {
 
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   const handleClick = ()=> {
     fileInputRef.current?.click()
@@ -24,6 +25,7 @@ export default function DocenteRow({fetchDocentes, docente, onShowDetail}: Docen
   const handlefileChange = (event: React.ChangeEvent<HTMLInputElement>)=> {
     const file = event.target.files?.[0]
     if (file){
+      setSelectedFile(file)
       const previewUrl = URL.createObjectURL(file)
       console.log("archivo seleccionado", file)
       console.log("vista previa", previewUrl)
@@ -36,7 +38,7 @@ export default function DocenteRow({fetchDocentes, docente, onShowDetail}: Docen
           <Avatar className="w-10 h-10 border-2 border-green-200">
                     {docente.foto_docente? (
                         <AvatarImage
-                            src={docente.foto_docente || "/placeholder.svg"}
+                            src={`${process.env.NEXT_PUBLIC_API_UR}${docente.foto_docente}`|| "/placeholder.svg"}
                             alt={docente.nombres}
                         />
                     ) : (

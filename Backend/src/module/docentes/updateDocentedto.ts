@@ -17,11 +17,12 @@ import {
   ProfessionsEntity,
 } from '../catalogos';
 import { Grupos } from '../organizacionEscolar/entities/grupos.entity';
+import { Type } from 'class-transformer';
 
 export class UpdateDocentesDTO {
-  @IsOptional()
-  @IsNumber()
-  readonly id?: number;
+  // @IsOptional()
+  // @IsNumber()
+  // readonly id?: number; ya biene dentro del body 
 
   @IsOptional()
   @IsString()
@@ -64,6 +65,7 @@ export class UpdateDocentesDTO {
   telefono?: string;
 
   @IsOptional()
+  @Type(() => Date) // 👈 convierte strings a Date automáticamente
   @IsDate()
   fecha_nacimiento?: Date;
 
@@ -84,6 +86,7 @@ export class UpdateDocentesDTO {
   direccion_domiciliar?: string;
 
   @IsOptional()
+  @Type(() => Date)
   @IsDate()
   fechaContratado?: Date;
 

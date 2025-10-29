@@ -85,34 +85,32 @@ export class DocentesService {
   }
 
   async editDocente(id: number, payload: UpdateDocentesDTO): Promise<Docentes> {
-    try {
-      const docente = await this.docenteRepository.findOne({
-        where: { id },
-        relations: [
-          'sexo',
-          'nivel_academico',
-          'profession',
-          'pais',
-          'municipio',
-        ],
-      });
-
-      if (!docente) {
-        throw new NotFoundException('Docente no encontrada');
-      }
-
-      // Actualizar solo los campos enviados, conservando los valores previos
-      Object.assign(docente, payload);
-
-      // Asignar la fecha de actualización y el usuario que modifica
-      docente.update_at = new Date();
-      docente.user_update_id;
-
-      return await this.docenteRepository.save(docente);
-    } catch (error) {
-      Utilities.catchError(error);
+  try {
+    const docente = await this.docenteRepository.findOne({ where: { id } });
+    if (!docente) {
+      throw new NotFoundException('Docente no encontrado');
     }
+
+    delete (payload as any).id;
+    // Object.assign(docente, payload);
+
+     // Actualiza los campos directamente
+    await this.docenteRepository.update(id, {
+      ...payload,
+      update_at: new Date(),
+      user_update_id: payload.user_update_id,
+    });
+
+    // docente.update_at = new Date();
+    // docente.user_update_id = payload.user_update_id; // ✅ faltaba esta línea
+
+    return await this.docenteRepository.findOne({ where: { id } });
+  } catch (error) {
+    console.error(error); // 🔍 para ver el error real
+    throw error;
   }
+}
+
 
   async deleteDocente(id: number, userId: number): Promise<Docentes> {
     try {
