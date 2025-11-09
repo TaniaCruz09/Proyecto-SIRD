@@ -105,7 +105,7 @@ export default function AddClasesOrganizacionEscolarPage() {
           console.log(error.message || "Error al eliminar asignatura ❌");
         } finally {
           setLoading(false);
-          setConfirmDialog({ ...confirmDialog, open: false }); // cerrar modal
+          setConfirmDialog({...confirmDialog, open: false}); // cerrar modal
         }
       },
     });

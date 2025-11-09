@@ -13,6 +13,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { GrupoAsignaturaDocente } from 'src/module/organizacionEscolar/entities/GrupoAsignaturaDocente.entity';
+import { Calificaciones } from 'src/module/calificaciones/entities/calificacion.entity';
 @Entity({ schema: 'catalogos', name: 'asignatura' })
 export class Asignatura {
   @PrimaryGeneratedColumn()
@@ -27,6 +28,10 @@ export class Asignatura {
 
   @OneToMany(() => GrupoAsignaturaDocente, gad => gad.asignatura)
   grupoAsignaturaDocente: GrupoAsignaturaDocente[];
+
+  @OneToMany(() => Calificaciones, (calificaciones) => calificaciones.asignatura)
+  @JoinColumn({ name: 'calificacion_id' })
+  calificacion: Calificaciones;
 
   // ID del Usuario que creo el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true })

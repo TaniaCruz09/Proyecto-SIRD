@@ -80,6 +80,7 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
         console.error("Error al cargar los docentes:", error);
       }
     };
+    fetchRoles();
     fetchDocentes();
   }, []);
 
@@ -87,6 +88,12 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const DocenteTieneRol = rolesSelected.some((r) => r.label.toLocaleLowerCase() === 'docente');
+
+    if(DocenteTieneRol && !docente){
+      alert('debe seleccionar un docente existente o crear uno nuevo antes de asignarle el rol de docente')
+      return;
+    }
     try {
       const payload: any = {
         email,

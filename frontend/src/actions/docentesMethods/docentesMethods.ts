@@ -1,10 +1,10 @@
 import { Docente, DocentePayload } from "@/interfaces";
 import { feching } from "@/utils/cliente-http"
 
-export async function getDocentes(docente: DocentePayload) {
+export async function getDocentes() {
     const endPoint = `/docentes`
-    console.log(docente, 'este es el payload JSON que se envia al back');
-    const response = await feching(endPoint, "no-cache", "GET", docente);
+
+    const response = await feching(endPoint, "no-cache", "GET");
 
     if (!response.data || response.error) {
         throw new Error(response?.error || "Error al obtener docentes");
@@ -27,72 +27,42 @@ export async function getDocenteById(id: number) {
 
 }
 
-// export async function saveDocente(docente: FormData) {
-//     const endPoint = `/docentes`;
-//     console.log(docente, 'este es el docente que se envia al back')
-//     const response = await feching(endPoint, "no-cache", "POST", docente)
+export async function getGradosByDocenteId(id: number) {
+    const endPoint = `/docentes/getGradosByDocenteId/${id}`;
 
-//     if (!response.data || response.error) {
-//         throw new Error(response?.error || "error desconocido desde el front de agragar docente")
-//     }
- 
-//     return response.data;
-    
-// }
+    const response = await feching(endPoint, "no-cache", "GET");
 
-// Guardamos un docente
-export const saveDocente = async (data: FormData) => {
-  try {
-    // POST a la API
-    const res = await feching("/docentes/", "no-cache", "POST", data);
-    return res;
-  } catch (error) {
-    console.error("❌ Error en saveDocente:", error);
-    throw error;
-  }
-};
+    if (!response.data || response.error) {
+        throw new Error(response?.error || "error desconocido desde el front de obtener un usuario")
+    }
 
-// export async function updateDocente(id: number, docente: FormData) {
-//     const endPoint = `/docentes/${id}`;
-// console.log(docente, 'este es el docente que se envia al back para actualizar')
-//     const response = await feching(endPoint, "no-cache", "PUT", docente);
+    return response.data;
 
-//     if (!response || response.error) {
-//         throw new Error(response?.error || "error desconocido desde el front de actualizar docente")
-//     }
+}
 
-//     return response.data;
-// }
+export async function saveDocente(docente: DocentePayload) {
+    const endPoint = `/docentes`;
+    console.log(docente, 'este es el docente que se envia al back')
+    const response = await feching(endPoint, "no-cache", "POST", docente)
 
-// Actualizamos un docente
-// export const updateDocente = async (id: number, data: FormData) => {
-//   try {
-//     // PUT a la API
-//     const res = await feching(`/docentes/${id}`, "no-cache", "PUT", data);
-//     return res;
-//   } catch (error) {
-//     console.error("❌ Error en updateDocente:", error);
-//     throw error;
-//   }
-// };
-// updateDocente
-export const updateDocente = async (id: number, formData: FormData) => {
-  try {
-    console.log(formData.get("dto"), 'este es el payload JSON que se envia al back'); // debug
-    const res = await feching(`/docentes/${id}`, "no-cache", "PUT", formData);
-    return res;
-  } catch (error: any) {
-    console.error("❌ Error en updateDocente:", error?.response?.data || error.message || error);
-    throw new Error(
-      error?.response?.data?.message || "Ocurrió un error al intentar actualizar el docente."
-    );
-  }
-};
+    if (!response.data || response.error) {
+        throw new Error(response?.error || "error desconocido desde el front de agragar docente")
+    }
 
+    return response.data;
 
+}
 
+export async function updateDocente(id: number, docente: DocentePayload) {
+    const endPoint = `/docentes/${id}`;
+    console.log(docente, 'este es el docente que se envia al back para actualizar')
+    const response = await feching(endPoint, "no-cache", "PUT", docente);
+    if (!response || response.error) {
+        throw new Error(response?.error || "error desconocido desde el front de actualizar docente")
+    }
 
-
+    return response.data;
+}
 
 export async function deleteDocentes(id: number) {
     const endPoint = `/docentes/${id}`;
@@ -104,4 +74,22 @@ export async function deleteDocentes(id: number) {
     }
 
     return response.data
+}
+
+// 🔹 Subir la imagen de un docente (usa FormData)
+export async function uploadDocenteImage(id: number, file: File) {
+    const endPoint = `/docentes/${id}/uploads/docentes`;
+
+    const formData = new FormData();
+    formData.append("foto_docente", file);
+
+    console.log("📸 Subiendo imagen de docente:", file.name);
+
+    const response = await feching(endPoint, "no-cache", "POST", formData);
+
+    if (!response.data || response.error) {
+        throw new Error(response?.error || "Error al subir la imagen del docente");
+    }
+
+    return response.data; // ← { fileName: "nombre.jpg" }
 }

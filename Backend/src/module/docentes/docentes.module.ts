@@ -12,7 +12,7 @@ import { MulterModule } from '@nestjs/platform-express';
   imports: [TypeOrmModule.forFeature([Docentes]),
   MulterModule.register({
       storage: diskStorage({
-        destination: './src/docentes/fotoDocente', // 📂 Carpeta donde se guardarán las fotos
+        destination: './uploads/docentes', // 📂 Carpeta donde se guardarán las fotos
         filename: (req, file, cb) => {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9);

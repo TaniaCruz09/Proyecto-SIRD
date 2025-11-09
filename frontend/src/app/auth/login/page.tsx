@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
 import { saveLogin } from '@/actions/authMethods/loginMethods'
 import { useAuth } from '@/hooks/useAuth'
+import Link from 'next/link'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -89,10 +90,17 @@ export default function LoginPage() {
             </div>
 
             <p className="text-center text-sm text-gray-600">
-              <a href="/recuperar-password" className="text-blue-600 hover:underline">
+              <Link
+                href="/recuperarContrasena"
+                onClick={() => {
+                  if (email) localStorage.setItem('recoveryEmail', email)
+                }}
+                className="text-blue-600 hover:underline"
+              >
                 ¿Olvidó su contraseña?
-              </a>
+              </Link>
             </p>
+
 
             <button
               type="submit"

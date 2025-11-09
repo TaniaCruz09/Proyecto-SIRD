@@ -24,6 +24,13 @@ export class User {
   @Column({ name: 'token', type: 'varchar', length: 500, nullable: true })
   token: string;
 
+  //CAMPOS PARA RECUPERAR CONTRASEÑA
+  @Column({name: 'reset_code', type: 'varchar', length: 100, nullable: true})
+  resetCode?: string;
+
+  @Column({name: 'reset_code_expiration', type: 'timestamp', nullable: true})
+  resetCodeExpire?: Date;
+//--------------------------------------------------------------
   @ManyToMany(() => Role, (role) => role.users)
   @JoinTable({
     name: 'user_has_roles',

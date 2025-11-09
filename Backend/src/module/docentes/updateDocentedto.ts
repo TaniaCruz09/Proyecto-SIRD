@@ -45,20 +45,27 @@ export class UpdateDocentesDTO {
   cedula_identidad?: string;
 
   @IsOptional()
-  @IsObject()
-  sexo?: GenderEntity;
+  // @IsObject()
+  @IsNumber()
+  sexo?: Number;
 
   @IsOptional()
   @IsArray()
+  @IsNumber({}, { each: true })
   nivel_academico?: AcademicLevelEntity[];
+  // nivel_academico?: number[]; // ✅ Array de IDs
 
   @IsOptional()
   @IsArray()
+  @IsNumber({}, { each: true })
   profession?: ProfessionsEntity[];
+  // profession?: number[]; // ✅ Array de IDs
 
   @IsOptional()
   @IsArray()
+  @IsNumber({}, { each: true })
   grupos?: Grupos[];
+  // grupos?: number[]; // ✅ Array de IDs
 
   @IsOptional()
   @IsString()
@@ -70,17 +77,21 @@ export class UpdateDocentesDTO {
   fecha_nacimiento?: Date;
 
   @IsOptional()
-  @IsObject()
-  pais?: Pais;
+  // @IsObject()
+  // pais?: Pais;
+  @IsNumber()
+  pais?: number; // ✅ Solo el id
 
   // @IsNotEmpty()
   // @IsObject()
   // departamento: Departamento;
 
   @IsOptional()
-  @IsObject()
-  municipio?: Municipio;
-
+  // @IsObject()
+  // municipio?: Municipio;
+   @IsNumber()
+  municipio?: number; // ✅ Solo el id
+  
   @IsOptional()
   @IsString()
   direccion_domiciliar?: string;

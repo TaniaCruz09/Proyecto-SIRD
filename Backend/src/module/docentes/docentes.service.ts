@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Docentes } from './docentes.entity';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { DocentesDTO } from './docentes.dto';
 import { Utilities } from '../../common/helpers/utilities';
-import { UpdateDocentesDTO } from './updateDocentedto';
+import { promises } from 'dns';
 
 @Injectable()
 export class DocentesService {
@@ -13,8 +13,11 @@ export class DocentesService {
     private readonly docenteRepository: Repository<Docentes>,
   ) { }
 
-  async createDocente(createDocenteDto: DocentesDTO): Promise<Docentes> {
+  async createDocente(createDocenteDto: DocentesDTO, file?: Express.Multer.File): Promise<Docentes> {
     try {
+      if (file) {
+        createDocenteDto.foto_docente = `uploads/docentes/${file.filename}`; // guardar el nombre del archivo
+      }
       const nuevoDocente = await this.docenteRepository.create(
         createDocenteDto,
       );
@@ -23,24 +26,6 @@ export class DocentesService {
       Utilities.catchError(error);
     }
   }
-
-  async getDocenteByUserId(userId: number): Promise<Docentes> {
-  try {
-    const docente = await this.docenteRepository.findOne({
-      where: { user_create_id: userId },
-      relations: ['sexo', 'nivel_academico', 'profession', 'pais', 'municipio', 'User'],
-    });
-
-    if (!docente) {
-      throw new NotFoundException('Docente no encontrado');
-    }
-
-    return docente;
-  } catch (error) {
-    Utilities.catchError(error);
-  }
-}
-
 
   async getDocente(): Promise<Docentes[]> {
     try {
@@ -75,7 +60,6 @@ export class DocentesService {
         .leftJoinAndSelect("turno.modalidad", "modalidad")
         .leftJoinAndSelect('grupos.organizacionEscolar', 'organizacionEscolar')
         .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo')
-        .leftJoinAndSelect('docente.grupoAsignaturaDocente', 'grupoAsignaturaDocente')
         .where('docente.id = :id', { id })
         .getOne()
       return docente;
@@ -84,33 +68,59 @@ export class DocentesService {
     }
   }
 
-  async editDocente(id: number, payload: UpdateDocentesDTO): Promise<Docentes> {
-  try {
-    const docente = await this.docenteRepository.findOne({ where: { id } });
-    if (!docente) {
-      throw new NotFoundException('Docente no encontrado');
+  async getGradosByDocenteId(id: number): Promise<Docentes> {
+    try {
+      const docente = await this.docenteRepository
+        .createQueryBuilder('docente')
+        .leftJoinAndSelect('docente.grupoAsignaturaDocente', 'grupoAsignaturaDocente')
+        .leftJoinAndSelect('grupoAsignaturaDocente.grupo', 'grupo')
+        .leftJoinAndSelect('grupo.grado', 'grado')
+        .leftJoinAndSelect('grupo.seccion', 'seccion')
+        .leftJoinAndSelect('grupo.turno', 'turno')
+        .leftJoinAndSelect('turno.modalidad', 'modalidad')
+        .leftJoinAndSelect('grupo.organizacionEscolar', 'organizacionEscolar')
+        .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo')
+        .leftJoinAndSelect('grupoAsignaturaDocente.asignatura', 'asignatura')
+        .where('docente.id = :id', { id })
+        .getOne()
+      return docente;
+    } catch (error) {
+      Utilities.catchError(error);
     }
-
-    delete (payload as any).id;
-    // Object.assign(docente, payload);
-
-     // Actualiza los campos directamente
-    await this.docenteRepository.update(id, {
-      ...payload,
-      update_at: new Date(),
-      user_update_id: payload.user_update_id,
-    });
-
-    // docente.update_at = new Date();
-    // docente.user_update_id = payload.user_update_id; // ✅ faltaba esta línea
-
-    return await this.docenteRepository.findOne({ where: { id } });
-  } catch (error) {
-    console.error(error); // 🔍 para ver el error real
-    throw error;
   }
-}
 
+  async editDocente(id: number, payload: DocentesDTO, file?: Express.Multer.File): Promise<Docentes> {
+    try {
+      const docente = await this.docenteRepository.findOne({
+        where: { id },
+        relations: [
+          'sexo',
+          'nivel_academico',
+          'profession',
+          'pais',
+          'municipio',
+        ],
+      });
+
+      if (!docente) {
+        throw new NotFoundException('Docente no encontrada');
+      }
+
+      if (file) {
+        payload.foto_docente = `uploads/docentes/${file.filename}`;
+      }
+      // Actualizar solo los campos enviados, conservando los valores previos
+      Object.assign(docente, payload);
+
+      // Asignar la fecha de actualización y el usuario que modifica
+      docente.update_at = new Date();
+      docente.user_update_id;
+
+      return await this.docenteRepository.save(docente);
+    } catch (error) {
+      Utilities.catchError(error);
+    }
+  }
 
   async deleteDocente(id: number, userId: number): Promise<Docentes> {
     try {
@@ -137,5 +147,4 @@ export class DocentesService {
       Utilities.catchError(error);
     }
   }
-
 }

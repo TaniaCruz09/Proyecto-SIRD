@@ -71,6 +71,10 @@ export class DocentesDTO {
   @IsObject()
   pais: Pais;
 
+  @IsOptional()
+  @IsString()
+  foto_docente?: string;  // foto del docente
+
   // @IsNotEmpty()
   // @IsObject()
   // departamento: Departamento;
@@ -95,23 +99,6 @@ export class DocentesDTO {
   @IsNotEmpty()
   @IsString()
   telefono_contacto_emergencia: string;
-
-  //
-  @IsOptional()
-  @IsString()
-  cargo_nominal?: string;
-
-  @IsOptional()
-  @IsString()
-  cargo_real?: string;
-
-  @IsOptional()
-  @IsString()
-  unidad_administrativa?: string;
-
-  @IsOptional()
-  @IsString()
-  foto_docente?: string;
 
   @IsOptional()
   @IsNumber()

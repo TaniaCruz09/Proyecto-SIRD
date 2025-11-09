@@ -16,6 +16,7 @@ import { AuthDto } from '../dtos/auth.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { Response, Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
+import { UserService } from '../services';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -23,6 +24,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly jwtService: JwtService,
+    private readonly userService: UserService,
   ) { }
 
   @Post('login')
@@ -172,7 +174,25 @@ export class AuthController {
       throw new UnauthorizedException('Token inválido');
     }
   }
+    //--------------------------------------------------------------
+//----------------- RUTAS PARA RECUPERAR CONTRASEÑA -----------------
+ @Post('request-reset')
+async requestReset(@Body('email') email: string) {
+  return await this.userService.generateResetCode(email);
+}
 
+@Post('verify-code')
+async verifyCode(@Body() body: { email: string; code: string }) {
+  return await this.userService.verifyResetCode(body.email, body.code);
+}
+
+@Post('reset-password')
+async resetPassword(@Body() body: { token: string; newPassword: string }) {
+  return await this.userService.resetPassword(body.token, body.newPassword);
+}
+
+
+//--------------------------------------------------------------
   @Get('test')
   @UseGuards(AuthGuard())
   test() {

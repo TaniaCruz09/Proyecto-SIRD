@@ -76,6 +76,14 @@ export class Docentes {
   telefono: string;
 
   @Column({
+    name: 'foto',
+    type: 'varchar',
+    nullable: true,
+  })
+  foto_docente?: string;  // foto del docente
+
+
+  @Column({
     name: 'fecha_nacimiento',
     type: 'date',
     nullable: true,
@@ -109,35 +117,6 @@ export class Docentes {
     nullable: true,
   })
   telefono_contacto_emergencia: string;
-
-  @Column({
-    name:'cargo_nominal',
-    type: 'varchar',
-    nullable: true,
-  })
-  cargo_nominal?: string;
-
-  @Column({
-    name:'cargo_real',
-    type: 'varchar',
-    nullable: true,
-  })
-  cargo_real?: string;
-
-  @Column({
-    name:'unidad_administrativa',
-    type: 'varchar',
-    nullable: true,
-  })
-  unidad_administrativa?: string;
-
-  @Column({
-    name: 'foto_docente',
-    type:'varchar',
-    length: 255,
-    nullable: true,
-  })
-  foto_docente?: string;
 
   @ManyToOne(() => GenderEntity)
   @JoinColumn({ name: 'sexo' })
