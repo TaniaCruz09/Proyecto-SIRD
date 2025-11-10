@@ -143,94 +143,71 @@ export default function DocenteForm({
     }
   }, [defaultValues]);
 
-   //funcion con la que enviamos los datos para agregar un nuevo usuario
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      // Buscar los objetos completos desde los estados
-      const selectedSexo = sexos.find((s) => s.id === parseInt(sexo));
-      const selectedPais = paises.find((p) => p.id === parseInt(pais));
-      const selectedMunicipio = municipios.find(
-        (m) => m.id === parseInt(municipio)
-      );
-      const selectedNivelAcademico = nivelesAcademicos.find(
-        (n) => n.id === parseInt(nivelAcademico)
-      );
-      const selectedProfesion = profesiones.find(
-        (p) => p.id === parseInt(profession)
-      );
+  try {
+    // --- Obtener objetos completos ---
+    const selectedSexo = sexos.find((s) => s.id === parseInt(sexo));
+    const selectedPais = paises.find((p) => p.id === parseInt(pais));
+    const selectedMunicipio = municipios.find((m) => m.id === parseInt(municipio));
+    const selectedNivelAcademico = nivelesAcademicos.find((n) => n.id === parseInt(nivelAcademico));
+    const selectedProfesion = profesiones.find((p) => p.id === parseInt(profession));
 
-      if (
-        !selectedSexo ||
-        !selectedPais ||
-        !selectedMunicipio ||
-        !selectedNivelAcademico ||
-        !selectedProfesion
-      ) {
-        console.error("Faltan campos requeridos");
-        return;
-      }
-
-      // --- Datos base del docente ---
-      const docenteData: DocentePayload = {
-        nombres,
-        apellido_paterno: apellido1,
-        apellido_materno: apellido2,
-        cedula_identidad: cedulaIdentidad,
-        telefono,
-        fecha_nacimiento: fechaNacimiento ? new Date(fechaNacimiento) : undefined,
-        direccion_domiciliar: direccionDomiciliar,
-        fechaContratado: fechaContratado ? new Date(fechaContratado) : undefined,
-        nombre_contacto_emergencia: nmobreContactoemergencia,
-        telefono_contacto_emergencia: telefonoContactoEmergencia,
-
-        sexo: selectedSexo,
-        pais: selectedPais,
-        municipio: selectedMunicipio,
-        nivel_academico: [selectedNivelAcademico],
-        profession: [selectedProfesion],
-
-        // Opcionales:
-        user_create_id: null,
-        created_at: undefined,
-        update_at: undefined,
-        user_update_id: null,
-        deleted_at: null,
-        deleted_at_id: null,
-      };
-
-        let docenteId: number | undefined;
-
-      if (isEdit && defaultValues?.id) {
-        await updateDocente(defaultValues.id, docenteData);
-      } else {
-        await saveDocente(docenteData);
-      }
-       // Subir imagen si existe
-    if (file && docenteId) {
-      const response = await uploadDocenteImage(docenteId, file);
-      console.log("✅ Imagen subida:", response);
+    if (!selectedSexo || !selectedPais || !selectedMunicipio || !selectedNivelAcademico || !selectedProfesion) {
+      console.error("Faltan campos requeridos");
+      return;
     }
 
-        let docenteCreadoId: number | undefined;
-    // 🔹 Si hay archivo seleccionado, subir imagen por separado
-    if (file && docenteCreadoId) {
-      const formData = new FormData();
-      formData.append("foto_docente", file);
+    // --- Crear FormData ---
+    const formData = new FormData();
+    formData.append("nombres", nombres);
+    formData.append("apellido_paterno", apellido1);
+    formData.append("apellido_materno", apellido2);
+    formData.append("cedula_identidad", cedulaIdentidad);
+    formData.append("telefono", telefono);
+    if (fechaNacimiento) formData.append("fecha_nacimiento", fechaNacimiento);
+    formData.append("direccion_domiciliar", direccionDomiciliar);
+    if (fechaContratado) formData.append("fechaContratado", fechaContratado);
+    formData.append("nombre_contacto_emergencia", nmobreContactoemergencia);
+    formData.append("telefono_contacto_emergencia", telefonoContactoEmergencia);
 
-      await feching(
-        `/uploads/docentes${docenteCreadoId}`,
-        "no-cache",
-        "POST",
-        formData
-      );
+    // Arrays convertidos a JSON
+    formData.append("nivel_academico", JSON.stringify([selectedNivelAcademico]));
+    formData.append("profession", JSON.stringify([selectedProfesion]));
+
+    // Objetos simples
+    formData.append("sexo", JSON.stringify(selectedSexo));
+    formData.append("pais", JSON.stringify(selectedPais));
+    formData.append("municipio", JSON.stringify(selectedMunicipio));
+
+    // Foto si existe
+    if (file) formData.append("foto_docente", file);
+
+    let responseData: any;
+
+    // --- Crear o actualizar docente ---
+    if (isEdit && defaultValues?.id) {
+      responseData = await feching(`/docentes/${defaultValues.id}`, "no-cache", "PUT", formData);
+    } else {
+      responseData = await feching(`/docentes`, "no-cache", "POST", formData);
     }
-      onSuccess(); // cerrar modal o refrescar datos
-    } catch (error) {
-      console.error("Error al guardar o actualizar docente:", error);
+
+    const savedDocente = responseData.data; // tu backend devuelve { data: docente, message: ... }
+    console.log("✅ Docente guardado/actualizado:", savedDocente);
+    // --- Actualizar preview inmediatamente ---
+    if (savedDocente.foto_docente) {
+      setPreview(`${process.env.NEXT_PUBLIC_API_UPLOADS}/${savedDocente.foto_docente}`);
     }
-  };
+
+    console.log("✅ Docente guardado/actualizado con id:", savedDocente.id);
+
+    onSuccess(); // cerrar modal o refrescar datos
+  } catch (error) {
+    console.error("Error al guardar o actualizar docente:", error);
+  }
+};
+
 
 
   return (

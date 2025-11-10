@@ -38,7 +38,8 @@ export default function DocenteRow({fetchDocentes, docente, onShowDetail}: Docen
           <Avatar className="w-10 h-10 border-2 border-green-200">
                     {docente.foto_docente? (
                         <AvatarImage
-                            src={`${process.env.NEXT_PUBLIC_API_UR}${docente.foto_docente}`|| "/placeholder.svg"}
+                            src={`${process.env.NEXT_PUBLIC_API_UPLOADS}/${docente.foto_docente}`|| "/placeholder.svg"}
+                            // src={`${process.env.NEXT_PUBLIC_API_UPLOADS}/${docente.foto_docente.replace(/^\/+/, '')}`}
                             alt={docente.nombres}
                         />
                     ) : (
