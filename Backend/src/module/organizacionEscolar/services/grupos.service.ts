@@ -73,6 +73,17 @@ export class GruposService {
         }
     }
 
+    async getStudentByGrupoId(id: number): Promise<Grupos[]> {
+        try {
+            const estudiantes = await this.grupoRepository
+                .createQueryBuilder("grupo")
+                .getMany()
+            return estudiantes
+        } catch (error) {
+            Utilities.catchError(error)
+        }
+    }
+
     async getGruposPorAnioYGrado(anioId: number, gradoId: number) {
         const grupos = await this.grupoRepository
             .createQueryBuilder('grupo')

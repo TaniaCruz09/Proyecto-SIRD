@@ -11,6 +11,7 @@ import AgregarCalificaciones from "@/app/(calificaciones)/agregar-calificaciones
 import VerCalificaciones from "@/app/(calificaciones)/ver-calificaciones/page"
 import { useAuth } from "@/hooks/useAuth"
 import { getGradosByDocenteId } from "@/actions/docentesMethods/docentesMethods"
+import { getEsquelaByGrupo } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
 
 interface Grupo {
     id: string
@@ -39,7 +40,7 @@ export default function GruposAsignados() {
         anioId: string
     } | null>(null)
 
-    // 🧩 Cargar datos del backend
+    // 🧩 Cargar datos del backend y filtrar solo grupos con esquela
     useEffect(() => {
         if (!docente?.id) return
 
@@ -87,10 +88,34 @@ export default function GruposAsignados() {
                 })
 
                 const anios = Object.values(gruposPorAnio)
+
+                // 🔹 Verificar esquela para cada grupo
+                for (const anio of anios) {
+                    const gruposConEsquela: Grupo[] = []
+
+                    for (const grupo of anio.grupos) {
+                        try {
+                            const esquela = await getEsquelaByGrupo(Number(grupo.id))
+                            if (esquela) {
+                                gruposConEsquela.push(grupo)
+                            }
+                        } catch {
+                            // si no tiene esquela, se ignora
+                        }
+                    }
+
+                    anio.grupos = gruposConEsquela
+                }
+
+                // 🔹 Filtrar años sin grupos con esquela
+                const aniosFiltrados = anios.filter((a) => a.grupos.length > 0)
+
                 // 🔹 Ordenar de mayor a menor por año
-                anios.sort((a, b) => Number(b.nombre.replace(/\D/g, "")) - Number(a.nombre.replace(/\D/g, "")))
-                setAniosEscolares(anios)
-                setDefaultValue(anios.find((a) => a.activo)?.id || anios[0]?.id)
+                aniosFiltrados.sort(
+                    (a, b) => Number(b.nombre.replace(/\D/g, "")) - Number(a.nombre.replace(/\D/g, ""))
+                )
+                setAniosEscolares(aniosFiltrados)
+                setDefaultValue(aniosFiltrados.find((a) => a.activo)?.id || aniosFiltrados[0]?.id)
             } catch (error) {
                 console.error("Error cargando docente:", error)
             }
