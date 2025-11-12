@@ -40,7 +40,27 @@ export class EsquelaHeadController {
         }
     }
 
-    //aqui
+    @Get('/grupo/:grupoId')
+    async findByGrupo(@Param('grupoId', ParseIntPipe) grupoId: number) {
+        try {
+            const esquelaHead = await this.squelaHeadService.findByGrupo(grupoId)
+
+            if (!esquelaHead) {
+                return {
+                    message: 'No existe esquela para este grupo',
+                    statusCode: 404,
+                }
+            }
+
+            return {
+                data: esquelaHead,
+                message: 'ok',
+            }
+        } catch (error) {
+            Utilities.catchError(error)
+        }
+    }
+
     @Post('/')
     async create(@Body() payload: EsquelaHeadDto, @Req() req) {
         try {

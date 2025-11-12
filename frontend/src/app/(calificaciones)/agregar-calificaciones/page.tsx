@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,6 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, Save, Users, BookOpen, CheckCircle, AlertCircle, User, UserCircle, Lock } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { getGruposById } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods"
+import { GrupoEscolar } from "@/interfaces"
 
 interface Estudiante {
     id: string
@@ -109,6 +111,7 @@ export default function AgregarCalificaciones({ grupoId, grupoNombre, anioId, on
     const [asignaturaActiva, setAsignaturaActiva] = useState(asignaturasEjemplo[0].id)
     const [corteActivo, setCorteActivo] = useState<"corte1" | "corte2" | "corte3" | "corte4">("corte1")
     const [guardando, setGuardando] = useState(false)
+    const [grupos, setGrupos] = useState<GrupoEscolar>()
 
     const verificarCorteCompleto = (corte: "corte1" | "corte2" | "corte3" | "corte4", asignaturaId: string) => {
         return estudiantes.every((est) => {
@@ -116,6 +119,24 @@ export default function AgregarCalificaciones({ grupoId, grupoNombre, anioId, on
             return calificacion && calificacion !== ""
         })
     }
+
+    const fetchGrupoById = async () => {
+        try {
+            const response = await getGruposById(Number(grupoId))
+            setGrupos(response)
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    useEffect(() => {
+        fetchGrupoById()
+    }, [grupoId])
+
+    const estudiantesDelGrupo =
+        grupos?.grupoAsignaturaDocente
+            ?.flatMap((gad) => gad.gruposConEstudiantes.map((ge) => ge.estudiante))
+            .filter((v, i, self) => self.findIndex((s) => s.id === v.id) === i) ?? []
 
     const verificarCorteHabilitado = (corte: "corte1" | "corte2" | "corte3" | "corte4", asignaturaId: string) => {
         if (corte === "corte1") return true

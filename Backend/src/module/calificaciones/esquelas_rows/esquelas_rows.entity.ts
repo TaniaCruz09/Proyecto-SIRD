@@ -5,8 +5,10 @@ import {
     Entity,
     JoinColumn,
     ManyToOne,
+    OneToMany,
     PrimaryGeneratedColumn,
 } from 'typeorm';
+import { EsquelaHeadEntity } from '../esquela_head/entities/squela_head.entity';
 @Entity({ schema: 'calificaciones', name: 'esquela_row' })
 export class EsquelaRow {
     @PrimaryGeneratedColumn('increment', {
@@ -39,5 +41,7 @@ export class EsquelaRow {
     @JoinColumn({ name: 'corte_id' })
     corte: Cortes;
 
-
+    @ManyToOne(() => EsquelaHeadEntity, (esquelaHead) => esquelaHead.esquelaRow)
+    @JoinColumn({ name: 'esquelaHead_id' })
+    esquelaHead: EsquelaHeadEntity;
 }

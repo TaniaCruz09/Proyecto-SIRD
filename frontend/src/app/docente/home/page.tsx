@@ -14,6 +14,7 @@ import { getDocenteById } from "@/actions/docentesMethods/docentesMethods"
 import { GrupoEscolar } from "@/interfaces"
 import Header from "@/components/Header"
 import { useRouter } from "next/navigation"
+import GenerarEsquelaButton from "@/components/calificaciones/GenerarEsquelaButton"
 
 export default function HomePage() {
   const { docente } = useAuth();
@@ -189,9 +190,9 @@ export default function HomePage() {
                         </div>
                       </div>
 
-                      <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600 rounded-lg py-2 flex justify-center items-center gap-2" onClick={() => router.push(`/esquela-calificaciones/${grupo.id}`)}>
-                        <FileText className="w-4 h-4" /> Ver Esquela
-                      </Button>
+                      <div className="w-full">
+                        <GenerarEsquelaButton grupoId={grupo.id} />
+                      </div>
                     </CardContent>
                   </Card>
                 ))}

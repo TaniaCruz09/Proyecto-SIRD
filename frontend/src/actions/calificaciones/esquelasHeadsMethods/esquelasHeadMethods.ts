@@ -12,6 +12,18 @@ export async function getEsquelaHead() {
     return response.data
 }
 
+export async function getEsquelaByGrupo(id: number) {
+    const endPoint = `/esquela_head/grupo/${id}`;
+    try {
+        const response = await feching(endPoint, "no-cache", "GET");
+        // si no hay data, devolvemos null (no lanzar error)
+        return response?.data || null;
+    } catch (error) {
+        console.error("Error en getEsquelaByGrupo:", error);
+        return null; // en caso de error, asumimos que no hay esquela
+    }
+}
+
 export async function getEsquelaHeadById(id: number) {
     const endPoint = `/esquela_head/${id}`;
     const response = await feching(endPoint, "no-cache", "GET");

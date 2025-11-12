@@ -6,5 +6,7 @@ export interface EsquelaHead {
 }
 
 export interface EsquelaHeadPayload {
-    grupo_asignatura?: number,
+    grupo_asignatura?: {
+        id: number
+    }
 }

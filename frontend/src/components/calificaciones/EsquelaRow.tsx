@@ -3,11 +3,13 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent } from "@/components/ui/card"
-import { EsquelaHead } from "./EsquelaHead"
 import { useEffect, useState } from "react"
 import { getGruposById } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods"
 import { GrupoEscolar } from "@/interfaces"
 import React from "react";
+import { getEsquelaHeadById, saveEsquelaHead } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
+import { EsquelaHeadPayload } from "@/interfaces/calificaciones/EsquelaHead"
+import { EsquelaHead } from "./EsquelaHead"
 
 
 function getQualitativeGrade(grade: number): string {
@@ -28,16 +30,27 @@ function getInitials(fullName: string): string {
 
 interface EsquelaRowProps {
     grupoId: number
+    esquelaHeadId: number
 }
 
-export function EsquelaRow({ grupoId }: EsquelaRowProps) {
+export function EsquelaRow({ grupoId, esquelaHeadId }: EsquelaRowProps) {
     const [grupos, setGrupos] = useState<GrupoEscolar>()
+    const [esquelaHead, setEsquelaHead] = useState<EsquelaHeadPayload>()
     const [loading, setLoading] = useState(false)
 
     const fetchGrupoById = async () => {
         try {
             const response = await getGruposById(Number(grupoId))
             setGrupos(response)
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    const fetchEsquelaHeadById = async () => {
+        try {
+            const response = await getEsquelaHeadById(Number(esquelaHeadId))
+            setEsquelaHead(response)
         } catch (error) {
             console.error(error)
         }
