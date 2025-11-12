@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Docentes } from './docentes.entity';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { DocentesDTO } from './docentes.dto';
 import { Utilities } from '../../common/helpers/utilities';
+import { promises } from 'dns';
 
 @Injectable()
 export class DocentesService {
@@ -12,8 +13,11 @@ export class DocentesService {
     private readonly docenteRepository: Repository<Docentes>,
   ) { }
 
-  async createDocente(createDocenteDto: DocentesDTO): Promise<Docentes> {
+  async createDocente(createDocenteDto: DocentesDTO, file?: Express.Multer.File): Promise<Docentes> {
     try {
+      if (file) {
+        createDocenteDto.foto_docente = `uploads/docentes/${file.filename}`; // guardar el nombre del archivo
+      }
       const nuevoDocente = await this.docenteRepository.create(
         createDocenteDto,
       );
@@ -85,7 +89,7 @@ export class DocentesService {
     }
   }
 
-  async editDocente(id: number, payload: DocentesDTO): Promise<Docentes> {
+  async editDocente(id: number, payload: DocentesDTO, file?: Express.Multer.File): Promise<Docentes> {
     try {
       const docente = await this.docenteRepository.findOne({
         where: { id },
@@ -102,6 +106,9 @@ export class DocentesService {
         throw new NotFoundException('Docente no encontrada');
       }
 
+      if (file) {
+        payload.foto_docente = `uploads/docentes/${file.filename}`;
+      }
       // Actualizar solo los campos enviados, conservando los valores previos
       Object.assign(docente, payload);
 

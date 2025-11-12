@@ -71,6 +71,10 @@ export class DocentesDTO {
   @IsObject()
   pais: Pais;
 
+  @IsOptional()
+  @IsString()
+  foto_docente?: string;  // foto del docente
+
   // @IsNotEmpty()
   // @IsObject()
   // departamento: Departamento;

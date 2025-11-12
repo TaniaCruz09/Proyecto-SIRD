@@ -9,12 +9,18 @@ import {
   ParseIntPipe,
   UseGuards,
   Req,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { DocentesService } from './docentes.service';
 import { DocentesDTO } from './docentes.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Utilities } from '../../common/helpers/utilities';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+// import { diskStorage } from 'Multer';
+import { diskStorage } from 'multer';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { extname } from 'path';
 
 @ApiTags('Docentes')
 @ApiBearerAuth()
@@ -24,7 +30,21 @@ export class DocenteController {
   constructor(private readonly registroService: DocentesService) { }
 
   @Post('/')
-  async createDocente(@Body() createDocenteDto: DocentesDTO, @Req() req) {
+  @UseInterceptors(
+          FileInterceptor("foto_docente", {
+              storage: diskStorage({
+                  destination: "./uploads/docentes", //carpeta donde se guardan las fotos
+                  filename: (req, file, cb) => {
+                      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+                      cb(null, uniqueSuffix + extname(file.originalname))
+                  }
+              })
+          })
+      )
+  async createDocente(  @UploadedFile() file: Express.Multer.File, @Body() createDocenteDto: DocentesDTO, @Req() req) {
+
+     console.log('📸 Archivo recibido:', file); // 👈 AGREGA ESTO
+     
     try {
       const userId = req.user?.id; // Obtener el ID del usuario autenticado
 
@@ -37,6 +57,11 @@ export class DocenteController {
 
       // Agregar el user_update_id al payload
       createDocenteDto.user_create_id = userId;
+
+        // 👇 si hay foto, guardamos el nombre en el DTO
+    if (file) {
+      createDocenteDto.foto_docente = `uploads/docentes/${file.filename}`;
+    }
 
       const docente = await this.registroService.createDocente(
         createDocenteDto,
@@ -79,6 +104,7 @@ export class DocenteController {
     }
   }
 
+  // ✅ OBTENER GRADOS POR DOCENTE
   @Get('/getGradosByDocenteId/:id')
   async getGradosByDocenteId(@Param('id', ParseIntPipe) id: number) {
     try {
@@ -93,9 +119,23 @@ export class DocenteController {
     }
   }
 
+  // ✅ EDITAR DOCENTE  
   @Put('/:id')
+  @UseInterceptors(
+        FileInterceptor("foto_docente", {
+            storage: diskStorage({
+                destination: "./uploads/docentes",
+                filename: (req, file, cb) => {
+                    const uniqueSuffix =
+                        Date.now() + "-" + Math.round(Math.random() * 1e9);
+                    cb(null, uniqueSuffix + extname(file.originalname));
+                },
+            }),
+        })
+    )
   async editarDocente(
     @Param('id', ParseIntPipe) id: number,
+     @UploadedFile() file: Express.Multer.File,
     @Body() payload: DocentesDTO,
     @Req() req, // Capturar el usuario autenticado
   ) {
@@ -111,6 +151,11 @@ export class DocenteController {
 
       // Agregar el user_update_id al payload
       payload.user_update_id = userId;
+
+        // 👇 Si sube nueva foto, actualizarla
+    if (file) {
+      payload.foto_docente = `uploads/docentes/${file.filename}`;
+    }
 
       const docente = await this.registroService.editDocente(id, payload);
       const data = {

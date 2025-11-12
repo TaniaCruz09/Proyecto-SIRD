@@ -93,7 +93,7 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
             Object.entries(formValues).forEach(([key, value]) => {
                 data.append(key, value);
             });
-            if (file) data.append("profileImage", file);
+            if (file) data.append("foto_docente", file);
 
             if (isEdit && defeaultValues?.id) {
                 await ActualizarStudent(defeaultValues.id, data);

@@ -16,7 +16,11 @@ import { Sexo } from "./catalogoInterface/SexoInterface";
     direccion_domiciliar: string,
     fechaContratado: Date,
     nombre_contacto_emergencia: string,
-    telefono_contacto_emergencia: string
+    telefono_contacto_emergencia: string,
+    unidad_administrativa?: string,
+    cargo_nominal?: string,
+    cargo_real?: string,
+    foto_docente?: string,
     sexo: Sexo,
     nivel_academico: NivelAcademico[],
     profession: Profesion[],
@@ -32,21 +36,25 @@ import { Sexo } from "./catalogoInterface/SexoInterface";
  }
 
  export interface DocentePayload {
-    nombres: string,
-    apellido_paterno: string,
-    apellido_materno: string,
-    cedula_identidad: string,
-    telefono: string,
+    nombres?: string,
+    apellido_paterno?: string,
+    apellido_materno?: string,
+    cedula_identidad?: string,
+    telefono?: string,
     fecha_nacimiento?: Date,
-    direccion_domiciliar: string,
+    direccion_domiciliar?: string,
     fechaContratado?: Date,
-    nombre_contacto_emergencia: string,
-    telefono_contacto_emergencia: string
-    sexo: Sexo,
-    nivel_academico: NivelAcademico[],
-    profession: Profesion[],
-    pais: Pais,
-    municipio: Municipio,
+    nombre_contacto_emergencia?: string,
+    telefono_contacto_emergencia?: string,
+    unidad_administrativa?: string,
+    cargo_nominal?: string,
+    cargo_real?: string,
+    foto_docente?: string,
+    sexo?: Sexo,
+    nivel_academico?: NivelAcademico[],
+    profession?: Profesion[],
+    pais?: Pais,
+    municipio?: Municipio,
 
     user_create_id?: number | null;
   created_at?: string;
