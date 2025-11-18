@@ -20,7 +20,7 @@ import {
   Sexo,
 } from "@/interfaces";
 import React, { useEffect, useRef, useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { User } from "lucide-react";
 import { feching } from "@/utils/cliente-http";
 
@@ -138,9 +138,9 @@ export default function DocenteForm({
       );
 
        if (defaultValues.foto_docente) {
-                setPreview(`${process.env.NEXT_PUBLIC_API_UPLOADS}${defaultValues.foto_docente}`);
+                setPreview(`${process.env.NEXT_PUBLIC_API_UPLOADS}/${defaultValues.foto_docente}`);
             }
-    }
+    } 
   }, [defaultValues]);
 
   const handleSubmit = async (e: React.FormEvent) => {
