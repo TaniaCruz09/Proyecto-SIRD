@@ -100,6 +100,7 @@ async resetPassword(tempToken: string, newPassword: string) {
 
 
   async findByEmail(email: string) {
+    
     const user = await this.userRepository.findOne({
       where: { email },
       relations: ['roles', 'docente', 'docente.profession'],

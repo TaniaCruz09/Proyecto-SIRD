@@ -36,9 +36,12 @@ export class Grupos {
     @ManyToOne(() => OrganizacionEscolar, (organizacionEscolar) => organizacionEscolar.grupos, { eager: true })
     organizacionEscolar: OrganizacionEscolar;
 
-    @ManyToOne(() => Docentes, (docente) => docente.grupos, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'docente_guia_id' })
+    @ManyToOne(() => Docentes, (docente) => docente.grupos, {
+        onDelete: 'CASCADE',
+    })
+    @JoinColumn({ name: 'docente_guia_id', referencedColumnName: 'id' })
     docenteGuia: Docentes;
+
 
     @OneToMany(() => GrupoAsignaturaDocente, gad => gad.grupo)
     grupoAsignaturaDocente: GrupoAsignaturaDocente[];

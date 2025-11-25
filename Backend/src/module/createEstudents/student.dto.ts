@@ -1,4 +1,4 @@
-import { IsDate, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength } from "class-validator";
+import { IsDate, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 import { Transform } from "class-transformer";
 
 export class StudentsDto {
@@ -22,6 +22,8 @@ export class StudentsDto {
 
     @IsOptional()
     @IsString()
+    @MaxLength(16)
+    @MinLength(14)
     readonly identityCard: string;
 
     @IsOptional()
@@ -61,11 +63,13 @@ export class StudentsDto {
     @IsOptional()
     @IsString()
     @MaxLength(16)
+    @MinLength(14)
     readonly tutorIdentityCard: string;
 
     @IsOptional()
     @IsString()
     @MaxLength(8)
+    @MinLength(8)
     readonly tutorPhoneNumber: string;
 
     @IsOptional()
@@ -78,7 +82,9 @@ export class StudentsDto {
 
     @IsOptional()
     @IsString()
-    phone?: string;
+    @MaxLength(8)
+    @MinLength(8)
+    readonly phone?: string;
 
     @IsInt()
     @IsOptional()

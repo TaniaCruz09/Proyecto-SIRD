@@ -34,7 +34,7 @@ export class GruposService {
                 .leftJoinAndSelect("grupo.seccion", "seccion")
                 .leftJoinAndSelect("grupo.turno", "turno")
                 .leftJoinAndSelect("turno.modalidad", "modalidad")
-                .leftJoinAndSelect("grupo.docenteGuia", "docenteGuia")
+                .leftJoinAndSelect("grupo.docenteGuia", "docenteGuia",undefined, { withDeleted: true })
                 .getMany();
 
             return grupos;
