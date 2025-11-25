@@ -26,10 +26,7 @@ export default function ModalDetalleDocente({
               <strong>Nombre:</strong> {docente.nombres}
             </div>
             <div>
-              <strong>Apellido Paterno:</strong> {docente.apellido_paterno}
-            </div>
-            <div>
-              <strong>Apellido Materno:</strong> {docente.apellido_materno}
+              <strong>Apellidos:</strong> {docente.apellido_paterno}  {docente.apellido_materno}
             </div>
             <div>
               <strong>Sexo:</strong> {docente.sexo?.gender ?? "N/A"}

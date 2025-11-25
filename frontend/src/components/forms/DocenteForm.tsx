@@ -25,32 +25,24 @@ interface DocenteFormProps {
   onSuccess: () => void;
 }
 
-export default function DocenteForm({
-  defaultValues,
-  onSuccess,
-}: DocenteFormProps) {
-  const [nombres, setNombres] = useState<string>("");
-  const [apellido1, setApellido1] = useState<string>("");
-  const [apellido2, setApellido2] = useState<string>("");
-  const [cedulaIdentidad, setCedulaIdentidad] = useState<string>("");
-  const [sexo, setSexo] = useState<string>("");
-  const [nivelAcademico, setNivelAcademico] = useState<string>("");
-  const [profession, SetProfession] = useState<string>("");
-  const [telefono, setTelefono] = useState<string>("");
-  const [fechaNacimiento, setFechaNacimiento] = useState<string>("");
-  const [pais, setPais] = useState<string>("");
-  const [municipio, setMunicipio] = useState<string>("");
-  const [fechaContratado, setFechaContratado] = useState<string>("");
-  const [direccionDomiciliar, setDireccionDomiciliar] = useState<string>("");
-  const [nmobreContactoemergencia, setNombreContactoEmergencia] =
-    useState<string>("");
-  const [telefonoContactoEmergencia, setTelefonoContactoEmergencia] =
-    useState<string>("");
+export default function DocenteForm({ defaultValues, onSuccess }: DocenteFormProps) {
+  const [nombres, setNombres] = useState("");
+  const [apellidos, setApellidos] = useState(""); // 🔹 Un solo campo
+  const [cedulaIdentidad, setCedulaIdentidad] = useState("");
+  const [sexo, setSexo] = useState("");
+  const [nivelAcademico, setNivelAcademico] = useState("");
+  const [profession, setProfession] = useState("");
+  const [telefono, setTelefono] = useState("");
+  const [fechaNacimiento, setFechaNacimiento] = useState("");
+  const [pais, setPais] = useState("");
+  const [municipio, setMunicipio] = useState("");
+  const [fechaContratado, setFechaContratado] = useState("");
+  const [direccionDomiciliar, setDireccionDomiciliar] = useState("");
+  const [nombreContactoEmergencia, setNombreContactoEmergencia] = useState("");
+  const [telefonoContactoEmergencia, setTelefonoContactoEmergencia] = useState("");
 
   const [sexos, setSexos] = useState<Sexo[]>([]);
-  const [nivelesAcademicos, setNivelesAcademicos] = useState<NivelAcademico[]>(
-    []
-  );
+  const [nivelesAcademicos, setNivelesAcademicos] = useState<NivelAcademico[]>([]);
   const [profesiones, setProfesiones] = useState<Profesion[]>([]);
   const [paises, setPaises] = useState<Pais[]>([]);
   const [municipios, setMunicipios] = useState<Municipio[]>([]);
@@ -80,52 +72,43 @@ export default function DocenteForm({
         setMunicipios(municipiosData);
         setNivelesAcademicos(nivelesData);
       } catch (error) {
-        console.error("Error al cargar los datos del formulario:", error);
+        console.error("Error al cargar los datos:", error);
       }
     };
-
     fetchData();
   }, []);
 
-  //funcion con la que enviamos los datos para agregar un nuevo usuario
+  // 🔹 Manejo de submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      // Buscar los objetos completos desde los estados
+      // Divide apellidos en dos partes (si hay una sola palabra, el segundo se deja vacío)
+      const [apellido_paterno = "", apellido_materno = ""] = apellidos.trim().split(" ", 2);
+
       const selectedSexo = sexos.find((s) => s.id === parseInt(sexo));
       const selectedPais = paises.find((p) => p.id === parseInt(pais));
-      const selectedMunicipio = municipios.find(
-        (m) => m.id === parseInt(municipio)
-      );
+      const selectedMunicipio = municipios.find((m) => m.id === parseInt(municipio));
       const selectedNivelAcademico = nivelesAcademicos.find(
         (n) => n.id === parseInt(nivelAcademico)
       );
-      const selectedProfesion = profesiones.find(
-        (p) => p.id === parseInt(profession)
-      );
+      const selectedProfesion = profesiones.find((p) => p.id === parseInt(profession));
 
-      if (
-        !selectedSexo ||
-        !selectedPais ||
-        !selectedMunicipio ||
-        !selectedNivelAcademico ||
-        !selectedProfesion
-      ) {
+      if (!selectedSexo || !selectedPais || !selectedMunicipio || !selectedNivelAcademico || !selectedProfesion) {
         console.error("Faltan campos requeridos");
         return;
       }
 
       const docenteData: DocentePayload = {
         nombres,
-        apellido_paterno: apellido1,
-        apellido_materno: apellido2,
+        apellido_paterno,
+        apellido_materno,
         cedula_identidad: cedulaIdentidad,
         telefono,
         fecha_nacimiento: fechaNacimiento ? new Date(fechaNacimiento) : undefined,
         direccion_domiciliar: direccionDomiciliar,
         fechaContratado: fechaContratado ? new Date(fechaContratado) : undefined,
-        nombre_contacto_emergencia: nmobreContactoemergencia,
+        nombre_contacto_emergencia: nombreContactoEmergencia,
         telefono_contacto_emergencia: telefonoContactoEmergencia,
 
         sexo: selectedSexo,
@@ -134,7 +117,6 @@ export default function DocenteForm({
         nivel_academico: [selectedNivelAcademico],
         profession: [selectedProfesion],
 
-        // Opcionales:
         user_create_id: null,
         created_at: undefined,
         update_at: undefined,
@@ -149,29 +131,29 @@ export default function DocenteForm({
         await saveDocente(docenteData);
       }
 
-      onSuccess(); // cerrar modal o refrescar datos
+      onSuccess();
     } catch (error) {
       console.error("Error al guardar o actualizar docente:", error);
     }
   };
 
-  //rellena los inputs y select si esta en modo edicion
+  // 🔹 Prellenado en modo edición
   useEffect(() => {
     if (defaultValues) {
       setNombres(defaultValues.nombres || "");
-      setApellido1(defaultValues.apellido_paterno || "");
-      setApellido2(defaultValues.apellido_materno || "");
+      setApellidos(
+        `${defaultValues.apellido_paterno || ""} ${defaultValues.apellido_materno || ""}`.trim()
+      );
       setCedulaIdentidad(defaultValues.cedula_identidad || "");
       setSexo(defaultValues.sexo?.id?.toString() || "");
       setNivelAcademico(defaultValues.nivel_academico?.[0]?.id?.toString() || "");
-      SetProfession(defaultValues.profession?.[0]?.id?.toString() || "");
+      setProfession(defaultValues.profession?.[0]?.id?.toString() || "");
       setTelefono(defaultValues.telefono || "");
       setPais(defaultValues.pais?.id?.toString() || "");
       setMunicipio(defaultValues.municipio?.id?.toString() || "");
       setDireccionDomiciliar(defaultValues.direccion_domiciliar || "");
       setNombreContactoEmergencia(defaultValues.nombre_contacto_emergencia || "");
       setTelefonoContactoEmergencia(defaultValues.telefono_contacto_emergencia || "");
-      // ✅ Convertir Date a string tipo "YYYY-MM-DD"
       setFechaNacimiento(
         defaultValues.fecha_nacimiento
           ? new Date(defaultValues.fecha_nacimiento).toISOString().split("T")[0]
@@ -185,171 +167,228 @@ export default function DocenteForm({
     }
   }, [defaultValues]);
 
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto px-2">
-      <h2 className="text-xl font-semibold text-gray-700">
-        {isEdit ? "Editar Docente" : "Agregar Docente"}
+    <form onSubmit={handleSubmit} className="space-y-6 overflow-y-auto px-4">
+      <h2 className="text-2xl font-semibold text-center text-indigo-700 border-b pb-2">
+        {isEdit ? "✏️ Editar Docente" : "👤 Agregar Docente"}
       </h2>
 
-      <input
-        type="text"
-        placeholder="Nombres"
-        value={nombres}
-        onChange={(e) => setNombres(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        required
-      />
-      <input
-        type="text"
-        placeholder="Primer Apellido"
-        value={apellido1}
-        onChange={(e) => setApellido1(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        required
-      />
-      <input
-        type="text"
-        placeholder="Segundo Apellido"
-        value={apellido2}
-        onChange={(e) => setApellido2(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        required
-      />
-      <input
-        type="text"
-        placeholder="Cedula Identidad"
-        value={cedulaIdentidad}
-        onChange={(e) => setCedulaIdentidad(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        required
-      />
-      <select
-        name="sexo"
-        id="sexo"
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        value={sexo}
-        onChange={(e) => setSexo(e.target.value)}
-      >
-        <option value="">Sexo</option>
-        {sexos?.map((r) => (
-          <option key={r.id} value={r.id}>
-            {r.gender}
-          </option>
-        ))}
-      </select>
-      <select
-        name=""
-        id=""
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        value={nivelAcademico}
-        onChange={(e) => setNivelAcademico(e.target.value)}
-      >
-        <option value="">Nivel Academico</option>
-        {nivelesAcademicos?.map((r) => (
-          <option key={r.id} value={r.id}>
-            {r.academicLevel}
-          </option>
-        ))}
-      </select>
-      <select
-        name=""
-        id=""
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        value={profession}
-        onChange={(e) => SetProfession(e.target.value)}
-      >
-        <option value="">Profecion</option>
-        {profesiones?.map((r) => (
-          <option key={r.id} value={r.id}>
-            {r.profession}
-          </option>
-        ))}
-      </select>
-      <input
-        type="text"
-        placeholder="Telefono"
-        value={telefono}
-        onChange={(e) => setTelefono(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        required
-      />
-      <input
-        type="date"
-        placeholder="Fecha de Nacimiento"
-        value={fechaNacimiento}
-        onChange={(e) => setFechaNacimiento(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        required
-      />
-      <select
-        name=""
-        id=""
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        value={pais}
-        onChange={(e) => setPais(e.target.value)}
-      >
-        <option value="">Pais de origen</option>
-        {paises?.map((r) => (
-          <option key={r.id} value={r.id}>
-            {r.pais}
-          </option>
-        ))}
-      </select>
-      <select
-        name=""
-        id=""
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        value={municipio}
-        onChange={(e) => setMunicipio(e.target.value)}
-      >
-        <option value="">Municipio de origen</option>
-        {municipios?.map((r) => (
-          <option key={r.id} value={r.id}>
-            {r.municipio}
-          </option>
-        ))}
-      </select>
-      <input
-        type="date"
-        placeholder="Fecha contratado"
-        value={fechaContratado}
-        onChange={(e) => setFechaContratado(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        required
-      />
-      <input
-        type="text"
-        placeholder="Direccion domiciliar"
-        value={direccionDomiciliar}
-        onChange={(e) => setDireccionDomiciliar(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        required
-      />
-      <input
-        type="text"
-        placeholder="Nombre contacto de emergencia"
-        value={nmobreContactoemergencia}
-        onChange={(e) => setNombreContactoEmergencia(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        required
-      />
-      <input
-        type="text"
-        placeholder="Telefono contacto de emergencia"
-        value={telefonoContactoEmergencia}
-        onChange={(e) => setTelefonoContactoEmergencia(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        required
-      />
-      <div className="flex justify-center">
+      {/* 🪪 Datos personales */}
+      <section>
+        <h3 className="text-lg font-semibold text-indigo-600 mb-3 border-l-4 border-indigo-400 pl-2">
+          🪪 Datos personales
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">Nombres</label>
+            <input
+              type="text"
+              placeholder="Nombres"
+              value={nombres}
+              onChange={(e) => setNombres(e.target.value)}
+              className="input-style"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">Apellidos</label>
+            <input
+              type="text"
+              placeholder="Apellidos"
+              value={apellidos}
+              onChange={(e) => setApellidos(e.target.value)}
+              className="input-style"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">Cédula de identidad</label>
+            <input
+              type="text"
+              placeholder="Cédula de Identidad"
+              value={cedulaIdentidad}
+              onChange={(e) => setCedulaIdentidad(e.target.value)}
+              className="input-style"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">Sexo</label>
+            <select
+              value={sexo}
+              onChange={(e) => setSexo(e.target.value)}
+              className="input-style"
+              required
+            >
+              <option value="">Seleccionar sexo</option>
+              {sexos.map((r) => (
+                <option key={r.id} value={r.id}>{r.gender}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">Nivel académico</label>
+            <select
+              value={nivelAcademico}
+              onChange={(e) => setNivelAcademico(e.target.value)}
+              className="input-style"
+              required
+            >
+              <option value="">Seleccionar nivel</option>
+              {nivelesAcademicos.map((r) => (
+                <option key={r.id} value={r.id}>{r.academicLevel}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">Profesión</label>
+            <select
+              value={profession}
+              onChange={(e) => setProfession(e.target.value)}
+              className="input-style"
+              required
+            >
+              <option value="">Seleccionar profesión</option>
+              {profesiones.map((r) => (
+                <option key={r.id} value={r.id}>{r.profession}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">Fecha de nacimiento</label>
+            <input
+              type="date"
+              value={fechaNacimiento}
+              onChange={(e) => setFechaNacimiento(e.target.value)}
+              className="input-style"
+              required
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* 📍 Dirección y contacto */}
+      <section>
+        <h3 className="text-lg font-semibold text-indigo-600 mb-3 border-l-4 border-indigo-400 pl-2">
+          📍 Dirección y contacto
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">País de origen</label>
+            <select
+              value={pais}
+              onChange={(e) => setPais(e.target.value)}
+              className="input-style"
+              required
+            >
+              <option value="">Seleccionar país</option>
+              {paises.map((r) => (
+                <option key={r.id} value={r.id}>{r.pais}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">Municipio</label>
+            <select
+              value={municipio}
+              onChange={(e) => setMunicipio(e.target.value)}
+              className="input-style"
+              required
+            >
+              <option value="">Seleccionar municipio</option>
+              {municipios.map((r) => (
+                <option key={r.id} value={r.id}>{r.municipio}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">Dirección domiciliar</label>
+            <input
+              type="text"
+              placeholder="Dirección domiciliar"
+              value={direccionDomiciliar}
+              onChange={(e) => setDireccionDomiciliar(e.target.value)}
+              className="input-style"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">Teléfono</label>
+            <input
+              type="text"
+              placeholder="Teléfono"
+              value={telefono}
+              onChange={(e) => setTelefono(e.target.value)}
+              className="input-style"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">Fecha de contratación</label>
+            <input
+              type="date"
+              value={fechaContratado}
+              onChange={(e) => setFechaContratado(e.target.value)}
+              className="input-style"
+              required
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ☎️ Emergencia */}
+      <section>
+        <h3 className="text-lg font-semibold text-indigo-600 mb-3 border-l-4 border-indigo-400 pl-2">
+          ☎️ Contacto de emergencia
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">Nombre del contacto</label>
+            <input
+              type="text"
+              placeholder="Nombre del contacto"
+              value={nombreContactoEmergencia}
+              onChange={(e) => setNombreContactoEmergencia(e.target.value)}
+              className="input-style"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">Número de contacto</label>
+            <input
+              type="text"
+              placeholder="Teléfono del contacto"
+              value={telefonoContactoEmergencia}
+              onChange={(e) => setTelefonoContactoEmergencia(e.target.value)}
+              className="input-style"
+              required
+            />
+          </div>
+        </div>
+      </section>
+
+      <div className="flex justify-center pt-4">
         <button
           type="submit"
-          className="px-20 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 mb-6"
+          className="px-20 py-3 bg-indigo-500 text-white rounded-xl font-semibold hover:bg-indigo-600 shadow-md transition"
         >
           {isEdit ? "Actualizar" : "Guardar"}
         </button>
       </div>
     </form>
+
   );
 }
+
+/* 🔹 Agrega esta clase global en tu CSS o Tailwind */

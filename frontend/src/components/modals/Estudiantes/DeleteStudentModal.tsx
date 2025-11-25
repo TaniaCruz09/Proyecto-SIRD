@@ -5,6 +5,7 @@ import {
 import React, { useState } from "react";
 import ConfirmDeletModal from "../ModalConfirmDeletion";
 import BtnDelete from "../../Buttons/BtnDelete";
+import { EliminarStudent } from "@/actions/resgisterEstudentMethods/regiterEstudentMethods";
 
 interface DeleteStudentModalProps {
   idEliminar: number;
@@ -26,7 +27,7 @@ export default function DeleteStudentModal({
   const confirmDelete = async () => {
     if (!studentToDelete) return;
     try {
-      await deleteDocentes(studentToDelete);
+      await EliminarStudent(studentToDelete);
       await fetchStudent();
     } catch (error) {
       console.error("Error al eliminar usuario", error);

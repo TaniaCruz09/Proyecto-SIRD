@@ -31,8 +31,7 @@ export default function DocenteTable({
           <tr>
             <th className="p-3 border-b border-gray-300">Id</th>
             <th className="p-3 border-b border-gray-300">Nombres</th>
-            <th className="p-3 border-b border-gray-300">Apellido 1</th>
-            <th className="p-3 border-b border-gray-300">Apellido 2</th>
+            <th className="p-3 border-b border-gray-300">Apellidos </th>
             <th className="p-3 border-b border-gray-300">Teléfono</th>
             <th className="p-1 border-b border-gray-300 text-center">Mas Informacion</th>
             <th className="p-1 border-b border-gray-300 text-center">Editar</th>

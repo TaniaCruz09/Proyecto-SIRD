@@ -16,8 +16,7 @@ export default function DocenteRow({fetchDocentes, docente, onShowDetail}: Docen
     <tr className="hover:bg-gray-100 cursor-pointer">
         <td className="p-3 border-b border-gray-200">{docente.id}</td>
         <td className="p-3 border-b border-gray-200">{docente.nombres}</td>
-        <td className="p-3 border-b border-gray-200">{docente.apellido_paterno}</td>
-        <td className="p-3 border-b border-gray-200">{docente.apellido_materno}</td>
+        <td className="p-3 border-b border-gray-200">{docente.apellido_paterno}  {docente.apellido_materno}</td>
         <td className="p-3 border-b border-gray-200">{docente.telefono}</td>
         <td className="p-3 px-2 py-2 border-b border-gray-200 text-center">
           <button onClick={(e) => {

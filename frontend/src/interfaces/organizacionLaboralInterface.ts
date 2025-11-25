@@ -1,6 +1,6 @@
+import { AnioLectivo } from "./catalogoInterface/AnioLectivo";
 import { Asignatura } from "./catalogoInterface/AsignaturaInterface";
 import { Docente } from "./DocenteInterface";
-import { AnioLectivo } from "./organizacionEscolarInterface/AnioLectivo";
 import { GrupoEscolar } from "./organizacionEscolarInterface/grupoInterface";
 
 

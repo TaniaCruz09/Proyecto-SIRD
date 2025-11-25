@@ -22,7 +22,7 @@ export default interface RegisterEstudent {
     observations: string
     grupoAsignaturaConEstudiantes?: GrupoConEstudiante[]
     profileImage?: string | null
-    phone?: string,
+    phone: string,
 
     email?: string,
     currentGrade: string
@@ -64,7 +64,7 @@ export interface RegisterEstudentPayload {
     gender: Sexo,
     observations: string,
     profileImage?: string | null
-    phone?: string,
+    phone: string,
 
     user_create_id?: number | null;
     created_at?: string;

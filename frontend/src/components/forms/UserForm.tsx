@@ -143,7 +143,7 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
           <option value="">Selecciona un docente (opcional)</option>
           {docentes?.map((d) => (
             <option key={d.id} value={d.id}>
-              {d.nombres} {d.apellido_materno}
+              {d.nombres} {d.apellido_materno && d.apellido_paterno}
             </option>
           ))}
         </select>

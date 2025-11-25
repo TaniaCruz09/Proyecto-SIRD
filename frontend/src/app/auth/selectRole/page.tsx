@@ -15,54 +15,61 @@ interface Role {
 
 export default function SelectRolePage() {
   const router = useRouter()
-  const { login, loading } = useAuth()
+  const { login, loading, roles: contextRoles } = useAuth()
   const [roles, setRoles] = useState<Role[]>([])
   const [selectedRole, setSelectedRole] = useState<string>('')
 
-  useEffect(() => {
-    const storedRoles = localStorage.getItem('roles')
-    if (!storedRoles) {
+    useEffect(() => {
+    // Primero intentar tomar roles desde el contexto (más fiable)
+    const sourceRoles = contextRoles && contextRoles.length ? contextRoles : (() => {
+      const stored = localStorage.getItem('roles')
+      return stored ? JSON.parse(stored) as string[] : null
+    })()
+
+    if (!sourceRoles || !sourceRoles.length) {
       router.push('/auth/login')
       return
     }
 
-    try {
-      const parsedRoles: string[] = JSON.parse(storedRoles) // ahora es array de strings
-      const mappedRoles: Role[] = parsedRoles.map((r) => {
-        if (r === 'Admin') {
-          return {
-            rol: r,
-            title: 'Administrador',
-            description: 'Administra el sistema completo',
-            icon: <FaUserShield className="text-white text-2xl" />,
-          }
-        }
-        if (r === 'Docente') {
-          return {
-            rol: r,
-            title: 'Docente',
-            description: 'Accede a tus clases y estudiantes',
-            icon: <FaChalkboardTeacher className="text-white text-2xl" />,
-          }
-        }
+    const mappedRoles: Role[] = sourceRoles.map((r) => {
+      if (r === 'Admin') {
         return {
           rol: r,
-          title: r,
-          description: '',
-          icon: <div />
+          title: 'Administrador',
+          description: 'Administra el sistema completo',
+          icon: <FaUserShield className="text-white text-2xl" />,
         }
-      })
+      }
+      if (r === 'Docente') {
+        return {
+          rol: r,
+          title: 'Docente',
+          description: 'Accede a tus clases y estudiantes',
+          icon: <FaChalkboardTeacher className="text-white text-2xl" />,
+        }
+      }
+      return {
+        rol: r,
+        title: r,
+        description: '',
+        icon: <div />
+      }
+    })
 
-      setRoles(mappedRoles)
-    } catch (error) {
-      console.error('Error parseando roles desde localStorage:', error)
-      router.push('/auth/login')
-    }
-  }, [router])
+    setRoles(mappedRoles)
+    // seleccionar primer rol por defecto para UX
+    if (mappedRoles.length && !selectedRole) setSelectedRole(mappedRoles[0].rol)
+  }, [contextRoles, router])
+
 
   const handleSubmit = async () => {
     if (!selectedRole) return
     await login(selectedRole)
+
+    const userStored = localStorage.getItem('user')
+    const user = userStored ? JSON.parse(userStored) : null
+
+    await login(selectedRole, undefined, user)
 
     if (selectedRole === 'Admin') router.push('/admin/home')
     else if (selectedRole === 'Docente') router.push('/docente/home')

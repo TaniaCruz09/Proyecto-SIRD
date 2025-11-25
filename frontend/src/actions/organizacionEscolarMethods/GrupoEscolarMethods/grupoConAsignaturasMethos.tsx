@@ -4,6 +4,7 @@ import { feching } from "@/utils/cliente-http"
 export async function getGrupoConAsignatura(): Promise<GrupoConAsignaturasResponse[]> {
     const endPoint = '/grupo-asignatura-docente'
     const response = await feching(endPoint, 'no-cache', 'GET')
+    console.log(`esta es la repuesta ${response}`)
     if (!response.data || response.error) {
         throw new Error(response?.error || 'Error al obtener grupo con asignaturas')
     }
@@ -13,6 +14,7 @@ export async function getGrupoConAsignatura(): Promise<GrupoConAsignaturasRespon
 export async function getGrupoConAsignaturaById(id: number): Promise<GrupoConAsignaturasResponse[]> {
     const endPoint = `/grupo-asignatura-docente/grupo/${id}`
     const response = await feching(endPoint, 'no-cache', 'GET')
+    console.log(`esta es la repuesta ${response}`)
     if (!response.data || response.error) {
         throw new Error(response?.error || 'Error al obtener grupo con asignatura por ID')
     }
@@ -23,6 +25,7 @@ export async function saveGrupoConAsignatura(grupoConAsignatura: GrupoConAsignat
     const endPoint = '/grupo-asignatura-docente'
     console.log(grupoConAsignatura, 'este es el grupo con asignatura que se envia al back')
     const response = await feching(endPoint, 'no-cache', 'POST', grupoConAsignatura)
+    console.log(`esta es la repuesta ${response}`)
     if (!response.data || response.error) {
         throw new Error(response?.error || 'Error al agregar grupo con asignaturas')
     }
