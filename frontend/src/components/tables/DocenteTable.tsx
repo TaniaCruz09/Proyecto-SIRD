@@ -30,6 +30,7 @@ export default function DocenteTable({
         <thead className="bg-gray-200 uppercase text-xs font-semibold sticky top-0 z-10">
           <tr>
             <th className="p-3 border-b border-gray-300">Id</th>
+            <th className="p-3 border-b border-gray-300">Foto Docente</th>
             <th className="p-3 border-b border-gray-300">Nombres</th>
             <th className="p-3 border-b border-gray-300">Apellidos </th>
             <th className="p-3 border-b border-gray-300">Teléfono</th>

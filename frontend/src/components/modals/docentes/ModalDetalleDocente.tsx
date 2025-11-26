@@ -19,7 +19,7 @@ export default function ModalDetalleDocente({
       onCloseModal={onClose}
       content={
         <div className="max-h-[70vh] overflow-y-auto">
-          <h2 className="text-xl text-black font-semibold mb-4">Detalle del Estudiante</h2>
+          <h2 className="text-xl text-black font-semibold mb-4">Detalle del Docente</h2>
 
           <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
             <div>
@@ -31,6 +31,16 @@ export default function ModalDetalleDocente({
             <div>
               <strong>Sexo:</strong> {docente.sexo?.gender ?? "N/A"}
             </div>
+            {/* <div>
+              <strong>cargo_nominal</strong> {docente.cargo_nominal ?? "N/A"}
+            </div>
+            <div>
+              <strong>cargo_real:</strong> {docente.cargo_real ?? "N/A"}
+            </div> */}
+            {/* <div>
+              <strong>Unidad_administrativa</strong> {docente.unidad_administrativa ?? "N/A"}
+            </div> */}
+          
             <div>
               <strong>Nivel Académico:</strong>{" "}
               {docente.nivel_academico.length > 0

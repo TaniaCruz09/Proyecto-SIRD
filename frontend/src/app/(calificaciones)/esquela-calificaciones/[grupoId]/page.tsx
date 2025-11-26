@@ -7,7 +7,7 @@ export default function EsquelaCalificaciones() {
     const { grupoId } = useParams();
     return (
         <div>
-            <EsquelaRow grupoId={Number(grupoId)} />
+            <EsquelaRow esquelaHeadId={Number(grupoId)} grupoId={Number(grupoId)} />
         </div>
     )
 }

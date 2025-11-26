@@ -77,6 +77,14 @@ export class Docentes {
   telefono: string;
 
   @Column({
+    name: 'foto',
+    type: 'varchar',
+    nullable: true,
+  })
+  foto_docente?: string;  // foto del docente
+
+
+  @Column({
     name: 'fecha_nacimiento',
     type: 'date',
     nullable: true,

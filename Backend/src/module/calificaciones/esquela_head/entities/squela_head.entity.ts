@@ -1,7 +1,8 @@
 import { Grupos } from "src/module/organizacionEscolar/entities/grupos.entity";
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import * as moment from 'moment-timezone';
 import { User } from "src/module/auth/entities";
+import { EsquelaRow } from "../../esquelas_rows/esquelas_rows.entity";
 
 @Entity({ schema: 'calificaciones', name: 'esquela_head' })
 export class EsquelaHeadEntity {
@@ -11,6 +12,9 @@ export class EsquelaHeadEntity {
     @OneToOne(() => Grupos)
     @JoinColumn({ name: 'grupo_asignatura' })
     grupo_asignatura: Grupos;
+
+    @OneToMany(() => EsquelaRow, (esquelaRow) => esquelaRow.esquelaHead)
+    esquelaRow?: EsquelaRow;
 
     // ID del Usuario que creo el registro
     @Column({ name: 'user_create_id', type: 'int4', nullable: true })

@@ -15,7 +15,7 @@ import ConfirmModal from '@/app/recuperarContrasena/modal/modalCambioRol'
 
 export default function HomePage() {
   const router = useRouter()
-  const { rol, login, roles } = useAuth() 
+  const { rol, login, roles,loadingAuth } = useAuth() 
   const rolesArray = roles ? (Array.isArray(roles) ? roles : [roles]) : []
   const tieneMultiplesRoles = rolesArray.length > 1
 
@@ -48,6 +48,17 @@ export default function HomePage() {
     setIsModalOpen(false)
     router.push(nuevoRol === 'Admin' ? '/admin/home' : '/docente/home')
   }
+     // 🔹 Mostrar loading mientras se carga el docente
+    if (loadingAuth || !roles) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Cargando datos del docente...</p>
+          </div>
+        </div>
+      )
+    }
 
   return (
     <div className="min-h-screen bg-purple-100/30">

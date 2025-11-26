@@ -104,9 +104,12 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
         phone: defeaultValues.phone,
       });
 
-      if (defeaultValues.profileImage) {
-        setPreview(`${process.env.NEXT_PUBLIC_API_UPLOADS}${defeaultValues.profileImage}`);
-      }
+     if (defeaultValues.profileImage) {
+  // elimina /uploads/ inicial si ya la estás agregando en la env
+  const cleanPath = defeaultValues.profileImage.replace(/^\/?uploads\//, "");
+  setPreview(`${process.env.NEXT_PUBLIC_API_UPLOADS}uploads/${cleanPath}`);
+}
+
     }
   }, [defeaultValues]);
 
@@ -121,6 +124,16 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
     setFile(selectedFile);
     setPreview(URL.createObjectURL(selectedFile));
   }
+
+    // const handleSubmit = async (e: React.FormEvent) => {
+    //     e.preventDefault();
+    //     try {
+    //         const data = new FormData();
+    //         Object.entries(formValues).forEach(([key, value]) => {
+    //             data.append(key, value);
+    //         });
+    //         if (file) data.append("foto_docente", file);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,6 +163,7 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
       setErrors(newErrors);
     }
   };
+
 
 
   return (

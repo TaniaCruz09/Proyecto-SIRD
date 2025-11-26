@@ -39,6 +39,7 @@
     "moment": "^2.30.1",
     "moment-timezone": "^0.5.48",
     "multer": "^2.0.2",
+    "nestjs-form-data": "^1.9.93",
     "nodemailer": "^7.0.9",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",

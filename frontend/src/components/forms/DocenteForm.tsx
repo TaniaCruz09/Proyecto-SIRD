@@ -8,6 +8,7 @@ import { getSexos } from "@/actions/catalogos/sexoMethods";
 import {
   saveDocente,
   updateDocente,
+  uploadDocenteImage,
 } from "@/actions/docentesMethods/docentesMethods";
 import {
   Docente,
@@ -18,28 +19,43 @@ import {
   Profesion,
   Sexo,
 } from "@/interfaces";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { User } from "lucide-react";
+import { feching } from "@/utils/cliente-http";
 
 interface DocenteFormProps {
   defaultValues?: Docente | null;
   onSuccess: () => void;
 }
-
-export default function DocenteForm({ defaultValues, onSuccess }: DocenteFormProps) {
-  const [nombres, setNombres] = useState("");
-  const [apellidos, setApellidos] = useState(""); // 🔹 Un solo campo
-  const [cedulaIdentidad, setCedulaIdentidad] = useState("");
-  const [sexo, setSexo] = useState("");
-  const [nivelAcademico, setNivelAcademico] = useState("");
+export default function DocenteForm({
+  defaultValues,
+  onSuccess,
+}: DocenteFormProps) {
+  const [formValues, setFormValues] = useState({ name: "", lastName: "" })
+  const [nombres, setNombres] = useState<string>("");
+   const [apellidos, setApellidos] = useState(""); // 🔹 Un solo campo
+  const [cedulaIdentidad, setCedulaIdentidad] = useState<string>("");
+  const [sexo, setSexo] = useState<string>("");
+  const [nivelAcademico, setNivelAcademico] = useState<string>("");
+ 
+  const [telefono, setTelefono] = useState<string>("");
+  const [fechaNacimiento, setFechaNacimiento] = useState<string>("");
+  const [pais, setPais] = useState<string>("");
+  const [municipio, setMunicipio] = useState<string>("");
+  const [fechaContratado, setFechaContratado] = useState<string>("");
+  const [direccionDomiciliar, setDireccionDomiciliar] = useState<string>("");
   const [profession, setProfession] = useState("");
-  const [telefono, setTelefono] = useState("");
-  const [fechaNacimiento, setFechaNacimiento] = useState("");
-  const [pais, setPais] = useState("");
-  const [municipio, setMunicipio] = useState("");
-  const [fechaContratado, setFechaContratado] = useState("");
-  const [direccionDomiciliar, setDireccionDomiciliar] = useState("");
-  const [nombreContactoEmergencia, setNombreContactoEmergencia] = useState("");
-  const [telefonoContactoEmergencia, setTelefonoContactoEmergencia] = useState("");
+  
+  const [telefonoContactoEmergencia, setTelefonoContactoEmergencia] =
+    useState<string>("");
+    const [nombreContactoEmergencia, setNombreContactoEmergencia] = useState("");
+
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null) // aca
+  const isEdit = Boolean(defaultValues?.id)  // aca
 
   const [sexos, setSexos] = useState<Sexo[]>([]);
   const [nivelesAcademicos, setNivelesAcademicos] = useState<NivelAcademico[]>([]);
@@ -47,7 +63,7 @@ export default function DocenteForm({ defaultValues, onSuccess }: DocenteFormPro
   const [paises, setPaises] = useState<Pais[]>([]);
   const [municipios, setMunicipios] = useState<Municipio[]>([]);
 
-  const isEdit = Boolean(defaultValues?.id);
+  // const isEdit = Boolean(defaultValues?.id);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,64 +94,13 @@ export default function DocenteForm({ defaultValues, onSuccess }: DocenteFormPro
     fetchData();
   }, []);
 
-  // 🔹 Manejo de submit
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      // Divide apellidos en dos partes (si hay una sola palabra, el segundo se deja vacío)
-      const [apellido_paterno = "", apellido_materno = ""] = apellidos.trim().split(" ", 2);
-
-      const selectedSexo = sexos.find((s) => s.id === parseInt(sexo));
-      const selectedPais = paises.find((p) => p.id === parseInt(pais));
-      const selectedMunicipio = municipios.find((m) => m.id === parseInt(municipio));
-      const selectedNivelAcademico = nivelesAcademicos.find(
-        (n) => n.id === parseInt(nivelAcademico)
-      );
-      const selectedProfesion = profesiones.find((p) => p.id === parseInt(profession));
-
-      if (!selectedSexo || !selectedPais || !selectedMunicipio || !selectedNivelAcademico || !selectedProfesion) {
-        console.error("Faltan campos requeridos");
-        return;
-      }
-
-      const docenteData: DocentePayload = {
-        nombres,
-        apellido_paterno,
-        apellido_materno,
-        cedula_identidad: cedulaIdentidad,
-        telefono,
-        fecha_nacimiento: fechaNacimiento ? new Date(fechaNacimiento) : undefined,
-        direccion_domiciliar: direccionDomiciliar,
-        fechaContratado: fechaContratado ? new Date(fechaContratado) : undefined,
-        nombre_contacto_emergencia: nombreContactoEmergencia,
-        telefono_contacto_emergencia: telefonoContactoEmergencia,
-
-        sexo: selectedSexo,
-        pais: selectedPais,
-        municipio: selectedMunicipio,
-        nivel_academico: [selectedNivelAcademico],
-        profession: [selectedProfesion],
-
-        user_create_id: null,
-        created_at: undefined,
-        update_at: undefined,
-        user_update_id: null,
-        deleted_at: null,
-        deleted_at_id: null,
-      };
-
-      if (isEdit && defaultValues?.id) {
-        await updateDocente(defaultValues.id, docenteData);
-      } else {
-        await saveDocente(docenteData);
-      }
-
-      onSuccess();
-    } catch (error) {
-      console.error("Error al guardar o actualizar docente:", error);
-    }
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+    setFile(selectedFile);
+    setPreview(URL.createObjectURL(selectedFile));
   };
+
 
   // 🔹 Prellenado en modo edición
   useEffect(() => {
@@ -164,8 +129,105 @@ export default function DocenteForm({ defaultValues, onSuccess }: DocenteFormPro
           ? new Date(defaultValues.fechaContratado).toISOString().split("T")[0]
           : ""
       );
+
+      if (defaultValues.foto_docente) {
+        setPreview(`${process.env.NEXT_PUBLIC_API_UPLOADS}${defaultValues.foto_docente}`);
+      }
     }
   }, [defaultValues]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    // --- Obtener objetos completos ---
+    const selectedSexo = sexos.find((s) => s.id === parseInt(sexo));
+    const selectedPais = paises.find((p) => p.id === parseInt(pais));
+    const selectedMunicipio = municipios.find((m) => m.id === parseInt(municipio));
+    const selectedNivelAcademico = nivelesAcademicos.find(
+      (n) => n.id === parseInt(nivelAcademico)
+    );
+    const selectedProfesion = profesiones.find(
+      (p) => p.id === parseInt(profession)
+    );
+
+    if (
+      !selectedSexo ||
+      !selectedPais ||
+      !selectedMunicipio ||
+      !selectedNivelAcademico ||
+      !selectedProfesion
+    ) {
+      console.error("Faltan campos obligatorios");
+      alert("Por favor complete todos los campos requeridos");
+      return;
+    }
+
+    // --- Dividir apellidos ---
+    const [apellido_paterno = "", apellido_materno = ""] = apellidos
+      .trim()
+      .split(" ", 2);
+
+    // --- Crear FormData ---
+    const formData = new FormData();
+    formData.append("nombres", nombres);
+    formData.append("apellido_paterno", apellido_paterno);
+    formData.append("apellido_materno", apellido_materno);
+    formData.append("cedula_identidad", cedulaIdentidad);
+    formData.append("telefono", telefono);
+    if (fechaNacimiento) formData.append("fecha_nacimiento", fechaNacimiento);
+    if (fechaContratado) formData.append("fechaContratado", fechaContratado);
+    formData.append("direccion_domiciliar", direccionDomiciliar);
+    formData.append("nombre_contacto_emergencia", nombreContactoEmergencia);
+    formData.append(
+      "telefono_contacto_emergencia",
+      telefonoContactoEmergencia
+    );
+
+    // --- Arrays convertidos a JSON ---
+    formData.append("nivel_academico", JSON.stringify([selectedNivelAcademico]));
+    formData.append("profession", JSON.stringify([selectedProfesion]));
+
+    // Objetos simples
+    formData.append("sexo", JSON.stringify(selectedSexo));
+    formData.append("pais", JSON.stringify(selectedPais));
+    formData.append("municipio", JSON.stringify(selectedMunicipio));
+
+    // Foto (si hay) 
+    if (file) formData.append("foto_docente", file);
+
+    let response;
+
+    // --- Crear o actualizar docente ---
+    if (isEdit && defaultValues?.id) {
+      response = await feching(
+        `/docentes/${defaultValues.id}`,
+        "no-cache",
+        "PUT",
+        formData
+      );
+    } else {
+      response = await feching(`/docentes`, "no-cache", "POST", formData);
+    }
+
+    const savedDocente = response.data;
+
+    // Actualizar preview si se guardó foto
+    if (savedDocente.foto_docente) {
+      setPreview(
+        `${process.env.NEXT_PUBLIC_API_UPLOADS}/${savedDocente.foto_docente}`
+      );
+    }
+
+    console.log("Docente guardado:", savedDocente);
+
+    onSuccess();
+  } catch (error) {
+    console.error("Error al guardar docente:", error);
+    alert("Ocurrió un error al guardar el docente.");
+  }
+};
+
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 overflow-y-auto px-4">
@@ -178,6 +240,35 @@ export default function DocenteForm({ defaultValues, onSuccess }: DocenteFormPro
         <h3 className="text-lg font-semibold text-indigo-600 mb-3 border-l-4 border-indigo-400 pl-2">
           🪪 Datos personales
         </h3>
+             <div className="flex justify-center pt-4">
+        <div className="flex flex-col items-center">
+          <Avatar className="w-22 h-22 border-4 border-green-200 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+            {preview ? (
+              <AvatarImage
+                src={preview}
+                alt="Foto del Docente"
+              />
+            ) : (
+              <AvatarFallback className="text-md font-bold bg-green-100 text-green-700">
+                {formValues.name && formValues.lastName
+                  ? `${formValues.name[0] ?? ""}${formValues.lastName[0] ?? ""}`
+                  : <User className="w-10 h-10" />
+                }
+              </AvatarFallback>
+            )}
+          </Avatar>
+          </div>
+
+          {/* Input oculto */}
+          <input
+            type="file"
+            accept="image/*"
+            name="foto_docente"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            className="hidden"
+          />
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-gray-700 font-medium mb-1">Nombres</label>
@@ -378,17 +469,15 @@ export default function DocenteForm({ defaultValues, onSuccess }: DocenteFormPro
         </div>
       </section>
 
-      <div className="flex justify-center pt-4">
-        <button
-          type="submit"
-          className="px-20 py-3 bg-indigo-500 text-white rounded-xl font-semibold hover:bg-indigo-600 shadow-md transition"
-        >
-          {isEdit ? "Actualizar" : "Guardar"}
-        </button>
-      </div>
+       
+        <div className="flex justify-center">
+          <button
+            type="submit"
+            className="px-20 py-3 bg-indigo-500 text-white rounded-xl font-semibold hover:bg-indigo-600 shadow-md transition"
+          >
+            {isEdit ? "Actualizar" : "Guardar"}
+          </button>
+        </div>
     </form>
 
-  );
-}
-
-/* 🔹 Agrega esta clase global en tu CSS o Tailwind */
+  )}

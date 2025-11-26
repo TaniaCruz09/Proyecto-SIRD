@@ -1,6 +1,6 @@
 export interface Sexo {
   id: number;
-  gender: string;
+  gender?: string;
 }
 
 export interface SexoPayload {
