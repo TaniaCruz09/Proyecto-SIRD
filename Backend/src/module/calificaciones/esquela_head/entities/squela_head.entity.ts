@@ -9,7 +9,7 @@ export class EsquelaHeadEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @OneToOne(() => Grupos)
+    @OneToOne(() => Grupos, (grupo) => grupo.esquelaHead)
     @JoinColumn({ name: 'grupo_asignatura' })
     grupo_asignatura: Grupos;
 

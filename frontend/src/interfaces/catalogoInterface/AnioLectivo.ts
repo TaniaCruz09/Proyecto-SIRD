@@ -6,7 +6,7 @@ export interface AnioLectivo {
     id: number,
     anio_lectivo: number,
     isActive: boolean,
-    created_at: Date,
+    created_at?: Date,
     organizacionEscolar: OrganizacionEscolar[],
 
 }

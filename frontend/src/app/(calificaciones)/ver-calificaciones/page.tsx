@@ -40,7 +40,7 @@ interface Estudiante {
 }
 
 interface VerCalificacionesProps {
-    grupoId: string
+    esquelaId: Number
     grupoNombre: string
     anioId: string
     onVolver: () => void
@@ -195,7 +195,7 @@ const estudiantesData: Estudiante[] = [
 
 const asignaturas = ["Matemáticas", "Física"]
 
-export default function VerCalificaciones({ grupoId, grupoNombre, anioId, onVolver }: VerCalificacionesProps) {
+export default function VerCalificaciones({ esquelaId, grupoNombre, anioId, onVolver }: VerCalificacionesProps) {
     const [asignaturaActiva, setAsignaturaActiva] = useState(asignaturas[0])
     const [corteActivo, setCorteActivo] = useState<"corte1" | "corte2" | "corte3" | "corte4" | "promedio">("corte1")
     const [searchQuery, setSearchQuery] = useState("")

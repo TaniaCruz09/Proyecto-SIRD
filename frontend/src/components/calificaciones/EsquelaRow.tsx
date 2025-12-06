@@ -3,20 +3,31 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent } from "@/components/ui/card"
-import { useEffect, useState } from "react"
-import { getGruposById } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods"
-import { GrupoEscolar } from "@/interfaces"
-import React from "react";
-import { getEsquelaHeadById, saveEsquelaHead } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
-import { EsquelaHeadPayload } from "@/interfaces/calificaciones/EsquelaHead"
+import React, { useEffect, useState } from "react"
+import { EsquelaHeadInterface } from "@/interfaces/calificaciones/EsquelaHead"
+import { getEsquelaHeadById } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
 import { EsquelaHead } from "./EsquelaHead"
-
+import { getEsquelaRowByEstudianteAndAnio } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods"
+import { Button } from "../ui/button"
 
 function getQualitativeGrade(grade: number): string {
     if (grade >= 90) return "AA"
     if (grade >= 76) return "AS"
     if (grade >= 60) return "AF"
     return "AI"
+}
+
+interface Estudiante {
+    id: number;
+    [key: string]: any;
+}
+
+interface GEItem {
+    estudiante: Estudiante;
+}
+
+interface GADItem {
+    gruposConEstudiantes: GEItem[];
 }
 
 function getInitials(fullName: string): string {
@@ -28,57 +39,77 @@ function getInitials(fullName: string): string {
         .toUpperCase()
 }
 
+interface Estudiante {
+    id: number
+    name: string
+    studentCode: string
+    gender: { gender: string }
+    profileImage?: string
+}
+
 interface EsquelaRowProps {
-    grupoId: number
     esquelaHeadId: number
 }
 
-export function EsquelaRow({ grupoId, esquelaHeadId }: EsquelaRowProps) {
-    const [grupos, setGrupos] = useState<GrupoEscolar>()
-    const [esquelaHead, setEsquelaHead] = useState<EsquelaHeadPayload>()
-    const [loading, setLoading] = useState(false)
-
-    const fetchGrupoById = async () => {
-        try {
-            const response = await getGruposById(Number(grupoId))
-            setGrupos(response)
-        } catch (error) {
-            console.error(error)
-        }
-    }
+export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
+    const [esquelaHead, setEsquelaHead] = useState<EsquelaHeadInterface>()
+    const [calificaciones, setCalificaciones] = useState<any[]>([])
 
     const fetchEsquelaHeadById = async () => {
         try {
             const response = await getEsquelaHeadById(Number(esquelaHeadId))
             setEsquelaHead(response)
+
+            const anio = response?.grupo_asignatura?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0
+
+            const estudiantes =
+                response?.grupo_asignatura?.grupoAsignaturaDocente
+                    ?.flatMap((gad: GADItem) => gad.gruposConEstudiantes.map((ge: GEItem) => ge.estudiante))
+                    .filter((v: Estudiante, i: number, self: Estudiante[]) => self.findIndex((s) => s.id === v.id) === i) ?? []
+
+            if (estudiantes.length > 0) {
+                const allRows = await Promise.all(estudiantes.map((est: Estudiante) => getEsquelaRowByEstudianteAndAnio(est.id, anio)))
+                const mergedRows = allRows.flat()
+                setCalificaciones(mergedRows)
+            }
         } catch (error) {
             console.error(error)
         }
     }
 
     useEffect(() => {
-        fetchGrupoById()
-    }, [grupoId])
+        fetchEsquelaHeadById()
+    }, [esquelaHeadId])
 
-    // Sacar info base de la primera organización encontrada
-    const idAnioLectivo = grupos?.organizacionEscolar?.anio_lectivo?.id ?? 0
-    const anioLectivo = grupos?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0
-    const grupo = grupos?.grado.grades ?? "N/A"
-    const docenteGuia = grupos?.docenteGuia.nombres ?? "N/A"
-    const asignaturasDelGrupo = grupos?.grupoAsignaturaDocente ?? [];
-    const gradoId = grupos?.grado.id ?? 0
-    const section = grupos?.seccion.seccion ?? "N/A"
-    const modalidad = grupos?.turno.modalidad?.modalidad ?? "N/A"
-    const shift = grupos?.turno.turno ?? "N/A"
+    const grupo = esquelaHead?.grupo_asignatura?.grado.grades ?? "N/A"
+    const docenteGuia = esquelaHead?.grupo_asignatura?.docenteGuia.nombres ?? "N/A"
+    const asignaturas = esquelaHead?.grupo_asignatura?.grupoAsignaturaDocente ?? []
+    const section = esquelaHead?.grupo_asignatura?.seccion.seccion ?? "N/A"
+    const modalidad = esquelaHead?.grupo_asignatura?.turno.modalidad?.modalidad ?? "N/A"
+    const shift = esquelaHead?.grupo_asignatura?.turno.turno ?? "N/A"
+    const anioLectivo = esquelaHead?.grupo_asignatura?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0
 
-    const asignaturas = grupos?.grupoAsignaturaDocente ?? []
-    const estudiantes =
-        grupos?.grupoAsignaturaDocente
-            ?.flatMap((gad) => gad.gruposConEstudiantes.map((ge) => ge.estudiante))
+    const estudiantes: Estudiante[] =
+        asignaturas
+            ?.flatMap((gad) => gad.gruposConEstudiantes.map((ge: any) => ge.estudiante))
             .filter((v, i, self) => self.findIndex((s) => s.id === v.id) === i) ?? []
 
+    const findNota = (estId: number, asigId: number, corteId: number) => {
+        const row = calificaciones.find(
+            (r) =>
+                Number(r.estudiante.id) === Number(estId) &&
+                Number(r.asignatura.id) === Number(asigId) &&
+                Number(r.corte.id) === Number(corteId)
+        )
+
+        return {
+            cuant: row?.notaCuantitativa ?? 0,
+            cual: row?.notaCualitativa ?? "AI",
+        }
+    }
+
     return (
-        <div className="w-full space-y-6 bg-gradient-to-br from-rose-50 via-pink-50 to-white min-h-screen p-4 ">
+        <div className="w-full space-y-6 bg-gradient-to-br from-rose-50 via-pink-50 to-white min-h-screen p-4">
             <EsquelaHead
                 schoolName="Instituto Ruben Dario"
                 grade={grupo}
@@ -88,6 +119,52 @@ export function EsquelaRow({ grupoId, esquelaHeadId }: EsquelaRowProps) {
                 modality={modalidad}
                 teacherName={docenteGuia}
             />
+            {/* BOTONES PARA LAS 7 VISTAS */}
+            <div className="w-full grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 pt-4">
+                <button
+                    className="bg-indigo-500 hover:bg-rose-600 text-white font-bold py-2 px-4 rounded-lg shadow"
+                >
+                    1er Parcial
+                </button>
+
+                <button
+                    className="bg-indigo-500 hover:bg-rose-600 text-white font-bold py-2 px-4 rounded-lg shadow"
+                >
+                    2do Parcial
+                </button>
+
+                <button
+                    className="bg-indigo-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow"
+                >
+                    1er Semestre
+                </button>
+
+                <button
+                    className="bg-indigo-500 hover:bg-rose-600 text-white font-bold py-2 px-4 rounded-lg shadow"
+                >
+                    3er Parcial
+                </button>
+
+                <button
+                    className="bg-indigo-500 hover:bg-rose-600 text-white font-bold py-2 px-4 rounded-lg shadow"
+                >
+                    4to Parcial
+                </button>
+
+                <button
+                    className="bg-indigo-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow"
+                >
+                    2do Semestre
+                </button>
+
+                <button
+                    className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow"
+                >
+                    Nota Final
+                </button>
+            </div>
+
+
 
             <Card className="w-full shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
                 <CardContent className="p-0">
@@ -116,10 +193,6 @@ export function EsquelaRow({ grupoId, esquelaHeadId }: EsquelaRowProps) {
                                             {asig.asignatura?.asignatura ?? "Asignatura"}
                                         </TableHead>
                                     ))}
-
-                                    <TableHead className="font-bold text-rose-900 border-r border-rose-200 text-center bg-rose-100 min-w-[100px]">
-                                        🏆 Nota Final
-                                    </TableHead>
                                 </TableRow>
 
                                 {/* SUBENCABEZADO (Parciales/Semestres) */}
@@ -162,24 +235,14 @@ export function EsquelaRow({ grupoId, esquelaHeadId }: EsquelaRowProps) {
                                             {Array.from({ length: 7 }, (_, i) => (
                                                 <React.Fragment key={i}>
                                                     <TableHead
-                                                        className={`font-medium border-r border-rose-200 text-center text-xs min-w-[50px] ${idx % 3 === 0
-                                                            ? "bg-emerald-50 text-emerald-800"
-                                                            : idx % 3 === 1
-                                                                ? "bg-amber-50 text-amber-800"
-                                                                : "bg-violet-50 text-violet-800"
-                                                            }`}
-                                                    >
-                                                        Cuant.
-                                                    </TableHead>
-                                                    <TableHead
-                                                        className={`font-medium border-r border-rose-200 text-center text-xs min-w-[40px] ${idx % 3 === 0
-                                                            ? "bg-emerald-50 text-emerald-800"
-                                                            : idx % 3 === 1
-                                                                ? "bg-amber-50 text-amber-800"
-                                                                : "bg-violet-50 text-violet-800"
-                                                            }`}
+                                                        className={`font-medium border-r border-rose-200 text-center text-xs min-w-[40px] ${idx % 3 === 0 ? "bg-emerald-50 text-emerald-800" : idx % 3 === 1 ? "bg-amber-50 text-amber-800" : "bg-violet-50 text-violet-800"}`}
                                                     >
                                                         Cual.
+                                                    </TableHead>
+                                                    <TableHead
+                                                        className={`font-medium border-r border-rose-200 text-center text-xs min-w-[50px] ${idx % 3 === 0 ? "bg-emerald-50 text-emerald-800" : idx % 3 === 1 ? "bg-amber-50 text-amber-800" : "bg-violet-50 text-violet-800"}`}
+                                                    >
+                                                        Cuant.
                                                     </TableHead>
                                                 </React.Fragment>
                                             ))}
@@ -191,7 +254,7 @@ export function EsquelaRow({ grupoId, esquelaHeadId }: EsquelaRowProps) {
 
                             {/* FILAS DE ESTUDIANTES */}
                             <TableBody>
-                                {estudiantes.map((est, index) => (
+                                {estudiantes.map((est: Estudiante, index: number) => (
                                     <TableRow key={est.id} className="hover:bg-rose-50 border-b border-rose-200">
                                         <TableCell className="font-bold text-center">{index + 1}</TableCell>
                                         <TableCell className="border-r border-rose-200">
@@ -210,36 +273,50 @@ export function EsquelaRow({ grupoId, esquelaHeadId }: EsquelaRowProps) {
 
                                         {asignaturas.map((asig, idx) => (
                                             <React.Fragment key={`${est.id}-${idx}`}>
-                                                {Array.from({ length: 7 }, (_, i) => (
-                                                    <React.Fragment key={i}>
-                                                        <TableCell
-                                                            className={`text-center font-bold text-base border-r border-rose-200 ${idx % 3 === 0
-                                                                ? "bg-emerald-50"
-                                                                : idx % 3 === 1
-                                                                    ? "bg-amber-50"
-                                                                    : "bg-violet-50"
-                                                                }`}
-                                                        >
-                                                            {/* Valor cuantitativo simulado */}
-                                                            {Math.floor(Math.random() * 40) + 60}
-                                                        </TableCell>
-                                                        <TableCell
-                                                            className={`text-center text-sm font-medium border-r border-rose-200 ${idx % 3 === 0
-                                                                ? "text-emerald-700 bg-emerald-50"
-                                                                : idx % 3 === 1
-                                                                    ? "text-amber-700 bg-amber-50"
-                                                                    : "text-violet-700 bg-violet-50"
-                                                                }`}
-                                                        >
-                                                            {/* Valor cualitativo generado */}
-                                                            {getQualitativeGrade(Math.floor(Math.random() * 40) + 60)}
-                                                        </TableCell>
-                                                    </React.Fragment>
-                                                ))}
+                                                {[1, 2, 1, 3, 4, 3, 4].map((corte, i) => {
+                                                    let n: { cuant: number; cual: string }
+                                                    if (i === 2) {
+                                                        const n1 = findNota(est.id, asig.asignatura.id, 1).cuant
+                                                        const n2 = findNota(est.id, asig.asignatura.id, 2).cuant
+                                                        const promedio = Math.round((n1 + n2) / 2)
+                                                        n = { cuant: promedio, cual: getQualitativeGrade(promedio) }
+                                                    } else if (i === 5) {
+                                                        const n3 = findNota(est.id, asig.asignatura.id, 3).cuant
+                                                        const n4 = findNota(est.id, asig.asignatura.id, 4).cuant
+                                                        const promedio = Math.round((n3 + n4) / 2)
+                                                        n = { cuant: promedio, cual: getQualitativeGrade(promedio) }
+                                                    } else if (i === 6) {
+                                                        const n1 = findNota(est.id, asig.asignatura.id, 1).cuant
+                                                        const n2 = findNota(est.id, asig.asignatura.id, 2).cuant
+                                                        const n3 = findNota(est.id, asig.asignatura.id, 3).cuant
+                                                        const n4 = findNota(est.id, asig.asignatura.id, 4).cuant
+                                                        const final = Math.round((n1 + n2 + n3 + n4) / 4)
+                                                        n = { cuant: final, cual: getQualitativeGrade(final) }
+                                                    } else {
+                                                        n = findNota(est.id, asig.asignatura.id, corte)
+                                                    }
+
+                                                    return (
+                                                        <React.Fragment key={i}>
+                                                            <TableCell
+                                                                className={`text-center text-sm font-medium border-r border-rose-200 
+                                                                    ${idx % 3 === 0 ? 'bg-emerald-50 text-emerald-700' : idx % 3 === 1 ? 'bg-amber-50 text-amber-700' : 'bg-violet-50 text-violet-700'}
+                                                                    ${n.cual === 'AI' ? 'text-red-600 font-bold' : ''}`}
+                                                            >
+                                                                {n.cual}
+                                                            </TableCell>
+                                                            <TableCell
+                                                                className={`text-center font-bold text-base border-r border-rose-200 
+                                                                    ${idx % 3 === 0 ? 'bg-emerald-50' : idx % 3 === 1 ? 'bg-amber-50' : 'bg-violet-50'}
+                                                                    ${n.cuant < 60 ? 'text-red-600' : ''}`}
+                                                            >
+                                                                {n.cuant}
+                                                            </TableCell>
+                                                        </React.Fragment>
+                                                    )
+                                                })}
                                             </React.Fragment>
                                         ))}
-
-                                        <TableCell className="text-center font-bold text-rose-900 bg-rose-100">Aprobado</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>

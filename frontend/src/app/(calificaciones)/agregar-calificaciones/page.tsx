@@ -1,441 +1,373 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Label } from "@/components/ui/label"
-import { ArrowLeft, Save, Users, BookOpen, CheckCircle, AlertCircle, User, UserCircle, Lock } from "lucide-react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getGruposById } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods"
-import { GrupoEscolar } from "@/interfaces"
+import { useAuth } from "@/hooks/useAuth"
+import { getGradosByDocenteId } from "@/actions/docentesMethods/docentesMethods"
+import { getEsquelaHeadById } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
+import { EsquelaHeadInterface } from "@/interfaces/calificaciones/EsquelaHead"
+import { Corte } from "@/interfaces"
+import { EsquelaRowPayload } from "@/interfaces/calificaciones/EsquelaRow"
+import { saveEsquelaRow } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods"
+import { getCortesEvaluativos } from "@/actions/catalogos/corteEvaluativoMethods"
+import CardCortesEvaluativos from "@/components/calificaciones/CardCortesEvaluativos"
+import { Asignatura, CorteUI, Estudiante } from "@/interfaces/calificaciones/AgregarCalificaciones"
+import HeaderAgregarCalificaciones from "@/components/calificaciones/HeaderAgregarCalificaciones"
+import TabsAsignaturas from "@/components/calificaciones/TabsAsignaturas"
 
-interface Estudiante {
-    id: string
-    codigo: string
-    nombre: string
-    apellido: string
-    sexo: "M" | "F"
-    foto?: string
-    calificaciones: {
-        [asignatura: string]: {
-            corte1?: string
-            corte2?: string
-            corte3?: string
-            corte4?: string
+export interface AgregarCalificacionesProps {
+    esquelaId: number | string
+    grupoId: number
+    grupoNombre?: string
+    anioId?: string | number
+    onVolver?: () => void
+}
+
+const getInitials = (nombre?: string) => {
+    const partes = nombre?.trim()?.split?.(" ") ?? []
+    if (partes.length === 0) return ""
+    if (partes.length === 1) return (partes[0]?.[0] ?? "").toUpperCase()
+    return ((partes[0][0] ?? "") + (partes[1][0] ?? "")).toUpperCase()
+}
+
+/** Genera la nota cualitativa según el valor numérico */
+const generarNotaCualitativa = (valor: number): string => {
+    if (isNaN(valor)) return "AI"
+    if (valor >= 0 && valor <= 59) return "AI"
+    if (valor >= 60 && valor <= 75) return "AF"
+    if (valor >= 76 && valor <= 89) return "AS"
+    if (valor >= 90 && valor <= 100) return "AA"
+    return "AI"
+}
+
+export default function AgregarCalificaciones({
+    esquelaId,
+    grupoId,
+    grupoNombre,
+    anioId,
+    onVolver,
+}: AgregarCalificacionesProps) {
+
+    const { docente } = useAuth()
+
+    const [estudiantes, setEstudiantes] = useState<Estudiante[]>([])
+    const [asignaturas, setAsignaturas] = useState<Asignatura[]>([])
+    const [cortes, setCortes] = useState<Corte[]>([])
+    const [esquela, setEsquela] = useState<EsquelaHeadInterface | undefined>()
+    const [asignaturaActiva, setAsignaturaActiva] = useState<number | undefined>()
+    const [guardando, setGuardando] = useState<boolean>(false)
+
+    // corteActivo es el id numérico del corte (según lo devuelve tu backend)
+    const [corteActivo, setCorteActivo] = useState<number | null>(null)
+
+    const [cortesUI, setCortesUI] = useState<CorteUI[]>([])
+
+    const storageKey = `calificaciones_${esquelaId}_${grupoId}`
+
+    // ---------- Cargar cortes ----------
+    useEffect(() => {
+        const fetchCortes = async () => {
+            try {
+                const response = await getCortesEvaluativos()
+                if (!Array.isArray(response)) return
+
+                setCortes(response)
+
+                if (response.length > 0 && corteActivo == null) {
+                    setCorteActivo(response[0].id)
+                }
+
+                const colores = ["bg-blue-500", "bg-yellow-500", "bg-green-500", "bg-purple-500"]
+                const adaptados: CorteUI[] = response.map((c, i) => ({
+                    ...c,
+                    color: colores[i % colores.length]
+                }))
+                setCortesUI(adaptados)
+            } catch (error) {
+                console.error("Error al cargar los cortes evaluativos", error)
+            }
         }
-    }
-}
 
-interface Asignatura {
-    id: string
-    nombre: string
-    codigo: string
-}
+        fetchCortes()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
-interface AgregarCalificacionesProps {
-    grupoId: string
-    grupoNombre: string
-    anioId: string
-    onVolver: () => void
-}
+    // ---------- Cargar estudiantes y asignaturas (y restaurar notas) ----------
+    const fetchGruposById = async () => {
+        if (!docente?.id) return
 
-// Datos de ejemplo
-const asignaturasEjemplo: Asignatura[] = [
-    { id: "mat", nombre: "Matemáticas", codigo: "MAT" },
-    { id: "esp", nombre: "Español", codigo: "ESP" },
-    { id: "cie", nombre: "Ciencias Naturales", codigo: "CIE" },
-]
-
-const estudiantesEjemplo: Estudiante[] = [
-    {
-        id: "est-001",
-        codigo: "2024-001",
-        nombre: "María",
-        apellido: "González Pérez",
-        sexo: "F",
-        foto: "/estudiante-femenino.jpg",
-        calificaciones: {},
-    },
-    {
-        id: "est-002",
-        codigo: "2024-002",
-        nombre: "Juan",
-        apellido: "Martínez López",
-        sexo: "M",
-        foto: "/estudiante-masculino.jpg",
-        calificaciones: {},
-    },
-    {
-        id: "est-003",
-        codigo: "2024-003",
-        nombre: "Ana",
-        apellido: "Rodríguez Silva",
-        sexo: "F",
-        foto: "/estudiante-femenino-2.jpg",
-        calificaciones: {},
-    },
-    {
-        id: "est-004",
-        codigo: "2024-004",
-        nombre: "Carlos",
-        apellido: "Hernández Ruiz",
-        sexo: "M",
-        foto: "/estudiante-masculino-2.jpg",
-        calificaciones: {},
-    },
-    {
-        id: "est-005",
-        codigo: "2024-005",
-        nombre: "Sofía",
-        apellido: "Díaz Morales",
-        sexo: "F",
-        foto: "/estudiante-femenino-3.jpg",
-        calificaciones: {},
-    },
-    {
-        id: "est-006",
-        codigo: "2024-006",
-        nombre: "Luis",
-        apellido: "Torres Ramírez",
-        sexo: "M",
-        foto: "/estudiante-masculino-3.jpg",
-        calificaciones: {},
-    },
-]
-
-export default function AgregarCalificaciones({ grupoId, grupoNombre, anioId, onVolver }: AgregarCalificacionesProps) {
-    const [estudiantes, setEstudiantes] = useState<Estudiante[]>(estudiantesEjemplo)
-    const [asignaturaActiva, setAsignaturaActiva] = useState(asignaturasEjemplo[0].id)
-    const [corteActivo, setCorteActivo] = useState<"corte1" | "corte2" | "corte3" | "corte4">("corte1")
-    const [guardando, setGuardando] = useState(false)
-    const [grupos, setGrupos] = useState<GrupoEscolar>()
-
-    const verificarCorteCompleto = (corte: "corte1" | "corte2" | "corte3" | "corte4", asignaturaId: string) => {
-        return estudiantes.every((est) => {
-            const calificacion = est.calificaciones[asignaturaId]?.[corte]
-            return calificacion && calificacion !== ""
-        })
-    }
-
-    const fetchGrupoById = async () => {
         try {
-            const response = await getGruposById(Number(grupoId))
-            setGrupos(response)
+            const response = await getEsquelaHeadById(Number(esquelaId))
+            setEsquela(response)
+
+            // Extraer estudiantes (normalizando arrays y evitando duplicados)
+            let rawStudents: any[] = []
+            const grupoAsignaturasArray = Array.isArray(response?.grupo_asignatura)
+                ? response.grupo_asignatura
+                : response?.grupo_asignatura
+                    ? [response.grupo_asignatura]
+                    : []
+
+            grupoAsignaturasArray.forEach((ga: any) => {
+                Array.isArray(ga?.grupoAsignaturaDocente) &&
+                    ga.grupoAsignaturaDocente.forEach((gad: any) => {
+                        Array.isArray(gad?.gruposConEstudiantes) &&
+                            gad.gruposConEstudiantes.forEach((ge: any) => {
+                                if (ge?.estudiante) rawStudents.push(ge.estudiante)
+                            })
+                    })
+            })
+
+            rawStudents = rawStudents.filter(
+                (v, i, self) => self.findIndex((s) => s.id === v.id) === i
+            )
+
+            // Normalizar estudiantes
+            const normalized: Estudiante[] = rawStudents.map((s: any) => ({
+                id: Number(s.id),
+                codigo: s?.studentCode ?? "",
+                nombre: s?.name ?? "",
+                apellido: s?.lastName ?? "",
+                sexo: s?.gender?.gender?.toUpperCase().startsWith("F") ? "F" : "M",
+                foto: s?.profileImage ? `${process.env.NEXT_PUBLIC_API_UPLOADS}${s.profileImage}` : undefined,
+                // mantenemos una estructura libre para calificaciones, usaremos indexing numérico
+                // algunos lugares usan as any porque las interfaces previas estaban mixtas
+                calificaciones: {}
+            }))
+
+            // 1) Restaurar desde localStorage (si existe)
+            try {
+                const almacen = localStorage.getItem(storageKey)
+                if (almacen) {
+                    const parsed = JSON.parse(almacen)
+                    // parsed tiene la forma { [estId]: { [asignaturaId]: { [corteId]: "90" } } }
+                    normalized.forEach(est => {
+                        if (parsed?.[est.id]) {
+                            // se asignan las calificaciones guardadas
+                            est.calificaciones = {
+                                ...(est.calificaciones as any),
+                                ...parsed[est.id]
+                            }
+                        }
+                    })
+                }
+            } catch (err) {
+                console.warn("No se pudo restaurar localStorage:", err)
+            }
+
+            // 2) Si la respuesta del backend incluye filas (esquela_row / esquelaRows / rows), intentar restaurarlas
+            // (esto cubre el caso en que el backend ya tiene notas guardadas)
+            const posiblesKeys = ["esquela_row", "esquelaRows", "esquelaRows", "rows", "esquela_rows"]
+            for (const key of posiblesKeys) {
+                const rows = (response as any)?.[key]
+                if (Array.isArray(rows) && rows.length > 0) {
+                    rows.forEach((r: any) => {
+                        // Intentar extraer estudianteId, asignaturaId, corteId, notaCuantitativa
+                        const studentId = r?.estudiante?.id ?? r?.estudiante_id ?? r?.studentId ?? r?.estudianteId
+                        const asignaturaId = r?.asignatura?.id ?? r?.asignatura_id ?? r?.asignaturaId
+                        const corteId = r?.corte?.id ?? r?.corte_id ?? r?.corteId
+                        const notaNum = r?.notaCuantitativa ?? r?.nota_cuantitativa ?? r?.nota
+
+                        if (studentId && asignaturaId && corteId && typeof notaNum !== "undefined") {
+                            const est = normalized.find(e => Number(e.id) === Number(studentId))
+                            if (est) {
+                                est.calificaciones = {
+                                    ...(est.calificaciones as any),
+                                    [asignaturaId]: {
+                                        ...((est.calificaciones as any)[asignaturaId] ?? {}),
+                                        [corteId]: String(notaNum)
+                                    }
+                                }
+                            }
+                        }
+                    })
+                    // si encontramos filas, no necesitamos chequear otras keys
+                    break
+                }
+            }
+
+            setEstudiantes(normalized)
+
+            // ---- Obtener asignaturas del docente ----
+            const resDocente = await getGradosByDocenteId(docente.id)
+            const grupoAsignaturaDocente = Array.isArray(resDocente?.grupoAsignaturaDocente)
+                ? resDocente.grupoAsignaturaDocente
+                : []
+
+            const asignaturasUnicas: Record<number, Asignatura> = {}
+
+            grupoAsignaturaDocente
+                .filter((gad: any) => gad.grupo?.id === grupoId)
+                .forEach((gad: any) => {
+                    const a = gad.asignatura
+                    if (a?.id && !asignaturasUnicas[a.id]) {
+                        asignaturasUnicas[a.id] = {
+                            id: Number(a.id),
+                            nombre: a.asignatura,
+                            codigo: a.codigo ?? String(a.asignatura).slice(0, 3).toUpperCase(),
+                        }
+                    }
+                })
+
+            const asignaturasArray = Object.values(asignaturasUnicas)
+            setAsignaturas(asignaturasArray)
+
+            if (asignaturasArray.length > 0) setAsignaturaActiva(asignaturasArray[0].id)
+
         } catch (error) {
-            console.error(error)
+            console.error("Error fetching grupo o asignaturas:", error)
+            setEstudiantes([])
+            setAsignaturas([])
         }
     }
 
     useEffect(() => {
-        fetchGrupoById()
-    }, [grupoId])
+        if (esquelaId && docente) fetchGruposById()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [esquelaId, docente])
 
-    const estudiantesDelGrupo =
-        grupos?.grupoAsignaturaDocente
-            ?.flatMap((gad) => gad.gruposConEstudiantes.map((ge) => ge.estudiante))
-            .filter((v, i, self) => self.findIndex((s) => s.id === v.id) === i) ?? []
 
-    const verificarCorteHabilitado = (corte: "corte1" | "corte2" | "corte3" | "corte4", asignaturaId: string) => {
-        if (corte === "corte1") return true
-        if (corte === "corte2") return verificarCorteCompleto("corte1", asignaturaId)
-        if (corte === "corte3") return verificarCorteCompleto("corte2", asignaturaId)
-        if (corte === "corte4") return verificarCorteCompleto("corte3", asignaturaId)
-        return false
+    // ---------- Helper: guardar todo el estado de calificaciones en localStorage ----------
+    const persistirLocal = (students: Estudiante[]) => {
+        try {
+            const saveObj: Record<string, any> = {}
+            students.forEach(s => {
+                saveObj[s.id] = s.calificaciones
+            })
+            localStorage.setItem(storageKey, JSON.stringify(saveObj))
+        } catch (err) {
+            console.warn("Error al persistir en localStorage", err)
+        }
     }
 
-    const handleCalificacionChange = (estudianteId: string, asignaturaId: string, corte: string, valor: string) => {
-        // Validar que solo sean números entre 0 y 100
-        if (valor !== "" && (isNaN(Number(valor)) || Number(valor) < 0 || Number(valor) > 100)) {
-            return
-        }
+    // ---------------- Cambiar notas (actualiza estado y localStorage) ----------------
+    const handleCalificacionChange = (estudianteId: number, asignaturaId: number, corteId: number, valor: string) => {
+        if (valor !== "" && (isNaN(Number(valor)) || Number(valor) < 0 || Number(valor) > 100)) return
 
-        setEstudiantes((prev) =>
-            prev.map((est) =>
+        setEstudiantes((prev) => {
+            const updated = prev.map((est) =>
                 est.id === estudianteId
                     ? {
                         ...est,
                         calificaciones: {
-                            ...est.calificaciones,
+                            ...(est.calificaciones as any),
                             [asignaturaId]: {
-                                ...est.calificaciones[asignaturaId],
-                                [corte]: valor,
+                                ...((est.calificaciones as any)[asignaturaId] ?? {}),
+                                [corteId]: valor,
                             },
                         },
                     }
-                    : est,
-            ),
-        )
+                    : est
+            )
+
+            // Persistir inmediatamente
+            persistirLocal(updated)
+            return updated
+        })
     }
 
-    const handleGuardar = async () => {
-        setGuardando(true)
-        console.log("[v0] Guardando calificaciones:", { grupoId, anioId, corteActivo, estudiantes })
+    // ---------------- Guardar nota individual (envía a backend y actualiza localStorage) ----------------
+    const handleGuardarIndividual = async (estudiante: Estudiante, asignaturaId: number) => {
+        if (!esquela?.id || corteActivo == null) return
 
-        // Simular guardado
-        await new Promise((resolve) => setTimeout(resolve, 1500))
+        const notaStr = (estudiante.calificaciones as any)?.[asignaturaId]?.[corteActivo]
+        if (!notaStr || notaStr === "") return alert("Debe ingresar una nota")
 
-        setGuardando(false)
-        alert(`Calificaciones del ${corteActivo.replace("corte", "Corte ")} guardadas exitosamente`)
+        const notaNum = Number(notaStr)
+        if (isNaN(notaNum)) return alert("La nota no es válida")
+
+        const corteEncontrado = cortes.find(c => c.id === corteActivo)
+        if (!corteEncontrado) return alert("No se encontró el corte")
+
+        const notaCualitativa = generarNotaCualitativa(notaNum)
+
+        const payload: EsquelaRowPayload = {
+            estudiante: { id: estudiante.id },
+            asignatura: { id: asignaturaId },
+            notaCualitativa,
+            notaCuantitativa: notaNum,
+            corte: { id: corteEncontrado.id },
+            esquelaHead: { id: esquela.id }
+        }
+
+        try {
+            setGuardando(true)
+            await saveEsquelaRow(payload)
+            setGuardando(false)
+
+            // Al guardar en backend, también actualizar localStorage (por si backend aplica cambios)
+            setEstudiantes(prev => {
+                const updated = prev.map(e => {
+                    if (e.id === estudiante.id) {
+                        const asignObj = {
+                            ...((e.calificaciones as any)[asignaturaId] ?? {}),
+                            [corteActivo!]: String(notaNum)
+                        }
+                        return {
+                            ...e,
+                            calificaciones: {
+                                ...(e.calificaciones as any),
+                                [asignaturaId]: asignObj
+                            }
+                        }
+                    }
+                    return e
+                })
+                persistirLocal(updated)
+                return updated
+            })
+
+            alert("Nota guardada correctamente")
+        } catch (error) {
+            console.error("Error al guardar nota:", error)
+            setGuardando(false)
+            alert("Error al guardar la nota")
+        }
     }
 
-    const calcularEstadisticas = (asignaturaId: string, corte: string) => {
-        const calificaciones = estudiantes
-            .map((est) => est.calificaciones[asignaturaId]?.[corte as keyof (typeof est.calificaciones)[string]])
-            .filter((cal) => cal && cal !== "")
-            .map(Number)
+    // --------- Avanzar al siguiente corte (solo cambia corteActivo localmente) ----------
+    const avanzarCorte = () => {
+        if (corteActivo == null || cortes.length === 0) return
 
-        const completadas = calificaciones.length
-        const pendientes = estudiantes.length - completadas
-        const promedio = completadas > 0 ? (calificaciones.reduce((a, b) => a + b, 0) / completadas).toFixed(1) : "N/A"
-
-        return { completadas, pendientes, promedio }
+        const index = cortes.findIndex(c => c.id === corteActivo)
+        if (index < cortes.length - 1) {
+            setCorteActivo(cortes[index + 1].id)
+            alert(`Corte cambiado a: ${cortes[index + 1].corte}`)
+        } else {
+            alert("Ya estás en el último corte")
+        }
     }
-
-    const estadisticas = calcularEstadisticas(asignaturaActiva, corteActivo)
-
-    const cortesInfo = [
-        { id: "corte1", nombre: "Primer Corte", color: "bg-blue-500" },
-        { id: "corte2", nombre: "Segundo Corte", color: "bg-green-500" },
-        { id: "corte3", nombre: "Tercer Corte", color: "bg-yellow-500" },
-        { id: "corte4", nombre: "Cuarto Corte", color: "bg-purple-500" },
-    ]
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-7xl">
-            {/* Header con botón de volver */}
-            <div className="mb-8">
-                <Button variant="ghost" onClick={onVolver} className="mb-4 -ml-2 hover:bg-muted">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Volver a Grupos Asignados
-                </Button>
+            <HeaderAgregarCalificaciones
+                grupoNombre={grupoNombre}
+                anioId={anioId}
+                onVolver={onVolver}
+            />
 
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                        <BookOpen className="h-8 w-8 text-primary" />
-                    </div>
-                    <div>
-                        <h1 className="text-4xl font-bold text-foreground">Agregar Calificaciones</h1>
-                        <p className="text-muted-foreground text-lg">
-                            Grupo {grupoNombre} - Año Escolar {anioId}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <Card className="mb-6 border-2 border-primary/20">
-                <CardHeader>
-                    <CardTitle className="text-xl">Seleccionar Período de Calificación</CardTitle>
-                    <CardDescription>
-                        Los cortes se habilitan progresivamente al completar todas las calificaciones del corte anterior
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {cortesInfo.map((corte) => {
-                            const habilitado = verificarCorteHabilitado(corte.id as any, asignaturaActiva)
-                            const completo = verificarCorteCompleto(corte.id as any, asignaturaActiva)
-
-                            return (
-                                <Button
-                                    key={corte.id}
-                                    variant={corteActivo === corte.id ? "default" : "outline"}
-                                    disabled={!habilitado}
-                                    onClick={() => setCorteActivo(corte.id as any)}
-                                    className={`h-auto py-4 flex flex-col items-start gap-2 relative ${corteActivo === corte.id ? "ring-2 ring-primary ring-offset-2" : ""
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-2 w-full">
-                                        <div className={`w-3 h-3 rounded-full ${habilitado ? corte.color : "bg-muted"}`} />
-                                        <span className="font-semibold">{corte.nombre}</span>
-                                        {!habilitado && <Lock className="h-4 w-4 ml-auto" />}
-                                        {completo && <CheckCircle className="h-4 w-4 ml-auto text-secondary" />}
-                                    </div>
-                                    <span className="text-xs opacity-80">
-                                        {!habilitado ? "Bloqueado" : completo ? "Completado" : "En progreso"}
-                                    </span>
-                                </Button>
-                            )
-                        })}
-                    </div>
-                </CardContent>
-            </Card>
+            {/* Card de cortes */}
+            <CardCortesEvaluativos
+                estudiantes={estudiantes}
+                asignaturaActiva={asignaturaActiva ?? 0}
+                corteActivo={corteActivo}
+                setCorteActivo={setCorteActivo}
+                cortesUI={cortesUI}
+            />
 
             {/* Tabs para asignaturas */}
-            <Tabs value={asignaturaActiva} onValueChange={setAsignaturaActiva} className="mb-6">
-                <TabsList className="grid w-full grid-cols-3 h-auto p-1">
-                    {asignaturasEjemplo.map((asignatura) => {
-                        const stats = calcularEstadisticas(asignatura.id, corteActivo)
-                        return (
-                            <TabsTrigger
-                                key={asignatura.id}
-                                value={asignatura.id}
-                                className="flex flex-col items-start gap-1 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                            >
-                                <span className="font-semibold">{asignatura.nombre}</span>
-                                <span className="text-xs opacity-80">
-                                    {stats.completadas}/{estudiantes.length} completadas
-                                </span>
-                            </TabsTrigger>
-                        )
-                    })}
-                </TabsList>
-
-                {asignaturasEjemplo.map((asignatura) => (
-                    <TabsContent key={asignatura.id} value={asignatura.id} className="mt-6">
-                        <Card>
-                            <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <CardTitle className="text-2xl">
-                                            {asignatura.nombre} - {cortesInfo.find((c) => c.id === corteActivo)?.nombre}
-                                        </CardTitle>
-                                        <CardDescription className="text-base mt-1">
-                                            Ingresa las calificaciones de cada estudiante (0-100)
-                                        </CardDescription>
-                                    </div>
-                                    <Badge variant="outline" className="text-base px-4 py-2">
-                                        {asignatura.codigo}
-                                    </Badge>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    {/* Header de la tabla */}
-                                    <div className="hidden md:grid md:grid-cols-12 gap-4 pb-3 border-b font-semibold text-sm text-muted-foreground">
-                                        <div className="col-span-1 text-center">Foto</div>
-                                        <div className="col-span-2">Código</div>
-                                        <div className="col-span-4">Nombre Completo</div>
-                                        <div className="col-span-1 text-center">Sexo</div>
-                                        <div className="col-span-4">Calificación</div>
-                                    </div>
-
-                                    {/* Lista de estudiantes */}
-                                    {estudiantes.map((estudiante) => (
-                                        <Card key={estudiante.id} className="hover:shadow-md transition-shadow">
-                                            <CardContent className="p-4">
-                                                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                                                    {/* Foto */}
-                                                    <div className="col-span-1 flex justify-center">
-                                                        <Avatar className="h-12 w-12 border-2 border-primary/20">
-                                                            <AvatarImage src={estudiante.foto || "/placeholder.svg"} alt={estudiante.nombre} />
-                                                            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                                                                {estudiante.nombre[0]}
-                                                                {estudiante.apellido[0]}
-                                                            </AvatarFallback>
-                                                        </Avatar>
-                                                    </div>
-
-                                                    {/* Código */}
-                                                    <div className="col-span-2">
-                                                        <Label className="text-xs text-muted-foreground md:hidden">Código</Label>
-                                                        <p className="font-mono font-semibold text-foreground">{estudiante.codigo}</p>
-                                                    </div>
-
-                                                    {/* Nombre completo */}
-                                                    <div className="col-span-4">
-                                                        <Label className="text-xs text-muted-foreground md:hidden">Nombre</Label>
-                                                        <p className="font-semibold text-foreground">
-                                                            {estudiante.nombre} {estudiante.apellido}
-                                                        </p>
-                                                    </div>
-
-                                                    {/* Sexo */}
-                                                    <div className="col-span-1 flex justify-center">
-                                                        <Badge
-                                                            variant="outline"
-                                                            className={
-                                                                estudiante.sexo === "M"
-                                                                    ? "bg-blue-50 text-blue-700 border-blue-200"
-                                                                    : "bg-pink-50 text-pink-700 border-pink-200"
-                                                            }
-                                                        >
-                                                            {estudiante.sexo === "M" ? (
-                                                                <>
-                                                                    <User className="h-3 w-3 mr-1" />M
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <UserCircle className="h-3 w-3 mr-1" />F
-                                                                </>
-                                                            )}
-                                                        </Badge>
-                                                    </div>
-
-                                                    {/* Input de calificación */}
-                                                    <div className="col-span-4">
-                                                        <Label
-                                                            htmlFor={`cal-${estudiante.id}-${asignatura.id}-${corteActivo}`}
-                                                            className="text-xs text-muted-foreground md:hidden"
-                                                        >
-                                                            Calificación
-                                                        </Label>
-                                                        <div className="flex gap-2 items-center">
-                                                            <Input
-                                                                id={`cal-${estudiante.id}-${asignatura.id}-${corteActivo}`}
-                                                                type="number"
-                                                                min="0"
-                                                                max="100"
-                                                                placeholder="0-100"
-                                                                value={estudiante.calificaciones[asignatura.id]?.[corteActivo] || ""}
-                                                                onChange={(e) =>
-                                                                    handleCalificacionChange(estudiante.id, asignatura.id, corteActivo, e.target.value)
-                                                                }
-                                                                className="text-center text-lg font-semibold h-12 border-2 focus:border-primary"
-                                                            />
-                                                            {estudiante.calificaciones[asignatura.id]?.[corteActivo] && (
-                                                                <Badge
-                                                                    variant={
-                                                                        Number(estudiante.calificaciones[asignatura.id]?.[corteActivo]) >= 70
-                                                                            ? "default"
-                                                                            : "destructive"
-                                                                    }
-                                                                    className="whitespace-nowrap"
-                                                                >
-                                                                    {Number(estudiante.calificaciones[asignatura.id]?.[corteActivo]) >= 70
-                                                                        ? "Aprobado"
-                                                                        : "Reprobado"}
-                                                                </Badge>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                ))}
-            </Tabs>
-
-            {/* Botones de acción */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-end sticky bottom-4 bg-background/95 backdrop-blur-sm p-4 rounded-lg border shadow-lg">
-                <Button variant="outline" onClick={onVolver} size="lg" className="sm:w-auto w-full bg-transparent">
-                    Cancelar
-                </Button>
-                <Button
-                    onClick={handleGuardar}
-                    disabled={guardando}
-                    size="lg"
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground sm:w-auto w-full"
-                >
-                    {guardando ? (
-                        <>
-                            <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                            Guardando...
-                        </>
-                    ) : (
-                        <>
-                            <Save className="h-4 w-4 mr-2" />
-                            Guardar {cortesInfo.find((c) => c.id === corteActivo)?.nombre}
-                        </>
-                    )}
-                </Button>
-            </div>
+            <TabsAsignaturas
+                asignaturas={asignaturas}
+                estudiantes={estudiantes}
+                corteActivo={corteActivo}
+                cortes={cortes}
+                asignaturaActiva={asignaturaActiva}
+                setAsignaturaActiva={setAsignaturaActiva}
+                getInitials={getInitials}
+                handleCalificacionChange={handleCalificacionChange}
+                handleGuardarIndividual={handleGuardarIndividual}
+                avanzarCorte={avanzarCorte}
+                guardando={guardando}
+            />
         </div>
     )
 }

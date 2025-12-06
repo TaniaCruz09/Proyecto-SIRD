@@ -80,6 +80,7 @@ export default function HomePage() {
             organizacionEscolar: g.organizacionEscolar,
             docenteGuia: g.docenteGuia,
             grupoAsignaturaDocente: g.grupoAsignaturaDocente,
+            esquelaHead: g.esquelaHead,
           }))
 
         setGrupos(mappedClasses)
@@ -130,6 +131,8 @@ export default function HomePage() {
       </div>
     )
   }
+
+  console.log(filteredHistoricalClasses)
 
   return (
     <div className="min-h-screen bg-purple-100/30">
@@ -319,7 +322,7 @@ export default function HomePage() {
                       <span>Estudiantes: falta</span>
                       <span>Promedio: falta</span>
                     </div>
-                    <Button size="sm" variant="outline" className="w-full text-xs " onClick={() => router.push(`/esquela-calificaciones/${classData.id}`)}>
+                    <Button size="sm" variant="outline" className="w-full text-xs " onClick={() => router.push(`/esquela-calificaciones/${classData.esquelaHead?.id}`)}>
                       <FileText className="w-3 h-3 mr-1" /> Ver Esquela
                     </Button>
                   </CardContent>

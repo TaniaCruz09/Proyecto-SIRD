@@ -23,6 +23,17 @@ export async function getEsquelaRowById(id: number) {
     return response.data;
 }
 
+export async function getEsquelaRowByEstudianteAndAnio(estudianteId: number, anioLectivo: number) {
+    const endPoint = `/esquela_row/estudiante/${estudianteId}/anio/${anioLectivo}`;
+    const response = await feching(endPoint, "no-cache", "GET");
+
+    if (!response.data || response.error) {
+        throw new Error(response?.error || "Error desde el frontend al obtener calificaciones por estudiante y año lectivo");
+    }
+
+    return response.data;
+}
+
 
 export async function saveEsquelaRow(esquelaRow: EsquelaRowPayload) {
     const endPoint = `/esquela_row`;
