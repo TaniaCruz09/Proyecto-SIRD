@@ -32,6 +32,9 @@ export default function ModalDetalleStudent({
               <strong>Codigo del estudiante:</strong> {estudiante.studentCode}
             </div>
             <div>
+              <strong>Telefono del estudiante:</strong> {estudiante.phone}
+            </div>
+            <div>
               <strong>direcccion domiciliar:</strong> {estudiante.address}
             </div>
             <div>
@@ -61,9 +64,6 @@ export default function ModalDetalleStudent({
             </div>
             <div>
               <strong>Observacion:</strong> {estudiante.observations}
-            </div>
-            <div>
-              <strong>Telefono del estudiante:</strong> {estudiante.phone ?? "no tiene"}
             </div>
           </div>
         </div>

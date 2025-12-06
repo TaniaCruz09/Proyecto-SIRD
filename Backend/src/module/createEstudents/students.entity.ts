@@ -83,7 +83,7 @@ export class StudentEntity {
   tutorIdentityCard: string;
 
   @Column({
-    name: 'Numero',
+    name: 'tutorPhoneNumber',
     type: 'varchar',
     length: 8,
     nullable: true,
@@ -105,11 +105,11 @@ export class StudentEntity {
   profileImage?: string;
 
   @Column({
-    name: 'telefono',
+    name: 'phoneStudent',
     type: 'varchar',
     nullable: true,
   })
-  phone?: string;
+  phone: string;
 
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo
   user_create_id: number;

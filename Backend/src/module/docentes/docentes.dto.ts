@@ -7,6 +7,8 @@ import {
   IsOptional,
   IsString,
   MaxLength,
+  MinLength,
+  ValidateIf,
 } from 'class-validator';
 import {
   AcademicLevelEntity,
@@ -28,19 +30,23 @@ export class DocentesDTO {
   @MaxLength(100)
   nombres: string;
 
-  @IsNotEmpty()
+  @IsOptional()
+  @ValidateIf(o => !o.apellido_materno)
   @IsString()
   @MaxLength(50)
-  apellido_paterno: string;
+  apellido_paterno?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
+  @ValidateIf(o => !o.apellido_paterno)
   @IsString()
   @MaxLength(50)
-  apellido_materno: string;
+  apellido_materno?: string;
+
 
   @IsNotEmpty()
   @IsString()
   @MaxLength(16)
+  @MinLength(14)
   cedula_identidad: string;
 
   @IsNotEmpty()
@@ -61,6 +67,8 @@ export class DocentesDTO {
 
   @IsNotEmpty()
   @IsString()
+  @MaxLength(8)
+  @MinLength(8)
   telefono: string;
 
   @IsNotEmpty()
@@ -98,6 +106,8 @@ export class DocentesDTO {
 
   @IsNotEmpty()
   @IsString()
+  @MaxLength(8)
+  @MinLength(8)
   telefono_contacto_emergencia: string;
 
   @IsOptional()

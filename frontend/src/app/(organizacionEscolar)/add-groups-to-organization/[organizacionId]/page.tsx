@@ -19,6 +19,7 @@ export default function OrganizationGroups() {
     const fetchOrganizacionEscolarById = async () => {
         try {
             const response = await getOrganizacionEscolarById(Number(organizacionId))
+            console.log("esta es la organizcion", response)
             setOrganizacionEscolar(response)
         } catch (error: unknown) {
             console.error(error);
@@ -149,9 +150,13 @@ export default function OrganizationGroups() {
                                             <div className="flex items-center gap-2 text-sm">
                                                 <UserCheck className="h-4 w-4 text-blue-600" />
                                                 <span className="text-slate-600">Docente Guía:</span>
-                                                <span className="font-medium text-slate-800">
-                                                    {`${g.docenteGuia?.nombres} ${g.docenteGuia.apellido_paterno}`}
-                                                </span>
+                                                {g.docenteGuia ? (
+                                                    <span className="font-medium text-slate-800">
+                                                        {`${g.docenteGuia.nombres} ${g.docenteGuia.apellido_paterno}`}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-slate-400 italic">No asignado</span>
+                                                )}
                                             </div>
 
                                             <div className="flex justify-between text-sm">

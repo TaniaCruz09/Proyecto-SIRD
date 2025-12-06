@@ -14,6 +14,8 @@ import { GrupoAsignaturaDocenteService } from './services/grupoAsignaturaDocente
 import { GrupoAsignaturaConEstudiantesService } from './services/grupo-asignatura-con-estudiantes.service';
 import { GrupoAsignaturaConEstudiantesController } from './controllers/grupo-asignatura-con-estudiantes.controller';
 import { GrupoAsignaturaConEstudiantes } from './entities/grupo-asignatura-con-estudiantes.entity';
+import { DocenteController } from '../docentes/docentes.controller';
+import { DocentesService } from '../docentes/docentes.service';
 
 @Module({
     imports: [
@@ -33,14 +35,16 @@ import { GrupoAsignaturaConEstudiantes } from './entities/grupo-asignatura-con-e
         OrganizacionEscolarController,
         GrupoAsignaturaConEstudiantesController,
         AsignaturaController,
-        GrupoAsignaturaDocenteController
+        GrupoAsignaturaDocenteController,
+        DocenteController
     ],
     providers: [
         GruposService,
         OrganizacionEscolarService,
         GrupoAsignaturaConEstudiantesService,
         AsignaturaService,
-        GrupoAsignaturaDocenteService
+        GrupoAsignaturaDocenteService,
+        DocentesService
     ],
     exports: [OrganizacionEscolarModule, TypeOrmModule],
 })

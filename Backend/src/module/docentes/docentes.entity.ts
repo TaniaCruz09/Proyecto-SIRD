@@ -24,6 +24,7 @@ import { User } from '../auth/entities';
 import * as moment from 'moment-timezone';
 import { Grupos } from '../organizacionEscolar/entities/grupos.entity';
 import { GrupoAsignaturaDocente } from '../organizacionEscolar/entities/GrupoAsignaturaDocente.entity';
+import e from 'express';
 
 @Entity({ name: 'docentes', schema: 'docentes' })
 export class Docentes {
@@ -139,7 +140,7 @@ export class Docentes {
   @JoinColumn({ name: 'municipio_id' })
   municipio: Municipio;
 
-  @OneToMany(() => Grupos, (grupo) => grupo.docenteGuia)
+  @OneToMany(() => Grupos, (grupo) => grupo.docenteGuia, {eager: true})
   grupos?: Grupos[];
 
   @OneToMany(() => GrupoAsignaturaDocente, gad => gad.docente)

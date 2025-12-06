@@ -17,6 +17,7 @@ import { getDocentes } from "@/actions/docentesMethods/docentesMethods";
 import EditarMateriaForm from "@/components/forms/EditarMateriaForm";
 import ConfirmDialog from "@/components/modals/organizacionEscolar/grupoConAsignatura/ConfirmAccion";
 import { getGruposById } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods";
+import ReusableAlert from "./alertReutilizable";
 
 export default function AddClasesOrganizacionEscolarPage() {
   // useQuery({
@@ -40,6 +41,23 @@ export default function AddClasesOrganizacionEscolarPage() {
     message: "",
     onConfirm: () => { },
   });
+  // Define el tipo al inicio del archivo
+  type AlertType = "error" | "success" | "warning" | "info";
+  const [alert, setAlert] = useState<{
+    open: boolean;
+    message: string;
+    type: AlertType;
+  }>({
+    open: false,
+    message: "",
+    type: "warning",
+  });
+
+  const showAlert = (message: string, type: AlertType = "warning") => {
+    setAlert({ open: true, message, type });
+  };
+
+
 
   const { grupoId } = useParams();
 
@@ -60,8 +78,8 @@ export default function AddClasesOrganizacionEscolarPage() {
 
   }, [grupoId]);
   const grupo = grupos?.grado.grades ?? "N/A"
-  const docenteGuia = grupos?.docenteGuia.nombres ?? "N/A"
-  const docenteGuiaApellidos = grupos?.docenteGuia.apellido_materno ?? "N/A"
+  const docenteGuia = grupos?.docenteGuia?.nombres ?? "N/A"
+  const docenteGuiaApellidos = grupos?.docenteGuia?.apellido_materno ?? "N/A"
   const seccion = grupos?.seccion.seccion ?? "N/A"
 
   // Función para traer las relaciones del grupo
@@ -105,7 +123,7 @@ export default function AddClasesOrganizacionEscolarPage() {
           console.log(error.message || "Error al eliminar asignatura ❌");
         } finally {
           setLoading(false);
-          setConfirmDialog({...confirmDialog, open: false}); // cerrar modal
+          setConfirmDialog({ ...confirmDialog, open: false }); // cerrar modal
         }
       },
     });
@@ -135,15 +153,14 @@ export default function AddClasesOrganizacionEscolarPage() {
 
   // Función para agregar una asignatura
   const handleAgregar = async () => {
-    if (!selectedAsignatura || !selectedDocente) {
-      alert("Selecciona materia y docente");
-      return;
+    if (!selectedAsignatura && !selectedDocente) {
+      return showAlert("Debes seleccionar una materia y docente", "warning");
+    }else if(!selectedDocente) {
+      return showAlert("Debes seleccionar un docente", "warning");
+    }else if(!selectedAsignatura) {
+      return showAlert("Debes seleccionar una asignatura", "warning");
     }
 
-    if (grupoConAsignaturas.some(r => r.asignatura.id === selectedAsignatura)) {
-      alert("Esta asignatura ya está asignada.");
-      return;
-    }
 
     const payload: GrupoConAsignaturasPayload = {
       grupoId: Number(grupoId),
@@ -233,7 +250,7 @@ export default function AddClasesOrganizacionEscolarPage() {
 
               {/* Docente */}
               <p className="text-sm text-gray-600">
-                Docente: <span className="font-medium">{r.docente.nombres} {r.docente.apellido_paterno}</span>
+                Docente: <span className="font-medium">{r.docente?.nombres} {r.docente?.apellido_paterno}</span>
               </p>
 
               {/* Acciones */}
@@ -281,6 +298,13 @@ export default function AddClasesOrganizacionEscolarPage() {
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => setConfirmDialog({ ...confirmDialog, open: false })}
       />
+      <ReusableAlert
+        open={alert.open}
+        message={alert.message}
+        type={alert.type}
+        onClose={() => setAlert({ ...alert, open: false })}
+      />
+
 
     </div>
   );

@@ -38,10 +38,16 @@ export const feching = async (
 
     return responseData;
   } catch (error: any) {
-    console.error(
-      "❌ Error en feching():",
-      error instanceof Error ? error.message : JSON.stringify(error)
-    );
-    throw error; // Re-lanzamos el error para que el componente lo maneje
+    // En lugar de imprimir todo el objeto, mostramos solo lo esencial
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      "Ocurrió un error al procesar la solicitud.";
+
+    // ⚠️ Quitamos el console.error con JSON.stringify que muestra todo el objeto
+    console.warn("⚠️ Error HTTP:", message);
+
+    // Lanzamos un Error limpio con solo el mensaje
+    throw new Error(message);
   }
 };

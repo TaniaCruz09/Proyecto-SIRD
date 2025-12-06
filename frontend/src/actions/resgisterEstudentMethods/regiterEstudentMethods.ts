@@ -26,6 +26,7 @@ export async function getFiltarStudent(params: string, anioId: number) {
 export async function getEstudentById(id: number) {
     const endPoint = `/student/${id}`
     const response = await feching(endPoint, 'no-cache', 'GET')
+    console.log(response.data, '📞 Estudiante obtenido por ID');
     if (!response.data || response.error) {
         throw new Error(response?.error)
     }
@@ -54,7 +55,7 @@ export async function ActualizarStudent(id: number, student: FormData) {
 }
 
 export async function EliminarStudent(id: number) {
-    const endPoint = `/student${id}`
+    const endPoint = `/student/${id}`
     const response = await feching(endPoint, 'no-cache', 'DELETE')
     if (!response.data || response.data.error) {
         throw new Error(response?.error)

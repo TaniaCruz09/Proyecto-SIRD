@@ -11,10 +11,21 @@ export class DocentesService {
   constructor(
     @InjectRepository(Docentes)
     private readonly docenteRepository: Repository<Docentes>,
-  ) { }
+  ) {}
+
+  private defaultRelations = [
+    'sexo',
+    'nivel_academico',
+    'profession',
+    'pais',
+    'municipio',
+  ];
 
   async createDocente(createDocenteDto: DocentesDTO, file?: Express.Multer.File): Promise<Docentes> {
     try {
+
+        // const nuevoDocente = this.docenteRepository.create(createDocenteDto);
+        // return await this.docenteRepository.save(nuevoDocente);
       if (file) {
         createDocenteDto.foto_docente = `uploads/docentes/${file.filename}`; // guardar el nombre del archivo
       }
@@ -29,16 +40,9 @@ export class DocentesService {
 
   async getDocente(): Promise<Docentes[]> {
     try {
-      const docente = await this.docenteRepository.find({
-        relations: [
-          'sexo',
-          'nivel_academico',
-          'profession',
-          'pais',
-          'municipio',
-        ],
+      return await this.docenteRepository.find({
+        relations: this.defaultRelations,
       });
-      return docente;
     } catch (error) {
       Utilities.catchError(error);
     }
@@ -46,7 +50,7 @@ export class DocentesService {
 
   async getDocenteById(id: number): Promise<Docentes> {
     try {
-      const docente = await this.docenteRepository
+      return await this.docenteRepository
         .createQueryBuilder('docente')
         .leftJoinAndSelect('docente.sexo', 'sexo')
         .leftJoinAndSelect('docente.nivel_academico', 'nivel_academico')
@@ -57,13 +61,12 @@ export class DocentesService {
         .leftJoinAndSelect('grupos.grado', 'grado')
         .leftJoinAndSelect('grupos.seccion', 'seccion')
         .leftJoinAndSelect('grupos.turno', 'turno')
-        .leftJoinAndSelect("turno.modalidad", "modalidad")
+        .leftJoinAndSelect('turno.modalidad', 'modalidad')
         .leftJoinAndSelect('grupos.organizacionEscolar', 'organizacionEscolar')
         .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo')
         .leftJoinAndSelect('grupos.esquelaHead', 'esquelaHead')
         .where('docente.id = :id', { id })
-        .getOne()
-      return docente;
+        .getOne();
     } catch (error) {
       Utilities.catchError(error);
     }
@@ -71,7 +74,7 @@ export class DocentesService {
 
   async getGradosByDocenteId(id: number): Promise<Docentes> {
     try {
-      const docente = await this.docenteRepository
+      return await this.docenteRepository
         .createQueryBuilder('docente')
         .leftJoinAndSelect('docente.grupoAsignaturaDocente', 'grupoAsignaturaDocente')
         .leftJoinAndSelect('grupoAsignaturaDocente.grupo', 'grupo')
@@ -83,8 +86,7 @@ export class DocentesService {
         .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo')
         .leftJoinAndSelect('grupoAsignaturaDocente.asignatura', 'asignatura')
         .where('docente.id = :id', { id })
-        .getOne()
-      return docente;
+        .getOne();
     } catch (error) {
       Utilities.catchError(error);
     }
@@ -94,18 +96,13 @@ export class DocentesService {
     try {
       const docente = await this.docenteRepository.findOne({
         where: { id },
-        relations: [
-          'sexo',
-          'nivel_academico',
-          'profession',
-          'pais',
-          'municipio',
-        ],
+        relations: this.defaultRelations,
       });
 
       if (!docente) {
         throw new NotFoundException('Docente no encontrada');
       }
+
 
       if (file) {
         payload.foto_docente = `uploads/docentes/${file.filename}`;
@@ -113,9 +110,7 @@ export class DocentesService {
       // Actualizar solo los campos enviados, conservando los valores previos
       Object.assign(docente, payload);
 
-      // Asignar la fecha de actualización y el usuario que modifica
       docente.update_at = new Date();
-      docente.user_update_id;
 
       return await this.docenteRepository.save(docente);
     } catch (error) {
@@ -127,19 +122,13 @@ export class DocentesService {
     try {
       const docente = await this.docenteRepository.findOne({
         where: { id },
-        relations: [
-          'sexo',
-          'nivel_academico',
-          'profession',
-          'pais',
-          'municipio',
-        ],
+        relations: this.defaultRelations,
       });
+
       if (!docente) {
         throw new NotFoundException('Profesión no encontrada');
       }
 
-      // Registrar el usuario que eliminó y la fecha de eliminación
       docente.deleted_at = new Date();
       docente.deleted_at_id = userId;
 

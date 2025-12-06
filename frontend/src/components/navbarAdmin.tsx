@@ -63,7 +63,8 @@ function NavbarAdmin() {
   const isActive = (route: string) =>
     pathname === route ? 'bg-indigo-600 text-white' : 'text-white hover:bg-white hover:text-gray-900'
 
-  const rutasSinNavbar = ['/', '/auth/login', '/auth/selectRole', 'recuperarContrasena']
+  const rutasSinNavbar = ['/', '/auth/login', '/auth/selectRole', '/recuperarContrasena', 
+    '/recuperarContrasena/verificarCodigo','/recuperarContrasena/restablecerContrasena']
   if (rutasSinNavbar.includes(pathname)) return null
 
   // Skeleton mientras carga rol
@@ -204,8 +205,8 @@ function NavbarAdmin() {
 
         {/* Links compartidos */}
         <Link
-          href="/esquela-calificaciones"
-          className={`flex items-center gap-3 p-3 rounded-md transition ${isActive('/esquela-calificaciones')}`}
+          href="/calificaciones"
+          className={`flex items-center gap-3 p-3 rounded-md transition ${isActive('/calificaciones')}`}
         >
           <FaCog />
           <span>Calificaciones</span>

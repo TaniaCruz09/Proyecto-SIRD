@@ -14,25 +14,62 @@ import { getDocenteById } from "@/actions/docentesMethods/docentesMethods"
 import { GrupoEscolar } from "@/interfaces"
 import Header from "@/components/Header"
 import { useRouter } from "next/navigation"
+import ConfirmModal from "@/app/recuperarContrasena/modal/modalCambioRol"
 import GenerarEsquelaButton from "@/components/calificaciones/GenerarEsquelaButton"
 
+
 export default function HomePage() {
-  const { docente } = useAuth();
   const [grupos, setGrupos] = useState<GrupoEscolar[]>([])
   const [searchYear, setSearchYear] = useState("")
   const router = useRouter()
+  const { rol, login, roles,docente,loadingAuth } = useAuth()
+  const rolesArray = roles ? (Array.isArray(roles) ? roles : [roles]) : []
+  const tieneMultiplesRoles = rolesArray.length > 1 // 🔹 aquí traemos el rol actual y la función para cambiarlo
 
-  // Obtener las clases desde el backend
+  const [isModalOpen, setIsModalOpen] = useState(false)
+ const [nuevoRol, setNuevoRol] = useState<'Admin' | 'Docente'>(() => {
+    // valor por defecto seguro si rol no está listo aún
+    return rol === 'Docente' ? 'Admin' : 'Docente'
+  })
+
+   useEffect(() => {
+    // cuando cambien roles o rol actualiza nuevoRol por si el hook se inicializa después del login
+    if (!rol) return
+    const current = String(rol).toLowerCase()
+    const other = rolesArray.find(r => String(r).toLowerCase() !== current)
+    if (other) setNuevoRol(String(other).toLowerCase() === 'admin' ? 'Admin' : 'Docente')
+    else setNuevoRol(current === 'admin' ? 'Docente' : 'Admin')
+  }, [roles, rol])
+
+  console.log('Roles disponibles para el usuario (normalizado) desde docentes:', rolesArray)
+
+
+   const handleAbrirModal = () => {
+    if (!rol) return
+    const current = String(rol).toLowerCase()
+    const other = rolesArray.find(r => String(r).toLowerCase() !== current)
+    setNuevoRol(other ? (String(other).toLowerCase() === 'admin' ? 'Admin' : 'Docente') : (rol === 'Admin' ? 'Docente' : 'Admin'))
+    setIsModalOpen(true)
+  }
+
+  const handleConfirmarCambio = async () => {
+    await login(nuevoRol)
+    setIsModalOpen(false)
+    router.push(nuevoRol === 'Admin' ? '/admin/home' : '/docente/home')
+  }
+
+
+ // Obtener las clases desde el backend
   useEffect(() => {
+    
     if (!docente?.id) return;
-
-    const fetchDocente = async () => {
+    const fetchDocente = async (docenteId: number) => {
       try {
-        const res = await getDocenteById(docente.id)
+        const res = await getDocenteById(docenteId)
+        console.log("Datos del docente obtenidos:", res)  
 
         if (!res || !res.id) throw new Error("Error al obtener datos del docente")
 
-        // Mapeamos grupos válidos (solo si tienen organizacionEscolar)
         const mappedClasses: GrupoEscolar[] = (res.grupos || [])
           .filter((g: any) => g.organizacionEscolar !== null)
           .map((g: any) => ({
@@ -47,13 +84,25 @@ export default function HomePage() {
           }))
 
         setGrupos(mappedClasses)
+        // si el contexto no tiene docente, setearlo (opcional)
+        // setDocente(res) // si tienes setter expuesto en useAuth podrías actualizar aquí
       } catch (error) {
         console.error("Error fetching docente:", error)
       }
     }
 
-    fetchDocente()
-  }, [docente?.id])
+    // Si cambiamos a rol Docente, intentar cargar docente desde localStorage (userId) y API
+    if (rol !== 'Docente' ) return
+        // Si ya tenemos docente en contexto, usar su id
+    if (docente?.id ) {
+      fetchDocente(docente.id)
+      return
+    }
+    const storedUserId = localStorage.getItem('userId')
+    if (storedUserId) {
+      fetchDocente(Number(storedUserId))
+    }
+  }, [ docente?.id, rol])
 
   // Filtrar activos e inactivos de forma segura
   const gruposActivos = grupos.filter(
@@ -71,6 +120,17 @@ export default function HomePage() {
         .toString()
         .includes(searchYear)
   )
+   // 🔹 Mostrar loading mientras se carga el docente
+  if (loadingAuth || !docente) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando datos del admin...</p>
+        </div>
+      </div>
+    )
+  }
 
   console.log(filteredHistoricalClasses)
 
@@ -86,10 +146,35 @@ export default function HomePage() {
 
           {/* Accesos Directos */}
           <section className="mb-7">
-            <div className="flex items-center bg-purple-100/30 rounded-xl pl-3 font-semibold text-black">
-              <FaArrowUpRightFromSquare />
-              <p className="pl-2">Accesos directos</p>
+            <div className="flex items-center justify-between bg-purple-100/30 rounded-xl p-4 font-semibold text-black">
+              {/* Botón para cambiar rol */}
+              {tieneMultiplesRoles && (
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={handleAbrirModal}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg"
+                >
+                  {rol === 'Admin' ? 'Cambiar a rol Docente' : 'Cambiar a rol Admin'}
+                </Button>
+
+
+                <ConfirmModal
+                  isOpen={isModalOpen}
+                  title="Cambiar Rol"
+                  message={`¿Estás seguro que quieres cambiar tu rol a ${nuevoRol}?`}
+                  onConfirm={handleConfirmarCambio}
+                  onCancel={() => setIsModalOpen(false)}
+                />
+              </div>
+              )}
+
+              {/* Accesos directos */}
+              <div className="flex items-center gap-2 text-gray-700">
+                <FaArrowUpRightFromSquare className="text-lg" />
+                <p>Accesos directos</p>
+              </div>
             </div>
+
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 place-items-center">
               {/* Card 1 */}

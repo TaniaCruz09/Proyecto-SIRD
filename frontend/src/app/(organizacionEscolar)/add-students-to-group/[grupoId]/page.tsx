@@ -85,7 +85,7 @@ export default function AsignarEstudiantesAGrupo() {
                                             <li key={index} className="flex justify-between border-b border-gray-200 pb-1">
                                                 <span className="font-medium text-gray-700">{item.asignatura.asignatura}</span>
                                                 <span className="text-gray-600">
-                                                    {item.docente.nombres} {item.docente.apellido_paterno} {item.docente.apellido_materno}
+                                                    {item.docente.nombres} {item.docente.apellido_paterno && item.docente.apellido_materno}
                                                 </span>
                                             </li>
                                         ))}

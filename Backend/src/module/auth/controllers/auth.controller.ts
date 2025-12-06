@@ -181,16 +181,18 @@ async requestReset(@Body('email') email: string) {
   return await this.userService.generateResetCode(email);
 }
 
+
 @Post('verify-code')
 async verifyCode(@Body() body: { email: string; code: string }) {
-  return await this.userService.verifyResetCode(body.email, body.code);
-}
+  const result = await this.userService.verifyResetCode(body.email, body.code);
 
+  // Devuelve solo lo necesario
+  return { token: result.token }; // ✅ objeto plano sin referencias circulares
+}
 @Post('reset-password')
 async resetPassword(@Body() body: { token: string; newPassword: string }) {
   return await this.userService.resetPassword(body.token, body.newPassword);
 }
-
 
 //--------------------------------------------------------------
   @Get('test')

@@ -8,78 +8,77 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { useRef, useState } from 'react'
 
 interface DocenteRowProps {
-  fetchDocentes: ()=> Promise<void>
+  fetchDocentes: () => Promise<void>
   docente: Docente
   onShowDetail: () => void;
 }
 
-export default function DocenteRow({fetchDocentes, docente, onShowDetail}: DocenteRowProps) {
+export default function DocenteRow({ fetchDocentes, docente, onShowDetail }: DocenteRowProps) {
 
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
-  const handleClick = ()=> {
+  const handleClick = () => {
     fileInputRef.current?.click()
   }
 
-  const handlefileChange = (event: React.ChangeEvent<HTMLInputElement>)=> {
+  const handlefileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (file){
+    if (file) {
       setSelectedFile(file)
       const previewUrl = URL.createObjectURL(file)
       console.log("archivo seleccionado", file)
       console.log("vista previa", previewUrl)
     }
   }
-    return (
+  return (
     <tr className="hover:bg-gray-100 cursor-pointer">
-        <td className="p-3 border-b border-gray-200">{docente.id}</td>
-        <td className="p-3 border-b border-gray-200 cursor-pointer">
-          <Avatar className="w-10 h-10 border-2 border-green-200">
-                    {docente.foto_docente? (
-                        <AvatarImage
-                            src={`${process.env.NEXT_PUBLIC_API_UPLOADS}/${docente.foto_docente}`|| "/placeholder.svg"}
-                            // src={`${process.env.NEXT_PUBLIC_API_UPLOADS}/${docente.foto_docente.replace(/^\/+/, '')}`}
-                            alt={docente.nombres}
-                        />
-                    ) : (
+      <td className="p-3 border-b border-gray-200">{docente.id}</td>
+      <td className="p-3 border-b border-gray-200 cursor-pointer">
+        <Avatar className="w-10 h-10 border-2 border-green-200">
+          {docente.foto_docente ? (
+            <AvatarImage
+              src={`${process.env.NEXT_PUBLIC_API_UPLOADS}${docente.foto_docente.replace(/^\/+/, "")}`}
+              alt={docente.nombres}
+              onError={(e) => (e.currentTarget.src = "/placeholder.svg")}
+            />
+          ) : (
 
-                    <AvatarFallback className="text-md font-bold bg-green-100 text-green-700">
-                        {`${docente.nombres.split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .slice(0, 1)}${docente.apellido_paterno.split("")
-                                .map((n) => n[0])
-                                .join("")
-                                .slice(0, 1)}`}
-                    </AvatarFallback>
+          <AvatarFallback className="text-md font-bold bg-green-100 text-green-700">
+            {`${docente.nombres.split(" ")
+              .map((n) => n[0])
+              .join("")
+              .slice(0, 1)}${docente.apellido_paterno.split("")
+                .map((n) => n[0])
+                .join("")
+                .slice(0, 1)}`}
+          </AvatarFallback>
                     )}
-                </Avatar>
-                    <input
-                    type="file"
-                    accept = "image/*"
-                    ref={fileInputRef}
-                    onChange={handlefileChange}
-                    className="hidden"
-                    />
-                  </td>
-        <td className="p-3 border-b border-gray-200">{docente.nombres}</td>
-        <td className="p-3 border-b border-gray-200">{docente.apellido_paterno}</td>
-        <td className="p-3 border-b border-gray-200">{docente.apellido_materno}</td>
-        <td className="p-3 border-b border-gray-200">{docente.telefono}</td>
-        {/* <td className="p-3 border-b border-gray-200">{docente.cargo_nominal}</td>
+        </Avatar>
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          onChange={handlefileChange}
+          className="hidden"
+        />
+      </td>
+      <td className="p-3 border-b border-gray-200">{docente.nombres}</td>
+      <td className="p-3 border-b border-gray-200">{docente.apellido_paterno}  {docente.apellido_materno}</td>
+      <td className="p-3 border-b border-gray-200">{docente.telefono}</td>
+      {/* <td className="p-3 border-b border-gray-200">{docente.cargo_nominal}</td>
         <td className="p-3 border-b border-gray-200">{docente.cargo_real}</td> */}
 
-        <td className="p-3 px-2 py-2 border-b border-gray-200 text-center">
-          <button onClick={(e) => {
-            e.stopPropagation();
-            onShowDetail();
-          }} className="bg-blue-300/30 hover:bg-blue-400 text-blue-600 text-bold text-xl px-4 py-2 rounded-md text-sm cursor-pointer"> 
-          <TbEyePlus/>
-          </button>
-        </td>
-        <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><EditDocenteModal docente={docente} fetchDocentes={fetchDocentes}/></td>
-        <td className="p-3 px-2 py-3 border-b border-gray-200 text-center"><DeleteDocenteModal idEliminar={docente.id} fetchDocentes={fetchDocentes}/></td>
+      <td className="p-3 px-2 py-2 border-b border-gray-200 text-center">
+        <button onClick={(e) => {
+          e.stopPropagation();
+          onShowDetail();
+        }} className="bg-blue-300/30 hover:bg-blue-400 text-blue-600 text-bold text-xl px-4 py-2 rounded-md text-sm cursor-pointer">
+          <TbEyePlus />
+        </button>
+      </td>
+      <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><EditDocenteModal docente={docente} fetchDocentes={fetchDocentes} /></td>
+      <td className="p-3 px-2 py-3 border-b border-gray-200 text-center"><DeleteDocenteModal idEliminar={docente.id} fetchDocentes={fetchDocentes} /></td>
     </tr>
   )
 }

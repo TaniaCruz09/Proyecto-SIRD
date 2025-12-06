@@ -155,7 +155,7 @@ export class StudentController {
             const student = await this.studentService.deleteStudent(id, userId);
             return {
                 data: student,
-                message: 'Profession marked as deleted',
+                message: 'Estudent marked as deleted',
             };
         } catch (error) {
             Utilities.catchError(error)
