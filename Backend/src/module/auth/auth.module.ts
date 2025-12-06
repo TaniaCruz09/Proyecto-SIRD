@@ -21,8 +21,6 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { join } from 'path';
 
-console.log('GMAIL_USER:', process.env.GMAIL_USER);
-console.log('GMAIL_PASS:', process.env.GMAIL_PASS);
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Role]),
@@ -43,8 +41,6 @@ console.log('GMAIL_PASS:', process.env.GMAIL_PASS);
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
-        console.log('GMAIL_USER dentro de useFactory:', config.get('GMAIL_USER'));
-        console.log('GMAIL_PASS dentro de useFactory:', config.get('GMAIL_PASS'));
 
         return {
           transport: {

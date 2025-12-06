@@ -22,7 +22,7 @@ export class RolesService {
 
   async getRoles(query: QueryParamsRolesDto): Promise<Role[]> {
     const rows = this.roleRepo.createQueryBuilder('pepito').where('id <> 0');
-    console.log(query);
+    
 
     if (query.role)
       rows.andWhere('pepito.role ILIKE :role', { role: `%${query.role}%` });
