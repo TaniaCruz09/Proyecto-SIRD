@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { FileText } from "lucide-react"
 import { getEsquelaByGrupo, saveEsquelaHead } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
+import { EsquelaHeadInterface } from "@/interfaces/calificaciones/EsquelaHead"
 
 interface GenerarEsquelaButtonProps {
     grupoId: number
@@ -13,6 +14,7 @@ interface GenerarEsquelaButtonProps {
 export default function GenerarEsquelaButton({ grupoId }: GenerarEsquelaButtonProps) {
     const router = useRouter()
     const [yaTieneEsquela, setYaTieneEsquela] = useState(false)
+    const [esquela, setEsquela] = useState<EsquelaHeadInterface>()
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
@@ -20,6 +22,7 @@ export default function GenerarEsquelaButton({ grupoId }: GenerarEsquelaButtonPr
             try {
                 const response = await getEsquelaByGrupo(grupoId)
                 setYaTieneEsquela(!!response) // si hay objeto, true; si es null, false
+                setEsquela(response)
             } catch (error) {
                 setYaTieneEsquela(false)
             } finally {
@@ -30,16 +33,18 @@ export default function GenerarEsquelaButton({ grupoId }: GenerarEsquelaButtonPr
     }, [grupoId])
 
     const handleClick = async () => {
-        if (yaTieneEsquela) {
-            router.push(`/esquela-calificaciones/${grupoId}`)
+        if (yaTieneEsquela && esquela?.id) {
+            router.push(`/esquela-calificaciones/${esquela.id}`)
             return
         }
 
         try {
             const payload = { grupo_asignatura: { id: grupoId } }
             const response = await saveEsquelaHead(payload)
-            if (response) {
-                router.push(`/esquela-calificaciones/${grupoId}`)
+            if (response && response.id) {
+                setEsquela(response)
+                setYaTieneEsquela(true)
+                router.push(`/esquela-calificaciones/${response.id}`)
             }
         } catch (error) {
             console.error("Error generando esquela:", error)

@@ -4,6 +4,7 @@ import { Turno } from "../catalogoInterface/TurnoInterface";
 import { Docente } from "../DocenteInterface";
 import { OrganizacionEscolar } from "./organizacionInterface";
 import { GrupoConAsignaturasResponse } from "./gruposConAsignaturas";
+import { EsquelaHeadInterface } from "../calificaciones/EsquelaHead";
 
 export interface GrupoEscolar {
     id: number,
@@ -12,7 +13,8 @@ export interface GrupoEscolar {
     turno: Turno,
     organizacionEscolar: OrganizacionEscolar,
     docenteGuia: Docente,
-    grupoAsignaturaDocente?: GrupoConAsignaturasResponse[]
+    grupoAsignaturaDocente?: GrupoConAsignaturasResponse[];
+    esquelaHead?: EsquelaHeadInterface;
     user_create_id?: number | null;
     created_at?: string;
     update_at?: string;

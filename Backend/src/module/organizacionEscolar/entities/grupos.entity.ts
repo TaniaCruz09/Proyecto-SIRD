@@ -6,6 +6,7 @@ import {
     JoinColumn,
     ManyToOne,
     OneToMany,
+    OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
@@ -15,6 +16,7 @@ import * as moment from 'moment-timezone';
 import { Docentes } from 'src/module/docentes/docentes.entity';
 import { OrganizacionEscolar } from './organizacionEscolar.entity';
 import { GrupoAsignaturaDocente } from './GrupoAsignaturaDocente.entity';
+import { EsquelaHeadEntity } from 'src/module/calificaciones/esquela_head/entities/squela_head.entity';
 
 @Entity({ name: 'grupos', schema: 'organizacion_escolar' })
 export class Grupos {
@@ -42,6 +44,9 @@ export class Grupos {
 
     @OneToMany(() => GrupoAsignaturaDocente, gad => gad.grupo)
     grupoAsignaturaDocente: GrupoAsignaturaDocente[];
+
+    @OneToOne(() => EsquelaHeadEntity, (esquelaHead) => esquelaHead.grupo_asignatura)
+    esquelaHead = EsquelaHeadEntity;
 
     //ID del usuario que creó el registro
     @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo

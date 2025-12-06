@@ -60,6 +60,7 @@ export class DocentesService {
         .leftJoinAndSelect("turno.modalidad", "modalidad")
         .leftJoinAndSelect('grupos.organizacionEscolar', 'organizacionEscolar')
         .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo')
+        .leftJoinAndSelect('grupos.esquelaHead', 'esquelaHead')
         .where('docente.id = :id', { id })
         .getOne()
       return docente;

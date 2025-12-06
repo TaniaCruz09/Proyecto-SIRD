@@ -1,6 +1,6 @@
 import { GrupoEscolar } from "../organizacionEscolarInterface/grupoInterface";
 
-export interface EsquelaHead {
+export interface EsquelaHeadInterface {
     id: number,
     grupo_asignatura: GrupoEscolar,
 }

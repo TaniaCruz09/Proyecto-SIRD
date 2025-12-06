@@ -35,6 +35,7 @@ export class GruposService {
                 .leftJoinAndSelect("grupo.turno", "turno")
                 .leftJoinAndSelect("turno.modalidad", "modalidad")
                 .leftJoinAndSelect("grupo.docenteGuia", "docenteGuia")
+                .leftJoinAndSelect("grupo.esquelaHead", "esquelaHead")
                 .getMany();
 
             return grupos;

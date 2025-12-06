@@ -50,6 +50,26 @@ export class EsquelaRowController {
         }
     }
 
+    @Get('estudiante/:estudianteId/anio/:anioLectivo')
+    async findByEstudianteAndYear(
+        @Param('estudianteId', ParseIntPipe) estudianteId: number,
+        @Param('anioLectivo', ParseIntPipe) anioLectivo: number
+    ) {
+        try {
+            const calificaciones = await this.EsquelaRowService.findCalificacionesByEstudianteAndAnio(
+                estudianteId,
+                anioLectivo
+            );
+
+            return {
+                data: calificaciones,
+                message: 'Calificaciones encontradas correctamente',
+            };
+        } catch (error) {
+            Utilities.catchError(error);
+        }
+    }
+
     @Put(':id')
     async update(@Param('id') id: number, @Body() payload: UpdateCalificacioneDto) {
         try {
