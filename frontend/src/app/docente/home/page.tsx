@@ -22,17 +22,17 @@ export default function HomePage() {
   const [grupos, setGrupos] = useState<GrupoEscolar[]>([])
   const [searchYear, setSearchYear] = useState("")
   const router = useRouter()
-  const { rol, login, roles,docente,loadingAuth } = useAuth()
+  const { rol, login, roles, docente } = useAuth()
   const rolesArray = roles ? (Array.isArray(roles) ? roles : [roles]) : []
   const tieneMultiplesRoles = rolesArray.length > 1 // 🔹 aquí traemos el rol actual y la función para cambiarlo
-
+  const [cambiandoRol, setCambiandoRol] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
- const [nuevoRol, setNuevoRol] = useState<'Admin' | 'Docente'>(() => {
+  const [nuevoRol, setNuevoRol] = useState<'Admin' | 'Docente'>(() => {
     // valor por defecto seguro si rol no está listo aún
     return rol === 'Docente' ? 'Admin' : 'Docente'
   })
 
-   useEffect(() => {
+  useEffect(() => {
     // cuando cambien roles o rol actualiza nuevoRol por si el hook se inicializa después del login
     if (!rol) return
     const current = String(rol).toLowerCase()
@@ -44,7 +44,7 @@ export default function HomePage() {
   console.log('Roles disponibles para el usuario (normalizado) desde docentes:', rolesArray)
 
 
-   const handleAbrirModal = () => {
+  const handleAbrirModal = () => {
     if (!rol) return
     const current = String(rol).toLowerCase()
     const other = rolesArray.find(r => String(r).toLowerCase() !== current)
@@ -53,20 +53,22 @@ export default function HomePage() {
   }
 
   const handleConfirmarCambio = async () => {
+    setCambiandoRol(true)
     await login(nuevoRol)
+    await new Promise(r => setTimeout(r, 100))
     setIsModalOpen(false)
     router.push(nuevoRol === 'Admin' ? '/admin/home' : '/docente/home')
   }
 
 
- // Obtener las clases desde el backend
+  // Obtener las clases desde el backend
   useEffect(() => {
-    
+
     if (!docente?.id) return;
     const fetchDocente = async (docenteId: number) => {
       try {
         const res = await getDocenteById(docenteId)
-        console.log("Datos del docente obtenidos:", res)  
+        console.log("Datos del docente obtenidos:", res)
 
         if (!res || !res.id) throw new Error("Error al obtener datos del docente")
 
@@ -92,9 +94,9 @@ export default function HomePage() {
     }
 
     // Si cambiamos a rol Docente, intentar cargar docente desde localStorage (userId) y API
-    if (rol !== 'Docente' ) return
-        // Si ya tenemos docente en contexto, usar su id
-    if (docente?.id ) {
+    if (rol !== 'Docente') return
+    // Si ya tenemos docente en contexto, usar su id
+    if (docente?.id) {
       fetchDocente(docente.id)
       return
     }
@@ -102,7 +104,7 @@ export default function HomePage() {
     if (storedUserId) {
       fetchDocente(Number(storedUserId))
     }
-  }, [ docente?.id, rol])
+  }, [docente?.id, rol])
 
   // Filtrar activos e inactivos de forma segura
   const gruposActivos = grupos.filter(
@@ -120,8 +122,8 @@ export default function HomePage() {
         .toString()
         .includes(searchYear)
   )
-   // 🔹 Mostrar loading mientras se carga el docente
-  if (loadingAuth || !docente) {
+  // 🔹 Mostrar loading mientras se carga el docente
+  if (cambiandoRol) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -149,23 +151,23 @@ export default function HomePage() {
             <div className="flex items-center justify-between bg-purple-100/30 rounded-xl p-4 font-semibold text-black">
               {/* Botón para cambiar rol */}
               {tieneMultiplesRoles && (
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={handleAbrirModal}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg"
-                >
-                  {rol === 'Admin' ? 'Cambiar a rol Docente' : 'Cambiar a rol Admin'}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={handleAbrirModal}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg"
+                  >
+                    {rol === 'Admin' ? 'Cambiar a rol Docente' : 'Cambiar a rol Admin'}
+                  </Button>
 
 
-                <ConfirmModal
-                  isOpen={isModalOpen}
-                  title="Cambiar Rol"
-                  message={`¿Estás seguro que quieres cambiar tu rol a ${nuevoRol}?`}
-                  onConfirm={handleConfirmarCambio}
-                  onCancel={() => setIsModalOpen(false)}
-                />
-              </div>
+                  <ConfirmModal
+                    isOpen={isModalOpen}
+                    title="Cambiar Rol"
+                    message={`¿Estás seguro que quieres cambiar tu rol a ${nuevoRol}?`}
+                    onConfirm={handleConfirmarCambio}
+                    onCancel={() => setIsModalOpen(false)}
+                  />
+                </div>
               )}
 
               {/* Accesos directos */}

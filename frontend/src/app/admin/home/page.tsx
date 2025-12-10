@@ -15,9 +15,10 @@ import ConfirmModal from '@/app/recuperarContrasena/modal/modalCambioRol'
 
 export default function HomePage() {
   const router = useRouter()
-  const { rol, login, roles,loadingAuth } = useAuth() 
+  const { rol, login, roles } = useAuth() 
   const rolesArray = roles ? (Array.isArray(roles) ? roles : [roles]) : []
   const tieneMultiplesRoles = rolesArray.length > 1
+  const [cambiandoRol, setCambiandoRol] = useState(false)
 
   const [isModalOpen, setIsModalOpen] = useState(false)
    const [nuevoRol, setNuevoRol] = useState<'Admin' | 'Docente'>(() => {
@@ -44,12 +45,13 @@ export default function HomePage() {
   }
 
   const handleConfirmarCambio = async () => {
+    setCambiandoRol(true)
     await login(nuevoRol)
     setIsModalOpen(false)
     router.push(nuevoRol === 'Admin' ? '/admin/home' : '/docente/home')
   }
      // 🔹 Mostrar loading mientras se carga el docente
-    if (loadingAuth || !roles) {
+    if (cambiandoRol) {
       return (
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
