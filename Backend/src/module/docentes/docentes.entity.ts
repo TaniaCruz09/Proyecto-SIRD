@@ -64,7 +64,6 @@ export class Docentes {
   @Column({
     name: 'cedula_identidad',
     type: 'varchar',
-    length: 16,
     nullable: true,
   })
   cedula_identidad: string;

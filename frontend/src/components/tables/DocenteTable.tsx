@@ -46,7 +46,7 @@ export default function DocenteTable({
               key={docente.id}
               fetchDocentes={fetchDocentes}
               docente={docente}
-              onShowDetail={()=> setDocenteDetalle(docente)} //para ver mas detalles
+              onShowDetail={()=> setDocenteDetalle(docente)} 
               />
             ))
           ) : (

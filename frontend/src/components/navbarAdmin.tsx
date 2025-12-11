@@ -28,7 +28,7 @@ const catalogSubmenu = [
   { label: 'Profesiones', href: '/catalogo/profesion', icon: FaUserPlus },
   { label: 'Secciones', href: '/catalogo/seccion', icon: FaUserPlus },
   { label: 'Semestres', href: '/catalogo/semestre', icon: FaUserPlus },
-  { label: 'Turnos', href: '/catalogo/turno', icon: FaUserPlus },
+  { label: 'Turnos', href: '/catalogo/turnos', icon: FaUserPlus },
 ]
 
 const organizacionEscolarSubmenu = [
