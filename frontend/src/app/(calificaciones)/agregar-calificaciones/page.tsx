@@ -4,21 +4,21 @@ import { useEffect, useState } from "react"
 import { useAuth } from "@/hooks/useAuth"
 import { getGradosByDocenteId } from "@/actions/docentesMethods/docentesMethods"
 import { getEsquelaHeadById } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
-import { EsquelaHeadInterface } from "@/interfaces/calificaciones/EsquelaHead"
+import { EsquelaHeadInterface, EsquelaRowInterface } from "@/interfaces/calificaciones/EsquelaHead"
 import { Corte } from "@/interfaces"
 import { EsquelaRowPayload } from "@/interfaces/calificaciones/EsquelaRow"
-import { saveEsquelaRow } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods"
+import { saveEsquelaRow, updateEsquelaRow } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods"
 import { getCortesEvaluativos } from "@/actions/catalogos/corteEvaluativoMethods"
 import CardCortesEvaluativos from "@/components/calificaciones/CardCortesEvaluativos"
 import { Asignatura, CorteUI, Estudiante } from "@/interfaces/calificaciones/AgregarCalificaciones"
 import HeaderAgregarCalificaciones from "@/components/calificaciones/HeaderAgregarCalificaciones"
 import TabsAsignaturas from "@/components/calificaciones/TabsAsignaturas"
 
-export interface AgregarCalificacionesProps {
+export interface CalificacionesProps {
     esquelaId: number | string
     grupoId: number
     grupoNombre?: string
-    anioId?: string | number
+    isAnioActivo: boolean
     onVolver?: () => void
 }
 
@@ -39,13 +39,13 @@ const generarNotaCualitativa = (valor: number): string => {
     return "AI"
 }
 
-export default function AgregarCalificaciones({
+export default function Calificaciones({
     esquelaId,
     grupoId,
     grupoNombre,
-    anioId,
+    isAnioActivo,
     onVolver,
-}: AgregarCalificacionesProps) {
+}: CalificacionesProps) {
 
     const { docente } = useAuth()
 
@@ -156,7 +156,7 @@ export default function AgregarCalificaciones({
 
             // 2) Si la respuesta del backend incluye filas (esquela_row / esquelaRows / rows), intentar restaurarlas
             // (esto cubre el caso en que el backend ya tiene notas guardadas)
-            const posiblesKeys = ["esquela_row", "esquelaRows", "esquelaRows", "rows", "esquela_rows"]
+            const posiblesKeys = ["esquelaRow"]
             for (const key of posiblesKeys) {
                 const rows = (response as any)?.[key]
                 if (Array.isArray(rows) && rows.length > 0) {
@@ -239,46 +239,29 @@ export default function AgregarCalificaciones({
         }
     }
 
-    // ---------------- Cambiar notas (actualiza estado y localStorage) ----------------
-    const handleCalificacionChange = (estudianteId: number, asignaturaId: number, corteId: number, valor: string) => {
-        if (valor !== "" && (isNaN(Number(valor)) || Number(valor) < 0 || Number(valor) > 100)) return
-
-        setEstudiantes((prev) => {
-            const updated = prev.map((est) =>
-                est.id === estudianteId
-                    ? {
-                        ...est,
-                        calificaciones: {
-                            ...(est.calificaciones as any),
-                            [asignaturaId]: {
-                                ...((est.calificaciones as any)[asignaturaId] ?? {}),
-                                [corteId]: valor,
-                            },
-                        },
-                    }
-                    : est
-            )
-
-            // Persistir inmediatamente
-            persistirLocal(updated)
-            return updated
-        })
-    }
-
     // ---------------- Guardar nota individual (envía a backend y actualiza localStorage) ----------------
-    const handleGuardarIndividual = async (estudiante: Estudiante, asignaturaId: number) => {
-        if (!esquela?.id || corteActivo == null) return
+    const handleGuardarIndividual = async (
+        estudiante: Estudiante,
+        asignaturaId: number,
+        nota: string,
+        setNotaBD: (nota: string) => void,
+        isUpdate: boolean
+    ) => {
+        if (!esquela?.id || corteActivo == null) return;
 
-        const notaStr = (estudiante.calificaciones as any)?.[asignaturaId]?.[corteActivo]
-        if (!notaStr || notaStr === "") return alert("Debe ingresar una nota")
+        const raw = String(nota ?? "").trim();
 
-        const notaNum = Number(notaStr)
-        if (isNaN(notaNum)) return alert("La nota no es válida")
+        // Validaciones
+        if (raw === "") return alert("Debe ingresar una nota");
+        if (!/^\d{1,3}$/.test(raw)) return alert("La nota no es válida (solo números enteros)");
 
-        const corteEncontrado = cortes.find(c => c.id === corteActivo)
-        if (!corteEncontrado) return alert("No se encontró el corte")
+        const notaNum = Number(raw);
+        if (notaNum < 0 || notaNum > 100) return alert("La nota debe estar entre 0 y 100");
 
-        const notaCualitativa = generarNotaCualitativa(notaNum)
+        const corteEncontrado = cortes.find(c => c.id === corteActivo);
+        if (!corteEncontrado) return alert("No se encontró el corte");
+
+        const notaCualitativa = generarNotaCualitativa(notaNum);
 
         const payload: EsquelaRowPayload = {
             estudiante: { id: estudiante.id },
@@ -286,43 +269,76 @@ export default function AgregarCalificaciones({
             notaCualitativa,
             notaCuantitativa: notaNum,
             corte: { id: corteEncontrado.id },
-            esquelaHead: { id: esquela.id }
-        }
+            esquelaHead: { id: esquela!.id }
+        };
 
         try {
-            setGuardando(true)
-            await saveEsquelaRow(payload)
-            setGuardando(false)
+            setGuardando(true);
 
-            // Al guardar en backend, también actualizar localStorage (por si backend aplica cambios)
+            let savedRow;
+
+            if (isUpdate) {
+                const filasBD: EsquelaRowInterface[] =
+                    esquela?.esquelaRow ??
+                    [];
+
+                const rowBD = filasBD.find(
+                    r =>
+                        Number(r.estudiante.id) === Number(estudiante.id) &&
+                        Number(r.asignatura.id) === Number(asignaturaId) &&
+                        Number(r.corte.id) === Number(corteActivo)
+                );
+
+
+                if (!rowBD) {
+                    alert("No se pudo actualizar: la fila no existe en BD");
+                    setGuardando(false);
+                    return;
+                }
+
+                savedRow = await updateEsquelaRow(rowBD.id, payload);
+
+            } else {
+                // 👉 Guardar nueva nota
+                savedRow = await saveEsquelaRow(payload);
+            }
+
+            setGuardando(false);
+
+            const notaReal = savedRow?.notaCuantitativa ?? notaNum;
+
+            // 👉 Actualizar estado local de estudiantes con la nota real
             setEstudiantes(prev => {
                 const updated = prev.map(e => {
                     if (e.id === estudiante.id) {
                         const asignObj = {
                             ...((e.calificaciones as any)[asignaturaId] ?? {}),
-                            [corteActivo!]: String(notaNum)
-                        }
+                            [corteActivo!]: String(notaReal)
+                        };
                         return {
                             ...e,
                             calificaciones: {
                                 ...(e.calificaciones as any),
                                 [asignaturaId]: asignObj
                             }
-                        }
+                        };
                     }
-                    return e
-                })
-                persistirLocal(updated)
-                return updated
-            })
+                    return e;
+                });
+                persistirLocal(updated);
+                return updated;
+            });
 
-            alert("Nota guardada correctamente")
+            // 👉 Actualizar la fila
+            setNotaBD(String(notaReal));
+
+            alert(isUpdate ? "Nota actualizada correctamente" : "Nota guardada correctamente");
         } catch (error) {
-            console.error("Error al guardar nota:", error)
-            setGuardando(false)
-            alert("Error al guardar la nota")
+            console.error("Error al guardar nota:", error);
+            setGuardando(false);
+            alert("Error al guardar la nota");
         }
-    }
+    };
 
     // --------- Avanzar al siguiente corte (solo cambia corteActivo localmente) ----------
     const avanzarCorte = () => {
@@ -337,11 +353,13 @@ export default function AgregarCalificaciones({
         }
     }
 
+    const anioLectivo = esquela?.grupo_asignatura.organizacionEscolar.anio_lectivo.anio_lectivo
+
     return (
         <div className="container mx-auto px-4 py-8 max-w-7xl">
             <HeaderAgregarCalificaciones
                 grupoNombre={grupoNombre}
-                anioId={anioId}
+                anioId={anioLectivo}
                 onVolver={onVolver}
             />
 
@@ -363,10 +381,11 @@ export default function AgregarCalificaciones({
                 asignaturaActiva={asignaturaActiva}
                 setAsignaturaActiva={setAsignaturaActiva}
                 getInitials={getInitials}
-                handleCalificacionChange={handleCalificacionChange}
+                anioLectivo={anioLectivo}
                 handleGuardarIndividual={handleGuardarIndividual}
                 avanzarCorte={avanzarCorte}
                 guardando={guardando}
+                isAnioActivo={isAnioActivo}
             />
         </div>
     )

@@ -41,6 +41,10 @@ export class EsquelaHeadService {
                 .leftJoinAndSelect("grupoAsignaturaDocente.gruposConEstudiantes", "gruposConEstudiantes")
                 .leftJoinAndSelect("gruposConEstudiantes.estudiante", "estudiante")
                 .leftJoinAndSelect("estudiante.gender", "gender")
+                .leftJoinAndSelect("esquelaHead.esquelaRow", "esquelaRow")
+                .leftJoinAndSelect("esquelaRow.estudiante", "estudianteEsquelaRow")
+                .leftJoinAndSelect("esquelaRow.asignatura", "asignaturaEsquelaRow")
+                .leftJoinAndSelect("esquelaRow.corte", "corteEsquelaRow")
                 .where("esquelaHead.id = :id", { id })
                 .getOne();
 
@@ -53,7 +57,7 @@ export class EsquelaHeadService {
 
     async findAll(): Promise<EsquelaHeadEntity[]> {
         try {
-            const esquelaHead = await this.esquelaHeadRepository.find({ relations: ["grupo_asignatura", 'grupo_asignatura.grupoAsignaturaDocente.asignatura'] });
+            const esquelaHead = await this.esquelaHeadRepository.find({ relations: ["grupo_asignatura", 'grupo_asignatura.grupoAsignaturaDocente.asignatura', "esquelaRow"] });
             return esquelaHead;
         } catch (error) {
             Utilities.catchError(error)

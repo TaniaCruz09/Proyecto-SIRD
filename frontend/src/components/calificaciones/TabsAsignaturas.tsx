@@ -13,12 +13,13 @@ export default function TabsAsignaturas({
     corteActivo,
     cortes,
     getInitials,
-    handleCalificacionChange,
+    anioLectivo,
     handleGuardarIndividual,
     avanzarCorte,
     asignaturaActiva,
     setAsignaturaActiva,
-    guardando
+    guardando,
+    isAnioActivo
 }: any) {
     return (
         <Tabs
@@ -55,8 +56,9 @@ export default function TabsAsignaturas({
                                 corteActivo={corteActivo}
                                 guardando={guardando}
                                 getInitials={getInitials}
-                                handleCalificacionChange={handleCalificacionChange}
+                                anioLectivo={anioLectivo}
                                 handleGuardarIndividual={handleGuardarIndividual}
+                                isAnioActivo={isAnioActivo}
                             />
                         </CardContent>
                     </Card>

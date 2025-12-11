@@ -7,12 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Calendar, Users, BookOpen, CheckCircle2, XCircle, FileEdit, Eye, GraduationCap, Search } from "lucide-react"
-import AgregarCalificaciones from "@/app/(calificaciones)/agregar-calificaciones/page"
-import VerCalificaciones from "@/app/(calificaciones)/ver-calificaciones/page"
+import Calificaciones from "@/app/(calificaciones)/agregar-calificaciones/page"
 import { useAuth } from "@/hooks/useAuth"
 import { getGradosByDocenteId } from "@/actions/docentesMethods/docentesMethods"
 import { getEsquelaByGrupo } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
-import { EsquelaHeadInterface } from "@/interfaces/calificaciones/EsquelaHead"
 
 interface Grupo {
     id: string
@@ -119,9 +117,7 @@ export default function GruposAsignados() {
                 }
 
                 const aniosFiltrados = anios.filter(a => (a.organizacionEscolar[0]?.grupos?.length || 0) > 0)
-
                 aniosFiltrados.sort((a, b) => b.anio_lectivo - a.anio_lectivo)
-
                 setAniosEscolares(aniosFiltrados)
                 setDefaultValue(aniosFiltrados.find(a => a.isActive)?.id || aniosFiltrados[0]?.id)
             } catch (error) {
@@ -142,7 +138,7 @@ export default function GruposAsignados() {
     })
 
     // 🧭 Control de vistas
-    const handleAgregarCalificaciones = (grupo: Grupo, anioId: string) => {
+    const handleCalificaciones = (grupo: Grupo, anioId: string) => {
         setGrupoSeleccionado({
             grupoId: grupo.id,
             grupoNombre: grupo.nombre,
@@ -166,32 +162,20 @@ export default function GruposAsignados() {
     }
 
     // 🔹 Renderizar vistas de agregar o ver calificaciones
-    if (vistaActual === "agregar" && grupoSeleccionado) {
+    if ((vistaActual === "agregar" || vistaActual === "ver") && grupoSeleccionado) {
         const grupo = aniosEscolares
             .flatMap(a => a.organizacionEscolar[0]?.grupos || [])
             .find(g => g.id === grupoSeleccionado.grupoId)
 
+        const anio = aniosEscolares.find(a => a.id === grupoSeleccionado.anioId)
+        const isAnioActivo = anio?.isActive ?? false
+
         return (
-            <AgregarCalificaciones
+            <Calificaciones
                 esquelaId={grupo?.esquelaId || 0}
                 grupoId={Number(grupoSeleccionado.grupoId)}
                 grupoNombre={grupoSeleccionado.grupoNombre}
-                anioId={grupoSeleccionado.anioId}
-                onVolver={handleVolver}
-            />
-        )
-    }
-
-    if (vistaActual === "ver" && grupoSeleccionado) {
-        const grupo = aniosEscolares
-            .flatMap(a => a.organizacionEscolar[0]?.grupos || [])
-            .find(g => g.id === grupoSeleccionado.grupoId)
-
-        return (
-            <VerCalificaciones
-                esquelaId={grupo?.esquelaId || 0}
-                grupoNombre={grupoSeleccionado.grupoNombre}
-                anioId={grupoSeleccionado.anioId}
+                isAnioActivo={isAnioActivo} // <-- flag para inputs readonly
                 onVolver={handleVolver}
             />
         )
@@ -329,7 +313,7 @@ export default function GruposAsignados() {
                                                     <div className="flex flex-col gap-2 pt-2">
                                                         <Button
                                                             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                                                            onClick={() => handleAgregarCalificaciones(grupo, anio.id)}
+                                                            onClick={() => handleCalificaciones(grupo, anio.id)}
                                                         >
                                                             <FileEdit className="h-4 w-4 mr-2" />
                                                             Agregar Calificaciones
@@ -339,7 +323,7 @@ export default function GruposAsignados() {
                                                     <Button
                                                         variant="outline"
                                                         className="w-full border-muted-foreground/30 text-muted-foreground hover:bg-muted bg-transparent"
-                                                        onClick={() => handleVerCalificaciones(grupo, anio.id)}
+                                                        onClick={() => handleCalificaciones(grupo, anio.id)}
                                                     >
                                                         <Eye className="h-4 w-4 mr-2" />
                                                         Ver Calificaciones
