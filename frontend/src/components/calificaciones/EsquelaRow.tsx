@@ -9,7 +9,8 @@ import { getEsquelaHeadById } from "@/actions/calificaciones/esquelasHeadsMethod
 import { EsquelaHead } from "./EsquelaHead"
 import { getEsquelaRowByEstudianteAndAnio } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods"
 import { Button } from "../ui/button"
-
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 function getQualitativeGrade(grade: number): string {
     if (grade >= 90) return "AA"
     if (grade >= 76) return "AS"
@@ -108,6 +109,157 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
         }
     }
 
+   const exportToExcel = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Esquela");
+
+    const border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+    };
+
+    function style(cell: any, bold = false, size = 12) {
+        cell.font = { bold, size };
+        cell.border = border;
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+    }
+
+    // ======================
+    // 1. TÍTULO
+    // ======================
+    sheet.addRow(["Instituto Ruben Dario"]);
+    sheet.mergeCells(1, 1, 1, 80);
+    sheet.getCell("A1").font = { bold: true, size: 18 };
+    sheet.getCell("A1").alignment = { horizontal: "center" };
+
+    sheet.addRow([]);
+    sheet.addRow(["Grado:", grupo, "Sección:", section, "Año:", anioLectivo]);
+    sheet.addRow(["Turno:", shift, "Modalidad:", modalidad, "Docente Guía:", docenteGuia]);
+    sheet.addRow([]);
+    sheet.addRow([]);
+
+    // ======================
+    // 2. FILA DE BASEHEADERS
+    // ======================
+    const baseHeaders = ["N°", "Foto", "Estudiante", "Código", "Sexo"];
+    const baseRowIndex = sheet.rowCount + 1;
+    sheet.addRow(baseHeaders);
+
+    // ======================
+    // 3. FILA DE MATERIAS (COMBINADA)
+    // ======================
+    let colStart = 6; // columna después de "Sexo"
+
+    asignaturas.forEach(asig => {
+        const colEnd = colStart + 14 - 1;
+
+        sheet.mergeCells(baseRowIndex, colStart, baseRowIndex, colEnd);
+        const cell = sheet.getCell(baseRowIndex, colStart);
+        cell.value = asig.asignatura.asignatura;
+        cell.font = { bold: true, size: 13 };
+        cell.alignment = { horizontal: "center" };
+
+        colStart += 14;
+    });
+
+    // ======================
+    // 4. FILA DE PARCIALES/SEMESTRES
+    // ======================
+    const cortes = [
+        "1er Parcial", "2do Parcial", "1er Semestre",
+        "3er Parcial", "4to Parcial", "2do Semestre", "Nota Final"
+    ];
+
+    const cortesRow = [...baseHeaders];
+
+    asignaturas.forEach(() => {
+        cortes.forEach(label => {
+            cortesRow.push(label);
+            cortesRow.push("");  // porque cada uno debe ocupar 2 columnas
+        });
+    });
+
+    const cortesExcelRow = sheet.addRow(cortesRow);
+
+    // unir cada etiqueta con su "columna vacía"
+    let col = 6;
+    asignaturas.forEach(() => {
+        cortes.forEach(() => {
+            sheet.mergeCells(cortesExcelRow.number, col, cortesExcelRow.number, col + 1);
+            col += 2;
+        });
+    });
+
+    cortesExcelRow.eachCell(cell => style(cell, true));
+
+    // ======================
+    // 5. FILA CUAL / CUANT
+    // ======================
+    const subRow = [...baseHeaders];
+
+    asignaturas.forEach(() => {
+        for (let i = 0; i < 7; i++) {
+            subRow.push("Cual.");
+            subRow.push("Cuant.");
+        }
+    });
+
+    const subExcelRow = sheet.addRow(subRow);
+    subExcelRow.eachCell(c => style(c));
+
+    // ======================
+    // 6. FILAS DE ESTUDIANTES
+    // ======================
+    estudiantes.forEach((est, index) => {
+        const rowData = [
+            index + 1,
+            "",
+            est.name,
+            est.studentCode,
+            est.gender.gender
+        ];
+
+        asignaturas.forEach(asig => {
+            [1, 2, 1, 3, 4, 3, 4].forEach((corte, i) => {
+                let n;
+
+                if (i === 2) {
+                    const n1 = findNota(est.id, asig.asignatura.id, 1).cuant;
+                    const n2 = findNota(est.id, asig.asignatura.id, 2).cuant;
+                    const avg = Math.round((n1 + n2) / 2);
+                    n = { cual: getQualitativeGrade(avg), cuant: avg };
+                } else if (i === 5) {
+                    const n3 = findNota(est.id, asig.asignatura.id, 3).cuant;
+                    const n4 = findNota(est.id, asig.asignatura.id, 4).cuant;
+                    const avg = Math.round((n3 + n4) / 2);
+                    n = { cual: getQualitativeGrade(avg), cuant: avg };
+                } else if (i === 6) {
+                    const n1 = findNota(est.id, asig.asignatura.id, 1).cuant;
+                    const n2 = findNota(est.id, asig.asignatura.id, 2).cuant;
+                    const n3 = findNota(est.id, asig.asignatura.id, 3).cuant;
+                    const n4 = findNota(est.id, asig.asignatura.id, 4).cuant;
+                    const final = Math.round((n1 + n2 + n3 + n4) / 4);
+                    n = { cual: getQualitativeGrade(final), cuant: final };
+                } else {
+                    n = findNota(est.id, asig.asignatura.id, corte);
+                }
+
+                rowData.push(n.cual);
+                rowData.push(n.cuant);
+            });
+        });
+
+        const row = sheet.addRow(rowData);
+        row.eachCell(c => style(c));
+    });
+
+    sheet.columns.forEach(col => col.width = 12);
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), "Esquela.xlsx");
+};
     return (
         <div className="w-full space-y-6 bg-gradient-to-br from-rose-50 via-pink-50 to-white min-h-screen p-4">
             <EsquelaHead
@@ -163,8 +315,9 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
                     Nota Final
                 </button>
             </div>
-
-
+            <Button onClick={exportToExcel} className="bg-green-600 text-white">
+                Exportar a Excel
+            </Button>
 
             <Card className="w-full shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
                 <CardContent className="p-0">
@@ -327,3 +480,5 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
         </div>
     )
 }
+
+
