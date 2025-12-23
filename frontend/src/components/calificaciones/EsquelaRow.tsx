@@ -1,14 +1,16 @@
 "use client"
 
+import React, { useEffect, useState } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent } from "@/components/ui/card"
-import React, { useEffect, useState } from "react"
+import { Button } from "../ui/button"
 import { EsquelaHeadInterface } from "@/interfaces/calificaciones/EsquelaHead"
 import { getEsquelaHeadById } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
-import { EsquelaHead } from "./EsquelaHead"
 import { getEsquelaRowByEstudianteAndAnio } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods"
-import { Button } from "../ui/button"
+import { EsquelaHead } from "./EsquelaHead"
+
+/* ================= HELPERS ================= */
 
 function getQualitativeGrade(grade: number): string {
     if (grade >= 90) return "AA"
@@ -17,89 +19,113 @@ function getQualitativeGrade(grade: number): string {
     return "AI"
 }
 
-interface Estudiante {
-    id: number;
-    [key: string]: any;
-}
-
-interface GEItem {
-    estudiante: Estudiante;
-}
-
-interface GADItem {
-    gruposConEstudiantes: GEItem[];
-}
-
 function getInitials(fullName: string): string {
     return fullName
         .split(" ")
-        .map((name) => name.charAt(0))
+        .map((n) => n.charAt(0))
         .join("")
         .substring(0, 2)
         .toUpperCase()
 }
 
+/* ================= TYPES ================= */
+
 interface Estudiante {
     id: number
     name: string
     studentCode: string
-    gender: { gender: string }
-    profileImage?: string
+    gender?: {
+        gender?: string
+    }
+    profileImage?: string | null
+}
+
+interface GEItem {
+    estudiante: Estudiante
+}
+
+interface GADItem {
+    asignatura: {
+        id: number
+        asignatura: string
+    }
+    gruposConEstudiantes: GEItem[]
 }
 
 interface EsquelaRowProps {
     esquelaHeadId: number
 }
 
+type VistaType = "ALL" | 0 | 1 | 2 | 3 | 4 | 5 | 6
+
+/* ================= COMPONENT ================= */
+
 export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
     const [esquelaHead, setEsquelaHead] = useState<EsquelaHeadInterface>()
     const [calificaciones, setCalificaciones] = useState<any[]>([])
-
-    const fetchEsquelaHeadById = async () => {
-        try {
-            const response = await getEsquelaHeadById(Number(esquelaHeadId))
-            setEsquelaHead(response)
-
-            const anio = response?.grupo_asignatura?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0
-
-            const estudiantes =
-                response?.grupo_asignatura?.grupoAsignaturaDocente
-                    ?.flatMap((gad: GADItem) => gad.gruposConEstudiantes.map((ge: GEItem) => ge.estudiante))
-                    .filter((v: Estudiante, i: number, self: Estudiante[]) => self.findIndex((s) => s.id === v.id) === i) ?? []
-
-            if (estudiantes.length > 0) {
-                const allRows = await Promise.all(estudiantes.map((est: Estudiante) => getEsquelaRowByEstudianteAndAnio(est.id, anio)))
-                const mergedRows = allRows.flat()
-                setCalificaciones(mergedRows)
-            }
-        } catch (error) {
-            console.error(error)
-        }
-    }
+    const [vista, setVista] = useState<VistaType>("ALL")
 
     useEffect(() => {
-        fetchEsquelaHeadById()
+        const fetchData = async () => {
+            const response = await getEsquelaHeadById(esquelaHeadId)
+            setEsquelaHead(response)
+
+            const anio =
+                response?.grupo_asignatura?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0
+
+            // Obtener estudiantes únicos
+            const estudiantes =
+                response?.grupo_asignatura?.grupoAsignaturaDocente
+                    ?.flatMap((g: any) =>
+                        g.gruposConEstudiantes.map((ge: any) => ge.estudiante)
+                    )
+                    .filter(
+                        (v: any, i: number, self: any[]) =>
+                            self.findIndex((s) => s.id === v.id) === i
+                    ) ?? []
+
+            if (estudiantes.length) {
+                const rows = await Promise.all(
+                    estudiantes.map((e: any) => getEsquelaRowByEstudianteAndAnio(e.id, anio))
+                )
+                setCalificaciones(rows.flat())
+            }
+        }
+
+        fetchData()
     }, [esquelaHeadId])
 
-    const grupo = esquelaHead?.grupo_asignatura?.grado.grades ?? "N/A"
-    const docenteGuia = esquelaHead?.grupo_asignatura?.docenteGuia.nombres ?? "N/A"
-    const asignaturas = esquelaHead?.grupo_asignatura?.grupoAsignaturaDocente ?? []
-    const section = esquelaHead?.grupo_asignatura?.seccion.seccion ?? "N/A"
-    const modalidad = esquelaHead?.grupo_asignatura?.turno.modalidad?.modalidad ?? "N/A"
-    const shift = esquelaHead?.grupo_asignatura?.turno.turno ?? "N/A"
-    const anioLectivo = esquelaHead?.grupo_asignatura?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0
+    // Mapear datos del backend a tipo interno
+    const asignaturas: GADItem[] =
+        esquelaHead?.grupo_asignatura?.grupoAsignaturaDocente?.map((g: any) => ({
+            asignatura: {
+                id: g.asignatura.id,
+                asignatura: g.asignatura.asignatura
+            },
+            gruposConEstudiantes: g.gruposConEstudiantes.map((ge: any) => ({
+                estudiante: {
+                    id: ge.estudiante.id,
+                    name: ge.estudiante.name,
+                    studentCode: ge.estudiante.studentCode,
+                    gender: ge.estudiante.gender ?? { gender: "—" },
+                    profileImage: ge.estudiante.profileImage ?? null
+                }
+            }))
+        })) ?? []
 
     const estudiantes: Estudiante[] =
         asignaturas
-            ?.flatMap((gad) => gad.gruposConEstudiantes.map((ge: any) => ge.estudiante))
-            .filter((v, i, self) => self.findIndex((s) => s.id === v.id) === i) ?? []
+            .flatMap((g) => g.gruposConEstudiantes.map((ge) => ge.estudiante))
+            .filter(
+                (v, i, self) => self.findIndex((s) => s.id === v.id) === i
+            )
 
     const findNota = (estId: number, asigId: number, corteId: number) => {
         const row = calificaciones.find(
             (r) =>
-                Number(r.estudiante.id) === Number(estId) &&
-                Number(r.asignatura.id) === Number(asigId) &&
-                Number(r.corte.id) === Number(corteId)
+                Number(r.estudiante.id) === estId &&
+                Number(r.asignatura.id) === asigId &&
+                Number(r.corte.id) === corteId
         )
 
         return {
@@ -108,220 +134,138 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
         }
     }
 
+    const cortes = [1, 2, 1, 3, 4, 3, 4]
+
+    /* ================= RENDER ================= */
+
     return (
         <div className="w-full space-y-6 bg-gradient-to-br from-rose-50 via-pink-50 to-white min-h-screen p-4">
+
             <EsquelaHead
                 schoolName="Instituto Ruben Dario"
-                grade={grupo}
-                section={section}
-                shift={shift}
-                year={anioLectivo}
-                modality={modalidad}
-                teacherName={docenteGuia}
+                grade={esquelaHead?.grupo_asignatura?.grado.grades ?? ""}
+                section={esquelaHead?.grupo_asignatura?.seccion.seccion ?? ""}
+                shift={esquelaHead?.grupo_asignatura?.turno.turno ?? ""}
+                year={esquelaHead?.grupo_asignatura?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0}
+                modality={esquelaHead?.grupo_asignatura?.turno.modalidad?.modalidad ?? ""}
+                teacherName={esquelaHead?.grupo_asignatura?.docenteGuia.nombres ?? ""}
             />
-            {/* BOTONES PARA LAS 7 VISTAS */}
-            <div className="w-full grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 pt-4">
-                <button
-                    className="bg-indigo-500 hover:bg-rose-600 text-white font-bold py-2 px-4 rounded-lg shadow"
-                >
-                    1er Parcial
-                </button>
 
-                <button
-                    className="bg-indigo-500 hover:bg-rose-600 text-white font-bold py-2 px-4 rounded-lg shadow"
-                >
-                    2do Parcial
-                </button>
-
-                <button
-                    className="bg-indigo-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow"
-                >
-                    1er Semestre
-                </button>
-
-                <button
-                    className="bg-indigo-500 hover:bg-rose-600 text-white font-bold py-2 px-4 rounded-lg shadow"
-                >
-                    3er Parcial
-                </button>
-
-                <button
-                    className="bg-indigo-500 hover:bg-rose-600 text-white font-bold py-2 px-4 rounded-lg shadow"
-                >
-                    4to Parcial
-                </button>
-
-                <button
-                    className="bg-indigo-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow"
-                >
-                    2do Semestre
-                </button>
-
-                <button
-                    className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow"
-                >
-                    Nota Final
-                </button>
+            {/* BOTONES */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+                {["1er Parcial", "2do Parcial", "1er Semestre", "3er Parcial", "4to Parcial", "2do Semestre", "Nota Final"].map(
+                    (t, i) => (
+                        <Button key={i} onClick={() => setVista(i as VistaType)}>
+                            {t}
+                        </Button>
+                    )
+                )}
+                <Button variant="secondary" onClick={() => setVista("ALL")}>
+                    Completa
+                </Button>
             </div>
 
+            <Card className="shadow-2xl">
+                <CardContent className="p-0 overflow-x-auto">
+                    <Table>
+                        <TableHeader>
+                            {/* ENCABEZADOS PRINCIPALES */}
+                            <TableRow className="bg-rose-100">
+                                <TableHead>Nº</TableHead>
+                                <TableHead>Foto</TableHead>
+                                <TableHead>Estudiante</TableHead>
+                                <TableHead>Código</TableHead>
+                                <TableHead>Sexo</TableHead>
 
-
-            <Card className="w-full shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
-                <CardContent className="p-0">
-                    <div className="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                {/* ENCABEZADO PRINCIPAL */}
-                                <TableRow className="bg-gradient-to-r from-rose-100 to-pink-100 border-b-2 border-rose-200">
-                                    <TableHead className="font-bold text-rose-900 border-r border-rose-200 text-center min-w-[80px]">Nº</TableHead>
-                                    <TableHead className="font-bold text-rose-900 border-r border-rose-200 text-center min-w-[80px]">Foto</TableHead>
-                                    <TableHead className="font-bold text-rose-900 border-r border-rose-200 text-center min-w-[200px]">Estudiante</TableHead>
-                                    <TableHead className="font-bold text-rose-900 border-r border-rose-200 text-center min-w-[120px]">Código</TableHead>
-                                    <TableHead className="font-bold text-rose-900 border-r border-rose-200 text-center min-w-[80px]">Sexo</TableHead>
-
-                                    {asignaturas.map((asig, idx) => (
-                                        <TableHead
-                                            key={idx}
-                                            className={`font-bold border-r border-rose-200 text-center ${idx % 3 === 0
-                                                ? "text-emerald-900 bg-emerald-100"
+                                {asignaturas.map((a, idx) => (
+                                    <TableHead
+                                        key={idx}
+                                        colSpan={(vista === "ALL" ? 7 : 1) * 2}
+                                        className={`text-center font-bold ${idx % 3 === 0
+                                                ? "bg-emerald-100"
                                                 : idx % 3 === 1
-                                                    ? "text-amber-900 bg-amber-100"
-                                                    : "text-violet-900 bg-violet-100"
-                                                }`}
-                                            colSpan={14}
-                                        >
-                                            {asig.asignatura?.asignatura ?? "Asignatura"}
-                                        </TableHead>
-                                    ))}
-                                </TableRow>
-
-                                {/* SUBENCABEZADO (Parciales/Semestres) */}
-                                <TableRow className="bg-rose-50 border-b border-rose-200">
-                                    <TableHead colSpan={5}></TableHead>
-                                    {asignaturas.map((_, idx) => (
-                                        <React.Fragment key={idx}>
-                                            {["1er Parcial", "2do Parcial", "1er Semestre", "3er Parcial", "4to Parcial", "2do Semestre", "Nota Final"].map(
-                                                (title, i) => (
-                                                    <TableHead
-                                                        key={i}
-                                                        className={`font-medium border-r border-rose-200 text-center text-xs min-w-[60px] ${idx % 3 === 0
-                                                            ? i === 2 || i === 5 || i === 6
-                                                                ? "bg-emerald-200 text-emerald-900 font-bold"
-                                                                : "bg-emerald-50 text-emerald-800"
-                                                            : idx % 3 === 1
-                                                                ? i === 2 || i === 5 || i === 6
-                                                                    ? "bg-amber-200 text-amber-900 font-bold"
-                                                                    : "bg-amber-50 text-amber-800"
-                                                                : i === 2 || i === 5 || i === 6
-                                                                    ? "bg-violet-200 text-violet-900 font-bold"
-                                                                    : "bg-violet-50 text-violet-800"
-                                                            }`}
-                                                        colSpan={2}
-                                                    >
-                                                        {title}
-                                                    </TableHead>
-                                                )
-                                            )}
-                                        </React.Fragment>
-                                    ))}
-                                    <TableHead></TableHead>
-                                </TableRow>
-
-                                {/* SUBSUBENCABEZADO Cuant/Cual */}
-                                <TableRow className="bg-rose-100 border-b border-rose-200">
-                                    <TableHead colSpan={5}></TableHead>
-                                    {asignaturas.map((_, idx) => (
-                                        <React.Fragment key={idx}>
-                                            {Array.from({ length: 7 }, (_, i) => (
-                                                <React.Fragment key={i}>
-                                                    <TableHead
-                                                        className={`font-medium border-r border-rose-200 text-center text-xs min-w-[40px] ${idx % 3 === 0 ? "bg-emerald-50 text-emerald-800" : idx % 3 === 1 ? "bg-amber-50 text-amber-800" : "bg-violet-50 text-violet-800"}`}
-                                                    >
-                                                        Cual.
-                                                    </TableHead>
-                                                    <TableHead
-                                                        className={`font-medium border-r border-rose-200 text-center text-xs min-w-[50px] ${idx % 3 === 0 ? "bg-emerald-50 text-emerald-800" : idx % 3 === 1 ? "bg-amber-50 text-amber-800" : "bg-violet-50 text-violet-800"}`}
-                                                    >
-                                                        Cuant.
-                                                    </TableHead>
-                                                </React.Fragment>
-                                            ))}
-                                        </React.Fragment>
-                                    ))}
-                                    <TableHead></TableHead>
-                                </TableRow>
-                            </TableHeader>
-
-                            {/* FILAS DE ESTUDIANTES */}
-                            <TableBody>
-                                {estudiantes.map((est: Estudiante, index: number) => (
-                                    <TableRow key={est.id} className="hover:bg-rose-50 border-b border-rose-200">
-                                        <TableCell className="font-bold text-center">{index + 1}</TableCell>
-                                        <TableCell className="border-r border-rose-200">
-                                            <Avatar className="h-12 w-12 ring-2 ring-rose-200">
-                                                {est.profileImage && (
-                                                    <AvatarImage src={`${process.env.NEXT_PUBLIC_API_UPLOADS}${est.profileImage}`} alt={est.name} />
-                                                )}
-                                                <AvatarFallback className="bg-rose-100 text-rose-700 font-bold text-sm">
-                                                    {getInitials(est.name)}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                        </TableCell>
-                                        <TableCell className="font-bold text-center">{est.name}</TableCell>
-                                        <TableCell className="font-semibold text-center">{est.studentCode}</TableCell>
-                                        <TableCell className="text-center font-bold">{est.gender.gender}</TableCell>
-
-                                        {asignaturas.map((asig, idx) => (
-                                            <React.Fragment key={`${est.id}-${idx}`}>
-                                                {[1, 2, 1, 3, 4, 3, 4].map((corte, i) => {
-                                                    let n: { cuant: number; cual: string }
-                                                    if (i === 2) {
-                                                        const n1 = findNota(est.id, asig.asignatura.id, 1).cuant
-                                                        const n2 = findNota(est.id, asig.asignatura.id, 2).cuant
-                                                        const promedio = Math.round((n1 + n2) / 2)
-                                                        n = { cuant: promedio, cual: getQualitativeGrade(promedio) }
-                                                    } else if (i === 5) {
-                                                        const n3 = findNota(est.id, asig.asignatura.id, 3).cuant
-                                                        const n4 = findNota(est.id, asig.asignatura.id, 4).cuant
-                                                        const promedio = Math.round((n3 + n4) / 2)
-                                                        n = { cuant: promedio, cual: getQualitativeGrade(promedio) }
-                                                    } else if (i === 6) {
-                                                        const n1 = findNota(est.id, asig.asignatura.id, 1).cuant
-                                                        const n2 = findNota(est.id, asig.asignatura.id, 2).cuant
-                                                        const n3 = findNota(est.id, asig.asignatura.id, 3).cuant
-                                                        const n4 = findNota(est.id, asig.asignatura.id, 4).cuant
-                                                        const final = Math.round((n1 + n2 + n3 + n4) / 4)
-                                                        n = { cuant: final, cual: getQualitativeGrade(final) }
-                                                    } else {
-                                                        n = findNota(est.id, asig.asignatura.id, corte)
-                                                    }
-
-                                                    return (
-                                                        <React.Fragment key={i}>
-                                                            <TableCell
-                                                                className={`text-center text-sm font-medium border-r border-rose-200 
-                                                                    ${idx % 3 === 0 ? 'bg-emerald-50 text-emerald-700' : idx % 3 === 1 ? 'bg-amber-50 text-amber-700' : 'bg-violet-50 text-violet-700'}
-                                                                    ${n.cual === 'AI' ? 'text-red-600 font-bold' : ''}`}
-                                                            >
-                                                                {n.cual}
-                                                            </TableCell>
-                                                            <TableCell
-                                                                className={`text-center font-bold text-base border-r border-rose-200 
-                                                                    ${idx % 3 === 0 ? 'bg-emerald-50' : idx % 3 === 1 ? 'bg-amber-50' : 'bg-violet-50'}
-                                                                    ${n.cuant < 60 ? 'text-red-600' : ''}`}
-                                                            >
-                                                                {n.cuant}
-                                                            </TableCell>
-                                                        </React.Fragment>
-                                                    )
-                                                })}
-                                            </React.Fragment>
-                                        ))}
-                                    </TableRow>
+                                                    ? "bg-amber-100"
+                                                    : "bg-violet-100"
+                                            }`}
+                                    >
+                                        {a.asignatura.asignatura}
+                                    </TableHead>
                                 ))}
-                            </TableBody>
-                        </Table>
-                    </div>
+                            </TableRow>
+                        </TableHeader>
+
+                        <TableBody>
+                            {estudiantes.map((est, index) => (
+                                <TableRow key={est.id}>
+                                    <TableCell>{index + 1}</TableCell>
+                                    <TableCell>
+                                        <Avatar>
+                                            {est.profileImage && (
+                                                <AvatarImage
+                                                    src={`${process.env.NEXT_PUBLIC_API_UPLOADS}${est.profileImage}`}
+                                                />
+                                            )}
+                                            <AvatarFallback>
+                                                {getInitials(est.name)}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                    </TableCell>
+                                    <TableCell>{est.name}</TableCell>
+                                    <TableCell>{est.studentCode}</TableCell>
+                                    <TableCell>{est.gender?.gender ?? "—"}</TableCell>
+
+                                    {asignaturas.map((a, aIdx) =>
+                                        cortes
+                                            .map((corte, i) => ({ corte, i }))
+                                            .filter(({ i }) => vista === "ALL" || vista === i)
+                                            .map(({ corte, i }) => {
+                                                let cuant = 0
+
+                                                if (i === 2) {
+                                                    cuant = Math.round(
+                                                        (findNota(est.id, a.asignatura.id, 1).cuant +
+                                                            findNota(est.id, a.asignatura.id, 2).cuant) / 2
+                                                    )
+                                                } else if (i === 5) {
+                                                    cuant = Math.round(
+                                                        (findNota(est.id, a.asignatura.id, 3).cuant +
+                                                            findNota(est.id, a.asignatura.id, 4).cuant) / 2
+                                                    )
+                                                } else if (i === 6) {
+                                                    cuant = Math.round(
+                                                        (findNota(est.id, a.asignatura.id, 1).cuant +
+                                                            findNota(est.id, a.asignatura.id, 2).cuant +
+                                                            findNota(est.id, a.asignatura.id, 3).cuant +
+                                                            findNota(est.id, a.asignatura.id, 4).cuant) / 4
+                                                    )
+                                                } else {
+                                                    cuant = findNota(est.id, a.asignatura.id, corte).cuant
+                                                }
+
+                                                const cual = getQualitativeGrade(cuant)
+
+                                                return (
+                                                    <React.Fragment key={`${aIdx}-${i}`}>
+                                                        <TableCell
+                                                            className={`text-center ${cual === "AI" ? "text-red-600 font-bold" : ""
+                                                                }`}
+                                                        >
+                                                            {cual}
+                                                        </TableCell>
+                                                        <TableCell
+                                                            className={`text-center font-bold ${cuant < 60 ? "text-red-600" : ""
+                                                                }`}
+                                                        >
+                                                            {cuant}
+                                                        </TableCell>
+                                                    </React.Fragment>
+                                                )
+                                            })
+                                    )}
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
                 </CardContent>
             </Card>
         </div>
