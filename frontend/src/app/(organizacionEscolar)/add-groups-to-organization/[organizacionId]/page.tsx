@@ -36,7 +36,7 @@ export default function OrganizationGroups() {
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <Link
-                        href={`/add-organizations-to-year?idAnioLectivo=${organizacionEscolar?.anio_lectivo.id}`}
+                        href={`/admin/home`}
                     >
                         <Button variant="outline" size="sm">
                             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -55,59 +55,6 @@ export default function OrganizationGroups() {
                 </div>
             </div>
 
-            {/* Estadísticas */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-emerald-700">Total Grupos</p>
-                                <p className="text-2xl font-bold text-emerald-900">{organizacionEscolar?.grupos?.length}</p>
-                            </div>
-                            <GraduationCap className="h-8 w-8 text-emerald-600" />
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-blue-700">Total docentes</p>
-                                <p className="text-2xl font-bold text-blue-900">{organizacionEscolar?.grupos?.map((e) => e.docenteGuia).length}</p>
-                            </div>
-                            <Users className="h-8 w-8 text-blue-600" />
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-violet-700">Total Estudiantes</p>
-                                <p className="text-2xl font-bold text-violet-900">
-                                    {/* {organizacionEscolar?.grupos?.map((e) => e.grupoAsignaturaDocente?.map((g) => g.gruposConEstudiantes.map((o) => o.estudiante))).length} */}
-                                    total estudiantes
-                                </p>
-                            </div>
-                            <BookOpen className="h-8 w-8 text-violet-600" />
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-rose-50 to-pink-50 border-rose-200">
-                    <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-rose-700"> ya no existe Activos</p>
-                                <p className="text-2xl font-bold text-rose-900">cort ya no existe aqui</p>
-                            </div>
-                            <Save className="h-8 w-8 text-rose-600" />
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
             {/* Formulario para agregar grupos */}
             <GrupoTableForm idOrganizacion={Number(organizacionId)} idTurno={Number(organizacionEscolar?.turno?.id ?? null)} onSuccess={fetchOrganizacionEscolarById} />
 

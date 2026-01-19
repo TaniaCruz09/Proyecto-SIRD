@@ -1,8 +1,7 @@
 "use client"
 import { Button } from '@headlessui/react'
 import { Plus } from 'lucide-react'
-import React, { useState } from 'react'
-import { BsPlus, BsPlusCircle } from 'react-icons/bs'
+import React from 'react'
 
 interface BtnOpenAddModalProps {
   text?: string
