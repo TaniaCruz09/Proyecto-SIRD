@@ -35,6 +35,16 @@ export default function AsignarEstudiantesAGrupo() {
     const asignaturasDelGrupo = grupos?.grupoAsignaturaDocente ?? [];
     const gradoId = grupos?.grado.id ?? 0
 
+    const estudiantesUnicos = Object.values(
+        grupos?.grupoAsignaturaDocente
+            ?.reduce((acc, gad) => {
+                gad.gruposConEstudiantes.forEach(ge => {
+                    acc[ge.estudiante.id] = ge.estudiante;
+                });
+                return acc;
+            }, {} as Record<number, any>) ?? {}
+    );
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
             {/* Contenedor de encabezado y buscador en dos columnas */}
@@ -122,12 +132,7 @@ export default function AsignarEstudiantesAGrupo() {
                     </tr>
                 </thead>
                 <tbody>
-                    {(
-                        grupos?.grupoAsignaturaDocente
-                            ?.flatMap(gad => gad.gruposConEstudiantes.map(ge => ge.estudiante))
-                            // eliminar duplicados por id
-                            .filter((value, index, self) => self.findIndex(v => v.id === value.id) === index) ?? []
-                    ).map((estudiante, index) => (
+                    {estudiantesUnicos.map((estudiante, index) => (
                         <tr key={estudiante.id} className="hover:bg-gray-50 transition-colors">
                             <td className="text-left px-4 py-2 border border-gray-300">{index + 1}</td>
                             <td className="text-left px-4 py-2 border border-gray-300">
