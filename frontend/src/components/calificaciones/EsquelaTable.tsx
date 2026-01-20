@@ -137,7 +137,6 @@ export function EsquelaTable({ esquelaHeadId, corteFilter = "all" }: EsquelaTabl
                                     <TableHead className="font-bold border-r border-rose-200 text-center bg-gray-200">Promedio</TableHead>
                                 </TableRow>
                             </TableHeader>
-
                             <TableBody>
                                 {estudiantes.map((est: Estudiante, index: number) => (
                                     <TableRow key={est.id} className="hover:bg-rose-50 border-b border-rose-200">

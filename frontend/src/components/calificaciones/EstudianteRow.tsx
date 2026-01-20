@@ -47,7 +47,6 @@ export default function EstudianteRow({
         if (valor === "") return alert("Debe ingresar una nota antes de guardar")
 
         const notaNumerica = Number(valor)
-
         // 👉 SI EXISTE NOTA EN BD → HACER UPDATE
         if (notaBD && typeof notaBD.notaCuantitativa !== "undefined") {
             await onGuardar(

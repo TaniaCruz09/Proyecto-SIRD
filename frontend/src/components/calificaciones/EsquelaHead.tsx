@@ -1,7 +1,7 @@
 import { School, BookOpen, Users, Clock, Calendar, GraduationCap, User } from "lucide-react"
 
 interface SchoolInfoProps {
-    schoolName: string
+    nombreCentro: string
     grade: string
     section: string
     shift: string
@@ -10,7 +10,7 @@ interface SchoolInfoProps {
     teacherName: string
 }
 
-export function EsquelaHead({ schoolName, grade, section, shift, year, modality, teacherName }: SchoolInfoProps) {
+export function EsquelaHead({ nombreCentro, grade, section, shift, year, modality, teacherName }: SchoolInfoProps) {
     return (
         <header className="bg-cyan-900 text-white shadow-lg">
       <div className="container mx-auto px-6 py-6">
@@ -20,8 +20,7 @@ export function EsquelaHead({ schoolName, grade, section, shift, year, modality,
             <GraduationCap className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Instituto Ruben Dario</h1>
-            <p className="text-cyan-200 text-sm font-light">Instituto Nacional</p>
+            <h1 className="text-2xl font-bold tracking-tight">{nombreCentro}</h1>
           </div>
         </div>
 
