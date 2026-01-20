@@ -139,29 +139,40 @@ export class GrupoAsignaturaDocenteService {
     const grupo = await this.grupoRepository.findOneBy({ id: grupoId });
     if (!grupo) throw new Error(`Grupo con id ${grupoId} no encontrado`);
 
-    // Eliminar actuales
-    await this.gadRepository.delete({ grupo: { id: grupoId } });
+    const resultados: GrupoAsignaturaDocente[] = [];
 
-    // Crear nuevas
-    const nuevasAsignaciones: GrupoAsignaturaDocente[] = [];
     for (const item of data.asignaturasConDocentes) {
-      const asignatura = await this.asignaturaRepository.findOneBy({ id: item.asignaturaId });
-      if (!asignatura) throw new Error(`Asignatura con id ${item.asignaturaId} no encontrada`);
-
-      const docente = await this.docenteRepository.findOneBy({ id: item.docenteId });
-      if (!docente) throw new Error(`Docente con id ${item.docenteId} no encontrado`);
-
-      const nuevaAsignacion = this.gadRepository.create({
-        grupo,
-        asignatura,
-        docente,
+      // 1️⃣ Buscar la relación EXISTENTE (IMPORTANTE)
+      const gad = await this.gadRepository.findOne({
+        where: {
+          grupo: { id: grupoId },
+          asignatura: { id: item.asignaturaId }
+        },
+        relations: ["gruposConEstudiantes"] // 🔥 CLAVE: conservamos estudiantes
       });
 
-      nuevasAsignaciones.push(nuevaAsignacion);
+      if (!gad) {
+        throw new Error(
+          `No existe relación grupo ${grupoId} - asignatura ${item.asignaturaId}`
+        );
+      }
+
+      // 2️⃣ Buscar el nuevo docente
+      const docente = await this.docenteRepository.findOneBy({ id: item.docenteId });
+      if (!docente) {
+        throw new Error(`Docente con id ${item.docenteId} no encontrado`);
+      }
+
+      // 3️⃣ SOLO cambiar el docente (NADA MÁS)
+      gad.docente = docente;
+
+      resultados.push(gad);
     }
 
-    return this.gadRepository.save(nuevasAsignaciones);
+    // 4️⃣ Guardar los cambios (sin borrar nada)
+    return this.gadRepository.save(resultados);
   }
+
 
 
   // src/module/organizacionEscolar/services/grupoAsignaturaDocente.service.ts

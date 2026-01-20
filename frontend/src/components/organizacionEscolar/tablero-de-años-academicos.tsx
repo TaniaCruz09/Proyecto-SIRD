@@ -9,6 +9,7 @@ import { AnioLectivo } from "@/interfaces"
 import { useRouter } from "next/navigation"
 import AddAniosLectivosModal from "../modals/catalogo/anioLectivoModals/AddAnioLectivoModal"
 import SearchBar from "../SearchBar"
+import AddOganizacionEscolarConAnioLectivoModal from "../modals/organizacionEscolar/organizacion/AddOganizacionEscolarConAnioLectivoModal"
 
 export function AcademicYearsDashboard() {
     const [anioLectivos, setAniosLectivos] = useState<AnioLectivo[]>([]);
@@ -161,25 +162,17 @@ export function AcademicYearsDashboard() {
                                         <h3 className="text-lg font-semibold mb-2 text-slate-700">Sin organizaciones escolares</h3>
                                         <p className="text-slate-500 text-center mb-4">Este año lectivo no tiene organizaciones aún</p>
 
-                                        <Button onClick={() => router.push(`/add-organizations-to-year/${anioLectivo.id}`)} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm">
-                                            <Plus className="h-4 w-4" />
-                                            Agregar Organización Escolar
-
-                                        </Button>
+                                        <AddOganizacionEscolarConAnioLectivoModal
+                                            idAnioLectivo={Number(anioLectivo.id)}
+                                        />
 
                                     </div>
                                 )}
 
                                 <div className="flex gap-2 pt-4 border-t border-slate-200">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="flex items-center gap-2 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
-                                        onClick={() => router.push(`/add-organizations-to-year/${anioLectivo.id}`)}
-                                    >
-                                        <Eye className="h-4 w-4" />
-                                        organización del año lectivo
-                                    </Button>
+                                    <AddOganizacionEscolarConAnioLectivoModal
+                                        idAnioLectivo={Number(anioLectivo.id)}
+                                    />
                                     <Button
                                         onClick={() => router.push(`/catalogo/anioLectivo?idAnioLectivo=${anioLectivo.id}`)}
                                         variant="outline"
