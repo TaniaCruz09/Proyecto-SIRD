@@ -16,6 +16,7 @@ import { GrupoAsignaturaConEstudiantesController } from './controllers/grupo-asi
 import { GrupoAsignaturaConEstudiantes } from './entities/grupo-asignatura-con-estudiantes.entity';
 import { DocenteController } from '../docentes/docentes.controller';
 import { DocentesService } from '../docentes/docentes.service';
+import { CalificacionesModule } from '../calificaciones/calificaciones.module';
 
 @Module({
     imports: [
@@ -29,6 +30,7 @@ import { DocentesService } from '../docentes/docentes.service';
             GrupoAsignaturaDocente,
             Docentes
         ]),
+        CalificacionesModule,
     ],
     controllers: [
         GruposController,

@@ -6,6 +6,8 @@ import { Grupos } from '../entities/grupos.entity';
 import { GrupoAsignaturaConEstudiantes } from '../entities/grupo-asignatura-con-estudiantes.entity';
 import { AsignarEstudianteAGrupoDto } from '../dtos/grupos-asignatura-con-estudiantes.dto';
 import { GrupoAsignaturaDocente } from '../entities/GrupoAsignaturaDocente.entity';
+import { EsquelaHeadEntity } from '../../calificaciones/esquela_head/entities/squela_head.entity';
+import { EsquelaRow } from '../../calificaciones/esquelas_rows/esquelas_rows.entity';
 
 @Injectable()
 export class GrupoAsignaturaConEstudiantesService {
@@ -18,6 +20,12 @@ export class GrupoAsignaturaConEstudiantesService {
 
         @InjectRepository(GrupoAsignaturaDocente)
         private grupoAsignaturaDocenteRepo: Repository<GrupoAsignaturaDocente>,
+
+        @InjectRepository(EsquelaHeadEntity)
+        private esquelaHeadRepo: Repository<EsquelaHeadEntity>,
+
+        @InjectRepository(EsquelaRow)
+        private esquelaRowRepo: Repository<EsquelaRow>,
     ) { }
 
     async saveEstudianteAGrupo(dto: AsignarEstudianteAGrupoDto): Promise<GrupoAsignaturaConEstudiantes> {
@@ -156,6 +164,7 @@ export class GrupoAsignaturaConEstudiantesService {
             const grupoAsignaturasDestino = await this.grupoAsignaturaDocenteRepo
                 .createQueryBuilder('gad')
                 .leftJoinAndSelect('gad.grupo', 'grupo')
+                .leftJoinAndSelect('gad.asignatura', 'asignatura')
                 .where('grupo.id = :grupoDestinoId', { grupoDestinoId })
                 .getMany();
 
@@ -173,6 +182,44 @@ export class GrupoAsignaturaConEstudiantesService {
 
             // 4️⃣ Guardar todas las nuevas asignaciones
             const resultado = await this.grupoConEstudianteRepo.save(nuevasAsignaciones);
+
+            // 5️⃣ Transferir calificaciones del grupo origen al destino
+            const esquelaHeadOrigen = await this.esquelaHeadRepo.findOne({
+                where: { grupo_asignatura: { id: grupoOrigenId } },
+            });
+
+            if (esquelaHeadOrigen) {
+                let esquelaHeadDestino = await this.esquelaHeadRepo.findOne({
+                    where: { grupo_asignatura: { id: grupoDestinoId } },
+                });
+
+                if (!esquelaHeadDestino) {
+                    // Crear uno si no existe
+                    esquelaHeadDestino = await this.esquelaHeadRepo.save({
+                        grupo_asignatura: { id: grupoDestinoId },
+                        user_create_id: 1, // Asumir un usuario, o pasar como parámetro
+                    });
+                }
+
+                // Buscar todas las EsquelaRow del estudiante en el grupo origen
+                const calificacionesOrigen = await this.esquelaRowRepo
+                    .createQueryBuilder('er')
+                    .where('er.estudiante = :estudianteId', { estudianteId })
+                    .andWhere('er.esquelaHead = :esquelaHeadId', { esquelaHeadId: esquelaHeadOrigen.id })
+                    .getMany();
+
+                // Para cada calificación, verificar si la asignatura existe en el grupo destino
+                const asignaturasDestino = grupoAsignaturasDestino.map(gad => gad.asignatura.id);
+
+                for (const calif of calificacionesOrigen) {
+                    if (asignaturasDestino.includes(calif.asignatura.id)) {
+                        // Transferir al destino
+                        calif.esquelaHead = esquelaHeadDestino;
+                        await this.esquelaRowRepo.save(calif);
+                    }
+                    // Si no, quizás dejarla o eliminarla, pero por ahora transferir solo si coincide
+                }
+            }
 
             return {
                 message: 'Estudiante movido exitosamente',
