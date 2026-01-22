@@ -3,6 +3,8 @@
 import { NivelAcademico } from "@/interfaces";
 import React from "react";
 import NivelAcademicoRow from "./NivelAcademicoRow";
+import { usePagination } from "@/components/paginacion/usePaginacion";
+import Pagination from "@/components/paginacion/paginacion";
 
 interface NivelAcademicoTableProps {
   nivelAcademico: NivelAcademico[];
@@ -12,6 +14,12 @@ interface NivelAcademicoTableProps {
 export default function NivelAcademicoTable({
   nivelAcademico, fetchNivelesAcademicos,
 }: NivelAcademicoTableProps) {
+  const {
+    currentPage,
+    setCurrentPage,
+    currentItems,
+  } = usePagination(nivelAcademico, 5);
+
   return (
     <div className="bg-white">
       <div className="bg-white shadow-lg h-[calc(100vh-230px)] overflow-y-auto">
@@ -29,24 +37,31 @@ export default function NivelAcademicoTable({
             </tr>
           </thead>
           <tbody>
-            {nivelAcademico.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="text-center text-gray-500 py-10">
-                  No hay Niveles Academicos registrados.
-                </td>
-              </tr>
-            ) : (
-              nivelAcademico.map((nivelAcademicoItem) => (
+            {nivelAcademico.length > 0 ? (
+              currentItems.map((nivelAcademicoItem) => (
                 <NivelAcademicoRow
                   key={nivelAcademicoItem.id}
                   fetchNivelesAcademicos={fetchNivelesAcademicos}
                   nivelAcademico={nivelAcademicoItem}
                 />
               ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="text-center text-gray-500 py-10">
+                  No hay Niveles Academicos registrados.
+                </td>
+              </tr>
+
             )}
           </tbody>
         </table>
       </div>
+      <Pagination
+        currentPage={currentPage}
+        totalItems={nivelAcademico.length}
+        itemsPerPage={5}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

@@ -389,7 +389,7 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
     }
 
     /* ==========================
-       DATOS
+    DATOS
     ========================== */
 
     estudiantes.forEach((est, index) => {

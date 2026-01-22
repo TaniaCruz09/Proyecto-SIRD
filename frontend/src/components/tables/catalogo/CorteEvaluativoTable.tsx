@@ -3,6 +3,8 @@
 import { Corte } from "@/interfaces";
 import React from "react";
 import CorteEvaluativoRow from "./CorteEvaluativoRow";
+import { usePagination } from "@/components/paginacion/usePaginacion";
+import Pagination from "@/components/paginacion/paginacion";
 
 interface CorteEvaluativoTableProp {
   corteEvaluativo: Corte[];
@@ -13,6 +15,12 @@ export default function CorteEvaluativoTable({
   corteEvaluativo,
   fetchCortesEvaluativos,
 }: CorteEvaluativoTableProp) {
+  const {
+    currentPage,
+    setCurrentPage,
+    currentItems,
+  } = usePagination(corteEvaluativo, 5);
+
   return (
     <div className="bg-white">
       <div className="bg-white shadow-lg h-[calc(100vh-230px)] overflow-y-auto">
@@ -32,24 +40,30 @@ export default function CorteEvaluativoTable({
             </tr>
           </thead>
           <tbody>
-            {corteEvaluativo.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="text-center text-gray-500 py-10">
-                  No hay cortes Evaluativos registrados.
-                </td>
-              </tr>
-            ) : (
-              corteEvaluativo.map((corteEvaluativoItem) => (
+            {corteEvaluativo.length > 0 ? (
+              currentItems.map((corteEvaluativoItem) => (
                 <CorteEvaluativoRow
                   key={corteEvaluativoItem.id}
                   fetchCorteEvaluativo={fetchCortesEvaluativos}
                   corteEvaluativo={corteEvaluativoItem}
                 />
               ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="text-center text-gray-500 py-10">
+                  No hay cortes Evaluativos registrados.
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
       </div>
+      <Pagination
+        currentPage={currentPage}
+        totalItems={corteEvaluativo.length}
+        itemsPerPage={5}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

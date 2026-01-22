@@ -8,6 +8,8 @@ import { EsquelaHeadInterface } from "@/interfaces/calificaciones/EsquelaHead"
 import { getEsquelaHeadById } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
 import { EsquelaHead } from "./EsquelaHead"
 import { getEsquelaRowByEstudianteAndAnio } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods"
+import { CentroEscolar } from "@/interfaces/centroInterface"
+import { getCentros } from "@/actions/centroMethods/centroEducativoMethods"
 
 function getQualitativeGrade(grade: number): string {
     if (grade >= 90) return "AA"
@@ -41,6 +43,7 @@ interface EsquelaTableProps {
 export function EsquelaTable({ esquelaHeadId, corteFilter = "all" }: EsquelaTableProps) {
     const [esquelaHead, setEsquelaHead] = useState<EsquelaHeadInterface>()
     const [calificaciones, setCalificaciones] = useState<any[]>([])
+    const [centro, setCentro] = useState<CentroEscolar | null>(null)
 
     const fetchEsquelaHeadById = async () => {
         try {
@@ -62,11 +65,21 @@ export function EsquelaTable({ esquelaHeadId, corteFilter = "all" }: EsquelaTabl
             console.error(error)
         }
     }
-
+    const fetchCentro = async () => {
+        try {
+            const centros = await getCentros()
+            // Si solo tienes un centro registrado
+            setCentro(centros[0])
+        } catch (error) {
+            console.error("Error cargando centro:", error)
+        }
+    }
+    fetchCentro()
     useEffect(() => {
         fetchEsquelaHeadById()
     }, [esquelaHeadId])
 
+    const colegio = centro?.nombreCentro ?? "N/A"
     const grupo = esquelaHead?.grupo_asignatura?.grado.grades ?? "N/A"
     const docenteGuia = esquelaHead?.grupo_asignatura?.docenteGuia.nombres ?? "N/A"
     const asignaturas = esquelaHead?.grupo_asignatura?.grupoAsignaturaDocente ?? []
@@ -74,6 +87,7 @@ export function EsquelaTable({ esquelaHeadId, corteFilter = "all" }: EsquelaTabl
     const modalidad = esquelaHead?.grupo_asignatura?.turno.modalidad?.modalidad ?? "N/A"
     const shift = esquelaHead?.grupo_asignatura?.turno.turno ?? "N/A"
     const anioLectivo = esquelaHead?.grupo_asignatura?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0
+
 
     const estudiantes: Estudiante[] =
         asignaturas
@@ -109,7 +123,7 @@ export function EsquelaTable({ esquelaHeadId, corteFilter = "all" }: EsquelaTabl
     return (
         <div className="w-full space-y-6 bg-gradient-to-br from-rose-50 via-pink-50 to-white min-h-screen p-4">
             <EsquelaHead
-                schoolName="Instituto Ruben Dario"
+                nombreCentro={colegio}
                 grade={grupo}
                 section={section}
                 shift={shift}
