@@ -2,6 +2,7 @@ import BtnDelete from '@/components/Buttons/BtnDelete'
 import React, { useState } from 'react'
 import ConfirmDeletModal from '../../ModalConfirmDeletion';
 import { deleteAnioLectivo } from '@/actions/catalogos/anioLectivoMethods';
+import { deleteCentro } from '@/actions/centroMethods/centroEducativoMethods';
 
 interface DeleteCentroEducativoModalProps {
   idEliminar: number;
@@ -20,7 +21,7 @@ export default function DeleteCentroEducativoModal({ idEliminar, fetchCentroEduc
   const confirmDelete = async () => {
     if (!CentroEducativoToDelete) return;
     try {
-      await deleteAnioLectivo(CentroEducativoToDelete);
+      await deleteCentro(CentroEducativoToDelete);
       await fetchCentroEducativo();
     } catch (error) {
       console.error("error al eliminar centro educativo", error)
