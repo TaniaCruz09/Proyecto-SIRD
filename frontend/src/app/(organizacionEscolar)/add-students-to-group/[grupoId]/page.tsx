@@ -1,5 +1,6 @@
 "use client"
 import { getGruposById } from '@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods';
+import BuscarAsignarEstudianteAutocomplete from '@/components/Filtros/BuscarEstudiantes';
 import BuscarYAsignarEstudiantes from '@/components/Filtros/BuscarEstudiantes';
 import DeleteEstudianteDeGrupoModal from '@/components/modals/organizacionEscolar/gruposConEstudiantes/DeleteEstudianteDeGrupoModal';
 import MoveStudentToGroupModal from '@/components/modals/organizacionEscolar/gruposConEstudiantes/Move-student-to-group-modal';
@@ -105,10 +106,11 @@ export default function AsignarEstudiantesAGrupo() {
                     </div>
 
                     {/* Columna 2: buscador */}
-                    <div className="flex justify-center lg:justify-end">
-                        <BuscarYAsignarEstudiantes anioId={idAnioLectivo} asignaturasDelGrupo={asignaturasDelGrupo}
-                            fetchGrupoConEstudiantes={fetchGrupoById} />
-                    </div>
+                    <BuscarAsignarEstudianteAutocomplete
+                        anioId={idAnioLectivo}
+                        asignaturasDelGrupo={asignaturasDelGrupo}
+                        fetchGrupoConEstudiantes={fetchGrupoById}
+                    />
                 </div>
             </div>
 
@@ -162,12 +164,10 @@ export default function AsignarEstudiantesAGrupo() {
                             <td className="text-left px-4 py-2 border border-gray-300">{estudiante.studentCode}</td>
                             <td className="text-left px-4 py-2 border border-gray-300">{estudiante.gender?.gender}</td>
                             <td className="text-left px-4 py-2 border border-gray-300">
-                                {grupos?.grupoAsignaturaDocente
-                                    ?.filter(gad =>
-                                        gad.gruposConEstudiantes.some(ge => ge.estudiante.id === estudiante.id)
-                                    )
+                                {asignaturasDelGrupo
+                                    .filter((value, index, self) => self.findIndex(v => v.asignatura.id === value.asignatura.id) === index)
                                     .map(gad => gad.asignatura.asignatura)
-                                    .join(", ") ?? "N/A"}
+                                    .join(", ") || "N/A"}
                             </td>
                             <td className="px-4 py-2 border border-gray-300 text-center">
                                 <MoveStudentToGroupModal
