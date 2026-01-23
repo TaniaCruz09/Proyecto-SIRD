@@ -204,6 +204,7 @@ export class GrupoAsignaturaConEstudiantesService {
                 // Buscar todas las EsquelaRow del estudiante en el grupo origen
                 const calificacionesOrigen = await this.esquelaRowRepo
                     .createQueryBuilder('er')
+                    .leftJoinAndSelect('er.asignatura', 'asignatura')
                     .where('er.estudiante = :estudianteId', { estudianteId })
                     .andWhere('er.esquelaHead = :esquelaHeadId', { esquelaHeadId: esquelaHeadOrigen.id })
                     .getMany();

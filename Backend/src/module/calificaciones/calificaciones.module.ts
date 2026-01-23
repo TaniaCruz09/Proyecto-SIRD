@@ -11,5 +11,6 @@ import { EsquelaHeadService } from './esquela_head/squela_head.service';
   imports: [TypeOrmModule.forFeature([EsquelaRow, EsquelaHeadEntity])],
   controllers: [EsquelaRowController, EsquelaHeadController],
   providers: [EsquelaRowService, EsquelaHeadService],
+  exports: [TypeOrmModule],
 })
 export class CalificacionesModule { }
