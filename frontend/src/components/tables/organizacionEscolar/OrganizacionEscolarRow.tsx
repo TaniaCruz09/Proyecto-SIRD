@@ -25,15 +25,14 @@ export default function OrganizacionEscolarRow({ fetchOrganizacionEscolar, organ
                 {organizacionEscolar.turno.turno}
             </td>
             <td className="p-3 px-2 py-2 border-b border-gray-200 text-center">
-                <Link href={`/add-groups-to-organization?idAnioLectivo=${organizacionEscolar.anio_lectivo?.id}&idOrganizacion=${organizacionEscolar.id}&anioLectivo=${organizacionEscolar.anio_lectivo?.anio_lectivo}&modalidad=${organizacionEscolar.turno.modalidad?.modalidad}&turno=${organizacionEscolar.turno.turno}&idTurno=${organizacionEscolar.turno.id}`}>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="bg-blue-300/30 hover:bg-blue-400 text-blue-500 text-bold text-xl mx-6 py-2 rounded-md text-sm cursor-pointer"
-                    >
-                        <Users className="h-4 w-4" />
-                    </Button>
-                </Link>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-blue-300/30 hover:bg-blue-400 text-blue-500 text-bold text-xl mx-6 py-2 rounded-md text-sm cursor-pointer"
+                    onClick={() => router.push(`/add-groups-to-organization/${organizacionEscolar.id}`)}
+                >
+                    <Users className="h-4 w-4" />
+                </Button>
             </td>
 
             <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><EditOrganizacionEscolarModal organizacionEscolar={organizacionEscolar} fetchOrganizacionEscolar={fetchOrganizacionEscolar} /></td>

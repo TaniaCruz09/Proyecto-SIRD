@@ -146,7 +146,7 @@ export function AcademicYearsDashboard() {
                                                             variant="outline"
                                                             size="sm"
                                                             className="flex-1 text-xs h-7 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
-                                                            onClick={() => router.push(`/organizacion/=${org.id}`)}
+                                                            onClick={() => router.push(`/organizacion?organizacionId=${org.id}`)}
                                                         >
                                                             <Settings className="h-3 w-3 mr-1" />
                                                             Gestionar
