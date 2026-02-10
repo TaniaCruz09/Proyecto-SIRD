@@ -3,6 +3,8 @@
 import React from "react";
 import TurnoRow from "./TurnoRow";
 import { Turno } from "@/interfaces";
+import { usePagination } from "@/components/paginacion/usePaginacion";
+import Pagination from "@/components/paginacion/paginacion";
 
 interface TurnoProp {
   turno: Turno[];
@@ -13,6 +15,11 @@ export default function TurnoTable({
   turno,
   fetchTurno,
 }: TurnoProp) {
+  const {
+    currentPage,
+    setCurrentPage,
+    currentItems,
+  } = usePagination(turno, 5);
   return (
     <div className="bg-white">
       <div className="bg-white shadow-lg h-[calc(100vh-230px)] overflow-y-auto">
@@ -31,24 +38,31 @@ export default function TurnoTable({
             </tr>
           </thead>
           <tbody>
-            {turno.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="text-center text-gray-500 py-10">
-                  No hay turnos registradas.
-                </td>
-              </tr>
-            ) : (
-              turno.map((TurnoItem) => (
+            {turno.length > 0 ? (
+              currentItems.map((TurnoItem) => (
                 <TurnoRow
                   key={TurnoItem.id}
                   fetchTurno={fetchTurno}
                   turno={TurnoItem}
                 />
               ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="text-center text-gray-500 py-10">
+                  No hay turnos registradas.
+                </td>
+              </tr>
+
             )}
           </tbody>
         </table>
       </div>
+      <Pagination
+        currentPage={currentPage}
+        totalItems={turno.length}
+        itemsPerPage={5}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

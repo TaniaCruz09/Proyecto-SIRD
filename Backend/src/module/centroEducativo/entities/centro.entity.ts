@@ -1,9 +1,9 @@
-import moment from "moment";
+import * as moment from 'moment-timezone';
 import { User } from "../../auth/entities";
 import { Departamento, Municipio } from "../../catalogos";
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from "typeorm";
 
-@Entity({ name: 'centro' })
+@Entity({ name: 'centro', schema: 'centro'  })
 export class Centro {
     @PrimaryGeneratedColumn('increment', {
         name: 'id',
@@ -12,30 +12,27 @@ export class Centro {
     id?: number;
 
     @Column({
-        name: 'nombre_centro',
-        type: 'varchar',
-        length: 255,
+        name: 'nombreCentro',
+        type: 'text',
     })
     nombreCentro: string;
 
     @Column({
-        name: 'codigo_establecimiento',
-        type: 'varchar',
-        length: 50,
+        name: 'codigoEstablecimiento',
+        type: 'text',
         unique: true,
     })
     codigoEstablecimiento: string;
 
     @Column({
-        name: 'codigo_centro',
-        type: 'varchar',
-        length: 50,
+        name: 'codigoCentro',
+        type: 'text',
         unique: true,
     })
     codigoCentro: string;
 
     @Column({
-        name: 'direccion_centro',
+        name: 'direccionCentro',
         type: 'text',
     })
     direccionCentro: string;

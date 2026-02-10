@@ -29,10 +29,11 @@ const catalogSubmenu = [
   { label: 'Secciones', href: '/catalogo/seccion', icon: FaUserPlus },
   { label: 'Semestres', href: '/catalogo/semestre', icon: FaUserPlus },
   { label: 'Turnos', href: '/catalogo/turnos', icon: FaUserPlus },
+  { label: 'Centro Educativo', href: '/catalogo/centro', icon: FaUserPlus },
 ]
 
 const organizacionEscolarSubmenu = [
-  { label: 'Organizacion Escolar', href: '/organizacion', icon: FaUser },
+  // { label: 'Organizacion Escolar', href: '/organizacion', icon: FaUser },
   { label: 'Grupos Educativos', href: '/registerGroups', icon: FaUserPlus },
 ]
 
@@ -203,14 +204,14 @@ function NavbarAdmin() {
           </Link>
         )}
 
-        {/* Links compartidos */}
+        {/* Links compartidos 
         <Link
           href="/calificaciones"
           className={`flex items-center gap-3 p-3 rounded-md transition ${isActive('/calificaciones')}`}
         >
           <FaCog />
           <span>Calificaciones</span>
-        </Link>
+        </Link>*/}
       </div>
     </nav>
   )

@@ -34,11 +34,11 @@ export default function DocenteForm({
 }: DocenteFormProps) {
   const [formValues, setFormValues] = useState({ name: "", lastName: "" })
   const [nombres, setNombres] = useState<string>("");
-   const [apellidos, setApellidos] = useState(""); // 🔹 Un solo campo
+  const [apellidos, setApellidos] = useState(""); // 🔹 Un solo campo
   const [cedulaIdentidad, setCedulaIdentidad] = useState<string>("");
   const [sexo, setSexo] = useState<string>("");
   const [nivelAcademico, setNivelAcademico] = useState<string>("");
- 
+
   const [telefono, setTelefono] = useState<string>("");
   const [fechaNacimiento, setFechaNacimiento] = useState<string>("");
   const [pais, setPais] = useState<string>("");
@@ -46,10 +46,10 @@ export default function DocenteForm({
   const [fechaContratado, setFechaContratado] = useState<string>("");
   const [direccionDomiciliar, setDireccionDomiciliar] = useState<string>("");
   const [profession, setProfession] = useState("");
-  
+
   const [telefonoContactoEmergencia, setTelefonoContactoEmergencia] =
     useState<string>("");
-    const [nombreContactoEmergencia, setNombreContactoEmergencia] = useState("");
+  const [nombreContactoEmergencia, setNombreContactoEmergencia] = useState("");
 
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -136,97 +136,92 @@ export default function DocenteForm({
     }
   }, [defaultValues]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  try {
-    // --- Obtener objetos completos ---
-    const selectedSexo = sexos.find((s) => s.id === parseInt(sexo));
-    const selectedPais = paises.find((p) => p.id === parseInt(pais));
-    const selectedMunicipio = municipios.find((m) => m.id === parseInt(municipio));
-    const selectedNivelAcademico = nivelesAcademicos.find(
-      (n) => n.id === parseInt(nivelAcademico)
-    );
-    const selectedProfesion = profesiones.find(
-      (p) => p.id === parseInt(profession)
-    );
+    try {
+      // --- Obtener objetos completos ---
+      const selectedSexo = sexos.find((s) => s.id === parseInt(sexo));
+      const selectedPais = paises.find((p) => p.id === parseInt(pais));
+      const selectedMunicipio = municipios.find((m) => m.id === parseInt(municipio));
+      const selectedNivelAcademico = nivelesAcademicos.find((n) => n.id === parseInt(nivelAcademico));
+      const selectedProfesion = profesiones.find((p) => p.id === parseInt(profession));
+      if (
+        !selectedSexo ||
+        !selectedPais ||
+        !selectedMunicipio ||
+        !selectedNivelAcademico ||
+        !selectedProfesion
+      ) {
+        console.error("Faltan campos obligatorios");
+        alert("Por favor complete todos los campos requeridos");
+        return;
+      }
 
-    if (
-      !selectedSexo ||
-      !selectedPais ||
-      !selectedMunicipio ||
-      !selectedNivelAcademico ||
-      !selectedProfesion
-    ) {
-      console.error("Faltan campos obligatorios");
-      alert("Por favor complete todos los campos requeridos");
-      return;
-    }
+      // --- Dividir apellidos ---
+      const [apellido_paterno = "", apellido_materno = ""] = apellidos
+        .trim()
+        .split(" ", 2);
 
-    // --- Dividir apellidos ---
-    const [apellido_paterno = "", apellido_materno = ""] = apellidos
-      .trim()
-      .split(" ", 2);
-
-    // --- Crear FormData ---
-    const formData = new FormData();
-    formData.append("nombres", nombres);
-    formData.append("apellido_paterno", apellido_paterno);
-    formData.append("apellido_materno", apellido_materno);
-    formData.append("cedula_identidad", cedulaIdentidad);
-    formData.append("telefono", telefono);
-    if (fechaNacimiento) formData.append("fecha_nacimiento", fechaNacimiento);
-    if (fechaContratado) formData.append("fechaContratado", fechaContratado);
-    formData.append("direccion_domiciliar", direccionDomiciliar);
-    formData.append("nombre_contacto_emergencia", nombreContactoEmergencia);
-    formData.append(
-      "telefono_contacto_emergencia",
-      telefonoContactoEmergencia
-    );
-
-    // --- Arrays convertidos a JSON ---
-    formData.append("nivel_academico", JSON.stringify([selectedNivelAcademico]));
-    formData.append("profession", JSON.stringify([selectedProfesion]));
-
-    // Objetos simples
-    formData.append("sexo", JSON.stringify(selectedSexo));
-    formData.append("pais", JSON.stringify(selectedPais));
-    formData.append("municipio", JSON.stringify(selectedMunicipio));
-
-    // Foto (si hay) 
-    if (file) formData.append("foto_docente", file);
-
-    let response;
-
-    // --- Crear o actualizar docente ---
-    if (isEdit && defaultValues?.id) {
-      response = await feching(
-        `/docentes/${defaultValues.id}`,
-        "no-cache",
-        "PUT",
-        formData
+      // --- Crear FormData ---
+      const formData = new FormData();
+      formData.append("nombres", nombres);
+      formData.append("apellido_paterno", apellido_paterno);
+      formData.append("apellido_materno", apellido_materno);
+      formData.append("cedula_identidad", cedulaIdentidad);
+      formData.append("telefono", telefono);
+      if (fechaNacimiento) formData.append("fecha_nacimiento", fechaNacimiento);
+      if (fechaContratado) formData.append("fechaContratado", fechaContratado);
+      formData.append("direccion_domiciliar", direccionDomiciliar);
+      formData.append("nombre_contacto_emergencia", nombreContactoEmergencia);
+      formData.append(
+        "telefono_contacto_emergencia",
+        telefonoContactoEmergencia
       );
-    } else {
-      response = await feching(`/docentes`, "no-cache", "POST", formData);
+
+      // --- Arrays convertidos a JSON ---
+      formData.append("nivel_academico", JSON.stringify([selectedNivelAcademico]));
+      formData.append("profession", JSON.stringify([selectedProfesion]));
+
+      // Objetos simples
+      formData.append("sexo", JSON.stringify(selectedSexo));
+      formData.append("pais", JSON.stringify(selectedPais));
+      formData.append("municipio", JSON.stringify(selectedMunicipio));
+
+      // Foto (si hay) 
+      if (file) formData.append("foto_docente", file);
+
+      let response;
+
+      // --- Crear o actualizar docente ---
+      if (isEdit && defaultValues?.id) {
+        response = await feching(
+          `/docentes/${defaultValues.id}`,
+          "no-cache",
+          "PUT",
+          formData
+        );
+      } else {
+        response = await feching(`/docentes`, "no-cache", "POST", formData);
+      }
+
+      const savedDocente = response.data;
+
+      // Actualizar preview si se guardó foto
+      if (savedDocente.foto_docente) {
+        setPreview(
+          `${process.env.NEXT_PUBLIC_API_UPLOADS}/${savedDocente.foto_docente}`
+        );
+      }
+
+      console.log("Docente guardado:", savedDocente);
+
+      onSuccess();
+    } catch (error) {
+      console.error("Error al guardar docente:", error);
+      alert("Ocurrió un error al guardar el docente.");
     }
-
-    const savedDocente = response.data;
-
-    // Actualizar preview si se guardó foto
-    if (savedDocente.foto_docente) {
-      setPreview(
-        `${process.env.NEXT_PUBLIC_API_UPLOADS}/${savedDocente.foto_docente}`
-      );
-    }
-
-    console.log("Docente guardado:", savedDocente);
-
-    onSuccess();
-  } catch (error) {
-    console.error("Error al guardar docente:", error);
-    alert("Ocurrió un error al guardar el docente.");
-  }
-};
+  };
 
 
   return (
@@ -240,23 +235,23 @@ export default function DocenteForm({
         <h3 className="text-lg font-semibold text-indigo-600 mb-3 border-l-4 border-indigo-400 pl-2">
           🪪 Datos personales
         </h3>
-             <div className="flex justify-center pt-4">
-        <div className="flex flex-col items-center">
-          <Avatar className="w-22 h-22 border-4 border-green-200 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-            {preview ? (
-              <AvatarImage
-                src={preview}
-                alt="Foto del Docente"
-              />
-            ) : (
-              <AvatarFallback className="text-md font-bold bg-green-100 text-green-700">
-                {formValues.name && formValues.lastName
-                  ? `${formValues.name[0] ?? ""}${formValues.lastName[0] ?? ""}`
-                  : <User className="w-10 h-10" />
-                }
-              </AvatarFallback>
-            )}
-          </Avatar>
+        <div className="flex justify-center pt-4">
+          <div className="flex flex-col items-center">
+            <Avatar className="w-22 h-22 border-4 border-green-200 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+              {preview ? (
+                <AvatarImage
+                  src={preview}
+                  alt="Foto del Docente"
+                />
+              ) : (
+                <AvatarFallback className="text-md font-bold bg-green-100 text-green-700">
+                  {formValues.name && formValues.lastName
+                    ? `${formValues.name[0] ?? ""}${formValues.lastName[0] ?? ""}`
+                    : <User className="w-10 h-10" />
+                  }
+                </AvatarFallback>
+              )}
+            </Avatar>
           </div>
 
           {/* Input oculto */}
@@ -469,15 +464,16 @@ export default function DocenteForm({
         </div>
       </section>
 
-       
-        <div className="flex justify-center">
-          <button
-            type="submit"
-            className="px-20 py-3 bg-indigo-500 text-white rounded-xl font-semibold hover:bg-indigo-600 shadow-md transition"
-          >
-            {isEdit ? "Actualizar" : "Guardar"}
-          </button>
-        </div>
+
+      <div className="flex justify-center">
+        <button
+          type="submit"
+          className="px-20 py-3 bg-indigo-500 text-white rounded-xl font-semibold hover:bg-indigo-600 shadow-md transition"
+        >
+          {isEdit ? "Actualizar" : "Guardar"}
+        </button>
+      </div>
     </form>
 
-  )}
+  )
+}
