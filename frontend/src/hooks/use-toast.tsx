@@ -6,7 +6,7 @@ interface Toast {
     id: number
     title: string
     description?: string
-    variant?: "default" | "destructive"
+    variant?: "default" | "destructive" | "success"
 }
 
 interface ToastContextType {
@@ -51,11 +51,11 @@ function ToastContainer({ toasts }: { toasts: Toast[] }) {
     return (
         <div className="fixed bottom-5 right-5 flex flex-col gap-2 z-50">
             {toasts.map(({ id, title, description, variant }) => (
-                <div
-                    key={id}
-                    className={`max-w-xs w-full rounded-md p-4 shadow-lg text-white
-            ${variant === "destructive" ? "bg-red-600" : "bg-gray-900"}`}
-                >
+                    <div
+                        key={id}
+                        className={`max-w-xs w-full rounded-md p-4 shadow-lg text-white
+                    ${variant === "destructive" ? "bg-red-600" : variant === "success" ? "bg-green-600" : "bg-gray-900"}`}
+                    >
                     <strong className="block font-bold">{title}</strong>
                     {description && <p className="mt-1 text-sm">{description}</p>}
                 </div>

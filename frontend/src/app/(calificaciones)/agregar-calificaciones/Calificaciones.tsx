@@ -13,7 +13,6 @@ import CardCortesEvaluativos from "@/components/calificaciones/CardCortesEvaluat
 import { Asignatura, CorteUI, Estudiante } from "@/interfaces/calificaciones/AgregarCalificaciones"
 import HeaderAgregarCalificaciones from "@/components/calificaciones/HeaderAgregarCalificaciones"
 import TabsAsignaturas from "@/components/calificaciones/TabsAsignaturas"
-import { useToast } from "@/hooks/use-toast"
 
 export interface CalificacionesProps {
     esquelaId: number | string
@@ -31,6 +30,7 @@ const getInitials = (nombre?: string) => {
 }
 
 /** Genera la nota cualitativa según el valor numérico */
+//HACER LA LOGICA DESDE EL BACKEND 
 const generarNotaCualitativa = (valor: number): string => {
     if (isNaN(valor)) return "AI"
     if (valor >= 0 && valor <= 59) return "AI"
@@ -49,7 +49,6 @@ export default function Calificaciones({
 }: CalificacionesProps) {
 
     const { docente } = useAuth()
-    const { toast } = useToast()
 
     const [estudiantes, setEstudiantes] = useState<Estudiante[]>([])
     const [asignaturas, setAsignaturas] = useState<Asignatura[]>([])
@@ -254,42 +253,14 @@ export default function Calificaciones({
         const raw = String(nota ?? "").trim();
 
         // Validaciones
-        if (raw === "") {
-            toast({
-                title: "Nota requerida",
-                description: "Debe ingresar una nota.",
-                variant: "destructive",
-            })
-            return
-        }
-        if (!/^\d{1,3}$/.test(raw)) {
-            toast({
-                title: "Nota inválida",
-                description: "Solo se permiten números enteros.",
-                variant: "destructive",
-            })
-            return
-        }
+        if (raw === "") return alert("Debe ingresar una nota");
+        if (!/^\d{1,3}$/.test(raw)) return alert("La nota no es válida (solo números enteros)");
 
         const notaNum = Number(raw);
-        if (notaNum < 0 || notaNum > 100) {
-            toast({
-                title: "Rango inválido",
-                description: "La nota debe estar entre 0 y 100.",
-                variant: "destructive",
-            })
-            return
-        }
+        if (notaNum < 0 || notaNum > 100) return alert("La nota debe estar entre 0 y 100");
 
         const corteEncontrado = cortes.find(c => c.id === corteActivo);
-        if (!corteEncontrado) {
-            toast({
-                title: "Corte no encontrado",
-                description: "No se encontró el corte seleccionado.",
-                variant: "destructive",
-            })
-            return
-        }
+        if (!corteEncontrado) return alert("No se encontró el corte");
 
         const notaCualitativa = generarNotaCualitativa(notaNum);
 
@@ -312,27 +283,16 @@ export default function Calificaciones({
                     esquela?.esquelaRow ??
                     [];
 
-                const rowBD = filasBD.find(r => {
-                    const estudianteIdBD = r?.estudiante?.id
-                    const asignaturaIdBD = r?.asignatura?.id
-                    const corteIdBD = r?.corte?.id
-
-                    if (estudianteIdBD == null || asignaturaIdBD == null || corteIdBD == null) return false
-
-                    return (
-                        Number(estudianteIdBD) === Number(estudiante.id) &&
-                        Number(asignaturaIdBD) === Number(asignaturaId) &&
-                        Number(corteIdBD) === Number(corteActivo)
-                    )
-                });
+                const rowBD = filasBD.find(
+                    r =>
+                        Number(r.estudiante.id) === Number(estudiante.id) &&
+                        Number(r.asignatura.id) === Number(asignaturaId) &&
+                        Number(r.corte.id) === Number(corteActivo)
+                );
 
 
                 if (!rowBD) {
-                    toast({
-                        title: "No se pudo actualizar",
-                        description: "La fila no existe en la base de datos.",
-                        variant: "destructive",
-                    })
+                    alert("No se pudo actualizar: la fila no existe en BD");
                     setGuardando(false);
                     return;
                 }
@@ -373,19 +333,11 @@ export default function Calificaciones({
             // 👉 Actualizar la fila
             setNotaBD(String(notaReal));
 
-            toast({
-                title: isUpdate ? "Nota actualizada" : "Nota guardada",
-                description: "La nota se guardó correctamente.",
-                variant: "success",
-            })
+            alert(isUpdate ? "Nota actualizada correctamente" : "Nota guardada correctamente");
         } catch (error) {
             console.error("Error al guardar nota:", error);
             setGuardando(false);
-            toast({
-                title: "Error al guardar",
-                description: "Ocurrió un error al guardar la nota.",
-                variant: "destructive",
-            })
+            alert("Error al guardar la nota");
         }
     };
 
@@ -396,17 +348,9 @@ export default function Calificaciones({
         const index = cortes.findIndex(c => c.id === corteActivo)
         if (index < cortes.length - 1) {
             setCorteActivo(cortes[index + 1].id)
-            toast({
-                title: "Corte cambiado",
-                description: `Corte actual: ${cortes[index + 1].corte}`,
-                variant: "default",
-            })
+            alert(`Corte cambiado a: ${cortes[index + 1].corte}`)
         } else {
-            toast({
-                title: "Último corte",
-                description: "Ya estás en el último corte.",
-                variant: "default",
-            })
+            alert("Ya estás en el último corte")
         }
     }
 

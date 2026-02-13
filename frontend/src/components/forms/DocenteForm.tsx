@@ -9,6 +9,7 @@ import {
   saveDocente,
   updateDocente,
   uploadDocenteImage,
+  getDocentes,
 } from "@/actions/docentesMethods/docentesMethods";
 import {
   Docente,
@@ -32,6 +33,9 @@ export default function DocenteForm({
   defaultValues,
   onSuccess,
 }: DocenteFormProps) {
+  const formRef = useRef<HTMLFormElement | null>(null)
+  const cedulaRef = useRef<HTMLInputElement | null>(null)
+  const telefonoRef = useRef<HTMLInputElement | null>(null)
   const [formValues, setFormValues] = useState({ name: "", lastName: "" })
   const [nombres, setNombres] = useState<string>("");
   const [apellidos, setApellidos] = useState(""); // 🔹 Un solo campo
@@ -62,6 +66,7 @@ export default function DocenteForm({
   const [profesiones, setProfesiones] = useState<Profesion[]>([]);
   const [paises, setPaises] = useState<Pais[]>([]);
   const [municipios, setMunicipios] = useState<Municipio[]>([]);
+  const telefonoEmergenciaRef = useRef<HTMLInputElement | null>(null)
 
   // const isEdit = Boolean(defaultValues?.id);
 
@@ -99,6 +104,72 @@ export default function DocenteForm({
     if (!selectedFile) return;
     setFile(selectedFile);
     setPreview(URL.createObjectURL(selectedFile));
+  };
+
+  const setInputValidity = (input: HTMLInputElement | null, message: string) => {
+    if (!input) return;
+    input.setCustomValidity(message);
+    if (message) {
+      input.focus();
+      input.reportValidity();
+    }
+  };
+
+  const handleCedulaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.slice(0, 16);
+    e.target.setCustomValidity("");
+    setCedulaIdentidad(value);
+  };
+
+  const handleTelefonoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 8);
+    e.target.setCustomValidity("");
+    setTelefono(value);
+  };
+
+  const handleTelefonoEmergenciaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 8);
+    e.target.setCustomValidity("");
+    setTelefonoContactoEmergencia(value);
+  };
+
+  const validateCedulaLength = (input: HTMLInputElement | null, value: string) => {
+    const len = value.trim().length;
+    if (len < 14 || len > 16) {
+      setInputValidity(input, "La cedula debe tener entre 14 y 16 caracteres");
+      return false;
+    }
+    setInputValidity(input, "");
+    return true;
+  };
+
+  const validateTelefono = (input: HTMLInputElement | null, value: string) => {
+    if (value.trim().length !== 8) {
+      setInputValidity(input, "El telefono debe tener 8 digitos");
+      return false;
+    }
+    setInputValidity(input, "");
+    return true;
+  };
+
+  const checkCedulaUnique = async (value: string, input?: HTMLInputElement | null) => {
+    if (!value) {
+      setInputValidity(input ?? null, "Completa este campo");
+      return false;
+    }
+    try {
+      const docentes = await getDocentes();
+      const found = docentes.find((d: any) => d.cedula_identidad === value);
+      if (found && found.id !== defaultValues?.id) {
+        setInputValidity(input ?? null, "La cedula ya pertenece a otro registro");
+        return false;
+      }
+      setInputValidity(input ?? null, "");
+      return true;
+    } catch (error) {
+      console.error("Error verificando cedula:", error);
+      return true;
+    }
   };
 
 
@@ -140,6 +211,20 @@ export default function DocenteForm({
     e.preventDefault();
 
     try {
+      if (formRef.current && !formRef.current.reportValidity()) {
+        return;
+      }
+
+      const cedulaOk = validateCedulaLength(cedulaRef.current, cedulaIdentidad)
+      const telefonoOk = validateTelefono(telefonoRef.current, telefono)
+      const cedulaUnique = await checkCedulaUnique(cedulaIdentidad, cedulaRef.current)
+      const telEmergenciaOk = validateTelefono(telefonoEmergenciaRef.current, telefonoContactoEmergencia)
+      if (!cedulaOk || !telefonoOk || !cedulaUnique) {
+        return;
+      }
+      if (!telEmergenciaOk) {
+        return;
+      }
       // --- Obtener objetos completos ---
       const selectedSexo = sexos.find((s) => s.id === parseInt(sexo));
       const selectedPais = paises.find((p) => p.id === parseInt(pais));
@@ -225,7 +310,7 @@ export default function DocenteForm({
 
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 overflow-y-auto px-4">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6 overflow-y-auto px-4">
       <h2 className="text-2xl font-semibold text-center text-indigo-700 border-b pb-2">
         {isEdit ? "✏️ Editar Docente" : "👤 Agregar Docente"}
       </h2>
@@ -295,7 +380,13 @@ export default function DocenteForm({
               type="text"
               placeholder="Cédula de Identidad"
               value={cedulaIdentidad}
-              onChange={(e) => setCedulaIdentidad(e.target.value)}
+              onChange={handleCedulaChange}
+              onBlur={async (e) => {
+                const value = e.currentTarget.value;
+                validateCedulaLength(e.currentTarget, value);
+                await checkCedulaUnique(value, e.currentTarget);
+              }}
+              ref={cedulaRef}
               className="input-style"
               required
             />
@@ -413,7 +504,9 @@ export default function DocenteForm({
               type="text"
               placeholder="Teléfono"
               value={telefono}
-              onChange={(e) => setTelefono(e.target.value)}
+              onChange={handleTelefonoChange}
+              onBlur={(e) => validateTelefono(e.currentTarget, e.currentTarget.value)}
+              ref={telefonoRef}
               className="input-style"
               required
             />
@@ -456,7 +549,9 @@ export default function DocenteForm({
               type="text"
               placeholder="Teléfono del contacto"
               value={telefonoContactoEmergencia}
-              onChange={(e) => setTelefonoContactoEmergencia(e.target.value)}
+              onChange={handleTelefonoEmergenciaChange}
+              onBlur={(e) => validateTelefono(e.currentTarget, e.currentTarget.value)}
+              ref={telefonoEmergenciaRef}
               className="input-style"
               required
             />

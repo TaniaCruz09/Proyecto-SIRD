@@ -12,7 +12,7 @@ import SearchBar from "@/components/SearchBar";
 import UserTable from "@/components/tables/UserTable";
 import UserForm from "@/components/forms/UserForm";
 import ModalBase from "@/components/modals/ModalBase";
-import { User } from "@/interfaces/AuthInterface";
+import { User } from "@/interfaces/authInterface";
 
 
 export default function Users() {

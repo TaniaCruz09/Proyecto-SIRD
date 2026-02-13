@@ -3,15 +3,16 @@ import { useEffect, useState } from "react";
 import Select from "react-select";
 import {
   assignRoleToUser,
+  getUser,
   getUserById,
   saveUser,
   updateUser,
 } from "@/actions/authMethods/usersMethods";
 import { getRoles } from "@/actions/authMethods/rolesMethods";
-import { User } from "@/interfaces/AuthInterface";
 import { Docente } from "@/interfaces";
-import { Role } from "@/interfaces/AuthInterface";
 import { getDocentes } from "@/actions/docentesMethods/docentesMethods";
+import { useToast } from "@/hooks/use-toast";
+import { Role, User } from "@/interfaces/authInterface";
 
 interface UserFormProps {
   defaultValues?: User | null;
@@ -24,6 +25,7 @@ interface OptionType {
 }
 
 const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
+  const { toast } = useToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -91,10 +93,47 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
     const DocenteTieneRol = rolesSelected.some((r) => r.label.toLocaleLowerCase() === 'docente');
 
     if(DocenteTieneRol && !docente){
-      alert('debe seleccionar un docente existente o crear uno nuevo antes de asignarle el rol de docente')
+      toast({
+        title: "Docente requerido",
+        description: "Debe seleccionar un docente existente o crear uno nuevo antes de asignarle el rol de docente.",
+        variant: "destructive",
+      })
       return;
     }
+    if (password && password.length < 8) {
+      toast({
+        title: "Contrasena invalida",
+        description: "La contrasena debe tener al menos 8 caracteres.",
+        variant: "destructive",
+      })
+      return
+    }
     try {
+      const normalizedEmail = email.trim().toLowerCase();
+      if (normalizedEmail) {
+        const usersRes = await getUser();
+        const usersList: User[] = Array.isArray(usersRes?.data)
+          ? usersRes.data
+          : Array.isArray(usersRes)
+            ? usersRes
+            : [];
+
+        const duplicate = usersList.find(
+          (u) =>
+            u.email?.toLowerCase() === normalizedEmail &&
+            (!isEdit || u.id !== defaultValues?.id)
+        );
+
+        if (duplicate) {
+          toast({
+            title: "Correo duplicado",
+            description: "Este correo ya pertenece a otra persona.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       const payload: any = {
         email,
         password: password || undefined,
@@ -119,6 +158,14 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
 
       if (userId) {
         await getUserById(userId);
+      }
+
+      if (!isEdit) {
+        toast({
+          title: "Usuario agregado",
+          description: "El usuario se agrego correctamente.",
+          variant: "success",
+        })
       }
 
       onSuccess();

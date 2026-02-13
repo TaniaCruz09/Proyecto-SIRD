@@ -7,6 +7,7 @@ import {
 import { getSemestres } from "@/actions/catalogos/semestreMethods";
 import { Corte, Semestre } from "@/interfaces";
 import React, { useEffect, useState } from "react";
+import { useToast } from '@/hooks/use-toast'
 
 interface CorteEvaluativoFormProps {
   defaultValues?: Corte | null;
@@ -17,6 +18,7 @@ export default function CorteEvaluativoForm({
   defaultValues,
   onSuccess,
 }: CorteEvaluativoFormProps) {
+  const { toast } = useToast()
   const [corteEvaluativo, setCorteEvaluativo] = useState<string>("");
   const [abreviatura, setAbriatura] = useState<string>("");
   const [semestre, setSemestre] = useState<string>("");
@@ -55,7 +57,11 @@ export default function CorteEvaluativoForm({
       );
 
       if (!selectedSemestre) {
-        console.error("Semestre no seleccionado o inválido");
+        toast({
+          title: "Seleccione un semestre",
+          description: "Debe seleccionar un semestre antes de guardar.",
+          variant: "destructive",
+        })
         return;
       }
 
@@ -73,6 +79,11 @@ export default function CorteEvaluativoForm({
       onSuccess();
     } catch (error) {
       console.error("Error al guardar o actualizar corteEvaluativo:", error);
+      toast({
+        title: "Error al guardar",
+        description: "Ocurrió un error al guardar el corte. Intente nuevamente.",
+        variant: "destructive",
+      })
     }
   };
 

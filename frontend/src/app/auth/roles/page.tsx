@@ -7,7 +7,7 @@ import ModalBase from '@/components/modals/ModalBase'
 import ConfirmDeletModal from '@/components/modals/ModalConfirmDeletion'
 import SearchBar from '@/components/SearchBar'
 import RolTable from '@/components/tables/RolTable'
-import { Role } from '@/interfaces/AuthInterface'
+import { Role } from '@/interfaces/authInterface'
 import { useEffect, useState } from 'react'
 
 export default function Roles() {

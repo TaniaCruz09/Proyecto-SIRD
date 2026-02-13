@@ -4,28 +4,13 @@ import { getPaises } from "@/actions/catalogos/paisMethods";
 import { getSexos } from "@/actions/catalogos/sexoMethods";
 import { ActualizarStudent, saveStudent } from "@/actions/resgisterEstudentMethods/regiterEstudentMethods";
 import { Municipio, Pais, Sexo } from "@/interfaces";
+import { getRegisterEstudent, getFiltarStudent } from '@/actions/resgisterEstudentMethods/regiterEstudentMethods'
+import { useToast } from '@/hooks/use-toast'
 import RegisterEstudent from "@/interfaces/registerEstudentInterface";
 import { useEffect, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { User } from "lucide-react";
-import * as Yup from 'yup'
-
-const RegisterStudentSchema = Yup.object().shape({
-  phone: Yup.string()
-    .matches(/^\d{8}$/, "El número debe tener 8 dígitos")
-    .required("Teléfono obligatorio"),
-  tutorPhoneNumber: Yup.string()
-    .matches(/^\d{8}$/, "El número debe tener 8 dígitos")
-    .required("Teléfono del tutor obligatorio"),
-  tutorIdentityCard: Yup.string()
-    .min(14, "Debe tener al menos 14 caracteres")
-    .max(16, "No puede exceder 16 caracteres")
-    .required("Cédula obligatoria"),
-  identityCard: Yup.string()
-    .min(14, "Debe tener al menos 14 caracteres")
-    .max(16, "No puede exceder 16 caracteres")
-    .required("Cédula obligatoria"),
-});
+import { getDocentes } from "@/actions/docentesMethods/docentesMethods";
 
 interface RegisterEstudentProps {
   defeaultValues?: RegisterEstudent | null;
@@ -33,32 +18,18 @@ interface RegisterEstudentProps {
 }
 
 export default function RegisterEstudentForm({ defeaultValues, onSucess }: RegisterEstudentProps) {
+  const { toast } = useToast()
+  const formRef = useRef<HTMLFormElement | null>(null)
+  const studentCodeRef = useRef<HTMLInputElement | null>(null)
+  const identityCardRef = useRef<HTMLInputElement | null>(null)
+  const tutorIdentityCardRef = useRef<HTMLInputElement | null>(null)
   const [formValues, setFormValues] = useState({ name: "", lastName: "", studentCode: "", identityCard: "", dateBirt: "", address: "", tutorName: "", tutorIdentityCard: "", tutorPhoneNumber: "", gender: "", observations: "", pais: "", municipio: "", phone: "" }
   )
-  interface FormErrors {
-  phone?: string;
-  tutorPhoneNumber?: string;
-  identityCard?: string;
-  name?: string;
-  lastName?: string;
-  studentCode?: string;
-  dateBirt?: string;
-  address?: string;
-  tutorName?: string;
-  tutorIdentityCard?: string;
-  gender?: string;
-  pais?: string;
-  municipio?: string;
-  observations?: string;
-}
-
-
   const [generos, setGeneros] = useState<Sexo[]>([]);
   const [paises, setPaises] = useState<Pais[]>([]);
   const [municipios, setMunicipios] = useState<Municipio[]>([]);
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
-  const [errors, setErrors] = useState<FormErrors>({});
 
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const isEdit = Boolean(defeaultValues?.id)
@@ -86,37 +57,166 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
   useEffect(() => {
     if (defeaultValues) {
       setFormValues({
-        name: defeaultValues.name,
-        lastName: defeaultValues.lastName,
-        studentCode: defeaultValues.studentCode,
-        identityCard: defeaultValues.identityCard,
+        name: defeaultValues.name ?? "",
+        lastName: defeaultValues.lastName ?? "",
+        studentCode: defeaultValues.studentCode ?? "",
+        identityCard: defeaultValues.identityCard ?? "",
         dateBirt: defeaultValues.dateBirt
           ? new Date(defeaultValues.dateBirt).toISOString().split("T")[0]
           : "",
-        address: defeaultValues.address,
-        tutorName: defeaultValues.tutorName,
-        tutorIdentityCard: defeaultValues.tutorIdentityCard,
-        tutorPhoneNumber: defeaultValues.tutorPhoneNumber,
+        address: defeaultValues.address ?? "",
+        tutorName: defeaultValues.tutorName ?? "",
+        tutorIdentityCard: defeaultValues.tutorIdentityCard ?? "",
+        tutorPhoneNumber: defeaultValues.tutorPhoneNumber ?? "",
         gender: defeaultValues.gender?.id?.toString() || "",
-        observations: defeaultValues.observations,
+        observations: defeaultValues.observations ?? "",
         pais: defeaultValues.pais?.id?.toString() || "",
         municipio: defeaultValues.municipio?.id?.toString() || "",
-        phone: defeaultValues.phone,
+        phone: defeaultValues.phone ?? "",
       });
 
-     if (defeaultValues.profileImage) {
-  // elimina /uploads/ inicial si ya la estás agregando en la env
-  const cleanPath = defeaultValues.profileImage.replace(/^\/?uploads\//, "");
-  setPreview(`${process.env.NEXT_PUBLIC_API_UPLOADS}uploads/${cleanPath}`);
-}
+      if (defeaultValues.profileImage) {
+        // elimina /uploads/ inicial si ya la estás agregando en la env
+        const cleanPath = defeaultValues.profileImage.replace(/^\/?uploads\//, "");
+        setPreview(`${process.env.NEXT_PUBLIC_API_UPLOADS}uploads/${cleanPath}`);
+      }
 
     }
   }, [defeaultValues]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormValues(prev => ({ ...prev, [name]: value }));
+    let newValue = value;
+
+    // teléfonos: solo dígitos y máximo 8
+    if (name === "phone" || name === "tutorPhoneNumber") {
+      newValue = value.replace(/\D/g, "").slice(0, 8);
+    }
+
+    // Limitar largo de cédulas
+    if (name === "identityCard" || name === "tutorIdentityCard") {
+      newValue = value.slice(0, 16);
+    }
+
+    // Limpiar mensajes de validacion nativa al escribir
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) {
+      e.target.setCustomValidity("");
+    }
+
+    setFormValues(prev => ({ ...prev, [name]: newValue }));
   };
+
+  const setInputValidity = (input: HTMLInputElement | HTMLSelectElement | null, message: string) => {
+    if (!input) return;
+    input.setCustomValidity(message);
+    if (message) {
+      input.focus();
+      input.reportValidity();
+    }
+  };
+
+  // Validar un campo requerido al perder foco (sin Yup)
+  const validateField = (value: any, input?: HTMLInputElement | HTMLSelectElement | null) => {
+    if (value == null || String(value).trim() === "") {
+      setInputValidity(input ?? null, "Completa este campo");
+      return;
+    }
+    setInputValidity(input ?? null, "");
+  };
+
+  // Verificar que no exista otro estudiante con la misma cédula
+  const checkCedulaUnique = async (value: string, input?: HTMLInputElement | null) => {
+    if (value == null || String(value).trim() === "") {
+      setInputValidity(input ?? null, "");
+      return true;
+    }
+    if (defeaultValues?.identityCard && value === defeaultValues.identityCard) {
+      setInputValidity(input ?? null, "");
+      return true;
+    }
+    try {
+      const students = await getRegisterEstudent();
+      const found = students.find((s: any) =>
+        s.identityCard === value || s.tutorIdentityCard === value
+      );
+      if (found && Number(found.id) !== Number(defeaultValues?.id)) {
+        setInputValidity(input ?? null, "La cedula ya pertenece a otro registro");
+        return false;
+      }
+      setInputValidity(input ?? null, "");
+      return true;
+    } catch (error) {
+      console.error("Error verificando cedula:", error);
+      return true;
+    }
+  };
+
+  // Verificar que no exista otro estudiante con la misma cédula del tutor
+  const checkTutorIdentityUnique = async (value: string, input?: HTMLInputElement | null) => {
+    if (value == null || String(value).trim() === "") {
+      setInputValidity(input ?? null, "");
+      return true;
+    }
+    if (defeaultValues?.tutorIdentityCard && value === defeaultValues.tutorIdentityCard) {
+      setInputValidity(input ?? null, "");
+      return true;
+    }
+
+    try {
+      const students = await getRegisterEstudent();
+      const teachers = await getDocentes();
+
+      // 🔍 Buscar coincidencia en estudiantes
+      const foundStudent = students.find((s: any) =>
+        s.identityCard === value ||   // cédula del estudiante
+        s.tutorIdentityCard === value        // cédula del tutor
+      );
+
+      // 🔍 Buscar coincidencia en docentes
+      const foundTeacher = teachers.find((t: any) =>
+        t.identityCard === value
+      );
+
+      // Tomar el primero que exista
+      const found = foundStudent || foundTeacher;
+
+      if (found && Number(found.id) !== Number(defeaultValues?.id)) {
+        setInputValidity(input ?? null, "Ya existe una persona con esta cédula");
+        return false;
+      }
+
+      setInputValidity(input ?? null, "");
+      return true;
+
+    } catch (error) {
+      console.error("Error verificando cédula:", error);
+      return true;
+    }
+
+  }
+
+  // Verificar que no exista otro estudiante con el mismo código
+  const checkStudentCodeUnique = async (value: string, input?: HTMLInputElement | null) => {
+    if (!value) {
+      setInputValidity(input ?? null, "Completa este campo");
+      return false;
+    }
+    try {
+      // `getFiltarStudent` espera params string y anioId. Pasamos anioId = 0 que filtra por código.
+      const res: any = await getFiltarStudent(`studentCode=${encodeURIComponent(value)}`, 0 as any);
+      const list = res?.data ?? res;
+      const found = Array.isArray(list) ? list.find((s: any) => s.studentCode === value) : null;
+      if (found && found.id !== defeaultValues?.id) {
+        setInputValidity(input ?? null, "Ya existe un estudiante con este codigo");
+        return false;
+      }
+      setInputValidity(input ?? null, "");
+      return true;
+    } catch (error) {
+      console.error('Error verificando código:', error);
+      return true;
+    }
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -125,24 +225,36 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
     setPreview(URL.createObjectURL(selectedFile));
   }
 
-    // const handleSubmit = async (e: React.FormEvent) => {
-    //     e.preventDefault();
-    //     try {
-    //         const data = new FormData();
-    //         Object.entries(formValues).forEach(([key, value]) => {
-    //             data.append(key, value);
-    //         });
-    //         if (file) data.append("foto_docente", file);
-
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      //validar Yup
-      await RegisterStudentSchema.validate(formValues, { abortEarly: false })
+      if (formRef.current && !formRef.current.reportValidity()) {
+        return;
+      }
+      const cedulaUnique = await checkCedulaUnique(formValues.identityCard, identityCardRef.current)
+      const tutorCedulaUnique = await checkTutorIdentityUnique(formValues.tutorIdentityCard, tutorIdentityCardRef.current)
+      if (!cedulaUnique || !tutorCedulaUnique) {
+        // Forzar a que el navegador muestre la burbuja en el primer campo invalido
+        const inputs = [identityCardRef.current, tutorIdentityCardRef.current, studentCodeRef.current]
+        for (const input of inputs) {
+          if (input && !input.checkValidity()) {
+            input.focus()
+            input.reportValidity()
+            break
+          }
+        }
+        return
+      }
       const data = new FormData();
 
       Object.entries(formValues).forEach(([key, value]) => {
+        if (key === "identityCard") {
+          const isEmpty = value == null || String(value).trim() === "";
+          if (isEmpty) {
+            if (isEdit) data.append(key, "");
+            return;
+          }
+        }
         data.append(key, value);
       });
       if (file) data.append("profileImage", file);
@@ -153,14 +265,55 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
         await saveStudent(data);
       }
       onSucess?.();
-      setErrors({}); // Limpiar errores si todo está bien
     } catch (validationError: any) {
-      // Mapear errores de Yup a tu estado `errors`
-      const newErrors: any = {};
-      validationError.inner.forEach((err: any) => {
-        newErrors[err.path] = err.message;
-      });
-      setErrors(newErrors);
+      // Si es un ValidationError de Yup con múltiples errores
+      if (validationError?.inner && Array.isArray(validationError.inner)) {
+        const newErrors: any = {};
+        validationError.inner.forEach((err: any) => {
+          if (err?.path) newErrors[err.path] = err.message;
+        });
+        //setErrors(newErrors);
+        return;
+      }
+
+      // Mensaje backend no entendible: intentar mapear a los campos
+      const rawMessage = String(validationError?.message || "").toLowerCase();
+      if (rawMessage.includes("tutor") && (rawMessage.includes("cedula") || rawMessage.includes("cédula") || rawMessage.includes("identity"))) {
+        setInputValidity(tutorIdentityCardRef.current, "Ya existe una persona con esta cedula");
+        return;
+      }
+      if (rawMessage.includes("cedula") || rawMessage.includes("cédula") || rawMessage.includes("identity")) {
+        setInputValidity(identityCardRef.current, "Ya existe una persona con esta cedula");
+        return;
+      }
+      if (rawMessage.includes("codigo") || rawMessage.includes("código") || rawMessage.includes("studentcode")) {
+        setInputValidity(studentCodeRef.current, "Ya existe un estudiante con este codigo");
+        return;
+      }
+
+      // Si el backend devuelve error de duplicado, revalidar unicidad y mostrar burbuja
+      if (
+        rawMessage.includes("duplicate") ||
+        rawMessage.includes("unique") ||
+        rawMessage.includes("constraint") ||
+        rawMessage.includes("unicidad") ||
+        rawMessage.includes("restriccion") ||
+        rawMessage.includes("restricción") ||
+        rawMessage.includes("llave duplicada")
+      ) {
+        toast({
+          title: "Cedula duplicada",
+          description: "La cedula esta duplicada.",
+          variant: "destructive",
+        })
+        const codeOk = await checkStudentCodeUnique(formValues.studentCode, studentCodeRef.current)
+        const cedulaUnique = await checkCedulaUnique(formValues.identityCard, identityCardRef.current)
+
+        if (!codeOk || !cedulaUnique) return
+      }
+
+      console.error('Error inesperado al validar:', validationError);
+      // No mostrar toast: el usuario ve la burbuja si aplica
     }
   };
 
@@ -168,6 +321,7 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
 
   return (
     <form
+      ref={formRef}
       onSubmit={handleSubmit}
       className="max-w-2xl mx-auto bg-white shadow-lg rounded-2xl p-6 space-y-6 overflow-y-auto"
     >
@@ -247,6 +401,8 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
               placeholder="Código del estudiante"
               value={formValues.studentCode}
               onChange={handleInputChange}
+              onBlur={async (e) => { validateField(formValues.studentCode, e.currentTarget); await checkStudentCodeUnique(formValues.studentCode, e.currentTarget); }}
+              ref={studentCodeRef}
               className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
               required
             />
@@ -260,10 +416,15 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
               placeholder="Cédula de identidad"
               value={formValues.identityCard}
               onChange={handleInputChange}
+              onBlur={async (e) => {
+                const value = e.currentTarget.value;
+                await checkCedulaUnique(value, e.currentTarget);
+              }}
+              ref={identityCardRef}
               className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
-              required
+              maxLength={16}
             />
-             {errors.identityCard && <p className="text-red-600 text-sm mt-1">La cedula debe tener 14 digitos</p>}
+            {/* Burbuja nativa mostrara el mensaje */}
           </div>
         </div>
 
@@ -286,7 +447,9 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
               name="gender"
               value={formValues.gender}
               onChange={handleInputChange}
+              onBlur={(e) => validateField(formValues.gender, e.currentTarget)}
               className="w-full p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+              required
             >
               <option value="">Seleccione...</option>
               {generos?.map((r) => (
@@ -310,13 +473,14 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
           <input
             type="text"
             name="phone"
-            placeholder="Ej: +505 8888 9999"
+            inputMode="numeric"
+            placeholder="Ej: 88889999"
             value={formValues.phone}
             onChange={handleInputChange}
             className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
-            required
+            maxLength={8}
           />
-          {errors.phone && <p className="text-red-600 text-sm mt-1">El numero debe contener 8 digitos</p>}
+          {/* Validacion nativa mostrara el mensaje */}
         </div>
 
         <div>
@@ -328,7 +492,6 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
             value={formValues.address}
             onChange={handleInputChange}
             className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
-            required
           />
         </div>
       </div>
@@ -361,10 +524,14 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
               placeholder="Cédula del tutor"
               value={formValues.tutorIdentityCard}
               onChange={handleInputChange}
+              onBlur={async (e) => {
+                const value = e.currentTarget.value;
+                await checkTutorIdentityUnique(value, e.currentTarget);
+              }}
               className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
-              required
+              maxLength={16}
             />
-             {errors.tutorIdentityCard && <p className="text-red-600 text-sm mt-1">La cedula debe contener 14 digitos</p>}
+            {/* Burbuja nativa mostrara el mensaje */}
           </div>
         </div>
 
@@ -373,13 +540,14 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
           <input
             type="text"
             name="tutorPhoneNumber"
+            inputMode="numeric"
             placeholder="Número del tutor"
             value={formValues.tutorPhoneNumber}
             onChange={handleInputChange}
             className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
-            required
+            maxLength={8}
           />
-          {errors.tutorPhoneNumber && <p className="text-red-600 text-sm mt-1">El numero debe contener 8 digitos</p>}
+          {/* Validacion nativa mostrara el mensaje */}
         </div>
       </div>
 
@@ -391,7 +559,9 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
             name="pais"
             value={formValues.pais}
             onChange={handleInputChange}
+            onBlur={(e) => validateField(formValues.pais, e.currentTarget)}
             className="w-full p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+            required
           >
             <option value="">Seleccione...</option>
             {paises?.map((r) => (
@@ -408,7 +578,9 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
             name="municipio"
             value={formValues.municipio}
             onChange={handleInputChange}
+            onBlur={(e) => validateField(formValues.municipio, e.currentTarget)}
             className="w-full p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+            required
           >
             <option value="">Seleccione...</option>
             {municipios?.map((r) => (
@@ -429,7 +601,6 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
           value={formValues.observations}
           onChange={handleInputChange}
           className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
-          required
         />
       </div>
 
