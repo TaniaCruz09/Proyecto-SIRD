@@ -65,6 +65,9 @@ export class Docentes {
     name: 'cedula_identidad',
     type: 'varchar',
     nullable: true,
+    unique: true,
+    length: 16,
+
   })
   cedula_identidad: string;
 
@@ -72,6 +75,7 @@ export class Docentes {
     name: 'telefono',
     type: 'varchar',
     nullable: true,
+    length: 8
   })
   telefono: string;
 
@@ -115,6 +119,7 @@ export class Docentes {
     name: 'telefono_contacto_emergencia',
     type: 'varchar',
     nullable: true,
+    length: 8,
   })
   telefono_contacto_emergencia: string;
 

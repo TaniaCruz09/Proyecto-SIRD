@@ -6,17 +6,17 @@ export class StudentsDto {
     @IsNumber()
     readonly id: number;
 
-    @IsOptional()
+    @IsNotEmpty()
     @IsString()
     @MaxLength(50)
     readonly name: string;
 
-    @IsOptional()
+    @IsNotEmpty()
     @IsString()
     @MaxLength(50)
     readonly lastName: string;
 
-    @IsOptional()
+    @IsNotEmpty()
     @IsString()
     readonly studentCode: string;
 
@@ -24,9 +24,10 @@ export class StudentsDto {
     @IsString()
     @MaxLength(16)
     @MinLength(14)
+    @Transform(({ value }) => value === "" ? null : value)
     readonly identityCard: string;
 
-    @IsOptional()
+    @IsNotEmpty()
     @IsDate()
     @Transform(({ value }) => value ? new Date(value) : null)
     readonly dateBirt: Date;
@@ -56,7 +57,7 @@ export class StudentsDto {
     @MaxLength(200)
     readonly address: string;
 
-    @IsOptional()
+    @IsNotEmpty()
     @IsString()
     readonly tutorName: string;
 
