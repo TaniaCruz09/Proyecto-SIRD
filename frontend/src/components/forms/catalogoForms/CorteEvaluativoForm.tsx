@@ -73,6 +73,11 @@ export default function CorteEvaluativoForm({
       
       if (isEdit && defaultValues?.id) {
         await updateCorteEvaluativo(defaultValues.id, dataToSend);
+        toast({
+          title: "Registro actualizado",
+          description: "El corte evaluativo se actualizó correctamente.",
+          variant: "success",
+        });
       } else {
         await saveCorteEvaluativo(dataToSend);
       }
