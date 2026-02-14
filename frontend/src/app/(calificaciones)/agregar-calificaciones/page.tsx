@@ -72,14 +72,16 @@ export default function Calificaciones({
                 const response = await getCortesEvaluativos()
                 if (!Array.isArray(response)) return
 
-                setCortes(response)
+                const ordered = response.slice().sort((a: Corte, b: Corte) => (a.id ?? 0) - (b.id ?? 0))
 
-                if (response.length > 0 && corteActivo == null) {
-                    setCorteActivo(response[0].id)
+                setCortes(ordered)
+
+                if (ordered.length > 0 && corteActivo == null) {
+                    setCorteActivo(ordered[0].id)
                 }
 
                 const colores = ["bg-blue-500", "bg-yellow-500", "bg-green-500", "bg-purple-500"]
-                const adaptados: CorteUI[] = response.map((c, i) => ({
+                const adaptados: CorteUI[] = ordered.map((c, i) => ({
                     ...c,
                     color: colores[i % colores.length]
                 }))

@@ -13,7 +13,13 @@ export default function RegistroEstudiantes() {
     const fetchEstudiantes = async () => {
         try {
             const res = await getRegisterEstudent()
-            setStudent(res || [])
+            const ordered = (res || []).slice().sort((a: RegisterEstudent, b: RegisterEstudent) => {
+                const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+                const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+                if (dateA && dateB && dateA !== dateB) return dateA - dateB;
+                return (a.id ?? 0) - (b.id ?? 0);
+            });
+            setStudent(ordered)
         } catch (error: unknown) {
             console.error(error);
         }

@@ -17,7 +17,8 @@ export default function Page() {
   const fetchCortesEvaluativos = async () => {
     try {
       const response = await getCortesEvaluativos();
-      setCortesEvaluativos(response);
+      const ordered = (response || []).slice().sort((a: Corte, b: Corte) => (a.id ?? 0) - (b.id ?? 0));
+      setCortesEvaluativos(ordered);
     } catch (error: any) {
       if (error.message === "Unauthorized") {
         router.push("/auth/login"); // redirigir en cliente
