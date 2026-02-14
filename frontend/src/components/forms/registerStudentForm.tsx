@@ -10,7 +10,6 @@ import RegisterEstudent from "@/interfaces/registerEstudentInterface";
 import { useEffect, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { User } from "lucide-react";
-import { getDocentes } from "@/actions/docentesMethods/docentesMethods";
 
 interface RegisterEstudentProps {
   defeaultValues?: RegisterEstudent | null;
@@ -22,7 +21,6 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
   const formRef = useRef<HTMLFormElement | null>(null)
   const studentCodeRef = useRef<HTMLInputElement | null>(null)
   const identityCardRef = useRef<HTMLInputElement | null>(null)
-  const tutorIdentityCardRef = useRef<HTMLInputElement | null>(null)
   const [formValues, setFormValues] = useState({ name: "", lastName: "", studentCode: "", identityCard: "", dateBirt: "", address: "", tutorName: "", tutorIdentityCard: "", tutorPhoneNumber: "", gender: "", observations: "", pais: "", municipio: "", phone: "" }
   )
   const [generos, setGeneros] = useState<Sexo[]>([]);
@@ -151,50 +149,6 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
     }
   };
 
-  // Verificar que no exista otro estudiante con la misma cédula del tutor
-  const checkTutorIdentityUnique = async (value: string, input?: HTMLInputElement | null) => {
-    if (value == null || String(value).trim() === "") {
-      setInputValidity(input ?? null, "");
-      return true;
-    }
-    if (defeaultValues?.tutorIdentityCard && value === defeaultValues.tutorIdentityCard) {
-      setInputValidity(input ?? null, "");
-      return true;
-    }
-
-    try {
-      const students = await getRegisterEstudent();
-      const teachers = await getDocentes();
-
-      // 🔍 Buscar coincidencia en estudiantes
-      const foundStudent = students.find((s: any) =>
-        s.identityCard === value ||   // cédula del estudiante
-        s.tutorIdentityCard === value        // cédula del tutor
-      );
-
-      // 🔍 Buscar coincidencia en docentes
-      const foundTeacher = teachers.find((t: any) =>
-        t.identityCard === value
-      );
-
-      // Tomar el primero que exista
-      const found = foundStudent || foundTeacher;
-
-      if (found && Number(found.id) !== Number(defeaultValues?.id)) {
-        setInputValidity(input ?? null, "Ya existe una persona con esta cédula");
-        return false;
-      }
-
-      setInputValidity(input ?? null, "");
-      return true;
-
-    } catch (error) {
-      console.error("Error verificando cédula:", error);
-      return true;
-    }
-
-  }
-
   // Verificar que no exista otro estudiante con el mismo código
   const checkStudentCodeUnique = async (value: string, input?: HTMLInputElement | null) => {
     if (!value) {
@@ -232,10 +186,9 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
         return;
       }
       const cedulaUnique = await checkCedulaUnique(formValues.identityCard, identityCardRef.current)
-      const tutorCedulaUnique = await checkTutorIdentityUnique(formValues.tutorIdentityCard, tutorIdentityCardRef.current)
-      if (!cedulaUnique || !tutorCedulaUnique) {
+      if (!cedulaUnique) {
         // Forzar a que el navegador muestre la burbuja en el primer campo invalido
-        const inputs = [identityCardRef.current, tutorIdentityCardRef.current, studentCodeRef.current]
+        const inputs = [identityCardRef.current, studentCodeRef.current]
         for (const input of inputs) {
           if (input && !input.checkValidity()) {
             input.focus()
@@ -278,10 +231,6 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
 
       // Mensaje backend no entendible: intentar mapear a los campos
       const rawMessage = String(validationError?.message || "").toLowerCase();
-      if (rawMessage.includes("tutor") && (rawMessage.includes("cedula") || rawMessage.includes("cédula") || rawMessage.includes("identity"))) {
-        setInputValidity(tutorIdentityCardRef.current, "Ya existe una persona con esta cedula");
-        return;
-      }
       if (rawMessage.includes("cedula") || rawMessage.includes("cédula") || rawMessage.includes("identity")) {
         setInputValidity(identityCardRef.current, "Ya existe una persona con esta cedula");
         return;
@@ -479,6 +428,7 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
             onChange={handleInputChange}
             className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
             maxLength={8}
+            required
           />
           {/* Validacion nativa mostrara el mensaje */}
         </div>
@@ -524,10 +474,6 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
               placeholder="Cédula del tutor"
               value={formValues.tutorIdentityCard}
               onChange={handleInputChange}
-              onBlur={async (e) => {
-                const value = e.currentTarget.value;
-                await checkTutorIdentityUnique(value, e.currentTarget);
-              }}
               className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
               maxLength={16}
             />
@@ -546,6 +492,7 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
             onChange={handleInputChange}
             className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
             maxLength={8}
+            required
           />
           {/* Validacion nativa mostrara el mensaje */}
         </div>
