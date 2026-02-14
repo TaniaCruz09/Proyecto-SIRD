@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import ConfirmDeletModal from "../ModalConfirmDeletion";
 import BtnDelete from "../../Buttons/BtnDelete";
 import { deleteDocentes } from "@/actions/docentesMethods/docentesMethods";
+import { useToast } from "@/hooks/use-toast";
 
 interface DeleteDocenteModalProps {
   idEliminar: number;
@@ -17,6 +18,7 @@ export default function DeleteDocenteModal({
 }: DeleteDocenteModalProps) {
   const [docenteToDelete, setDocenteToDelete] = useState<number | null>(null);
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
+  const { toast } = useToast();
 
   const handleDeleteClick = (id: number) => {
     setDocenteToDelete(id);
@@ -28,6 +30,11 @@ export default function DeleteDocenteModal({
     try {
       await deleteDocentes(docenteToDelete);
       await fetchDocentes();
+      toast({
+        title: "Registro eliminado",
+        description: "El docente se eliminó correctamente.",
+        variant: "destructive",
+      });
     } catch (error) {
       console.error("Error al eliminar docente", error);
     } finally {

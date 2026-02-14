@@ -50,7 +50,7 @@ export default function Page() {
           value={searchTerm}
           onChange={setSearchTerm}
           onClear={() => setSearchTerm("")}
-          placeholder="Buscar docente"
+          placeholder="Buscar semestre..."
         />
       </div>
       <SemestreTable semestre={filteredSemestres} fetchSemestres={fetchSemestres} />

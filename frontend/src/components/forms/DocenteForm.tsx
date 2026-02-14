@@ -24,6 +24,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { User } from "lucide-react";
 import { feching } from "@/utils/cliente-http";
+import { useToast } from "@/hooks/use-toast";
 
 interface DocenteFormProps {
   defaultValues?: Docente | null;
@@ -33,6 +34,7 @@ export default function DocenteForm({
   defaultValues,
   onSuccess,
 }: DocenteFormProps) {
+  const { toast } = useToast();
   const formRef = useRef<HTMLFormElement | null>(null)
   const cedulaRef = useRef<HTMLInputElement | null>(null)
   const telefonoRef = useRef<HTMLInputElement | null>(null)
@@ -300,6 +302,14 @@ export default function DocenteForm({
       }
 
       console.log("Docente guardado:", savedDocente);
+
+      if (isEdit && defaultValues?.id) {
+        toast({
+          title: "Registro actualizado",
+          description: "El docente se actualizo correctamente.",
+          variant: "success",
+        });
+      }
 
       onSuccess();
     } catch (error) {
