@@ -214,6 +214,11 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
 
       if (isEdit && defeaultValues?.id) {
         await ActualizarStudent(defeaultValues.id, data);
+        toast({
+          title: "Registro actualizado",
+          description: "El estudiante se actualizo correctamente.",
+          variant: "success",
+        });
       } else {
         await saveStudent(data);
       }

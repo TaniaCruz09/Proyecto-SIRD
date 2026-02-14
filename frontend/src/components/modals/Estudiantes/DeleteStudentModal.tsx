@@ -1,11 +1,9 @@
 "use client";
-import {
-  deleteDocentes,
-} from "@/actions/docentesMethods/docentesMethods";
 import React, { useState } from "react";
 import ConfirmDeletModal from "../ModalConfirmDeletion";
 import BtnDelete from "../../Buttons/BtnDelete";
 import { EliminarStudent } from "@/actions/resgisterEstudentMethods/regiterEstudentMethods";
+import { useToast } from "@/hooks/use-toast";
 
 interface DeleteStudentModalProps {
   idEliminar: number;
@@ -16,6 +14,7 @@ export default function DeleteStudentModal({
   idEliminar,
   fetchStudent,
 }: DeleteStudentModalProps) {
+  const { toast } = useToast();
   const [studentToDelete, setStudentToDelete] = useState<number | null>(null);
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
@@ -29,6 +28,11 @@ export default function DeleteStudentModal({
     try {
       await EliminarStudent(studentToDelete);
       await fetchStudent();
+      toast({
+        title: "Registro eliminado",
+        description: "El estudiante se elimino correctamente.",
+        variant: "destructive",
+      });
     } catch (error) {
       console.error("Error al eliminar usuario", error);
     } finally {
