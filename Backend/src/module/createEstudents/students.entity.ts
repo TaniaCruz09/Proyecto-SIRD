@@ -85,7 +85,6 @@ export class StudentEntity {
     type: 'varchar',
     length: 16,
     nullable: true,
-    unique: true,
   })
   tutorIdentityCard: string;
 
