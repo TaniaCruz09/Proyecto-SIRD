@@ -68,7 +68,7 @@ export class StudentsDto {
     readonly tutorIdentityCard: string;
 
     @IsOptional()
-    @IsString()
+    @IsNumber()
     @MaxLength(8)
     @MinLength(8)
     readonly tutorPhoneNumber: string;

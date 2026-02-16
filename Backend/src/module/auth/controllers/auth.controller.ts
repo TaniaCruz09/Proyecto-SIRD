@@ -155,6 +155,34 @@ export class AuthController {
     };
   }
 
+  @Post('refresh')
+  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const token = req.cookies?.token;
+    if (!token) throw new UnauthorizedException('No hay token');
+
+    try {
+      const payload = this.jwtService.verify(token) as any;
+
+      const newToken = this.jwtService.sign({
+        sub: payload.sub,
+        name: payload.name,
+        email: payload.email,
+        roles: payload.roles,
+        docente: payload.docente ?? null,
+      });
+
+      res.cookie('token', newToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+      });
+
+      return { message: 'Sesion renovada' };
+    } catch {
+      throw new UnauthorizedException('Token invalido o expirado');
+    }
+  }
+
   @Get('me')
   async getMe(@Req() req: Request) {
     const token = req.cookies['token'];

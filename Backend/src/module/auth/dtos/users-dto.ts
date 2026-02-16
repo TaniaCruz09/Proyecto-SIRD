@@ -53,7 +53,7 @@ export class UsersDto {
   @ApiProperty()
   readonly isActive?: boolean;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsNumber({}, { each: true })
   @ApiProperty({ type: [Number], required: false })
   readonly roles?: number[];
