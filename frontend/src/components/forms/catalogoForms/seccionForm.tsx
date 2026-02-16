@@ -1,5 +1,6 @@
 "use client"
 import { saveSeccion, updateSeccion } from "@/actions/catalogos/seccionMethods";
+import { useToast } from "@/hooks/use-toast";
 import { Seccion } from "@/interfaces";
 import React, { useEffect, useState } from "react";
 
@@ -12,6 +13,7 @@ export default function SeccionForm({
   defaultValues,
   onSuccess,
 }: SeccionFormProps) {
+  const { toast } = useToast();
   const [seccion, setSeccion] = useState<string>("");
 
   const isEdit = Boolean(defaultValues?.id);
@@ -29,8 +31,18 @@ export default function SeccionForm({
     try {
       if (isEdit && defaultValues?.id) {
         await updateSeccion(defaultValues.id, { seccion })
+        toast({
+          title: "Registro actualizado",
+          description: "La seccion se actualizo correctamente.",
+          variant: "success",
+        });
       } else {
         await saveSeccion({ seccion })
+        toast({
+          title: "Registro guardado",
+          description: "La seccion se guardo correctamente.",
+          variant: "success",
+        });
       }
       onSuccess();
 

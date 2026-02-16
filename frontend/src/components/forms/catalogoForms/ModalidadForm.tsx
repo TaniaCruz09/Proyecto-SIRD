@@ -1,4 +1,5 @@
 import { saveModalidad, updateModalidad } from "@/actions/catalogos/modalidadMethods";
+import { useToast } from "@/hooks/use-toast";
 import { Modalidad } from "@/interfaces";
 import React, { useEffect, useState } from "react";
 
@@ -11,6 +12,7 @@ export default function ModalidadForm({
   defaultValues,
   onSuccess,
 }: ModalidadFormProps) {
+  const { toast } = useToast();
   const [modalidad, setModalidad] = useState<string>("");
 
   const isEdit = Boolean(defaultValues?.id);
@@ -28,8 +30,18 @@ export default function ModalidadForm({
     try{
       if(isEdit && defaultValues?.id){
         await updateModalidad(defaultValues.id, {modalidad: modalidad})
+        toast({
+          title: "Registro actualizado",
+          description: "La modalidad se actualizo correctamente.",
+          variant: "success",
+        });
       } else {
         await saveModalidad({modalidad: modalidad})
+        toast({
+          title: "Registro guardado",
+          description: "La modalidad se guardo correctamente.",
+          variant: "success",
+        });
       }
       onSuccess();
 

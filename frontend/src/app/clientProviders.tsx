@@ -11,12 +11,14 @@ const queryClient = new QueryClient();
 export default function ClientProviders({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <NavbarAdmin />
-        <main className="w-screen text-center bg-gray-100 overflow-auto">
-          <ToastProvider>{children}</ToastProvider>
-        </main>
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <NavbarAdmin />
+          <main className="w-screen text-center bg-gray-100 overflow-auto">
+            {children}
+          </main>
+        </AuthProvider>
+      </ToastProvider>
     </QueryClientProvider>
   );
 }

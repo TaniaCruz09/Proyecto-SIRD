@@ -2,6 +2,7 @@ import BtnDelete from '@/components/Buttons/BtnDelete'
 import React, { useState } from 'react'
 import ConfirmDeletModal from '../../ModalConfirmDeletion'
 import { deleteModalidad } from '@/actions/catalogos/modalidadMethods';
+import { useToast } from '@/hooks/use-toast';
 
 interface DeleteModalidadModalProps {
   idEliminar: number;
@@ -9,6 +10,7 @@ interface DeleteModalidadModalProps {
 }
 
 export default function DeleteModalidadModal({ idEliminar, fetchModalidades }: DeleteModalidadModalProps) {
+  const { toast } = useToast();
   const [modalidadToDelete, setModalidadToDelete] = useState<number | null>(null);
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
@@ -22,6 +24,11 @@ export default function DeleteModalidadModal({ idEliminar, fetchModalidades }: D
     try {
       await deleteModalidad(modalidadToDelete);
       await fetchModalidades();
+      toast({
+        title: "Registro eliminado",
+        description: "La modalidad se elimino correctamente.",
+        variant: "destructive",
+      });
     } catch (error) {
       console.error("error al eliminar la modalidad", error)
     } finally {

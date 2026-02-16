@@ -100,6 +100,7 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
       })
       return;
     }
+    
     if (password && password.length < 8) {
       toast({
         title: "Contrasena invalida",
@@ -147,6 +148,11 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
       if (isEdit && defaultValues?.id) {
         const updatedUser = await updateUser(defaultValues.id, payload);
         userId = updatedUser.id;
+        toast({
+          title: "Usuario actualizado",
+          description: "El usuario se actualizo correctamente.",
+          variant: "success",
+        })
       } else {
         const newUserRes = await saveUser(payload);
         userId = newUserRes?.user?.id;
@@ -204,6 +210,7 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+          required
         />
       )}
 
@@ -233,6 +240,7 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
         onChange={(selected) => setRolesSelected(selected as OptionType[])}
         placeholder="Selecciona uno o más roles"
         className="text-black"
+        required
       />
 
       <div className="flex justify-center">

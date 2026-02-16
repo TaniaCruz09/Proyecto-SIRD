@@ -1,6 +1,7 @@
 "use client";
 import { moverEstudianteDeGrupo } from "@/actions/organizacionEscolarMethods/asignacionEstudiantesMethods";
 import { getGruposPorAnioYGrado } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods";
+import { useToast } from "@/hooks/use-toast";
 import { GrupoEscolar } from "@/interfaces";
 import { useEffect, useState } from "react";
 
@@ -23,6 +24,7 @@ export default function MoveStudentToGroupForm({
 }: MoveStudentModalProps) {
   const [nuevoGrupoId, setNuevoGrupoId] = useState<number | "">("");
   const [grupos, setGrupos] = useState<GrupoEscolar[]>([]);
+  const {toast} = useToast();
 
   useEffect(() => {
     const fetchGrupos = async () => {
@@ -50,7 +52,11 @@ export default function MoveStudentToGroupForm({
       console.log("Estudiante movido:", result);
 
       onSuccess();
-      alert("Estudiante movido exitosamente!");
+      toast({
+        title: "Estudiante movido",
+        description: "El estudiante se movió exitosamente al nuevo grupo.",
+        variant: "success",
+      });
     } catch (error: any) {
       console.error("Error al mover estudiante:", error);
       alert(error.message || "Ocurrió un error al mover al estudiante");

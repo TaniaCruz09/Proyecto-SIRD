@@ -29,6 +29,11 @@ const RoleForm = ({defaultValues, onSuccess }: RoleFormProps) => {
     try{
       if (isEdit && defaultValues?.id){
         const updateRol = await updateRoles(defaultValues.id, rol, isActive) //actualiza el rol
+        toast({
+          title: "Rol actualizado",
+          description: "Rol actualizado correctamente.",
+          variant: "success",
+        })
       } else {
         const newRol = await saveRoles(rol, isActive) //guarda el rol
         setRol(""); //limpia el rol
