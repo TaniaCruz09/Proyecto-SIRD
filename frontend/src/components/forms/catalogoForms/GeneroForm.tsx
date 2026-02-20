@@ -1,5 +1,6 @@
 import { saveModalidad, updateModalidad } from "@/actions/catalogos/modalidadMethods";
 import { saveSexo, updateSexo } from "@/actions/catalogos/sexoMethods";
+import { useToast } from "@/hooks/use-toast";
 import { Sexo } from "@/interfaces";
 import React, { useEffect, useState } from "react";
 
@@ -12,6 +13,7 @@ export default function SexoForm({
   defaultValues,
   onSuccess,
 }: SexoFormProps) {
+  const { toast } = useToast();
   const [sexo, setSexo] = useState<string>("");
 
   const isEdit = Boolean(defaultValues?.id);
@@ -27,15 +29,30 @@ export default function SexoForm({
   const handleSubmit = async (e: React.FormEvent)=>{
     e.preventDefault();
     try{
-      if(isEdit && defaultValues?.id){
-        await updateSexo(defaultValues.id, {gender: sexo})
+      if (isEdit && defaultValues?.id) {
+        await updateSexo(defaultValues.id, { gender: sexo });
+        toast({
+          title: "Genero actualizado",
+          description: "El genero se actualizo correctamente.",
+          variant: "success",
+        });
       } else {
-        await saveSexo({gender: sexo})
+        await saveSexo({ gender: sexo });
+        toast({
+          title: "Genero creado",
+          description: "El genero se creo correctamente.",
+          variant: "success",
+        });
       }
       onSuccess();
 
     }catch (error) {
-      console.error("Error al guardar o actualizar sexo:", error); 
+      console.error("Error al guardar o actualizar sexo:", error);
+      toast({
+        title: "Error al guardar",
+        description: "No se pudo guardar el genero.",
+        variant: "destructive",
+      });
     }
   }
 

@@ -1,4 +1,5 @@
 import { saveDepartamento, updateDepartamento } from "@/actions/catalogos/departamentoMethods";
+import { useToast } from "@/hooks/use-toast";
 import { Departamento } from "@/interfaces";
 import React, { useEffect, useState } from "react";
 
@@ -11,6 +12,7 @@ export default function DepartamentoForm({
   defaultValues,
   onSuccess,
 }: DepartamentoFormProps) {
+  const { toast } = useToast();
   const [departamento, setDepartamento] = useState<string>("");
 
   const isEdit = Boolean(defaultValues?.id);
@@ -26,15 +28,30 @@ export default function DepartamentoForm({
   const handleSubmit = async (e: React.FormEvent)=>{
     e.preventDefault();
     try{
-      if(isEdit && defaultValues?.id){
-        await updateDepartamento(defaultValues.id, {departamento: departamento})
+      if (isEdit && defaultValues?.id) {
+        await updateDepartamento(defaultValues.id, { departamento: departamento });
+        toast({
+          title: "Departamento actualizado",
+          description: "El departamento se actualizo correctamente.",
+          variant: "success",
+        });
       } else {
-        await saveDepartamento({departamento: departamento})
+        await saveDepartamento({ departamento: departamento });
+        toast({
+          title: "Departamento creado",
+          description: "El departamento se creo correctamente.",
+          variant: "success",
+        });
       }
       onSuccess();
 
     }catch (error) {
       console.error("Error al guardar o actualizar departamento:", error);
+      toast({
+        title: "Error al guardar",
+        description: "No se pudo guardar el departamento.",
+        variant: "destructive",
+      });
     }
   }
 

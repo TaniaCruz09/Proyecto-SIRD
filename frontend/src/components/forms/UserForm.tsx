@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import Select from "react-select";
 import {
   assignRoleToUser,
@@ -29,6 +30,7 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [rolesSelected, setRolesSelected] = useState<OptionType[]>([]);
   const [docente, setDocente] = useState<number | "">("");
   const [docentes, setDocentes] = useState<Docente[]>([]);
@@ -223,14 +225,24 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
         required
       />
 
-      <input
-        type="password"
-        placeholder="Contraseña"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        required={!isEdit}
-      />
+      <div className="relative">
+        <input
+          type={showPassword ? "text" : "password"}
+          placeholder="Contraseña"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-3 pr-12 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+          required={!isEdit}
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword((prev) => !prev)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"
+          aria-label={showPassword ? "Ocultar contrasena" : "Ver contrasena"}
+        >
+          {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+        </button>
+      </div>
 
       {/* Multi-select moderno para todos los roles */}
       <Select

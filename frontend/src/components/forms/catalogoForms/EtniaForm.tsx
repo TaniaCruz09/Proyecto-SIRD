@@ -1,4 +1,5 @@
 import { saveEtnia, updateEtnia } from "@/actions/catalogos/etniaMethods";
+import { useToast } from "@/hooks/use-toast";
 import { Etnia } from "@/interfaces";
 import React, { useEffect, useState } from "react";
 
@@ -11,6 +12,7 @@ export default function EtniaForm({
   defaultValues,
   onSuccess,
 }: EtniaFormProps) {
+  const { toast } = useToast();
   const [etnia, setEtnia] = useState<string>("");
 
   const isEdit = Boolean(defaultValues?.id);
@@ -27,14 +29,29 @@ export default function EtniaForm({
     e.preventDefault();
     try {
       if (isEdit && defaultValues?.id) {
-        await updateEtnia(defaultValues.id, { etnia })
+        await updateEtnia(defaultValues.id, { etnia });
+        toast({
+          title: "Etnia actualizada",
+          description: "La etnia se actualizo correctamente.",
+          variant: "success",
+        });
       } else {
-        await saveEtnia({ etnia })
+        await saveEtnia({ etnia });
+        toast({
+          title: "Etnia creada",
+          description: "La etnia se creo correctamente.",
+          variant: "success",
+        });
       }
       onSuccess();
 
     } catch (error) {
       console.error("Error al guardar o actualizar la etnia:", error);
+      toast({
+        title: "Error al guardar",
+        description: "No se pudo guardar la etnia.",
+        variant: "destructive",
+      });
     }
   }
 
