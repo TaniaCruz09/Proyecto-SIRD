@@ -6,6 +6,7 @@ import {
   Res,
   UseGuards,
   HttpStatus,
+  HttpException,
   Req,
   UnauthorizedException,
   BadRequestException,
@@ -66,12 +67,10 @@ export class AuthController {
         message: 'El usuario no tiene roles asignados',
       };
     } catch (error: any) {
-      return res
-        .status(error.status || HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({
-          message:
-            error.response?.message || error.message || 'Error de login',
-        });
+      const status = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
+      const message =
+        error.response?.message || error.message || 'Error de login';
+      throw new HttpException({ message }, status);
     }
   }
 

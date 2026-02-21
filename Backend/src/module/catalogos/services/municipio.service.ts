@@ -59,7 +59,13 @@ const municipio = await this.municipioRepository.find({ relations: ["departament
     async delete(id: number, userId: number): Promise<Municipio> {
         try {
             const municipio = await this.municipioRepository.findOne({
+                where: { id },
+                relations: ["departamento"],
             });
+
+            if (!municipio) {
+                throw new NotFoundException("Municipio no encontrado");
+            }
 
             municipio.deleted_at = new Date()
             municipio.deleted_at_id = userId;
