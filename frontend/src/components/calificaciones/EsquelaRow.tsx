@@ -81,8 +81,9 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
           ?.flatMap((g: any) =>
             g.gruposConEstudiantes.map((ge: any) => ge.estudiante)
           )
+          .filter((v: any): v is Estudiante => Boolean(v && v.id))
           .filter(
-            (v: any, i: number, self: any[]) =>
+            (v: Estudiante, i: number, self: Estudiante[]) =>
               self.findIndex((s) => s.id === v.id) === i
           ) ?? []
 
@@ -116,6 +117,7 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
   const estudiantes: Estudiante[] =
     asignaturas
       .flatMap((g) => g.gruposConEstudiantes.map((ge) => ge.estudiante))
+      .filter((v): v is Estudiante => Boolean(v && v.id))
       .filter((v, i, self) => self.findIndex((s) => s.id === v.id) === i)
 
   const findNota = (estId: number, asigId: number, corteId: number) => {

@@ -1,5 +1,6 @@
 "use client"
 import { savePais, updatePais } from "@/actions/catalogos/paisMethods";
+import { useToast } from "@/hooks/use-toast";
 import { Pais } from "@/interfaces";
 import React, { useEffect, useState } from "react";
 
@@ -12,6 +13,7 @@ export default function PaisForm({
   defaultValues,
   onSuccess,
 }: PaisFormProps) {
+  const { toast } = useToast();
   const [pais, setPais] = useState<string>("");
 
   const isEdit = Boolean(defaultValues?.id);
@@ -29,14 +31,29 @@ export default function PaisForm({
     try {
       if (isEdit && defaultValues?.id) {
         await updatePais(defaultValues.id, { pais: pais })
+        toast({
+          title: "Pais actualizado",
+          description: "El pais se actualizo correctamente.",
+          variant: "success",
+        });
       } else {
         await savePais({ pais: pais })
+        toast({
+          title: "Pais creado",
+          description: "El pais se creo correctamente.",
+          variant: "success",
+        });
       }
       onSuccess();
 
     } catch (error) {
       console.log(pais)
       console.error("Error al guardar o actualizar Pais:", error);
+      toast({
+        title: "Error al guardar",
+        description: "No se pudo guardar el pais.",
+        variant: "destructive",
+      });
     }
   }
 

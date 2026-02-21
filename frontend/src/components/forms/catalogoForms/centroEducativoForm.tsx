@@ -3,8 +3,8 @@ import { getMunicipios } from "@/actions/catalogos/municipioMethods";
 import { saveCentros, updateCentros } from "@/actions/centroMethods/centroEducativoMethods";
 import { Municipio } from "@/interfaces";
 import { CentroEscolar } from "@/interfaces/centroInterface";
-import { feching } from "@/utils/cliente-http";
 import React, { useEffect, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface CentroEducativoFormProps {
   defaultValues?: CentroEscolar | null;
@@ -15,6 +15,7 @@ export default function CentroEducativoForm({
   defaultValues,
   onSuccess,
 }: CentroEducativoFormProps) {
+  const { toast } = useToast();
   const [nombreCentro, setCentroEducativo] = useState<string>("");
   const [codigoEstablecimiento, setCodigoEstablecimiento] = useState<string>("");
   const [codigoCentro, setCodigoCentro] = useState<string>("");
@@ -62,7 +63,11 @@ export default function CentroEducativoForm({
     );
 
     if (!selectedMunicipio) {
-      alert("Por favor complete todos los campos requeridos");
+      toast({
+        title: "Campos incompletos",
+        description: "Por favor complete todos los campos requeridos.",
+        variant: "warning",
+      });
       return;
     }
 
@@ -76,13 +81,28 @@ export default function CentroEducativoForm({
 
     if (isEdit && defaultValues?.id) {
       await updateCentros(defaultValues.id, payload);
+      toast({
+        title: "Centro actualizado",
+        description: "Los datos del centro se actualizaron correctamente.",
+        variant: "success",
+      });
     } else {
       await saveCentros(payload);
+      toast({
+        title: "Centro creado",
+        description: "El centro se registró correctamente.",
+        variant: "success",
+      });
     }
 
     onSuccess();
   } catch (error) {
     console.error("Error al guardar el centro:", error);
+    toast({
+      title: "Error al guardar",
+      description: "No se pudo guardar el centro educativo.",
+      variant: "destructive",
+    });
   }
 };
 
