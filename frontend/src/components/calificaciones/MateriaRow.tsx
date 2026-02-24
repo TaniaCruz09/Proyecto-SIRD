@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react"
 import { TableCell } from "../ui/table"
+import { getNotasCualitativas } from "@/actions/catalogos/notaCualitativaMethods"
+import { NotaCualitativa } from "@/interfaces"
 
 interface SubjectProps {
     name: string
@@ -6,7 +9,10 @@ interface SubjectProps {
     color: string
 }
 
-function calculateFirstSemester(subject: any): { quantitative: number; qualitative: string } {
+function calculateFirstSemester(
+    subject: any,
+    getQualitativeGrade: (grade: number) => string
+): { quantitative: number; qualitative: string } {
     const avg = Math.round((subject.quantitative1 + subject.quantitative2) / 2)
     return {
         quantitative: avg,
@@ -14,7 +20,10 @@ function calculateFirstSemester(subject: any): { quantitative: number; qualitati
     }
 }
 
-function calculateSecondSemester(subject: any): { quantitative: number; qualitative: string } {
+function calculateSecondSemester(
+    subject: any,
+    getQualitativeGrade: (grade: number) => string
+): { quantitative: number; qualitative: string } {
     const avg = Math.round((subject.quantitative3 + subject.quantitative4) / 2)
     return {
         quantitative: avg,
@@ -22,20 +31,16 @@ function calculateSecondSemester(subject: any): { quantitative: number; qualitat
     }
 }
 
-function calculateSubjectFinal(firstSem: number, secondSem: number): { quantitative: number; qualitative: string } {
+function calculateSubjectFinal(
+    firstSem: number,
+    secondSem: number,
+    getQualitativeGrade: (grade: number) => string
+): { quantitative: number; qualitative: string } {
     const avg = Math.round((firstSem + secondSem) / 2)
     return {
         quantitative: avg,
         qualitative: getQualitativeGrade(avg),
     }
-}
-
-function getQualitativeGrade(grade: number): string {
-    if (grade >= 90) return "S" // Sobresaliente
-    if (grade >= 80) return "E" // Excelente
-    if (grade >= 70) return "B" // Bueno
-    if (grade >= 60) return "A" // Aceptable
-    return "I" // Insuficiente
 }
 
 function calculateSubjectAverage(subject: any): number {
@@ -62,9 +67,37 @@ function calculateFinalGrade(mathFinal: number, spanishFinal: number, scienceFin
 }
 
 function SubjectRow({ name, subject, color }: SubjectProps) {
-    const firstSem = calculateFirstSemester(subject)
-    const secondSem = calculateSecondSemester(subject)
-    const final = calculateSubjectFinal(firstSem.quantitative, secondSem.quantitative)
+    const [notasCualitativas, setNotasCualitativas] = useState<NotaCualitativa[]>([])
+
+    useEffect(() => {
+        const fetchNotas = async () => {
+            try {
+                const response = await getNotasCualitativas()
+                if (Array.isArray(response)) {
+                    const ordered = response
+                        .slice()
+                        .sort((a, b) => (a.id ?? 0) - (b.id ?? 0))
+                    setNotasCualitativas(ordered)
+                }
+            } catch (error) {
+                console.error("Error cargando notas cualitativas:", error)
+            }
+        }
+
+        fetchNotas()
+    }, [])
+
+    const getQualitativeGrade = (grade: number): string => {
+        if (!Number.isFinite(grade)) return "AI"
+        const match = notasCualitativas.find(
+            (nota) => grade >= nota.rango_menor && grade <= nota.rango_mayor
+        )
+        return match?.abreviatura ?? "AI"
+    }
+
+    const firstSem = calculateFirstSemester(subject, getQualitativeGrade)
+    const secondSem = calculateSecondSemester(subject, getQualitativeGrade)
+    const final = calculateSubjectFinal(firstSem.quantitative, secondSem.quantitative, getQualitativeGrade)
 
     return (
         <>

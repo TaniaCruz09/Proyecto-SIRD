@@ -1,10 +1,11 @@
 import { saveAnioLectivo, updateAnioLectivo } from "@/actions/catalogos/anioLectivoMethods";
+import { getCortesEvaluativos } from "@/actions/catalogos/corteEvaluativoMethods";
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "lucide-react";
-import { AnioLectivoPayload, AnioLectivo } from "@/interfaces";
+import { AnioLectivoPayload, AnioLectivo, Corte } from "@/interfaces";
 
 interface AnioLectivoFormProps {
   defaultValues?: AnioLectivo | null;
@@ -14,6 +15,8 @@ interface AnioLectivoFormProps {
 export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormProps) {
   const [anioLectivo, setAnioLectivo] = useState<string>("");
   const [isActive, setIsActive] = useState<boolean>(false);
+  const [cortes, setCortes] = useState<Corte[]>([]);
+  const [selectedCortes, setSelectedCortes] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const isEdit = Boolean(defaultValues?.id);
@@ -23,8 +26,28 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
     if (defaultValues) {
       setAnioLectivo(defaultValues.anio_lectivo.toString());
       setIsActive(defaultValues.isActive);
+      setSelectedCortes((defaultValues.cortes || []).map((corte) => corte.id));
     }
   }, [defaultValues]);
+
+  useEffect(() => {
+    const fetchCortes = async () => {
+      try {
+        const response = await getCortesEvaluativos();
+        setCortes(response || []);
+      } catch (error) {
+        console.error("Error al obtener cortes:", error);
+      }
+    };
+
+    fetchCortes();
+  }, []);
+
+  const toggleCorte = (id: number) => {
+    setSelectedCortes((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +64,7 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
     const payload: AnioLectivoPayload = {
       anio_lectivo: anioLectivoNumber,
       isActive,
+      cortes: selectedCortes.map((id) => ({ id })),
     };
 
     try {
@@ -99,6 +123,27 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
                 />
               </button>
               <span className="mt-2">{isActive ? "Activo" : "Inactivo"}</span>
+            </div>
+
+            <div className="space-y-2 w-full">
+              <Label className="flex items-center gap-2">Cortes evaluativos</Label>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {cortes.map((corte) => (
+                  <label
+                    key={corte.id}
+                    className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedCortes.includes(corte.id)}
+                      onChange={() => toggleCorte(corte.id)}
+                    />
+                    <span className="text-sm text-slate-700">
+                      {corte.abreviatura} - {corte.corte}
+                    </span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading} variant={"custom"}>

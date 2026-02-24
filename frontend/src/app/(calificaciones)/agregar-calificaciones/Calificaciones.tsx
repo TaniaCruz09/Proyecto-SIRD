@@ -9,10 +9,12 @@ import { Corte } from "@/interfaces"
 import { EsquelaRowPayload } from "@/interfaces/calificaciones/EsquelaRow"
 import { saveEsquelaRow, updateEsquelaRow } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods"
 import { getCortesEvaluativos } from "@/actions/catalogos/corteEvaluativoMethods"
+import { getNotasCualitativas } from "@/actions/catalogos/notaCualitativaMethods"
 import CardCortesEvaluativos from "@/components/calificaciones/CardCortesEvaluativos"
 import { Asignatura, CorteUI, Estudiante } from "@/interfaces/calificaciones/AgregarCalificaciones"
 import HeaderAgregarCalificaciones from "@/components/calificaciones/HeaderAgregarCalificaciones"
 import TabsAsignaturas from "@/components/calificaciones/TabsAsignaturas"
+import { NotaCualitativa } from "@/interfaces"
 
 export interface CalificacionesProps {
     esquelaId: number | string
@@ -27,17 +29,6 @@ const getInitials = (nombre?: string) => {
     if (partes.length === 0) return ""
     if (partes.length === 1) return (partes[0]?.[0] ?? "").toUpperCase()
     return ((partes[0][0] ?? "") + (partes[1][0] ?? "")).toUpperCase()
-}
-
-/** Genera la nota cualitativa según el valor numérico */
-//HACER LA LOGICA DESDE EL BACKEND 
-const generarNotaCualitativa = (valor: number): string => {
-    if (isNaN(valor)) return "AI"
-    if (valor >= 0 && valor <= 59) return "AI"
-    if (valor >= 60 && valor <= 75) return "AF"
-    if (valor >= 76 && valor <= 89) return "AS"
-    if (valor >= 90 && valor <= 100) return "AA"
-    return "AI"
 }
 
 export default function Calificaciones({
@@ -61,6 +52,7 @@ export default function Calificaciones({
     const [corteActivo, setCorteActivo] = useState<number | null>(null)
 
     const [cortesUI, setCortesUI] = useState<CorteUI[]>([])
+    const [notasCualitativas, setNotasCualitativas] = useState<NotaCualitativa[]>([])
 
     const storageKey = `calificaciones_${esquelaId}_${grupoId}`
 
@@ -90,6 +82,24 @@ export default function Calificaciones({
 
         fetchCortes()
         // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    useEffect(() => {
+        const fetchNotas = async () => {
+            try {
+                const response = await getNotasCualitativas()
+                if (Array.isArray(response)) {
+                    const ordered = response
+                        .slice()
+                        .sort((a, b) => (a.id ?? 0) - (b.id ?? 0))
+                    setNotasCualitativas(ordered)
+                }
+            } catch (error) {
+                console.error("Error al cargar notas cualitativas", error)
+            }
+        }
+
+        fetchNotas()
     }, [])
 
     // ---------- Cargar estudiantes y asignaturas (y restaurar notas) ----------
@@ -240,6 +250,14 @@ export default function Calificaciones({
         }
     }
 
+    const obtenerNotaCualitativa = (valor: number): string => {
+        if (!Number.isFinite(valor)) return "AI"
+        const match = notasCualitativas.find(
+            (nota) => valor >= nota.rango_menor && valor <= nota.rango_mayor
+        )
+        return match?.abreviatura ?? "AI"
+    }
+
     // ---------------- Guardar nota individual (envía a backend y actualiza localStorage) ----------------
     const handleGuardarIndividual = async (
         estudiante: Estudiante,
@@ -262,7 +280,7 @@ export default function Calificaciones({
         const corteEncontrado = cortes.find(c => c.id === corteActivo);
         if (!corteEncontrado) return alert("No se encontró el corte");
 
-        const notaCualitativa = generarNotaCualitativa(notaNum);
+        const notaCualitativa = obtenerNotaCualitativa(notaNum);
 
         const payload: EsquelaRowPayload = {
             estudiante: { id: estudiante.id },

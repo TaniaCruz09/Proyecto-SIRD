@@ -1,5 +1,6 @@
 
 import { OrganizacionEscolar } from "../organizacionEscolarInterface/organizacionInterface";
+import { Corte } from "./corteEvaluativoInterface";
 
 
 export interface AnioLectivo {
@@ -8,6 +9,8 @@ export interface AnioLectivo {
     isActive: boolean,
     created_at?: Date,
     organizacionEscolar: OrganizacionEscolar[],
+    cortes?: Corte[],
+    cortesAnioLectivo?: { corte: Corte }[],
 
 }
 
@@ -16,4 +19,5 @@ export interface AnioLectivoPayload {
     isActive?: boolean,
     created_at?: Date,
     organizacionEscolar?: OrganizacionEscolar[],
+    cortes?: { id: number }[],
 }

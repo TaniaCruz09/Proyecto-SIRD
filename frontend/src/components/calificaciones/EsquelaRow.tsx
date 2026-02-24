@@ -8,22 +8,16 @@ import { Button } from "../ui/button"
 import { EsquelaHeadInterface } from "@/interfaces/calificaciones/EsquelaHead"
 import { getEsquelaHeadById } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
 import { getEsquelaRowByEstudianteAndAnio } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods"
+import { getNotasCualitativas } from "@/actions/catalogos/notaCualitativaMethods"
 import { EsquelaHead } from "./EsquelaHead"
 import ExcelJS, { Borders, BorderStyle } from "exceljs"
 import { saveAs } from "file-saver"
 import { getCentros } from "@/actions/centroMethods/centroEducativoMethods"
 import { CentroEscolar } from "@/interfaces/centroInterface"
+import { Corte, NotaCualitativa } from "@/interfaces"
 
 
 /* ================= HELPERS ================= */
-
-function getQualitativeGrade(grade: number): string {
-  if (grade >= 90) return "AA"
-  if (grade >= 76) return "AS"
-  if (grade >= 60) return "AF"
-  return "AI"
-}
-
 function getInitials(fullName: string): string {
   return fullName
     .split(" ")
@@ -57,7 +51,14 @@ interface EsquelaRowProps {
   esquelaHeadId: number
 }
 
-type VistaType = "ALL" | 0 | 1 | 2 | 3 | 4 | 5 | 6
+type VistaType = "ALL" | "FINAL" | `C-${number}` | `S-${number}`
+
+type Columna = {
+  key: string
+  label: string
+  corteIds: number[]
+  type: "CORTE" | "SEMESTRE" | "FINAL"
+}
 
 /* ================= COMPONENT ================= */
 
@@ -66,6 +67,7 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
   const [calificaciones, setCalificaciones] = useState<any[]>([])
   const [vista, setVista] = useState<VistaType>("ALL")
   const [centro, setCentro] = useState<CentroEscolar | null>(null)
+  const [notasCualitativas, setNotasCualitativas] = useState<NotaCualitativa[]>([])
 
 
   useEffect(() => {
@@ -111,6 +113,24 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
     fetchCentro()
   }, [esquelaHeadId])
 
+  useEffect(() => {
+    const fetchNotas = async () => {
+      try {
+        const response = await getNotasCualitativas()
+        if (Array.isArray(response)) {
+          const ordered = response
+            .slice()
+            .sort((a, b) => (a.id ?? 0) - (b.id ?? 0))
+          setNotasCualitativas(ordered)
+        }
+      } catch (error) {
+        console.error("Error cargando notas cualitativas:", error)
+      }
+    }
+
+    fetchNotas()
+  }, [])
+
   const asignaturas: GADItem[] =
     esquelaHead?.grupo_asignatura?.grupoAsignaturaDocente ?? []
 
@@ -123,9 +143,9 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
   const findNota = (estId: number, asigId: number, corteId: number) => {
     const row = calificaciones.find(
       (r) =>
-        r.estudiante.id === estId &&
-        r.asignatura.id === asigId &&
-        r.corte.id === corteId
+        r?.estudiante?.id === estId &&
+        r?.asignatura?.id === asigId &&
+        r?.corte?.id === corteId
     )
 
     return {
@@ -134,12 +154,151 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
     }
   }
 
-  const cortes = [1, 2, 1, 3, 4, 3, 4]
+  const getQualitativeGrade = (grade: number): string => {
+    if (!Number.isFinite(grade)) return "AI"
+    const match = notasCualitativas.find(
+      (nota) => grade >= nota.rango_menor && grade <= nota.rango_mayor
+    )
+    return match?.abreviatura ?? "AI"
+  }
+
+  const anioLectivoData = esquelaHead?.grupo_asignatura?.organizacionEscolar?.anio_lectivo
+
+  const ordenarCortes = (items: Corte[]) =>
+    [...items].sort((a, b) => (a.id ?? 0) - (b.id ?? 0))
+
+  const cortesDisponibles = React.useMemo(() => {
+    const cortesFromAnio =
+      anioLectivoData?.cortes ??
+      anioLectivoData?.cortesAnioLectivo?.map((item) => item.corte) ?? []
+
+    if (cortesFromAnio.length > 0) {
+      return ordenarCortes(cortesFromAnio)
+    }
+
+    const unique = new Map<number, Corte>()
+    calificaciones.forEach((row) => {
+      const corte = row?.corte
+      if (corte?.id) {
+        unique.set(corte.id, corte)
+      }
+    })
+
+    return ordenarCortes(Array.from(unique.values()))
+  }, [anioLectivoData, calificaciones])
+
+  const semestres = React.useMemo(() => {
+    const map = new Map<number, { id: number; label: string; cortes: Corte[] }>()
+    cortesDisponibles.forEach((corte) => {
+      const id = corte.semestre?.id ?? 0
+      const label = corte.semestre?.semestre ?? "Sin semestre"
+      const current = map.get(id)
+      if (current) {
+        current.cortes.push(corte)
+      } else {
+        map.set(id, { id, label, cortes: [corte] })
+      }
+    })
+    return Array.from(map.values())
+  }, [cortesDisponibles])
+
+  const getColumnas = React.useCallback((): Columna[] => {
+    if (cortesDisponibles.length === 0) return []
+
+    if (vista === "ALL") {
+      const allCorteIds = cortesDisponibles.map((corte) => corte.id)
+      const columnas: Columna[] = []
+
+      semestres.forEach((sem) => {
+        sem.cortes.forEach((corte) => {
+          columnas.push({
+            key: `corte-${corte.id}`,
+            label: corte.abreviatura || corte.corte,
+            corteIds: [corte.id],
+            type: "CORTE",
+          })
+        })
+
+        columnas.push({
+          key: `semestre-${sem.id}`,
+          label: sem.label,
+          corteIds: sem.cortes.map((corte) => corte.id),
+          type: "SEMESTRE",
+        })
+      })
+
+      columnas.push({
+        key: "final",
+        label: "Nota Final",
+        corteIds: allCorteIds,
+        type: "FINAL",
+      })
+
+      return columnas
+    }
+
+    if (vista === "FINAL") {
+      return [
+        {
+          key: "final",
+          label: "Nota Final",
+          corteIds: cortesDisponibles.map((corte) => corte.id),
+          type: "FINAL",
+        },
+      ]
+    }
+
+    if (vista.startsWith("C-")) {
+      const corteId = Number(vista.replace("C-", ""))
+      const corte = cortesDisponibles.find((item) => item.id === corteId)
+      if (!corte) return []
+      return [
+        {
+          key: `corte-${corte.id}`,
+          label: corte.abreviatura || corte.corte,
+          corteIds: [corte.id],
+          type: "CORTE",
+        },
+      ]
+    }
+
+    if (vista.startsWith("S-")) {
+      const semestreId = Number(vista.replace("S-", ""))
+      const sem = semestres.find((item) => item.id === semestreId)
+      if (!sem) return []
+
+      const columnas: Columna[] = [
+        {
+        key: `semestre-${sem.id}`,
+        label: sem.label,
+        corteIds: sem.cortes.map((corte) => corte.id),
+        type: "SEMESTRE",
+        },
+      ]
+
+      return columnas
+    }
+
+    return []
+  }, [vista, cortesDisponibles, semestres])
+
+  const columnas = getColumnas()
+
+  const promedioCortes = (estId: number, asigId: number, corteIds: number[]) => {
+    const values = corteIds
+      .map((id) => findNota(estId, asigId, id).cuant)
+      .filter((v) => Number.isFinite(v))
+    if (values.length === 0) return 0
+    return Math.round(values.reduce((sum, v) => sum + v, 0) / values.length)
+  }
   /* ==========================
     cOLORES ESTILOS DE LA TABLA
  ========================== */
 
   const exportToExcel = async () => {
+    if (columnas.length === 0) {
+      return
+    }
     const workbook = new ExcelJS.Workbook()
     const sheet = workbook.addWorksheet("Esquela")
     sheet.properties.defaultRowHeight = 22
@@ -152,23 +311,8 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
     }
 
 
-    const cortesLabels = [
-      "1er Parcial",
-      "2do Parcial",
-      "1er Semestre",
-      "3er Parcial",
-      "4to Parcial",
-      "2do Semestre",
-      "Nota Final"
-    ]
-
-    const cortesActivos =
-      vista === "ALL"
-        ? cortesLabels.map((_, i) => i)
-        : [vista]
-
-    const totalColumns =
-      4 + asignaturas.length * (cortesActivos.length * 2)
+    const columnasExport = columnas
+    const totalColumns = 4 + asignaturas.length * (columnasExport.length * 2)
 
 
     /* ==========================
@@ -222,8 +366,22 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
 
     // Corte
     sheet.mergeCells(4, colStart, 4, colStart + colCorte - 1)
-    sheet.getCell(4, colStart).value =
-      `${vista === "ALL" ? "COMPLETO" : cortesLabels[vista]}`
+    const vistaLabel = (() => {
+      if (vista === "ALL") return "COMPLETO"
+      if (vista === "FINAL") return "NOTA FINAL"
+      if (vista.startsWith("C-")) {
+        const corteId = Number(vista.replace("C-", ""))
+        const corte = cortesDisponibles.find((item) => item.id === corteId)
+        return corte?.abreviatura || corte?.corte || "CORTE"
+      }
+      if (vista.startsWith("S-")) {
+        const semestreId = Number(vista.replace("S-", ""))
+        return semestres.find((item) => item.id === semestreId)?.label || "SEMESTRE"
+      }
+      return "COMPLETO"
+    })()
+
+    sheet.getCell(4, colStart).value = vistaLabel
     sheet.getCell(4, colStart).font = { bold: true }
     sheet.getCell(4, colStart).alignment = { horizontal: "center" }
     colStart += colCorte
@@ -249,14 +407,9 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
     sheet.getCell(5, Math.floor(totalColumns / 2) + 1).alignment = { horizontal: 'center' }
     const startRow = sheet.rowCount + 1
 
-    /* =====================================================
-       HEADER SEGÚN TIPO DE ESQUELA
-    ===================================================== */
-
-    if (vista === "ALL") {
-      /* ==========================================
-         🔵 HEADER ESQUELA COMPLETA (HORIZONTAL)
-      ========================================== */
+     /* =====================================================
+       HEADER ESQUELA (DINAMICO)
+     ===================================================== */
 
       const header1Data: any[] = [
         "N°",
@@ -267,7 +420,7 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
 
       asignaturas.forEach(a => {
         header1Data.push(a.asignatura.asignatura)
-        for (let i = 1; i < cortesLabels.length * 2; i++) {
+        for (let i = 1; i < columnasExport.length * 2; i++) {
           header1Data.push("")
         }
       })
@@ -280,9 +433,9 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
           header1.number,
           colIndex,
           header1.number,
-          colIndex + cortesLabels.length * 2 - 1
+          colIndex + columnasExport.length * 2 - 1
         )
-        colIndex += cortesLabels.length * 2
+        colIndex += columnasExport.length * 2
       })
 
       header1.eachCell(cell => {
@@ -296,8 +449,8 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
       const header2Data: any[] = ["", "", "", ""]
 
       asignaturas.forEach(() => {
-        cortesLabels.forEach(label => {
-          header2Data.push(label)
+        columnasExport.forEach((col) => {
+          header2Data.push(col.label)
           header2Data.push("")
         })
       })
@@ -306,7 +459,7 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
 
       let col2 = 5
       asignaturas.forEach(() => {
-        cortesLabels.forEach(() => {
+        columnasExport.forEach(() => {
           sheet.mergeCells(header2.number, col2, header2.number, col2 + 1)
           col2 += 2
         })
@@ -321,7 +474,7 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
       const header3Data: any[] = ["", "", "", ""]
 
       asignaturas.forEach(() => {
-        cortesLabels.forEach(() => {
+        columnasExport.forEach(() => {
           header3Data.push("CUAL")
           header3Data.push("CUANT")
         })
@@ -334,61 +487,6 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
         cell.alignment = { horizontal: "center", vertical: "middle" }
         cell.border = borderAll
       })
-
-
-    } else {
-      /* ==========================================
-         🟢 HEADER ESQUELA SIMPLE (VERTICAL)
-      ========================================== */
-
-      const h1 = sheet.addRow([])
-      const h2 = sheet.addRow([])
-
-      h1.height = 110
-      h2.height = 60
-
-      const base = ["N°", "Nombres y Apellidos", "Código del estudiante", "Sexo"]
-
-      base.forEach((t, i) => {
-        sheet.mergeCells(h1.number, i + 1, h2.number, i + 1)
-        const cell = sheet.getCell(h1.number, i + 1)
-        cell.value = t
-        cell.font = { bold: true }
-        cell.border = borderAll
-        cell.alignment =
-          t === "Sexo"
-            ? { textRotation: 90, vertical: "middle", horizontal: "center" }
-            : { horizontal: "center", vertical: "middle" }
-      })
-
-      let col = 5
-      asignaturas.forEach(a => {
-        sheet.mergeCells(h1.number, col, h1.number, col + 1)
-        const cell = sheet.getCell(h1.number, col)
-        cell.value = a.asignatura.asignatura
-        cell.font = { bold: true }
-        cell.border = borderAll
-        cell.alignment = {
-          textRotation: 90,
-          vertical: "middle",
-          horizontal: "center"
-        }
-
-        const cual = sheet.getCell(h2.number, col)
-        cual.value = "CUAL"
-        cual.font = { bold: true }
-        cual.border = borderAll
-        cual.alignment = { textRotation: 90, vertical: "middle", horizontal: "center" }
-
-        const cuant = sheet.getCell(h2.number, col + 1)
-        cuant.value = "CUANT"
-        cuant.font = { bold: true }
-        cuant.border = borderAll
-        cuant.alignment = { textRotation: 90, vertical: "middle", horizontal: "center" }
-
-        col += 2
-      })
-    }
 
     /* ==========================
     DATOS
@@ -403,8 +501,10 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
       ]
 
       asignaturas.forEach(a => {
-        cortesActivos.forEach(i => {
-          const cuant = findNota(est.id, a.asignatura.id, i + 1).cuant
+        columnasExport.forEach((col) => {
+          const cuant = col.type === "CORTE"
+            ? findNota(est.id, a.asignatura.id, col.corteIds[0]).cuant
+            : promedioCortes(est.id, a.asignatura.id, col.corteIds)
           rowData.push(getQualitativeGrade(cuant))
           rowData.push(cuant)
         })
@@ -452,6 +552,19 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
     saveAs(new Blob([buffer]), "Esquela.xlsx")
   }
 
+  const botones: { key: VistaType; label: string }[] = []
+  botones.push({ key: "ALL", label: "Completa" })
+  semestres.forEach((sem) => {
+    sem.cortes.forEach((corte) => {
+      botones.push({
+        key: `C-${corte.id}` as VistaType,
+        label: corte.abreviatura || corte.corte,
+      })
+    })
+    botones.push({ key: `S-${sem.id}` as VistaType, label: sem.label })
+  })
+  botones.push({ key: "FINAL", label: "Nota Final" })
+
 
   return (
     <div className="space-y-6 bg-gradient-to-br from-rose-50 via-pink-50 to-white min-h-screen p-4">
@@ -468,20 +581,15 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
 
       {/* ===== BOTONES ===== */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-        {["1er Parcial", "2do Parcial", "1er Semestre", "3er Parcial", "4to Parcial", "2do Semestre", "Nota Final"].map(
-          (t, i) => (
-            <Button
-              key={i}
-              onClick={() => setVista(i as VistaType)}
-              variant={vista === i ? "default" : "outline"}
-            >
-              {t}
-            </Button>
-          )
-        )}
-        <Button variant="secondary" onClick={() => setVista("ALL")}>
-          Completa
-        </Button>
+        {botones.map((b) => (
+          <Button
+            key={b.key}
+            onClick={() => setVista(b.key)}
+            variant={vista === b.key ? "default" : "outline"}
+          >
+            {b.label}
+          </Button>
+        ))}
         <Button
           variant="secondary"
           onClick={() => exportToExcel()}
@@ -510,7 +618,7 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
                 {asignaturas.map((a, idx) => (
                   <TableHead
                     key={idx}
-                    colSpan={(vista === "ALL" ? 7 : 1) * 2}
+                    colSpan={Math.max(columnas.length, 1) * 2}
                     className={`text-center font-bold
                       ${idx % 3 === 0 ? "bg-emerald-100 text-emerald-900"
                         : idx % 3 === 1 ? "bg-amber-100 text-amber-900"
@@ -526,20 +634,18 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
                 <TableHead colSpan={5}></TableHead>
                 {asignaturas.map((_, idx) => (
                   <React.Fragment key={idx}>
-                    {["1er Parcial", "2do Parcial", "1er Semestre", "3er Parcial", "4to Parcial", "2do Semestre", "Nota Final"]
-                      .filter((_, i) => vista === "ALL" || vista === i)
-                      .map((label, i) => (
-                        <TableHead
-                          key={i}
-                          colSpan={2}
-                          className={`text-xs text-center font-semibold
-                            ${idx % 3 === 0 ? "bg-emerald-50 text-emerald-800"
-                              : idx % 3 === 1 ? "bg-amber-50 text-amber-800"
-                                : "bg-violet-50 text-violet-800"}`}
-                        >
-                          {label}
-                        </TableHead>
-                      ))}
+                    {columnas.map((col) => (
+                      <TableHead
+                        key={col.key}
+                        colSpan={2}
+                        className={`text-xs text-center font-semibold
+                          ${idx % 3 === 0 ? "bg-emerald-50 text-emerald-800"
+                            : idx % 3 === 1 ? "bg-amber-50 text-amber-800"
+                              : "bg-violet-50 text-violet-800"}`}
+                      >
+                        {col.label}
+                      </TableHead>
+                    ))}
                   </React.Fragment>
                 ))}
               </TableRow>
@@ -549,8 +655,8 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
                 <TableHead colSpan={5}></TableHead>
                 {asignaturas.map((_, idx) => (
                   <React.Fragment key={idx}>
-                    {Array.from({ length: vista === "ALL" ? 7 : 1 }).map((_, i) => (
-                      <React.Fragment key={i}>
+                    {columnas.map((col) => (
+                      <React.Fragment key={col.key}>
                         <TableHead className={`text-xs text-center
                           ${idx % 3 === 0 ? "bg-emerald-50"
                             : idx % 3 === 1 ? "bg-amber-50"
@@ -590,61 +696,39 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
                   <TableCell className="text-center">{est.gender?.gender ?? "—"}</TableCell>
 
                   {asignaturas.map((a, aIdx) =>
-                    cortes
-                      .map((corte, i) => ({ corte, i }))
-                      .filter(({ i }) => vista === "ALL" || vista === i)
-                      .map(({ corte, i }) => {
-                        let cuant = 0
+                    columnas.map((col) => {
+                      const cuant = col.type === "CORTE"
+                        ? findNota(est.id, a.asignatura.id, col.corteIds[0]).cuant
+                        : promedioCortes(est.id, a.asignatura.id, col.corteIds)
 
-                        if (i === 2) {
-                          cuant = Math.round(
-                            (findNota(est.id, a.asignatura.id, 1).cuant +
-                              findNota(est.id, a.asignatura.id, 2).cuant) / 2
-                          )
-                        } else if (i === 5) {
-                          cuant = Math.round(
-                            (findNota(est.id, a.asignatura.id, 3).cuant +
-                              findNota(est.id, a.asignatura.id, 4).cuant) / 2
-                          )
-                        } else if (i === 6) {
-                          cuant = Math.round(
-                            (findNota(est.id, a.asignatura.id, 1).cuant +
-                              findNota(est.id, a.asignatura.id, 2).cuant +
-                              findNota(est.id, a.asignatura.id, 3).cuant +
-                              findNota(est.id, a.asignatura.id, 4).cuant) / 4
-                          )
-                        } else {
-                          cuant = findNota(est.id, a.asignatura.id, corte).cuant
-                        }
+                      const cual = getQualitativeGrade(cuant)
 
-                        const cual = getQualitativeGrade(cuant)
+                      const bgColor =
+                        aIdx % 3 === 0
+                          ? "bg-emerald-50"
+                          : aIdx % 3 === 1
+                            ? "bg-amber-50"
+                            : "bg-violet-50"
 
-                        const bgColor =
-                          aIdx % 3 === 0
-                            ? "bg-emerald-50"
-                            : aIdx % 3 === 1
-                              ? "bg-amber-50"
-                              : "bg-violet-50"
+                      const isFail = cuant < 60 || cual === "AI"
 
-                        const isFail = cuant < 60 || cual === "AI"
-
-                        return (
-                          <React.Fragment key={`${aIdx}-${i}`}>
-                            <TableCell
-                              className={`text-center font-semibold ${bgColor}
-                                ${isFail ? "text-red-600 font-bold" : ""}`}
-                            >
-                              {cual}
-                            </TableCell>
-                            <TableCell
-                              className={`text-center font-bold ${bgColor}
-                                ${cuant < 60 ? "text-red-600" : ""}`}
-                            >
-                              {cuant}
-                            </TableCell>
-                          </React.Fragment>
-                        )
-                      })
+                      return (
+                        <React.Fragment key={`${aIdx}-${col.key}`}>
+                          <TableCell
+                            className={`text-center font-semibold ${bgColor}
+                              ${isFail ? "text-red-600 font-bold" : ""}`}
+                          >
+                            {cual}
+                          </TableCell>
+                          <TableCell
+                            className={`text-center font-bold ${bgColor}
+                              ${cuant < 60 ? "text-red-600" : ""}`}
+                          >
+                            {cuant}
+                          </TableCell>
+                        </React.Fragment>
+                      )
+                    })
                   )}
                 </TableRow>
               ))}

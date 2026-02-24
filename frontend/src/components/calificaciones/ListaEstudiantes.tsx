@@ -54,8 +54,8 @@ export default function ListaEstudiantes({
                     onGuardar={handleGuardarIndividual}
                     notaBD={notasBD[est.id]?.find(
                         (r: any) =>
-                            r.asignatura.id === asignatura.id &&
-                            r.corte.id === corteActivo
+                            r?.asignatura?.id === asignatura.id &&
+                            r?.corte?.id === corteActivo
                     )}
                     isAnioActivo={isAnioActivo}
                 />

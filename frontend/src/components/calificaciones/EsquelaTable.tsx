@@ -10,13 +10,8 @@ import { EsquelaHead } from "./EsquelaHead"
 import { getEsquelaRowByEstudianteAndAnio } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods"
 import { CentroEscolar } from "@/interfaces/centroInterface"
 import { getCentros } from "@/actions/centroMethods/centroEducativoMethods"
-
-function getQualitativeGrade(grade: number): string {
-    if (grade >= 90) return "AA"
-    if (grade >= 76) return "AS"
-    if (grade >= 60) return "AF"
-    return "AI"
-}
+import { getNotasCualitativas } from "@/actions/catalogos/notaCualitativaMethods"
+import { NotaCualitativa } from "@/interfaces"
 
 function getInitials(fullName: string): string {
     return fullName
@@ -44,6 +39,7 @@ export function EsquelaTable({ esquelaHeadId, corteFilter = "all" }: EsquelaTabl
     const [esquelaHead, setEsquelaHead] = useState<EsquelaHeadInterface>()
     const [calificaciones, setCalificaciones] = useState<any[]>([])
     const [centro, setCentro] = useState<CentroEscolar | null>(null)
+    const [notasCualitativas, setNotasCualitativas] = useState<NotaCualitativa[]>([])
 
     const fetchEsquelaHeadById = async () => {
         try {
@@ -79,6 +75,24 @@ export function EsquelaTable({ esquelaHeadId, corteFilter = "all" }: EsquelaTabl
         fetchEsquelaHeadById()
     }, [esquelaHeadId])
 
+    useEffect(() => {
+        const fetchNotas = async () => {
+            try {
+                const response = await getNotasCualitativas()
+                if (Array.isArray(response)) {
+                    const ordered = response
+                        .slice()
+                        .sort((a, b) => (a.id ?? 0) - (b.id ?? 0))
+                    setNotasCualitativas(ordered)
+                }
+            } catch (error) {
+                console.error("Error cargando notas cualitativas:", error)
+            }
+        }
+
+        fetchNotas()
+    }, [])
+
     const colegio = centro?.nombreCentro ?? "N/A"
     const grupo = esquelaHead?.grupo_asignatura?.grado.grades ?? "N/A"
     const docenteGuia = esquelaHead?.grupo_asignatura?.docenteGuia.nombres ?? "N/A"
@@ -93,6 +107,14 @@ export function EsquelaTable({ esquelaHeadId, corteFilter = "all" }: EsquelaTabl
         asignaturas
             ?.flatMap((gad) => gad.gruposConEstudiantes.map((ge: any) => ge.estudiante))
             .filter((v, i, self) => self.findIndex((s) => s.id === v.id) === i) ?? []
+
+    const getQualitativeGrade = (grade: number): string => {
+        if (!Number.isFinite(grade)) return "AI"
+        const match = notasCualitativas.find(
+            (nota) => grade >= nota.rango_menor && grade <= nota.rango_mayor
+        )
+        return match?.abreviatura ?? "AI"
+    }
 
     const findNota = (estId: number, asigId: number, corteId: number) => {
         const row = calificaciones.find(

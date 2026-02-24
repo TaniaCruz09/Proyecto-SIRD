@@ -1,6 +1,7 @@
 export type { NivelAcademico, NivelAcademicoPayload } from "./catalogoInterface/NivelAcademicoInterface";
 export type { Asignatura, AsignaturaPayload } from "./catalogoInterface/AsignaturaInterface"
 export type { Corte, CortePayload } from "./catalogoInterface/corteEvaluativoInterface"
+export type { NotaCualitativa, NotaCualitativaPayload } from "./catalogoInterface/notaCualitativaInterface"
 export type { Departamento, DepartamentoPayload } from "./catalogoInterface/DepartamentoInterface";
 export type { Etnia, EtniaPayload } from "./catalogoInterface/EtniaInterface"
 export type { Sexo, SexoPayload } from "./catalogoInterface/SexoInterface";
