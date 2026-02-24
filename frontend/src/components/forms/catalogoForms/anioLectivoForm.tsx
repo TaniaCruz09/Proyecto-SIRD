@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Calendar } from "lucide-react";
 import { AnioLectivoPayload, AnioLectivo, Corte } from "@/interfaces";
+import { useToast } from "@/hooks/use-toast";
 
 interface AnioLectivoFormProps {
   defaultValues?: AnioLectivo | null;
@@ -13,6 +14,7 @@ interface AnioLectivoFormProps {
 }
 
 export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormProps) {
+  const { toast } = useToast();
   const [anioLectivo, setAnioLectivo] = useState<string>("");
   const [isActive, setIsActive] = useState<boolean>(false);
   const [cortes, setCortes] = useState<Corte[]>([]);
@@ -56,7 +58,11 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
     const anioLectivoNumber = parseInt(anioLectivo, 10);
 
     if (isNaN(anioLectivoNumber)) {
-      console.error("El año lectivo no es un número válido");
+      toast({
+        title: "Año lectivo inválido",
+        description: "Ingresa un número válido.",
+        variant: "destructive",
+      });
       setIsLoading(false);
       return;
     }
@@ -70,12 +76,27 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
     try {
       if (isEdit && defaultValues?.id) {
         await updateAnioLectivo(defaultValues.id, payload);
+        toast({
+          title: "Año lectivo actualizado",
+          description: "Se actualizó correctamente.",
+          variant: "success",
+        });
       } else {
         await saveAnioLectivo(payload);
+        toast({
+          title: "Año lectivo creado",
+          description: "Se creó correctamente.",
+          variant: "success",
+        });
       }
       onSuccess();
     } catch (error) {
       console.error("Error al guardar o actualizar año lectivo:", error);
+      toast({
+        title: "Error al guardar",
+        description: "Ocurrió un error al guardar el año lectivo.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
