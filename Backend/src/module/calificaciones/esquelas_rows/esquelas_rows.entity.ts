@@ -1,5 +1,6 @@
-import { Asignatura, Cortes } from 'src/module/catalogos';
-import { StudentEntity } from 'src/module/createEstudents';
+import { Asignatura } from 'src/module/catalogos/entities/asignatura.entity';
+import { Cortes } from 'src/module/catalogos/entities/corte.entity';
+import { StudentEntity } from 'src/module/createEstudents/students.entity';
 import {
     Column,
     Entity,

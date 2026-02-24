@@ -4,6 +4,7 @@ export { AcademicLevelService } from "./services/academiclevel.service";
 export { AcademicLevelController } from "./controllers/academiclevel.controller";
 
 export { AnioLectivo } from "./entities/anioLectivo.entity";
+export { AnioLectivoCorte } from "./entities/anioLectivoCorte.entity";
 export { CreateAnioLectivoDTO } from "./dtos/anioLectivo.dto";
 export { AnioLectivoService } from "./services/anioLectivo.service";
 export { AnioLectivoController } from "./controllers/anioLectivo.controller";
@@ -17,6 +18,11 @@ export { Cortes } from "./entities/corte.entity";
 export { CreateCortesDto } from "./dtos/create-corte.dto";
 export { CortesService } from "./services/cortes.service";
 export { CortesController } from "./controllers/cortes.controller";
+
+export { NotaCualitativa } from "./entities/notaCualitativa.entity";
+export { NotaCualitativaDto } from "./dtos/notaCualitativa.dto";
+export { NotaCualitativaService } from "./services/notaCualitativa.service";
+export { NotaCualitativaController } from "./controllers/notaCualitativa.controller";
 
 export { Departamento } from "./entities/departamento.entity";
 export { CreateDepartamentoDto } from "./dtos/departamento.dto"

@@ -5,12 +5,16 @@ import {
     IsDate,
     IsNotEmpty,
     IsNumber,
-    isObject,
-    IsObject,
     IsOptional,
     ValidateNested,
 } from 'class-validator';
 import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity';
+
+class CorteRefDto {
+    @IsNotEmpty()
+    @IsNumber()
+    id: number;
+}
 
 export class CreateAnioLectivoDTO {
     @IsOptional()
@@ -30,6 +34,12 @@ export class CreateAnioLectivoDTO {
     @ValidateNested({ each: true })
     @Type(() => OrganizacionEscolar)
     organizacionEscolar?: OrganizacionEscolar[]
+
+    @IsArray()
+    @IsOptional()
+    @ValidateNested({ each: true })
+    @Type(() => CorteRefDto)
+    cortes?: CorteRefDto[];
 
     @IsOptional()
     @IsNumber()

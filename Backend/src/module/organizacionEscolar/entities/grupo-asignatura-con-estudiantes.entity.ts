@@ -1,4 +1,4 @@
-import { StudentEntity } from 'src/module/createEstudents';
+import { StudentEntity } from 'src/module/createEstudents/students.entity';
 import { User } from '../../auth/entities';
 import * as moment from 'moment-timezone';
 import { Grupos } from './grupos.entity';

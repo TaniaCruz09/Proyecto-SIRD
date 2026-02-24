@@ -1,7 +1,7 @@
 // src/module/organizacionEscolar/entities/grupoAsignaturaDocente.entity.ts
 import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany } from "typeorm";
 import { Grupos } from "./grupos.entity";
-import { Asignatura } from "src/module/catalogos";
+import { Asignatura } from "src/module/catalogos/entities/asignatura.entity";
 import { Docentes } from "src/module/docentes/docentes.entity";
 import { GrupoAsignaturaConEstudiantes } from "./grupo-asignatura-con-estudiantes.entity";
 

@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsNumber, IsObject, IsOptional, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
-import { StudentEntity } from "src/module/createEstudents";
+import { StudentEntity } from "src/module/createEstudents/students.entity";
 import { GrupoAsignaturaDocente } from "../entities/GrupoAsignaturaDocente.entity";
 
 export class AsignarEstudianteAGrupoDto {
