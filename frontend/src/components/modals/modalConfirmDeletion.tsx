@@ -6,9 +6,11 @@ interface ConfirmDeleteModalProps {
     onshow: boolean;
     onConfirm: () => Promise<void>;
     onCancel: () => void;
+    title?: string;
+    description?: string;
 }
 
-export default function ConfirmDeletModal({ onshow, onCancel, onConfirm }: ConfirmDeleteModalProps) {
+export default function ConfirmDeletModal({ onshow, onCancel, onConfirm, title, description }: ConfirmDeleteModalProps) {
     if (!onshow) return null;
 
     return (
@@ -19,9 +21,14 @@ export default function ConfirmDeletModal({ onshow, onCancel, onConfirm }: Confi
                         <IoWarningOutline />
                     </div>
                 </div>
-                <p className="text-lg font-semibold mb-4 text-gray-700">
-                    ¿Estás seguro de eliminar?
+                <p className="text-lg font-semibold mb-3 text-gray-700">
+                    {title ?? "¿Estás seguro de eliminar?"}
                 </p>
+                {description ? (
+                    <p className="text-sm text-gray-600 mb-4">
+                        {description}
+                    </p>
+                ) : null}
                 <div className="flex justify-center gap-4">
                     <button
                         onClick={onConfirm}
