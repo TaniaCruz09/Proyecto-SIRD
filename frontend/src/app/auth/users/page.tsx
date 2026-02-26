@@ -12,10 +12,12 @@ import SearchBar from "@/components/SearchBar";
 import UserTable from "@/components/tables/UserTable";
 import UserForm from "@/components/forms/UserForm";
 import ModalBase from "@/components/modals/ModalBase";
-import { User } from "@/interfaces/AuthInterface";
+import { User } from "@/interfaces/authInterface";
+import { useToast } from "@/hooks/use-toast";
 
 
 export default function Users() {
+  const { toast } = useToast();
   const [usuarios, setUsuarios] = useState<User[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
@@ -47,9 +49,19 @@ export default function Users() {
     if (!userToDelete) return;
     try {
       await deleteUser(userToDelete);
+      toast({
+        title: "Usuario eliminado",
+        description: "El usuario se elimino correctamente.",
+        variant: "destructive",
+      })
       fetchUsers();
     } catch (error) {
       console.error("Error al eliminar usuario", error);
+      toast({
+        title: "Error al eliminar",
+        description: "No se pudo eliminar el usuario.",
+        variant: "destructive",
+      })
     } finally {
       setShowConfirm(false);
       setUserToDelete(null);

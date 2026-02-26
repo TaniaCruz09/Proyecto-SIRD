@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import UserRow from "./UserRow";
-import User from "@/interfaces/AuthInterface";
+import { User } from "@/interfaces/authInterface";
 
 interface UserTableProps {
   users: User[];

@@ -2,6 +2,7 @@ import BtnDelete from '@/components/Buttons/BtnDelete'
 import React, { useState } from 'react'
 import ConfirmDeletModal from '../../ModalConfirmDeletion'
 import { deleteCorteEvaluativo } from '@/actions/catalogos/corteEvaluativoMethods';
+import { useToast } from '@/hooks/use-toast';
 
 interface DeleteCorteEvaluativoModalProps {
   idEliminar: number;
@@ -9,6 +10,7 @@ interface DeleteCorteEvaluativoModalProps {
 }
 
 export default function DeleteCorteEvaluativoModal({ idEliminar, fetchCortesEvaluativos }: DeleteCorteEvaluativoModalProps) {
+  const { toast } = useToast();
   const [corteEvaluativoToDelete, setCorteEvaluativoToDelete] = useState<number | null>(null);
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
@@ -22,6 +24,11 @@ export default function DeleteCorteEvaluativoModal({ idEliminar, fetchCortesEval
     try {
       await deleteCorteEvaluativo(corteEvaluativoToDelete);
       await fetchCortesEvaluativos();
+      toast({
+        title: "Registro eliminado",
+        description: "El corte evaluativo se eliminó correctamente.",
+        variant: "destructive",
+      });
     } catch (error) {
       console.error("error al eliminar el Corte Evaluativo", error)
     } finally {

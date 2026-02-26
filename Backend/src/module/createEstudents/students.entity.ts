@@ -1,4 +1,5 @@
 import {
+  Check,
   Column,
   CreateDateColumn,
   DeleteDateColumn,
@@ -15,6 +16,9 @@ import { User } from '../auth/entities';
 import { GrupoAsignaturaConEstudiantes } from '../organizacionEscolar/entities/grupo-asignatura-con-estudiantes.entity';
 
 @Entity({ name: 'student', schema: 'estudiante' })
+@Check(`"cedula_identidad" IS NULL
+  OR "tutor_cedula_identidad" IS NULL
+  OR "cedula_identidad" <> "tutor_cedula_identidad"`)
 export class StudentEntity {
   @PrimaryGeneratedColumn({
     name: 'id',
@@ -42,6 +46,7 @@ export class StudentEntity {
     name: 'codigo_estudiante',
     type: 'varchar',
     nullable: true,
+    unique: true,
   })
   studentCode: string;
 
@@ -50,6 +55,7 @@ export class StudentEntity {
     type: 'varchar',
     length: 16,
     nullable: true,
+    unique: true,
   })
   identityCard: string;
 
@@ -75,7 +81,7 @@ export class StudentEntity {
   tutorName: string;
 
   @Column({
-    name: 'maestro_cedula_identidad',
+    name: 'tutor_cedula_identidad',
     type: 'varchar',
     length: 16,
     nullable: true,
@@ -83,7 +89,7 @@ export class StudentEntity {
   tutorIdentityCard: string;
 
   @Column({
-    name: 'tutorPhoneNumber',
+    name: 'tutor_telefono',
     type: 'varchar',
     length: 8,
     nullable: true,
@@ -105,7 +111,7 @@ export class StudentEntity {
   profileImage?: string;
 
   @Column({
-    name: 'phoneStudent',
+    name: 'telefono_estudiante',
     type: 'varchar',
     nullable: true,
   })

@@ -1,5 +1,6 @@
 "use client"
 import { saveAsignatura, updateAsignatura } from "@/actions/catalogos/asignaturaMethods";
+import { useToast } from "@/hooks/use-toast";
 import { Asignatura } from "@/interfaces";
 import React, { useEffect, useState } from "react";
 
@@ -12,6 +13,7 @@ export default function AsignaturaForm({
   defaultValues,
   onSuccess,
 }: AsignaturaFormProps) {
+  const { toast } = useToast();
   const [asignatura, setAsignatura] = useState<string>("");
 
   const isEdit = Boolean(defaultValues?.id);
@@ -29,6 +31,11 @@ export default function AsignaturaForm({
     try {
       if (isEdit && defaultValues?.id) {
         await updateAsignatura(defaultValues.id, { asignatura: asignatura })
+        toast({
+          title: "Registro actualizado",
+          description: "La asignatura se actualizó correctamente.",
+          variant: "success",
+        });
       } else {
         await saveAsignatura({ asignatura: asignatura })
       }

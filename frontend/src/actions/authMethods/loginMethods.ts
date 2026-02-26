@@ -61,3 +61,14 @@ export async function resetPassword(token: string, newPassword: string) {
   const endPoint = `/auth/reset-password`;
   return await feching(endPoint, "no-cache", "POST", { token, newPassword });
 }
+
+export async function refreshSession() {
+  const endPoint = "/auth/refresh"
+  try {
+    const response = await feching(endPoint, "no-cache", "POST")
+    return response
+  } catch (error) {
+    console.error("Error en refreshSession:", error)
+    throw error
+  }
+}

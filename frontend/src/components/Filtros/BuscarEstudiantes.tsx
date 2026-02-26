@@ -70,15 +70,39 @@ export default function BuscarAsignarEstudianteAutocomplete({
         return false;
     };
 
+    const getGrupoAsignadoLabel = (student: any) => {
+        if (typeof student.asignadoGrupo === "string" && student.asignadoGrupo.trim()) {
+            return student.asignadoGrupo;
+        }
+
+        const grupoRel = Array.isArray(student.grupoAsignaturaConEstudiantes)
+            ? student.grupoAsignaturaConEstudiantes.find((item: any) => item?.grupoAsignaturaDocente?.grupo)
+            : null;
+        const grupo = grupoRel?.grupoAsignaturaDocente?.grupo
+            ?? (Array.isArray(student.grupos) ? student.grupos[0] : null);
+
+        if (!grupo) return null;
+
+        const grado = grupo.grado?.grades ?? "";
+        const seccion = grupo.seccion?.seccion ?? "";
+        const turno = grupo.turno?.turno ?? "";
+        const modalidad = grupo.turno?.modalidad?.modalidad ?? "";
+        const base = `${grado} ${seccion}`.trim();
+        const extras = [turno, modalidad].filter(Boolean).join(" - ");
+
+        return [base, extras].filter(Boolean).join(" - ") || null;
+    };
+
     /* 🔹 Asignar estudiante */
     const handleAsignar = async (student: any) => {
         if (!asignaturasDelGrupo?.length) return;
 
         // 🚫 YA ASIGNADO
         if (estaAsignado(student)) {
+            const grupoAsignado = getGrupoAsignadoLabel(student);
             toast({
                 title: "Estudiante ya asignado",
-                description: `${student.name} ${student.lastName} ya pertenece a un grupo`,
+                description: `${student.name} ${student.lastName} ya pertenece a ${grupoAsignado ?? "un grupo"}`,
                 variant: "destructive", // o "default" si lo querés más suave
             });
             return;

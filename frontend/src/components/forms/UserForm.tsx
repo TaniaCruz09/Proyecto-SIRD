@@ -1,17 +1,19 @@
 "use client";
 import { useEffect, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import Select from "react-select";
 import {
   assignRoleToUser,
+  getUser,
   getUserById,
   saveUser,
   updateUser,
 } from "@/actions/authMethods/usersMethods";
 import { getRoles } from "@/actions/authMethods/rolesMethods";
-import { User } from "@/interfaces/AuthInterface";
 import { Docente } from "@/interfaces";
-import { Role } from "@/interfaces/AuthInterface";
 import { getDocentes } from "@/actions/docentesMethods/docentesMethods";
+import { useToast } from "@/hooks/use-toast";
+import { Role, User } from "@/interfaces/authInterface";
 
 interface UserFormProps {
   defaultValues?: User | null;
@@ -24,9 +26,11 @@ interface OptionType {
 }
 
 const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
+  const { toast } = useToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [rolesSelected, setRolesSelected] = useState<OptionType[]>([]);
   const [docente, setDocente] = useState<number | "">("");
   const [docentes, setDocentes] = useState<Docente[]>([]);
@@ -91,10 +95,48 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
     const DocenteTieneRol = rolesSelected.some((r) => r.label.toLocaleLowerCase() === 'docente');
 
     if(DocenteTieneRol && !docente){
-      alert('debe seleccionar un docente existente o crear uno nuevo antes de asignarle el rol de docente')
+      toast({
+        title: "Docente requerido",
+        description: "Debe seleccionar un docente existente o crear uno nuevo antes de asignarle el rol de docente.",
+        variant: "destructive",
+      })
       return;
     }
+    
+    if (password && password.length < 8) {
+      toast({
+        title: "Contrasena invalida",
+        description: "La contrasena debe tener al menos 8 caracteres.",
+        variant: "destructive",
+      })
+      return
+    }
     try {
+      const normalizedEmail = email.trim().toLowerCase();
+      if (normalizedEmail) {
+        const usersRes = await getUser();
+        const usersList: User[] = Array.isArray(usersRes?.data)
+          ? usersRes.data
+          : Array.isArray(usersRes)
+            ? usersRes
+            : [];
+
+        const duplicate = usersList.find(
+          (u) =>
+            u.email?.toLowerCase() === normalizedEmail &&
+            (!isEdit || u.id !== defaultValues?.id)
+        );
+
+        if (duplicate) {
+          toast({
+            title: "Correo duplicado",
+            description: "Este correo ya pertenece a otra persona.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       const payload: any = {
         email,
         password: password || undefined,
@@ -108,6 +150,11 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
       if (isEdit && defaultValues?.id) {
         const updatedUser = await updateUser(defaultValues.id, payload);
         userId = updatedUser.id;
+        toast({
+          title: "Usuario actualizado",
+          description: "El usuario se actualizo correctamente.",
+          variant: "success",
+        })
       } else {
         const newUserRes = await saveUser(payload);
         userId = newUserRes?.user?.id;
@@ -119,6 +166,14 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
 
       if (userId) {
         await getUserById(userId);
+      }
+
+      if (!isEdit) {
+        toast({
+          title: "Usuario agregado",
+          description: "El usuario se agrego correctamente.",
+          variant: "success",
+        })
       }
 
       onSuccess();
@@ -157,6 +212,7 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+          required
         />
       )}
 
@@ -169,14 +225,24 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
         required
       />
 
-      <input
-        type="password"
-        placeholder="Contraseña"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        required={!isEdit}
-      />
+      <div className="relative">
+        <input
+          type={showPassword ? "text" : "password"}
+          placeholder="Contraseña"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-3 pr-12 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+          required={!isEdit}
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword((prev) => !prev)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"
+          aria-label={showPassword ? "Ocultar contrasena" : "Ver contrasena"}
+        >
+          {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+        </button>
+      </div>
 
       {/* Multi-select moderno para todos los roles */}
       <Select
@@ -186,6 +252,7 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
         onChange={(selected) => setRolesSelected(selected as OptionType[])}
         placeholder="Selecciona uno o más roles"
         className="text-black"
+        required
       />
 
       <div className="flex justify-center">

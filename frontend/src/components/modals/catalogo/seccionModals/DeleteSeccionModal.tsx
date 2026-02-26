@@ -2,6 +2,7 @@ import BtnDelete from '@/components/Buttons/BtnDelete'
 import React, { useState } from 'react'
 import ConfirmDeletModal from '../../ModalConfirmDeletion'
 import { deleteSeccion } from '@/actions/catalogos/seccionMethods';
+import { useToast } from '@/hooks/use-toast';
 
 interface DeleteSeccionModalProps {
   idEliminar: number;
@@ -9,6 +10,7 @@ interface DeleteSeccionModalProps {
 }
 
 export default function DeleteSeccionModal({ idEliminar, fetchSecciones }: DeleteSeccionModalProps) {
+  const { toast } = useToast();
   const [seccionToDelete, setSeccionToDelete] = useState<number | null>(null);
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
@@ -22,6 +24,11 @@ export default function DeleteSeccionModal({ idEliminar, fetchSecciones }: Delet
     try {
       await deleteSeccion(seccionToDelete);
       await fetchSecciones();
+      toast({
+        title: "Registro eliminado",
+        description: "La seccion se elimino correctamente.",
+        variant: "destructive",
+      });
     } catch (error) {
       console.error("error al eliminar la seccion", error)
     } finally {

@@ -9,10 +9,13 @@ import { Corte } from "@/interfaces"
 import { EsquelaRowPayload } from "@/interfaces/calificaciones/EsquelaRow"
 import { saveEsquelaRow, updateEsquelaRow } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods"
 import { getCortesEvaluativos } from "@/actions/catalogos/corteEvaluativoMethods"
+import { getNotasCualitativas } from "@/actions/catalogos/notaCualitativaMethods"
 import CardCortesEvaluativos from "@/components/calificaciones/CardCortesEvaluativos"
 import { Asignatura, CorteUI, Estudiante } from "@/interfaces/calificaciones/AgregarCalificaciones"
 import HeaderAgregarCalificaciones from "@/components/calificaciones/HeaderAgregarCalificaciones"
 import TabsAsignaturas from "@/components/calificaciones/TabsAsignaturas"
+import { useToast } from "@/hooks/use-toast"
+import { NotaCualitativa } from "@/interfaces"
 
 export interface CalificacionesProps {
     esquelaId: number | string
@@ -29,16 +32,6 @@ const getInitials = (nombre?: string) => {
     return ((partes[0][0] ?? "") + (partes[1][0] ?? "")).toUpperCase()
 }
 
-/** Genera la nota cualitativa según el valor numérico */
-const generarNotaCualitativa = (valor: number): string => {
-    if (isNaN(valor)) return "AI"
-    if (valor >= 0 && valor <= 59) return "AI"
-    if (valor >= 60 && valor <= 75) return "AF"
-    if (valor >= 76 && valor <= 89) return "AS"
-    if (valor >= 90 && valor <= 100) return "AA"
-    return "AI"
-}
-
 export default function Calificaciones({
     esquelaId,
     grupoId,
@@ -48,6 +41,7 @@ export default function Calificaciones({
 }: CalificacionesProps) {
 
     const { docente } = useAuth()
+    const { toast } = useToast()
 
     const [estudiantes, setEstudiantes] = useState<Estudiante[]>([])
     const [asignaturas, setAsignaturas] = useState<Asignatura[]>([])
@@ -60,35 +54,74 @@ export default function Calificaciones({
     const [corteActivo, setCorteActivo] = useState<number | null>(null)
 
     const [cortesUI, setCortesUI] = useState<CorteUI[]>([])
+    const [notasCualitativas, setNotasCualitativas] = useState<NotaCualitativa[]>([])
 
     const storageKey = `calificaciones_${esquelaId}_${grupoId}`
 
-    // ---------- Cargar cortes ----------
+    const ordenarCortes = (items: Corte[]) =>
+        items.slice().sort((a, b) => (a.id ?? 0) - (b.id ?? 0))
+
+    const mapearCortesUI = (items: Corte[]) => {
+        const colores = ["bg-blue-500", "bg-yellow-500", "bg-green-500", "bg-purple-500"]
+        return items.map((c, i) => ({
+            ...c,
+            color: colores[i % colores.length]
+        }))
+    }
+
+    // ---------- Cargar cortes segun anio lectivo ----------
     useEffect(() => {
         const fetchCortes = async () => {
             try {
-                const response = await getCortesEvaluativos()
-                if (!Array.isArray(response)) return
+                const anioLectivoData = esquela?.grupo_asignatura?.organizacionEscolar?.anio_lectivo
+                const cortesFromAnio =
+                    anioLectivoData?.cortes ??
+                    anioLectivoData?.cortesAnioLectivo?.map((item: any) => item.corte) ??
+                    []
 
-                setCortes(response)
+                let ordered: Corte[] = []
 
-                if (response.length > 0 && corteActivo == null) {
-                    setCorteActivo(response[0].id)
+                if (cortesFromAnio.length > 0) {
+                    ordered = ordenarCortes(cortesFromAnio)
+                } else {
+                    const response = await getCortesEvaluativos()
+                    if (Array.isArray(response)) {
+                        ordered = ordenarCortes(response)
+                    }
                 }
 
-                const colores = ["bg-blue-500", "bg-yellow-500", "bg-green-500", "bg-purple-500"]
-                const adaptados: CorteUI[] = response.map((c, i) => ({
-                    ...c,
-                    color: colores[i % colores.length]
-                }))
-                setCortesUI(adaptados)
+                setCortes(ordered)
+
+                if (ordered.length > 0 && (corteActivo == null || !ordered.some(c => c.id === corteActivo))) {
+                    setCorteActivo(ordered[0].id)
+                }
+
+                setCortesUI(mapearCortesUI(ordered))
             } catch (error) {
                 console.error("Error al cargar los cortes evaluativos", error)
             }
         }
 
-        fetchCortes()
+        if (esquela) fetchCortes()
         // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [esquela])
+
+    useEffect(() => {
+        const fetchNotas = async () => {
+            try {
+                const response = await getNotasCualitativas()
+                if (Array.isArray(response)) {
+                    const ordered = response
+                        .slice()
+                        .sort((a, b) => (a.id ?? 0) - (b.id ?? 0))
+                    setNotasCualitativas(ordered)
+                }
+            } catch (error) {
+                console.error("Error al cargar notas cualitativas", error)
+            }
+        }
+
+        fetchNotas()
     }, [])
 
     // ---------- Cargar estudiantes y asignaturas (y restaurar notas) ----------
@@ -239,6 +272,14 @@ export default function Calificaciones({
         }
     }
 
+    const obtenerNotaCualitativa = (valor: number): string => {
+        if (!Number.isFinite(valor)) return "AI"
+        const match = notasCualitativas.find(
+            (nota) => valor >= nota.rango_menor && valor <= nota.rango_mayor
+        )
+        return match?.abreviatura ?? "AI"
+    }
+
     // ---------------- Guardar nota individual (envía a backend y actualiza localStorage) ----------------
     const handleGuardarIndividual = async (
         estudiante: Estudiante,
@@ -252,16 +293,44 @@ export default function Calificaciones({
         const raw = String(nota ?? "").trim();
 
         // Validaciones
-        if (raw === "") return alert("Debe ingresar una nota");
-        if (!/^\d{1,3}$/.test(raw)) return alert("La nota no es válida (solo números enteros)");
+        if (raw === "") {
+            toast({
+                title: "Nota requerida",
+                description: "Debe ingresar una nota.",
+                variant: "destructive",
+            })
+            return
+        }
+        if (!/^\d{1,3}$/.test(raw)) {
+            toast({
+                title: "Nota inválida",
+                description: "Solo se permiten números enteros.",
+                variant: "destructive",
+            })
+            return
+        }
 
         const notaNum = Number(raw);
-        if (notaNum < 0 || notaNum > 100) return alert("La nota debe estar entre 0 y 100");
+        if (notaNum < 0 || notaNum > 100) {
+            toast({
+                title: "Rango inválido",
+                description: "La nota debe estar entre 0 y 100.",
+                variant: "destructive",
+            })
+            return
+        }
 
         const corteEncontrado = cortes.find(c => c.id === corteActivo);
-        if (!corteEncontrado) return alert("No se encontró el corte");
+        if (!corteEncontrado) {
+            toast({
+                title: "Corte no encontrado",
+                description: "No se encontró el corte seleccionado.",
+                variant: "destructive",
+            })
+            return
+        }
 
-        const notaCualitativa = generarNotaCualitativa(notaNum);
+        const notaCualitativa = obtenerNotaCualitativa(notaNum);
 
         const payload: EsquelaRowPayload = {
             estudiante: { id: estudiante.id },
@@ -282,16 +351,27 @@ export default function Calificaciones({
                     esquela?.esquelaRow ??
                     [];
 
-                const rowBD = filasBD.find(
-                    r =>
-                        Number(r.estudiante.id) === Number(estudiante.id) &&
-                        Number(r.asignatura.id) === Number(asignaturaId) &&
-                        Number(r.corte.id) === Number(corteActivo)
-                );
+                const rowBD = filasBD.find(r => {
+                    const estudianteIdBD = r?.estudiante?.id
+                    const asignaturaIdBD = r?.asignatura?.id
+                    const corteIdBD = r?.corte?.id
+
+                    if (estudianteIdBD == null || asignaturaIdBD == null || corteIdBD == null) return false
+
+                    return (
+                        Number(estudianteIdBD) === Number(estudiante.id) &&
+                        Number(asignaturaIdBD) === Number(asignaturaId) &&
+                        Number(corteIdBD) === Number(corteActivo)
+                    )
+                });
 
 
                 if (!rowBD) {
-                    alert("No se pudo actualizar: la fila no existe en BD");
+                    toast({
+                        title: "No se pudo actualizar",
+                        description: "La fila no existe en la base de datos.",
+                        variant: "destructive",
+                    })
                     setGuardando(false);
                     return;
                 }
@@ -332,11 +412,19 @@ export default function Calificaciones({
             // 👉 Actualizar la fila
             setNotaBD(String(notaReal));
 
-            alert(isUpdate ? "Nota actualizada correctamente" : "Nota guardada correctamente");
+            toast({
+                title: isUpdate ? "Nota actualizada" : "Nota guardada",
+                description: "La nota se guardó correctamente.",
+                variant: "success",
+            })
         } catch (error) {
             console.error("Error al guardar nota:", error);
             setGuardando(false);
-            alert("Error al guardar la nota");
+            toast({
+                title: "Error al guardar",
+                description: "Ocurrió un error al guardar la nota.",
+                variant: "destructive",
+            })
         }
     };
 
@@ -347,9 +435,17 @@ export default function Calificaciones({
         const index = cortes.findIndex(c => c.id === corteActivo)
         if (index < cortes.length - 1) {
             setCorteActivo(cortes[index + 1].id)
-            alert(`Corte cambiado a: ${cortes[index + 1].corte}`)
+            toast({
+                title: "Corte cambiado",
+                description: `Corte actual: ${cortes[index + 1].corte}`,
+                variant: "default",
+            })
         } else {
-            alert("Ya estás en el último corte")
+            toast({
+                title: "Último corte",
+                description: "Ya estás en el último corte.",
+                variant: "default",
+            })
         }
     }
 

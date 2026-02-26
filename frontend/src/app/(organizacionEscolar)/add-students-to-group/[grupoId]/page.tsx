@@ -39,7 +39,8 @@ export default function AsignarEstudiantesAGrupo() {
     const estudiantesUnicos = Object.values(
         grupos?.grupoAsignaturaDocente
             ?.reduce((acc, gad) => {
-                gad.gruposConEstudiantes.forEach(ge => {
+                gad.gruposConEstudiantes.forEach((ge) => {
+                    if (!ge.estudiante?.id) return;
                     acc[ge.estudiante.id] = ge.estudiante;
                 });
                 return acc;
@@ -96,7 +97,7 @@ export default function AsignarEstudiantesAGrupo() {
                                             <li key={index} className="flex justify-between border-b border-gray-200 pb-1">
                                                 <span className="font-medium text-gray-700">{item.asignatura.asignatura}</span>
                                                 <span className="text-gray-600">
-                                                    {item.docente.nombres} {item.docente.apellido_paterno && item.docente.apellido_materno}
+                                                    {item.docente?.nombres ?? "Sin docente"} {item.docente?.apellido_paterno && item.docente?.apellido_materno}
                                                 </span>
                                             </li>
                                         ))}

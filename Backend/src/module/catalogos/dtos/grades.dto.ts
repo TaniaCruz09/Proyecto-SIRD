@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString, MaxLength } from "class-validator";
+import { IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength } from "class-validator";
 
 
 export class GradesDto{
@@ -7,6 +7,7 @@ export class GradesDto{
     readonly id: number;
 
     @IsString()
+    @IsNotEmpty()
     readonly grades: string
 
     /*created_at: Date

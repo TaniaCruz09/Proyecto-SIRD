@@ -28,6 +28,7 @@ export default function AnioLectivoTable({
             <tr>
               <th className="p-3 border-b">Id</th>
               <th className="p-3 border-b">Años Lectivos</th>
+              <th className="p-3 border-b">Cortes</th>
               <th className="p-3 border-b">Estado</th>
               <th className="p-1 border-b text-center">Editar</th>
               <th className="p-1 border-b text-center">Eliminar</th>

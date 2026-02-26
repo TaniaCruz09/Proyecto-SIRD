@@ -1,7 +1,31 @@
 'use client'
 
 import { memo, useEffect, useRef, useState } from 'react'
-import { FaHome, FaUsers, FaUser, FaUserPlus, FaCog, FaChevronDown } from 'react-icons/fa'
+import {
+  FaBook,
+  FaBriefcase,
+  FaBuilding,
+  FaCalendar,
+  FaCalendarAlt,
+  FaChalkboardTeacher,
+  FaChartLine,
+  FaChevronDown,
+  FaClock,
+  FaColumns,
+  FaFlag,
+  FaGraduationCap,
+  FaHome,
+  FaLayerGroup,
+  FaListAlt,
+  FaMapMarkedAlt,
+  FaSchool,
+  FaSitemap,
+  FaUserFriends,
+  FaUserGraduate,
+  FaUserShield,
+  FaUsers,
+  FaVenusMars,
+} from 'react-icons/fa'
 import { VscFileSubmodule } from 'react-icons/vsc'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -9,32 +33,32 @@ import { useAuth } from '@/hooks/useAuth'
 
 // Menús solo para Admin
 const authSubmenu = [
-  { label: 'Usuarios', href: '/auth/users', icon: FaUser },
-  { label: 'Roles', href: '/auth/roles', icon: FaUserPlus },
+  { label: 'Usuarios', href: '/auth/users', icon: FaUserFriends },
+  { label: 'Roles', href: '/auth/roles', icon: FaUserShield },
 ]
 
 const catalogSubmenu = [
-  { label: 'Años Lectivos', href: '/catalogo/anioLectivo', icon: FaUserPlus },
-  { label: 'Asignaturas', href: '/catalogo/asignatura', icon: FaUserPlus },
-  { label: 'Cortes', href: '/catalogo/corteEvaluativo', icon: FaUserPlus },
-  { label: 'Departamentos', href: '/catalogo/departamento', icon: FaUserPlus },
-  { label: 'Etnias', href: '/catalogo/etnia', icon: FaUserPlus },
-  { label: 'Sexos', href: '/catalogo/genero', icon: FaUserPlus },
-  { label: 'Grados', href: '/catalogo/grados', icon: FaUserPlus },
-  { label: 'Modalidades', href: '/catalogo/modalidad', icon: FaUserPlus },
-  { label: 'Municipios', href: '/catalogo/municipio', icon: FaUserPlus },
-  { label: 'Niveles Académicos', href: '/catalogo/nivelAcademico', icon: FaUserPlus },
-  { label: 'Paises', href: '/catalogo/pais', icon: FaUserPlus },
-  { label: 'Profesiones', href: '/catalogo/profesion', icon: FaUserPlus },
-  { label: 'Secciones', href: '/catalogo/seccion', icon: FaUserPlus },
-  { label: 'Semestres', href: '/catalogo/semestre', icon: FaUserPlus },
-  { label: 'Turnos', href: '/catalogo/turnos', icon: FaUserPlus },
-  { label: 'Centro Educativo', href: '/catalogo/centro', icon: FaUserPlus },
+  { label: 'Años Lectivos', href: '/catalogo/anioLectivo', icon: FaCalendarAlt },
+  { label: 'Asignaturas', href: '/catalogo/asignatura', icon: FaBook },
+  { label: 'Cortes', href: '/catalogo/corteEvaluativo', icon: FaChartLine },
+  { label: 'Departamentos', href: '/catalogo/departamento', icon: FaBuilding },
+  { label: 'Etnias', href: '/catalogo/etnia', icon: FaFlag },
+  { label: 'Sexos', href: '/catalogo/genero', icon: FaVenusMars },
+  { label: 'Grados', href: '/catalogo/grados', icon: FaGraduationCap },
+  { label: 'Modalidades', href: '/catalogo/modalidad', icon: FaLayerGroup },
+  { label: 'Municipios', href: '/catalogo/municipio', icon: FaMapMarkedAlt },
+  { label: 'Niveles Académicos', href: '/catalogo/nivelAcademico', icon: FaChartLine },
+  { label: 'Paises', href: '/catalogo/pais', icon: FaFlag },
+  { label: 'Profesiones', href: '/catalogo/profesion', icon: FaBriefcase },
+  { label: 'Secciones', href: '/catalogo/seccion', icon: FaColumns },
+  { label: 'Semestres', href: '/catalogo/semestre', icon: FaCalendar },
+  { label: 'Turnos', href: '/catalogo/turnos', icon: FaClock },
+  { label: 'Centro Educativo', href: '/catalogo/centro', icon: FaSchool },
 ]
 
 const organizacionEscolarSubmenu = [
   // { label: 'Organizacion Escolar', href: '/organizacion', icon: FaUser },
-  { label: 'Grupos Educativos', href: '/registerGroups', icon: FaUserPlus },
+  { label: 'Grupos Educativos', href: '/registerGroups', icon: FaChalkboardTeacher },
 ]
 
 function NavbarAdmin() {
@@ -62,7 +86,9 @@ function NavbarAdmin() {
   }
 
   const isActive = (route: string) =>
-    pathname === route ? 'bg-indigo-600 text-white' : 'text-white hover:bg-white hover:text-gray-900'
+    pathname === route
+      ? 'text-sky-400 translate-x-1'
+      : 'text-gray-300 hover:text-sky-300 hover:translate-x-2'
 
   const rutasSinNavbar = ['/', '/auth/login', '/auth/selectRole', '/recuperarContrasena', 
     '/recuperarContrasena/verificarCodigo','/recuperarContrasena/restablecerContrasena']
@@ -89,7 +115,7 @@ function NavbarAdmin() {
           <>
             <Link
               href="/admin/home"
-              className={`flex items-center gap-3 p-3 rounded-md transition ${isActive('/admin/home')}`}
+              className={`flex items-center gap-3 p-3 rounded-md transition-transform duration-200 ${isActive('/admin/home')}`}
               onClick={handleSaveScroll}
             >
               <FaHome />
@@ -101,7 +127,7 @@ function NavbarAdmin() {
               className="flex items-center justify-between p-3 w-full rounded-md transition"
             >
               <div className="flex items-center gap-3">
-                <FaUsers />
+                <FaUserShield />
                 <span>Autenticación</span>
               </div>
               <FaChevronDown className={`${openUsers ? 'rotate-180' : ''} transition`} />
@@ -112,7 +138,7 @@ function NavbarAdmin() {
                   <Link
                     key={href}
                     href={href}
-                    className={`flex items-center gap-2 p-2 rounded-md text-sm transition ${isActive(href)}`}
+                    className={`flex items-center gap-2 p-2 rounded-md text-sm transition-transform duration-200 ${isActive(href)}`}
                     onClick={handleSaveScroll}
                   >
                     <Icon className="text-base" />
@@ -127,7 +153,7 @@ function NavbarAdmin() {
               className="flex items-center justify-between p-3 w-full rounded-md transition"
             >
               <div className="flex items-center gap-3">
-                <VscFileSubmodule />
+                <FaListAlt />
                 <span>Catálogos</span>
               </div>
               <FaChevronDown className={`${openCatalogs ? 'rotate-180' : ''} transition`} />
@@ -138,7 +164,7 @@ function NavbarAdmin() {
                   <Link
                     key={href}
                     href={href}
-                    className={`flex items-center gap-2 p-2 rounded-md text-sm transition ${isActive(href)}`}
+                    className={`flex items-center gap-2 p-2 rounded-md text-sm transition-transform duration-200 ${isActive(href)}`}
                     onClick={handleSaveScroll}
                   >
                     <Icon className="text-base" />
@@ -153,7 +179,7 @@ function NavbarAdmin() {
               className="flex items-center justify-between p-3 w-full rounded-md transition"
             >
               <div className="flex items-center gap-3">
-                <VscFileSubmodule />
+                <FaSitemap />
                 <span>Organización Escolar</span>
               </div>
               <FaChevronDown className={`${openOrganizacionEscolar ? 'rotate-180' : ''} transition`} />
@@ -164,7 +190,7 @@ function NavbarAdmin() {
                   <Link
                     key={href}
                     href={href}
-                    className={`flex items-center gap-2 p-2 rounded-md text-sm transition ${isActive(href)}`}
+                    className={`flex items-center gap-2 p-2 rounded-md text-sm transition-transform duration-200 ${isActive(href)}`}
                     onClick={handleSaveScroll}
                   >
                     <Icon className="text-base" />
@@ -176,17 +202,17 @@ function NavbarAdmin() {
 
             <Link
               href="/docente/registerDocente"
-              className={`flex items-center gap-3 p-3 rounded-md transition ${isActive('/esquela-calificaciones')}`}
+              className={`flex items-center gap-3 p-3 rounded-md transition-transform duration-200 ${isActive('/esquela-calificaciones')}`}
             >
-              <FaHome />
+              <FaChalkboardTeacher />
               <span>Registro Docente</span>
             </Link>
 
             <Link
               href="/registerEstudent"
-              className={`flex items-center gap-3 p-3 rounded-md transition ${isActive('/esquela-calificaciones')}`}
+              className={`flex items-center gap-3 p-3 rounded-md transition-transform duration-200 ${isActive('/esquela-calificaciones')}`}
             >
-              <FaHome />
+              <FaUserGraduate />
               <span>Registro Estudiante</span>
             </Link>
           </>
@@ -196,7 +222,7 @@ function NavbarAdmin() {
         {rol === 'Docente' && (
           <Link
             href="/docente/home"
-            className={`flex items-center gap-3 p-3 rounded-md transition ${isActive('/docente/home')}`}
+            className={`flex items-center gap-3 p-3 rounded-md transition-transform duration-200 ${isActive('/docente/home')}`}
             onClick={handleSaveScroll}
           >
             <FaHome />

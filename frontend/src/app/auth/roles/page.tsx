@@ -7,10 +7,12 @@ import ModalBase from '@/components/modals/ModalBase'
 import ConfirmDeletModal from '@/components/modals/ModalConfirmDeletion'
 import SearchBar from '@/components/SearchBar'
 import RolTable from '@/components/tables/RolTable'
-import { Role } from '@/interfaces/AuthInterface'
+import { useToast } from '@/hooks/use-toast'
+import { Role } from '@/interfaces/authInterface'
 import { useEffect, useState } from 'react'
 
 export default function Roles() {
+  const { toast } = useToast();
   const [roleToEdit, setRoleToEdit] = useState<Role | null>(null);
   const [roles, setRoles] = useState<Role[]>([])
   const [showModal, setShowModal] = useState(false);
@@ -53,8 +55,18 @@ export default function Roles() {
     try {
       await deleteRoles(rolToDelete);
       fetchRoles();
+      toast({
+        title: "Rol eliminado",
+        description: "El rol se elimino correctamente.",
+        variant: "destructive",
+      })
     } catch (error) {
       console.error("Error al eliminar usuario", error);
+      toast({
+        title: "Error al eliminar",
+        description: "No se pudo eliminar el rol.",
+        variant: "destructive",
+      })
     } finally {
       setShowConfirm(false);
       setRolToDelete(null);

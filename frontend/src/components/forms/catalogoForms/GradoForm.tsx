@@ -1,4 +1,5 @@
 import { saveGrado, updateGrado } from "@/actions/catalogos/gradoMethods";
+import { useToast } from "@/hooks/use-toast";
 import { Grado } from "@/interfaces";
 import React, { useEffect, useState } from "react";
 
@@ -11,6 +12,7 @@ export default function GradoForm({
   defaultValues,
   onSuccess,
 }: GradoFormProps) {
+  const { toast } = useToast();
   const [grado, setGrado] = useState<string>("");
 
   const isEdit = Boolean(defaultValues?.id);
@@ -28,8 +30,18 @@ export default function GradoForm({
     try {
       if (isEdit && defaultValues?.id) {
         await updateGrado(defaultValues.id, { grades: grado })
+        toast({
+          title: "Registro actualizado",
+          description: "El grado se actualizo correctamente.",
+          variant: "success",
+        });
       } else {
         await saveGrado({ grades: grado })
+        toast({
+          title: "Registro guardado",
+          description: "El grado se guardo correctamente.",
+          variant: "success",
+        });
       }
       onSuccess();
 

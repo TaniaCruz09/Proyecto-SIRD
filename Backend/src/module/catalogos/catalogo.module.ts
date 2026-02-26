@@ -45,6 +45,10 @@ import { SemestreService } from './services/semestre.service';
 import { AnioLectivo } from './entities/anioLectivo.entity';
 import { AnioLectivoController } from './controllers/anioLectivo.controller';
 import { AnioLectivoService } from './services/anioLectivo.service';
+import { AnioLectivoCorte } from './entities/anioLectivoCorte.entity';
+import { NotaCualitativa } from './entities/notaCualitativa.entity';
+import { NotaCualitativaController } from './controllers/notaCualitativa.controller';
+import { NotaCualitativaService } from './services/notaCualitativa.service';
 
 @Module({
   imports: [
@@ -63,7 +67,9 @@ import { AnioLectivoService } from './services/anioLectivo.service';
       Pais,
       SemestreEntity,
       Cortes,
-      AnioLectivo
+      AnioLectivo,
+      AnioLectivoCorte,
+      NotaCualitativa
     ]),
   ],
   controllers: [
@@ -81,7 +87,8 @@ import { AnioLectivoService } from './services/anioLectivo.service';
     PaisController,
     SemestreController,
     CortesController,
-    AnioLectivoController
+    AnioLectivoController,
+    NotaCualitativaController
 
   ],
   providers: [
@@ -99,7 +106,8 @@ import { AnioLectivoService } from './services/anioLectivo.service';
     PaisService,
     SemestreService,
     CortesService,
-    AnioLectivoService
+    AnioLectivoService,
+    NotaCualitativaService
   ],
   exports: [CatalogoModule, TypeOrmModule],
 })

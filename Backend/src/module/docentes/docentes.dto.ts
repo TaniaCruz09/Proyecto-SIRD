@@ -2,6 +2,7 @@ import {
   IsArray,
   IsDate,
   IsNotEmpty,
+  isNumber,
   IsNumber,
   IsObject,
   IsOptional,
@@ -67,7 +68,7 @@ export class DocentesDTO {
   grupos: Grupos[];
 
   @IsNotEmpty()
-  @IsString()
+  @IsNumber()
   @MaxLength(8)
   @MinLength(8)
   telefono: string;
@@ -98,7 +99,7 @@ export class DocentesDTO {
   fechaContratado: Date;
 
   @IsNotEmpty()
-  @IsString()
+  @IsNumber()
   @MaxLength(150)
   nombre_contacto_emergencia: string;
 

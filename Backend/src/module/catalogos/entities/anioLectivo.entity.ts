@@ -12,6 +12,8 @@ import {
 import { User } from '../../auth/entities';
 import * as moment from 'moment-timezone';
 import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity';
+import { AnioLectivoCorte } from './anioLectivoCorte.entity';
+import { Cortes } from './corte.entity';
 
 @Entity({ name: 'anioLectivo', schema: 'catalogos' })
 export class AnioLectivo {
@@ -33,6 +35,11 @@ export class AnioLectivo {
         cascade: true,
     })
     organizacionEscolar: OrganizacionEscolar[]
+
+    @OneToMany(() => AnioLectivoCorte, (corte) => corte.anioLectivo)
+    cortesAnioLectivo?: AnioLectivoCorte[];
+
+    cortes?: Cortes[];
 
 
     //ID del usuario que creó el registro

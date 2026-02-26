@@ -1,6 +1,7 @@
 import { IsNotEmpty, IsNumber, IsObject, IsOptional, IsString } from "class-validator";
-import { Asignatura, Cortes } from "src/module/catalogos";
-import { StudentEntity } from "src/module/createEstudents";
+import { Asignatura } from "src/module/catalogos/entities/asignatura.entity";
+import { Cortes } from "src/module/catalogos/entities/corte.entity";
+import { StudentEntity } from "src/module/createEstudents/students.entity";
 import { EsquelaHeadEntity } from "../esquela_head/entities/squela_head.entity";
 
 export class CreateEsquelaRowDto {
