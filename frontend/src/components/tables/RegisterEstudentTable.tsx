@@ -2,7 +2,6 @@
 
 import RegisterEstudent from "@/interfaces/registerEstudentInterface"
 import RegisterEstudentRow from "./RegisterEstudentRow"
-import ModalDetalleStudent from "../modals/Estudiantes/ModalDetalleStudent"
 import { useState } from "react"
 interface StudentProps {
   student: RegisterEstudent[]
@@ -11,7 +10,6 @@ interface StudentProps {
 export default function RegisterEstudentTable({ student, fetchStudent }: StudentProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const EstudentsPerPage = 5
-  const [studentDetalle, setStudentDetalle] = useState<RegisterEstudent | null>(null)
   const indexOfLastStudent = currentPage * EstudentsPerPage
   const indexOfFirstStudent = indexOfLastStudent - EstudentsPerPage
   const currentStudents = student.slice(indexOfFirstStudent, indexOfLastStudent)
@@ -26,7 +24,7 @@ export default function RegisterEstudentTable({ student, fetchStudent }: Student
               <th className="p-3 border-b border-gray-300">Nombres</th>
               <th className="p-3 border-b border-gray-300">Apellidos</th>
               <th className="p-3 border-b border-gray-300">Codigo del estudiante</th>
-              <th className="p-1 border-b border-gray-300 text-center">Mas Informacion</th>
+              <th className="p-1 border-b border-gray-300 text-center">Ver Expediente</th>
               <th className="p-1 border-b border-gray-300 text-center">Editar</th>
               <th className="p-1 border-b border-gray-300 text-center">Eliminar</th>
             </tr>
@@ -38,7 +36,6 @@ export default function RegisterEstudentTable({ student, fetchStudent }: Student
                   key={student.id}
                   fetchStudent={fetchStudent}
                   student={student}
-                  onShowDetail={() => setStudentDetalle(student)} //para ver mas detalles
                 />
               ))
             ) : (
@@ -78,12 +75,6 @@ export default function RegisterEstudentTable({ student, fetchStudent }: Student
           </button>
         </div>
       </div>
-
-      {/* Modal detalle docente */}
-      <ModalDetalleStudent
-        estudiante={studentDetalle}
-        onClose={() => setStudentDetalle(null)}
-      />
     </div>
   )
 }

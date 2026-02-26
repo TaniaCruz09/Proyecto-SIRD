@@ -208,7 +208,7 @@ export default function HomePage() {
                 </motion.div>
               </Link>
               {/* Card 3 */}
-              <Link href={"/registerDocente"}>
+              <Link href={"/docente/registerDocente"}>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-67">
                   <Card className="bg-gradient-to-br from-amber-200 to-amber-100 hover:from-amber-100 hover:to-amber-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
                     <CardContent className="text-center">

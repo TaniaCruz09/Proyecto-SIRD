@@ -49,6 +49,10 @@ import { AnioLectivoCorte } from './entities/anioLectivoCorte.entity';
 import { NotaCualitativa } from './entities/notaCualitativa.entity';
 import { NotaCualitativaController } from './controllers/notaCualitativa.controller';
 import { NotaCualitativaService } from './services/notaCualitativa.service';
+import { OrganizacionEscolar } from '../organizacionEscolar/entities/organizacionEscolar.entity';
+import { Grupos } from '../organizacionEscolar/entities/grupos.entity';
+import { GrupoAsignaturaDocente } from '../organizacionEscolar/entities/GrupoAsignaturaDocente.entity';
+import { GrupoAsignaturaConEstudiantes } from '../organizacionEscolar/entities/grupo-asignatura-con-estudiantes.entity';
 
 @Module({
   imports: [
@@ -69,7 +73,11 @@ import { NotaCualitativaService } from './services/notaCualitativa.service';
       Cortes,
       AnioLectivo,
       AnioLectivoCorte,
-      NotaCualitativa
+      NotaCualitativa,
+      OrganizacionEscolar,
+      Grupos,
+      GrupoAsignaturaDocente,
+      GrupoAsignaturaConEstudiantes,
     ]),
   ],
   controllers: [
