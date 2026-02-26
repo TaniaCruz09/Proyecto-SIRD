@@ -6,14 +6,14 @@ import { Docente } from '@/interfaces'
 import { TbEyePlus } from 'react-icons/tb'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { useRef, useState } from 'react'
+import Link from 'next/link'
 
 interface DocenteRowProps {
   fetchDocentes: () => Promise<void>
   docente: Docente
-  onShowDetail: () => void;
 }
 
-export default function DocenteRow({ fetchDocentes, docente, onShowDetail }: DocenteRowProps) {
+export default function DocenteRow({ fetchDocentes, docente }: DocenteRowProps) {
 
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -44,16 +44,16 @@ export default function DocenteRow({ fetchDocentes, docente, onShowDetail }: Doc
             />
           ) : (
 
-          <AvatarFallback className="text-md font-bold bg-green-100 text-green-700">
-            {`${docente.nombres.split(" ")
-              .map((n) => n[0])
-              .join("")
-              .slice(0, 1)}${docente.apellido_paterno.split("")
+            <AvatarFallback className="text-md font-bold bg-green-100 text-green-700">
+              {`${docente.nombres.split(" ")
                 .map((n) => n[0])
                 .join("")
-                .slice(0, 1)}`}
-          </AvatarFallback>
-                    )}
+                .slice(0, 1)}${docente.apellido_paterno.split("")
+                  .map((n) => n[0])
+                  .join("")
+                  .slice(0, 1)}`}
+            </AvatarFallback>
+          )}
         </Avatar>
         <input
           type="file"
@@ -66,16 +66,13 @@ export default function DocenteRow({ fetchDocentes, docente, onShowDetail }: Doc
       <td className="p-3 border-b border-gray-200">{docente.nombres}</td>
       <td className="p-3 border-b border-gray-200">{docente.apellido_paterno}  {docente.apellido_materno}</td>
       <td className="p-3 border-b border-gray-200">{docente.telefono}</td>
-      {/* <td className="p-3 border-b border-gray-200">{docente.cargo_nominal}</td>
-        <td className="p-3 border-b border-gray-200">{docente.cargo_real}</td> */}
-
       <td className="p-3 px-2 py-2 border-b border-gray-200 text-center">
-        <button onClick={(e) => {
-          e.stopPropagation();
-          onShowDetail();
-        }} className="bg-blue-300/30 hover:bg-blue-400 text-blue-600 text-bold text-xl px-4 py-2 rounded-md text-sm cursor-pointer">
+        <Link
+          href={`/docente/expedienteDocente/${docente.id}`}
+          className="inline-flex items-center justify-center bg-blue-300/30 hover:bg-blue-400 text-blue-600 font-bold text-xl px-4 py-2 rounded-md cursor-pointer transition"
+        >
           <TbEyePlus />
-        </button>
+        </Link>
       </td>
       <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><EditDocenteModal docente={docente} fetchDocentes={fetchDocentes} /></td>
       <td className="p-3 px-2 py-3 border-b border-gray-200 text-center"><DeleteDocenteModal idEliminar={docente.id} fetchDocentes={fetchDocentes} /></td>
