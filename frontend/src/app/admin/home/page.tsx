@@ -15,17 +15,17 @@ import ConfirmModal from '@/app/recuperarContrasena/modal/modalCambioRol'
 
 export default function HomePage() {
   const router = useRouter()
-  const { rol, login, roles } = useAuth() 
+  const { rol, login, roles } = useAuth()
   const rolesArray = roles ? (Array.isArray(roles) ? roles : [roles]) : []
   const tieneMultiplesRoles = rolesArray.length > 1
   const [cambiandoRol, setCambiandoRol] = useState(false)
 
   const [isModalOpen, setIsModalOpen] = useState(false)
-   const [nuevoRol, setNuevoRol] = useState<'Admin' | 'Docente'>(() => {
+  const [nuevoRol, setNuevoRol] = useState<'Admin' | 'Docente'>(() => {
     // valor por defecto seguro si rol no está listo aún
     return rol === 'Docente' ? 'Admin' : 'Docente'
   })
-    useEffect(() => {
+  useEffect(() => {
     // cuando cambien roles o rol actualiza nuevoRol por si el hook se inicializa después del login
     if (!rol) return
     const current = String(rol).toLowerCase()
@@ -36,7 +36,7 @@ export default function HomePage() {
 
   console.log('Roles disponibles para el usuario (normalizado):', rolesArray)
 
-   const handleAbrirModal = () => {
+  const handleAbrirModal = () => {
     if (!rol) return
     const current = String(rol).toLowerCase()
     const other = rolesArray.find(r => String(r).toLowerCase() !== current)
@@ -50,17 +50,17 @@ export default function HomePage() {
     setIsModalOpen(false)
     router.push(nuevoRol === 'Admin' ? '/admin/home' : '/docente/home')
   }
-     // 🔹 Mostrar loading mientras se carga el docente
-    if (cambiandoRol) {
-      return (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Cargando datos del docente...</p>
-          </div>
+  // 🔹 Mostrar loading mientras se carga el docente
+  if (cambiandoRol) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando datos del docente...</p>
         </div>
-      )
-    }
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-purple-100/30">
@@ -135,7 +135,7 @@ export default function HomePage() {
           </Link>
 
           {/* Card 3: Registro Docente */}
-          <Link href="/registerDocente">
+          <Link href="/docente/registerDocente">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-70">
               <Card className="bg-gradient-to-br from-purple-200 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
                 <CardContent className="text-center">
