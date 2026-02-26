@@ -118,6 +118,13 @@ export class Docentes {
   })
   telefono_contacto_emergencia: string;
 
+  @Column({
+    name: 'correo',
+    type: 'varchar',
+    nullable: true,
+  })
+  correo?: string;
+
   @ManyToOne(() => GenderEntity)
   @JoinColumn({ name: 'sexo' })
   sexo: GenderEntity;
@@ -139,7 +146,7 @@ export class Docentes {
   @JoinColumn({ name: 'municipio_id' })
   municipio: Municipio;
 
-  @OneToMany(() => Grupos, (grupo) => grupo.docenteGuia, {eager: true})
+  @OneToMany(() => Grupos, (grupo) => grupo.docenteGuia, { eager: true })
   grupos?: Grupos[];
 
   @OneToMany(() => GrupoAsignaturaDocente, gad => gad.docente)

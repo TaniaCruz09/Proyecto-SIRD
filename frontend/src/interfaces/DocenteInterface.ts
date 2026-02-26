@@ -21,6 +21,7 @@ export interface Docente {
   cargo_nominal?: string,
   cargo_real?: string,
   foto_docente?: string,
+  correo?: string,
   sexo: Sexo,
   nivel_academico: NivelAcademico[],
   profession: Profesion[],

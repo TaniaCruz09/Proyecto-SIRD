@@ -6,13 +6,7 @@ import { getMunicipios } from "@/actions/catalogos/municipioMethods";
 import { getProfesiones } from "@/actions/catalogos/profesionMethods";
 import { getSexos } from "@/actions/catalogos/sexoMethods";
 import {
-  saveDocente,
-  updateDocente,
-  uploadDocenteImage,
-} from "@/actions/docentesMethods/docentesMethods";
-import {
   Docente,
-  DocentePayload,
   Municipio,
   NivelAcademico,
   Pais,
@@ -32,7 +26,7 @@ export default function DocenteForm({
   defaultValues,
   onSuccess,
 }: DocenteFormProps) {
-  const [formValues, setFormValues] = useState({ name: "", lastName: "" })
+
   const [nombres, setNombres] = useState<string>("");
   const [apellidos, setApellidos] = useState(""); // 🔹 Un solo campo
   const [cedulaIdentidad, setCedulaIdentidad] = useState<string>("");
@@ -40,6 +34,7 @@ export default function DocenteForm({
   const [nivelAcademico, setNivelAcademico] = useState<string>("");
 
   const [telefono, setTelefono] = useState<string>("");
+  const [correo, setCorreo] = useState<string>("");
   const [fechaNacimiento, setFechaNacimiento] = useState<string>("");
   const [pais, setPais] = useState<string>("");
   const [municipio, setMunicipio] = useState<string>("");
@@ -114,6 +109,7 @@ export default function DocenteForm({
       setNivelAcademico(defaultValues.nivel_academico?.[0]?.id?.toString() || "");
       setProfession(defaultValues.profession?.[0]?.id?.toString() || "");
       setTelefono(defaultValues.telefono || "");
+      setCorreo(defaultValues.correo || "");
       setPais(defaultValues.pais?.id?.toString() || "");
       setMunicipio(defaultValues.municipio?.id?.toString() || "");
       setDireccionDomiciliar(defaultValues.direccion_domiciliar || "");
@@ -170,6 +166,7 @@ export default function DocenteForm({
       formData.append("apellido_materno", apellido_materno);
       formData.append("cedula_identidad", cedulaIdentidad);
       formData.append("telefono", telefono);
+      formData.append("correo", correo);
       if (fechaNacimiento) formData.append("fecha_nacimiento", fechaNacimiento);
       if (fechaContratado) formData.append("fechaContratado", fechaContratado);
       formData.append("direccion_domiciliar", direccionDomiciliar);
@@ -245,8 +242,8 @@ export default function DocenteForm({
                 />
               ) : (
                 <AvatarFallback className="text-md font-bold bg-green-100 text-green-700">
-                  {formValues.name && formValues.lastName
-                    ? `${formValues.name[0] ?? ""}${formValues.lastName[0] ?? ""}`
+                  {nombres && apellidos
+                    ? `${nombres[0] ?? ""}${apellidos[0] ?? ""}`
                     : <User className="w-10 h-10" />
                   }
                 </AvatarFallback>
@@ -414,6 +411,17 @@ export default function DocenteForm({
               placeholder="Teléfono"
               value={telefono}
               onChange={(e) => setTelefono(e.target.value)}
+              className="input-style"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">Correo</label>
+            <input
+              type="text"
+              placeholder="Correo"
+              value={correo}
+              onChange={(e) => setCorreo(e.target.value)}
               className="input-style"
               required
             />

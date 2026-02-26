@@ -19,6 +19,7 @@ import {
   ProfessionsEntity,
 } from '../catalogos';
 import { Grupos } from '../organizacionEscolar/entities/grupos.entity';
+import { Transform } from 'class-transformer';
 
 export class DocentesDTO {
   @IsOptional()
@@ -73,6 +74,7 @@ export class DocentesDTO {
 
   @IsNotEmpty()
   @IsDate()
+  @Transform(({ value }) => value ? new Date(value) : null)
   fecha_nacimiento: Date;
 
   @IsNotEmpty()
@@ -82,10 +84,6 @@ export class DocentesDTO {
   @IsOptional()
   @IsString()
   foto_docente?: string;  // foto del docente
-
-  // @IsNotEmpty()
-  // @IsObject()
-  // departamento: Departamento;
 
   @IsNotEmpty()
   @IsObject()
@@ -109,6 +107,10 @@ export class DocentesDTO {
   @MaxLength(8)
   @MinLength(8)
   telefono_contacto_emergencia: string;
+
+  @IsOptional()
+  @IsString()
+  correo?: string;
 
   @IsOptional()
   @IsNumber()
