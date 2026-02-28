@@ -13,14 +13,10 @@ interface StudentRowProps {
 
 export default function RegisterEstudentRow({ student, fetchStudent }: StudentRowProps) {
 
-
-    // Normalizamos la ruta de la imagen
     const getImageUrl = (path?: string) => {
         if (!path) return null;
-        // elimina /uploads/ inicial si tu env ya apunta a /uploads/
-        const cleanPath = path.replace(/^\/?uploads\//, "");
-        return `${process.env.NEXT_PUBLIC_API_UPLOADS}uploads/${cleanPath}`;
-    }
+        return `${process.env.NEXT_PUBLIC_API_UPLOADS}${path}`;
+    };
 
     return (
         <tr className="hover:bg-gray-100">

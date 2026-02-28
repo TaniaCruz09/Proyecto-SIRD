@@ -27,52 +27,52 @@ import { extname } from 'path';
 @Controller('docentes')
 export class DocenteController {
   constructor(private readonly registroService: DocentesService) { }
-  
+
   @Post('/')
-@UseInterceptors(
-  FileInterceptor('foto_docente', {
-    storage: diskStorage({
-      destination: './uploads/docentes',
-      filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        cb(null, uniqueSuffix + extname(file.originalname));
-      },
+  @UseInterceptors(
+    FileInterceptor('foto_docente', {
+      storage: diskStorage({
+        destination: './uploads/docentes',
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, uniqueSuffix + extname(file.originalname));
+        },
+      }),
     }),
-  }),
-)
-async createDocente(
-  @UploadedFile() file: Express.Multer.File,
-  @Body() body: any, // <--- recibe FormData como any
-  @Req() req,
-) {
+  )
+  async createDocente(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: any, // <--- recibe FormData como any
+    @Req() req,
+  ) {
 
-  try {
-    const userId = req.user?.id;
-    if (!userId) return { message: 'Usuario no autenticado', statusCode: 401 };
+    try {
+      const userId = req.user?.id;
+      if (!userId) return { message: 'Usuario no autenticado', statusCode: 401 };
 
-     // Parsear arrays y objetos que vienen como JSON string
-    const docenteDto: DocentesDTO = {
-      ...body,
-      sexo: JSON.parse(body.sexo),
-      pais: JSON.parse(body.pais),
-      municipio: JSON.parse(body.municipio),
-      nivel_academico: JSON.parse(body.nivel_academico),
-      profession: JSON.parse(body.profession),
-      user_create_id: userId,
-    };
+      // Parsear arrays y objetos que vienen como JSON string
+      const docenteDto: DocentesDTO = {
+        ...body,
+        sexo: JSON.parse(body.sexo),
+        pais: JSON.parse(body.pais),
+        municipio: JSON.parse(body.municipio),
+        nivel_academico: JSON.parse(body.nivel_academico),
+        profession: JSON.parse(body.profession),
+        user_create_id: userId,
+      };
 
-     // Guardar foto si existe
-    if (file) docenteDto.foto_docente = `uploads/docentes/${file.filename}`;
-    //console.log("📸 Ruta de la foto asignada al DTO:", docenteDto.foto_docente);
+      // Guardar foto si existe
+      if (file) docenteDto.foto_docente = `/uploads/docentes/${file.filename}`;
+      //console.log("📸 Ruta de la foto asignada al DTO:", docenteDto.foto_docente);
 
 
-    const docente = await this.registroService.createDocente(docenteDto);
-    ////console.log("📸 Nueva ruta de la foto asignada al DTO:", docenteDto.foto_docente);
-    return { data: docente, message: 'Docente agregado correctamente' };
-  } catch (error) {
-    Utilities.catchError(error);
+      const docente = await this.registroService.createDocente(docenteDto);
+      ////console.log("📸 Nueva ruta de la foto asignada al DTO:", docenteDto.foto_docente);
+      return { data: docente, message: 'Docente agregado correctamente' };
+    } catch (error) {
+      Utilities.catchError(error);
+    }
   }
-}
 
 
 
@@ -80,7 +80,7 @@ async createDocente(
   async getDocente() {
     try {
       const docente = await this.registroService.getDocente();
-       //console.log('📦 Docentes obtenidos del backend:', docente); // 👈 aquí
+      //console.log('📦 Docentes obtenidos del backend:', docente); // 👈 aquí
       const data = {
         data: docente,
         message: 'Ok',
@@ -120,97 +120,48 @@ async createDocente(
     }
   }
 
-  // ✅ EDITAR DOCENTE  
-  // @Put('/:id')
-  // @UseInterceptors(
-  //       FileInterceptor("foto_docente", {
-  //           storage: diskStorage({
-  //               destination: "./uploads/docentes",
-  //               filename: (req, file, cb) => {
-  //                   const uniqueSuffix =
-  //                       Date.now() + "-" + Math.round(Math.random() * 1e9);
-  //                   cb(null, uniqueSuffix + extname(file.originalname));
-  //               },
-  //           }),
-  //       })
-  //   )
-  // async editarDocente(
-  //   @Param('id', ParseIntPipe) id: number,
-  //    @UploadedFile() file: Express.Multer.File,
-  //   @Body() payload: DocentesDTO,
-  //   @Req() req, // Capturar el usuario autenticado
-  // ) {
-  //   try {
-  //     const userId = req.user?.id; // Obtener el ID del usuario autenticado
-
-  //     if (!userId) {
-  //       return {
-  //         message: 'Usuario no autenticado',
-  //         statusCode: 401,
-  //       };
-  //     }
-
-  //     // Agregar el user_update_id al payload
-  //     payload.user_update_id = userId;
-
-  //       // 👇 Si sube nueva foto, actualizarla
-  //   if (file) {
-  //     payload.foto_docente = `uploads/docentes/${file.filename}`;
-  //   }
-
-  //     const docente = await this.registroService.editDocente(id, payload);
-  //     const data = {
-  //       data: docente,
-  //       message: 'Docente actualizado correctamente',
-  //     };
-  //     return data;
-  //   } catch (error) {
-  //     Utilities.catchError(error);
-  //   }
-  // }
-
   @Put('/:id')
-@UseInterceptors(
-  FileInterceptor('foto_docente', {
-    storage: diskStorage({
-      destination: './uploads/docentes',
-      filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        cb(null, uniqueSuffix + extname(file.originalname));
-      },
+  @UseInterceptors(
+    FileInterceptor('foto_docente', {
+      storage: diskStorage({
+        destination: './uploads/docentes',
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, uniqueSuffix + extname(file.originalname));
+        },
+      }),
     }),
-  }),
-)
-async editarDocente(
-  @Param('id', ParseIntPipe) id: number,
-  @UploadedFile() file: Express.Multer.File,
-  @Body() body: any,
-  @Req() req,
-) {
-  try {
-    const userId = req.user?.id;
-    if (!userId) return { message: 'Usuario no autenticado', statusCode: 401 };
+  )
+  async editarDocente(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: any,
+    @Req() req,
+  ) {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return { message: 'Usuario no autenticado', statusCode: 401 };
 
-    // Parsear arrays y objetos
-    const docenteDto: DocentesDTO = {
-      ...body,
-      sexo: JSON.parse(body.sexo),
-      pais: JSON.parse(body.pais),
-      municipio: JSON.parse(body.municipio),
-      nivel_academico: JSON.parse(body.nivel_academico),
-      profession: JSON.parse(body.profession),
-      user_update_id: userId,
-    };
+      // Parsear arrays y objetos
+      const docenteDto: DocentesDTO = {
+        ...body,
+        sexo: JSON.parse(body.sexo),
+        pais: JSON.parse(body.pais),
+        municipio: JSON.parse(body.municipio),
+        nivel_academico: JSON.parse(body.nivel_academico),
+        profession: JSON.parse(body.profession),
+        user_update_id: userId,
+      };
 
-    // Guardar foto si se sube una nueva
-    if (file) docenteDto.foto_docente = `uploads/docentes/${file.filename}`;
+      // Guardar foto si se sube una nueva
+      if (file) docenteDto.foto_docente = `/uploads/docentes/${file.filename}`;
 
-    const docente = await this.registroService.editDocente(id, docenteDto);
-    return { data: docente, message: 'Docente actualizado correctamente' };
-  } catch (error) {
-    Utilities.catchError(error);
+      const docente = await this.registroService.editDocente(id, docenteDto);
+      return { data: docente, message: 'Docente actualizado correctamente' };
+    } catch (error) {
+      Utilities.catchError(error);
+    }
   }
-}
 
 
   @Delete('/:id')

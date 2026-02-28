@@ -16,21 +16,23 @@ interface RegisterEstudentProps {
   onSucess?: () => void;
 }
 
-export default function RegisterEstudentForm({ defeaultValues, onSucess }: RegisterEstudentProps) {
+export default function RegisterEstudentForm({ defeaultValues: defaultValues, onSucess }: RegisterEstudentProps) {
   const { toast } = useToast()
   const formRef = useRef<HTMLFormElement | null>(null)
   const studentCodeRef = useRef<HTMLInputElement | null>(null)
   const identityCardRef = useRef<HTMLInputElement | null>(null)
+
   const [formValues, setFormValues] = useState({ name: "", lastName: "", studentCode: "", identityCard: "", dateBirt: "", address: "", tutorName: "", tutorIdentityCard: "", tutorPhoneNumber: "", gender: "", observations: "", pais: "", municipio: "", phone: "" }
   )
   const [generos, setGeneros] = useState<Sexo[]>([]);
   const [paises, setPaises] = useState<Pais[]>([]);
   const [municipios, setMunicipios] = useState<Municipio[]>([]);
+
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const isEdit = Boolean(defeaultValues?.id)
+  const isEdit = Boolean(defaultValues?.id)
 
   // Fetch catálogos
   useEffect(() => {
@@ -53,34 +55,33 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
 
   // Inicializar valores si estamos editando
   useEffect(() => {
-    if (defeaultValues) {
+    if (defaultValues) {
       setFormValues({
-        name: defeaultValues.name ?? "",
-        lastName: defeaultValues.lastName ?? "",
-        studentCode: defeaultValues.studentCode ?? "",
-        identityCard: defeaultValues.identityCard ?? "",
-        dateBirt: defeaultValues.dateBirt
-          ? new Date(defeaultValues.dateBirt).toISOString().split("T")[0]
+        name: defaultValues.name ?? "",
+        lastName: defaultValues.lastName ?? "",
+        studentCode: defaultValues.studentCode ?? "",
+        identityCard: defaultValues.identityCard ?? "",
+        dateBirt: defaultValues.dateBirt
+          ? new Date(defaultValues.dateBirt).toISOString().split("T")[0]
           : "",
-        address: defeaultValues.address ?? "",
-        tutorName: defeaultValues.tutorName ?? "",
-        tutorIdentityCard: defeaultValues.tutorIdentityCard ?? "",
-        tutorPhoneNumber: defeaultValues.tutorPhoneNumber ?? "",
-        gender: defeaultValues.gender?.id?.toString() || "",
-        observations: defeaultValues.observations ?? "",
-        pais: defeaultValues.pais?.id?.toString() || "",
-        municipio: defeaultValues.municipio?.id?.toString() || "",
-        phone: defeaultValues.phone ?? "",
+        address: defaultValues.address ?? "",
+        tutorName: defaultValues.tutorName ?? "",
+        tutorIdentityCard: defaultValues.tutorIdentityCard ?? "",
+        tutorPhoneNumber: defaultValues.tutorPhoneNumber ?? "",
+        gender: defaultValues.gender?.id?.toString() || "",
+        observations: defaultValues.observations ?? "",
+        pais: defaultValues.pais?.id?.toString() || "",
+        municipio: defaultValues.municipio?.id?.toString() || "",
+        phone: defaultValues.phone ?? "",
       });
 
-      if (defeaultValues.profileImage) {
-        // elimina /uploads/ inicial si ya la estás agregando en la env
-        const cleanPath = defeaultValues.profileImage.replace(/^\/?uploads\//, "");
-        setPreview(`${process.env.NEXT_PUBLIC_API_UPLOADS}uploads/${cleanPath}`);
+      if (defaultValues.profileImage) {
+        const path = defaultValues.profileImage;
+        setPreview(`${process.env.NEXT_PUBLIC_API_UPLOADS}${path}`);
       }
 
     }
-  }, [defeaultValues]);
+  }, [defaultValues]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -128,7 +129,7 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
       setInputValidity(input ?? null, "");
       return true;
     }
-    if (defeaultValues?.identityCard && value === defeaultValues.identityCard) {
+    if (defaultValues?.identityCard && value === defaultValues.identityCard) {
       setInputValidity(input ?? null, "");
       return true;
     }
@@ -137,7 +138,7 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
       const found = students.find((s: any) =>
         s.identityCard === value || s.tutorIdentityCard === value
       );
-      if (found && Number(found.id) !== Number(defeaultValues?.id)) {
+      if (found && Number(found.id) !== Number(defaultValues?.id)) {
         setInputValidity(input ?? null, "La cedula ya pertenece a otro registro");
         return false;
       }
@@ -160,7 +161,7 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
       const res: any = await getFiltarStudent(`studentCode=${encodeURIComponent(value)}`, 0 as any);
       const list = res?.data ?? res;
       const found = Array.isArray(list) ? list.find((s: any) => s.studentCode === value) : null;
-      if (found && found.id !== defeaultValues?.id) {
+      if (found && found.id !== defaultValues?.id) {
         setInputValidity(input ?? null, "Ya existe un estudiante con este codigo");
         return false;
       }
@@ -212,8 +213,8 @@ export default function RegisterEstudentForm({ defeaultValues, onSucess }: Regis
       });
       if (file) data.append("profileImage", file);
 
-      if (isEdit && defeaultValues?.id) {
-        await ActualizarStudent(defeaultValues.id, data);
+      if (isEdit && defaultValues?.id) {
+        await ActualizarStudent(defaultValues.id, data);
         toast({
           title: "Registro actualizado",
           description: "El estudiante se actualizo correctamente.",
