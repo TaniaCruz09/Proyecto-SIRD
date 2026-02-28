@@ -62,22 +62,28 @@ export default function GruposAsignados() {
 
                 docentes.grupoAsignaturaDocente.forEach((relacion: any) => {
                     const grupo = relacion.grupo
-                    const anio = grupo.organizacionEscolar.anio_lectivo
+                    const anio = grupo?.organizacionEscolar?.anio_lectivo
 
-                    if (!gruposPorAnio[anio.id]) {
-                        gruposPorAnio[anio.id] = {
-                            id: anio.id.toString(),
+                    if (!anio?.id) {
+                        return
+                    }
+
+                    const anioId = anio.id.toString()
+
+                    if (!gruposPorAnio[anioId]) {
+                        gruposPorAnio[anioId] = {
+                            id: anioId,
                             anio_lectivo: anio.anio_lectivo,
                             isActive: anio.isActive,
                             organizacionEscolar: []
                         }
                     }
 
-                    if (!gruposPorAnio[anio.id].organizacionEscolar.length) {
-                        gruposPorAnio[anio.id].organizacionEscolar.push({ id: anio.id, grupos: [] })
+                    if (!gruposPorAnio[anioId].organizacionEscolar.length) {
+                        gruposPorAnio[anioId].organizacionEscolar.push({ id: anio.id, grupos: [] })
                     }
 
-                    const organizacion = gruposPorAnio[anio.id].organizacionEscolar[0]
+                    const organizacion = gruposPorAnio[anioId].organizacionEscolar[0]
                     const gruposArray = organizacion.grupos!
 
                     const grupoExistente = gruposArray.find(g => g.id === grupo.id.toString())

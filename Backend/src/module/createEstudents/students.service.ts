@@ -6,6 +6,8 @@ import { StudentsDto } from "./student.dto";
 import { UpdateStudentsDto } from "./updateStudent.dto";
 import { FiltrarEstudiantesDto } from "./FiltrarEstudiantesDto";
 import { Utilities } from "../../common/helpers/utilities";
+import { GrupoAsignaturaConEstudiantes } from "../organizacionEscolar/entities/grupo-asignatura-con-estudiantes.entity";
+import { EsquelaRow } from "../calificaciones/esquelas_rows/esquelas_rows.entity";
 
 @Injectable()
 export class StudentService {
@@ -116,14 +118,26 @@ export class StudentService {
     // ------------------------------------------------
     async deleteStudent(id: number, userId: number): Promise<StudentEntity> {
         try {
-            const student = await this.StudentRepo.findOne({ where: { id } });
+            return await this.StudentRepo.manager.transaction(async (manager) => {
+                const student = await manager.getRepository(StudentEntity).findOne({ where: { id } });
 
-            if (!student) throw new NotFoundException("Profesión no encontrada");
+                if (!student) throw new NotFoundException("Profesión no encontrada");
 
-            student.deleted_at = new Date();
-            student.deleted_at_id = userId;
+                await manager.getRepository(GrupoAsignaturaConEstudiantes).delete({ estudiante: { id } });
 
-            return await this.StudentRepo.save(student);
+                await manager
+                    .getRepository(EsquelaRow)
+                    .createQueryBuilder()
+                    .delete()
+                    .from(EsquelaRow)
+                    .where('estudiante_id = :id', { id })
+                    .execute();
+
+                student.deleted_at = new Date();
+                student.deleted_at_id = userId;
+
+                return await manager.getRepository(StudentEntity).save(student);
+            });
         } catch (error) {
             Utilities.catchError(error);
         }
@@ -148,13 +162,17 @@ export class StudentService {
 
             const students = await qb.getMany();
 
-            return students.map(student => {
-                const grupo = student.grupoAsignaturaConEstudiantes?.find(
-                    g => g.grupoAsignaturaDocente.grupo.organizacionEscolar.anio_lectivo.id === Number(anioId)
-                );
+            return students.map((student) => {
+                const anioFilter = Number(anioId);
+                const grupo = Number.isFinite(anioFilter)
+                    ? student.grupoAsignaturaConEstudiantes?.find(
+                        (g) => g?.grupoAsignaturaDocente?.grupo?.organizacionEscolar?.anio_lectivo?.id === anioFilter,
+                    )
+                    : null;
 
-                const grupoAsignado = grupo?.grupoAsignaturaDocente.grupo
-                    ? `${grupo.grupoAsignaturaDocente.grupo.grado.grades} ${grupo.grupoAsignaturaDocente.grupo.seccion.seccion} - ${grupo.grupoAsignaturaDocente.grupo.turno.turno} - ${grupo.grupoAsignaturaDocente.grupo.turno.modalidad.modalidad}`
+                const grupoData = grupo?.grupoAsignaturaDocente?.grupo;
+                const grupoAsignado = grupoData
+                    ? `${grupoData.grado?.grades ?? ""} ${grupoData.seccion?.seccion ?? ""} - ${grupoData.turno?.turno ?? ""} - ${grupoData.turno?.modalidad?.modalidad ?? ""}`.replace(/\s+-\s+-\s+$/, "")
                     : null;
 
                 return { ...student, asignadoGrupo: grupoAsignado };

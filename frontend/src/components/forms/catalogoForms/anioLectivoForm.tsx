@@ -67,6 +67,16 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
       return;
     }
 
+    if (selectedCortes.length === 0) {
+      toast({
+        title: "Cortes requeridos",
+        description: "Elija los cortes antes de crear el año lectivo.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
     const payload: AnioLectivoPayload = {
       anio_lectivo: anioLectivoNumber,
       isActive,

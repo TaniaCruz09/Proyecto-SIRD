@@ -17,6 +17,11 @@ export default function DeleteAñoLectivoModal({ idEliminar, fetchAñoLectivo }:
   const handleDeleteClick = (id: number) => {
     setAñoLectivoToDelete(id);
     setShowConfirm(true);
+    toast({
+      title: "Eliminacion peligrosa",
+      description: "Esta accion no se puede revertir. Se borraran organizaciones escolares, grupos y asignaciones relacionadas",
+      variant: "destructive",
+    });
   }
 
   const confirmDelete = async () => {
@@ -27,7 +32,7 @@ export default function DeleteAñoLectivoModal({ idEliminar, fetchAñoLectivo }:
       toast({
         title: "Año lectivo eliminado",
         description: "Se eliminó correctamente.",
-        variant: "success",
+        variant: "destructive",
       });
     } catch (error) {
       console.error("error al eliminar la año lectivo", error)
@@ -45,7 +50,13 @@ export default function DeleteAñoLectivoModal({ idEliminar, fetchAñoLectivo }:
   return (
     <div>
       <BtnDelete onClick={() => handleDeleteClick(idEliminar)} />
-      <ConfirmDeletModal onshow={showConfirm} onCancel={() => setShowConfirm(false)} onConfirm={confirmDelete} />
+      <ConfirmDeletModal
+        onshow={showConfirm}
+        onCancel={() => setShowConfirm(false)}
+        onConfirm={confirmDelete}
+        title="Eliminar ano lectivo"
+        description="Esta accion no se puede revertir. Se borraran organizaciones escolares, grupos y asignaciones relacionadas. El registro quedara marcado como eliminado."
+      />
     </div>
   )
 }

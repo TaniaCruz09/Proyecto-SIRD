@@ -21,6 +21,11 @@ export default function DeleteStudentModal({
   const handleDeleteClick = (id: number) => {
     setStudentToDelete(id);
     setShowConfirm(true);
+    toast({
+      title: "Eliminacion peligrosa",
+      description: "Esta accion no se puede revertir. Se eliminaran todas las asignaciones del estudiante en grupos y sus registros relacionados.",
+      variant: "destructive",
+    });
   };
 
   const confirmDelete = async () => {
@@ -47,6 +52,8 @@ export default function DeleteStudentModal({
         onshow={showConfirm}
         onCancel={() => setShowConfirm(false)}
         onConfirm={confirmDelete}
+        title="Eliminar estudiante"
+        description="Esta accion es peligrosa y eliminara todos los registros relacionados al estudiante en grupos y calificaciones. No se puede revertir."
       />
     </div>
   );

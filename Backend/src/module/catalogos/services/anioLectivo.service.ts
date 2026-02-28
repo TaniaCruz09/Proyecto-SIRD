@@ -6,6 +6,10 @@ import { AnioLectivo } from '../entities/anioLectivo.entity';
 import { CreateAnioLectivoDTO } from '../dtos/anioLectivo.dto';
 import { Cortes } from '../entities/corte.entity';
 import { AnioLectivoCorte } from '../entities/anioLectivoCorte.entity';
+import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity';
+import { Grupos } from 'src/module/organizacionEscolar/entities/grupos.entity';
+import { GrupoAsignaturaDocente } from 'src/module/organizacionEscolar/entities/GrupoAsignaturaDocente.entity';
+import { GrupoAsignaturaConEstudiantes } from 'src/module/organizacionEscolar/entities/grupo-asignatura-con-estudiantes.entity';
 
 @Injectable()
 export class AnioLectivoService {
@@ -168,18 +172,72 @@ export class AnioLectivoService {
         userId: number,
     ): Promise<AnioLectivo> {
         try {
-            const anioLectivo = await this.anioLectivoRepo.findOne({
-                where: { id },
+            return await this.anioLectivoRepo.manager.transaction(async (manager) => {
+                const anioLectivo = await manager.getRepository(AnioLectivo).findOne({
+                    where: { id },
+                    relations: ['organizacionEscolar', 'organizacionEscolar.grupos'],
+                });
+                if (!anioLectivo) {
+                    throw new NotFoundException('Año lectivo no eliminado');
+                }
+
+                const organizacionIds = (anioLectivo.organizacionEscolar ?? [])
+                    .map((org) => org.id)
+                    .filter((orgId) => Number.isFinite(orgId));
+
+                const grupoIds = (anioLectivo.organizacionEscolar ?? [])
+                    .flatMap((org) => org.grupos?.map((grupo) => grupo.id) ?? [])
+                    .filter((grupoId) => Number.isFinite(grupoId));
+
+                if (grupoIds.length > 0) {
+                    const gadRows = await manager
+                        .getRepository(GrupoAsignaturaDocente)
+                        .createQueryBuilder('gad')
+                        .select('gad.id', 'id')
+                        .where('gad.grupo_id IN (:...grupoIds)', { grupoIds })
+                        .getRawMany();
+
+                    const gadIds = gadRows.map((row) => row.id).filter((gadId) => Number.isFinite(gadId));
+
+                    if (gadIds.length > 0) {
+                        await manager
+                            .getRepository(GrupoAsignaturaConEstudiantes)
+                            .createQueryBuilder()
+                            .delete()
+                            .from(GrupoAsignaturaConEstudiantes)
+                            .where('grupoAsignaturaDocenteId IN (:...gadIds)', { gadIds })
+                            .execute();
+                    }
+
+                    await manager
+                        .getRepository(GrupoAsignaturaDocente)
+                        .createQueryBuilder()
+                        .delete()
+                        .from(GrupoAsignaturaDocente)
+                        .where('grupo_id IN (:...grupoIds)', { grupoIds })
+                        .execute();
+
+                    await manager.getRepository(Grupos).update(
+                        { id: In(grupoIds) },
+                        { deleted_at: new Date(), deleted_at_id: userId },
+                    );
+                }
+
+                if (organizacionIds.length > 0) {
+                    await manager.getRepository(OrganizacionEscolar).update(
+                        { id: In(organizacionIds) },
+                        { deleted_at: new Date(), deleted_at_id: userId },
+                    );
+                }
+
+                await manager.getRepository(AnioLectivoCorte).delete({ anioLectivoId: id });
+
+                // Registrar el usuario que eliminó y la fecha de eliminación
+                anioLectivo.deleted_at = new Date();
+                anioLectivo.deleted_at_id = userId;
+
+                return await manager.getRepository(AnioLectivo).save(anioLectivo);
             });
-            if (!anioLectivo) {
-                throw new NotFoundException('Año lectivo no eliminado');
-            }
-
-            // Registrar el usuario que eliminó y la fecha de eliminación
-            anioLectivo.deleted_at = new Date();
-            anioLectivo.deleted_at_id = userId;
-
-            return await this.anioLectivoRepo.save(anioLectivo);
         } catch (error) {
             Utilities.catchError(error);
         }

@@ -127,6 +127,9 @@ export class Docentes {
     name: 'correo',
     type: 'varchar',
     nullable: true,
+    select: false,
+    insert: false,
+    update: false,
   })
   correo?: string;
 

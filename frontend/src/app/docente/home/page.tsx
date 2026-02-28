@@ -274,7 +274,7 @@ export default function HomePage() {
                         </div>
                         <div className="bg-gray-100 rounded-lg p-3 text-center">
                           <div className="text-lg font-bold text-gray-800">
-                            {grupo.organizacionEscolar.anio_lectivo.anio_lectivo}
+                            {grupo.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? "Sin año"}
                           </div>
                           <div className="text-gray-500 text-sm">Año</div>
                         </div>
@@ -315,7 +315,9 @@ export default function HomePage() {
                       <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
                         <BookOpen className="w-4 h-4 text-blue-500" /> {classData.grado.grades} - {classData.seccion.seccion} - {classData.turno.turno}
                       </div>
-                      <Badge variant="outline" className="text-xs">{classData.organizacionEscolar.anio_lectivo.anio_lectivo}</Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {classData.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? "Sin año"}
+                      </Badge>
                     </div>
                     <p className="text-xs text-gray-500 mb-1">
                       {classData.turno.modalidad?.modalidad}

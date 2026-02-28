@@ -6,6 +6,7 @@ import { getDocentes } from '@/actions/docentesMethods/docentesMethods';
 import { saveGrupo, updateGrupo } from '@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods';
 import { getOrganizacionEscolar } from '@/actions/organizacionEscolarMethods/organizacionMethods';
 import { Docente, Grado, GrupoEscolar, GrupoEscolarPayload, OrganizacionEscolar, Seccion, Turno } from '@/interfaces';
+import { useToast } from '@/hooks/use-toast';
 import React, { useEffect, useState } from 'react'
 
 interface GrupoFormProp {
@@ -15,6 +16,7 @@ interface GrupoFormProp {
 
 
 export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
+    const { toast } = useToast();
     const [grado, setGrado] = useState<string>("")
     const [grados, setGrados] = useState<Grado[]>([])
 
@@ -29,6 +31,7 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
 
     const [organizacionEscolar, setOrganizacionEscolar] = useState<string>("")
     const [organizacionesEscolares, setOrgnizacionesEscolares] = useState<OrganizacionEscolar[]>([])
+    const [isLoading, setIsLoading] = useState(false)
 
 
     const isEdit = Boolean(defaultValues?.id);
@@ -63,6 +66,7 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsLoading(true);
         try {
             const selectedOrganizacionEScolar = organizacionesEscolares.find((g) => g.id === parseInt(organizacionEscolar));
             const selectedGrado = grados.find((g) => g.id === parseInt(grado));
@@ -77,7 +81,12 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
                 !selectedDocente ||
                 !selectedTurno
             ) {
-                console.error("Faltan campos requeridos");
+                toast({
+                    title: "Campos requeridos",
+                    description: "Completa todos los campos para guardar el grupo.",
+                    variant: "destructive",
+                });
+                setIsLoading(false);
                 return;
             }
 
@@ -90,18 +99,35 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
             }
             if (isEdit && defaultValues?.id) {
                 await updateGrupo(defaultValues.id, grupoData);
+                toast({
+                    title: "Grupo actualizado",
+                    description: "Se actualizo correctamente.",
+                    variant: "success",
+                });
             } else {
                 await saveGrupo(grupoData)
+                toast({
+                    title: "Grupo creado",
+                    description: "Se creo correctamente.",
+                    variant: "success",
+                });
             }
             onSuccess();
         } catch (error) {
             console.error("Error al guardar o actualizar grupo:", error);
+            toast({
+                title: "Error al guardar",
+                description: "Ocurrio un error al guardar el grupo.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsLoading(false);
         }
     }
 
     useEffect(() => {
         if (defaultValues) {
-            setOrganizacionEscolar(defaultValues.organizacionEscolar.id.toString() || "");
+            setOrganizacionEscolar(defaultValues.organizacionEscolar?.id?.toString() || "");
             setGrado(defaultValues.grado?.id?.toString() || "");
             setSeccion(defaultValues.seccion?.id?.toString() || "");
             setDocenteGuia(defaultValues.docenteGuia?.id?.toString() || "");
@@ -188,8 +214,9 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
                 <button
                     type="submit"
                     className="px-20 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 mb-6"
+                    disabled={isLoading}
                 >
-                    {isEdit ? "Actualizar" : "Guardar"}
+                    {isLoading ? "Guardando..." : isEdit ? "Actualizar" : "Guardar"}
                 </button>
             </div>
         </form>
