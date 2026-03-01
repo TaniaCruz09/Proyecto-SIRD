@@ -107,7 +107,7 @@ export default function DocenteForm({
         apellido_materno: defaultValues.apellido_materno ?? "",
         cedulaIdentidad: defaultValues.cedula_identidad ?? "",
         sexo: defaultValues.sexo?.id?.toString() || "",
-        nivelAcademico: defaultValues.nivel_academico?.[0].id.toString() || "",
+        nivelAcademico: defaultValues.nivel_academico?.[0]?.id?.toString() || "",
         telefono: defaultValues.telefono ?? "",
         correo: defaultValues.correo ?? "",
         fechaNacimiento: defaultValues.fecha_nacimiento
@@ -118,7 +118,7 @@ export default function DocenteForm({
         fechaContratado: defaultValues.fechaContratado ? new Date(defaultValues.fechaContratado).toISOString().split("T")[0]
           : "",
         direccionDomiciliar: defaultValues.direccion_domiciliar ?? "",
-        profesiones: defaultValues.profession?.[0].id.toString() || "",
+        profesiones: defaultValues.profession?.[0]?.id?.toString() || "",
         telefonoContactoEmergencia: defaultValues.telefono_contacto_emergencia ?? "",
         nombreContactoEmergencia: defaultValues.nombre_contacto_emergencia ?? "",
       });
@@ -136,6 +136,11 @@ export default function DocenteForm({
 
     // teléfonos: solo dígitos y máximo 8
     if (name === "telefono" || name === "telefono") {
+      newValue = value.replace(/\D/g, "").slice(0, 8);
+    }
+
+    // telefonoContactoEmergencia: solo dígitos y máximo 8
+    if (name === "telefonoContactoEmergencia" || name === "telefonoContactoEmergencia") {
       newValue = value.replace(/\D/g, "").slice(0, 8);
     }
 
@@ -167,25 +172,6 @@ export default function DocenteForm({
     if (!selectedFile) return;
     setFile(selectedFile);
     setPreview(URL.createObjectURL(selectedFile));
-  };
-
-
-  const handleCedulaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.slice(0, 16);
-    e.target.setCustomValidity("");
-    formValues.cedulaIdentidad;
-  };
-
-  const handleTelefonoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 8);
-    e.target.setCustomValidity("");
-    formValues.telefono;
-  };
-
-  const handleTelefonoEmergenciaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 8);
-    e.target.setCustomValidity("");
-    formValues.telefonoContactoEmergencia;
   };
 
   const validateCedulaLength = (input: HTMLInputElement | null, value: string) => {
@@ -234,7 +220,6 @@ export default function DocenteForm({
       if (formRef.current && !formRef.current.reportValidity()) {
         return;
       }
-
       const cedulaOk = validateCedulaLength(cedulaRef.current, formValues.cedulaIdentidad)
       const telefonoOk = validateTelefono(telefonoRef.current, formValues.telefono)
       const cedulaUnique = await checkCedulaUnique(formValues.cedulaIdentidad, cedulaRef.current)
@@ -249,16 +234,19 @@ export default function DocenteForm({
       const selectedSexo = sexos.find((s) => s.id === parseInt(formValues.sexo));
       const selectedPais = paises.find((p) => p.id === parseInt(formValues.pais));
       const selectedMunicipio = municipios.find((m) => m.id === parseInt(formValues.municipio));
-      const selectedNivelAcademicos = nivelesAcademicos.filter((n) =>
-        formValues.nivelAcademico.includes(n.id.toString())
+      const selectedNivelAcademico = nivelesAcademicos.find(
+        (n) => n.id === parseInt(formValues.nivelAcademico)
       );
-      const selectedProfesiones = profesiones.filter((n) => formValues.nivelAcademico.includes(n.id.toString()));
+
+      const selectedProfesion = profesiones.find(
+        (p) => p.id === parseInt(formValues.profesiones)
+      );
       if (
         !selectedSexo ||
         !selectedPais ||
         !selectedMunicipio ||
-        !selectedNivelAcademicos ||
-        !selectedProfesiones
+        !selectedNivelAcademico ||
+        !selectedProfesion
       ) {
         console.error("Faltan campos obligatorios");
         alert("Por favor complete todos los campos requeridos");
@@ -284,8 +272,8 @@ export default function DocenteForm({
       );
 
       // --- Arrays convertidos a JSON ---
-      formData.append("nivel_academico", JSON.stringify([selectedNivelAcademicos]));
-      formData.append("profession", JSON.stringify([selectedProfesiones]));
+      formData.append("nivel_academico", JSON.stringify([selectedNivelAcademico]));
+      formData.append("profession", JSON.stringify([selectedProfesion]));
 
       // Objetos simples
       formData.append("sexo", JSON.stringify(selectedSexo));
@@ -381,7 +369,8 @@ export default function DocenteForm({
             <label className="block text-gray-700 font-medium mb-1">Nombres</label>
             <input
               type="text"
-              placeholder="Nombres"
+              name="nombres"
+              placeholder="Ej: Juan Carlos"
               value={formValues.nombres}
               onChange={handleInputChange}
               className="input-style"
@@ -393,6 +382,7 @@ export default function DocenteForm({
             <label className="block text-gray-700 font-medium mb-1">Primer Apellido</label>
             <input
               type="text"
+              name="apellido_paterno"
               placeholder="Apellido1"
               value={formValues.apellido_paterno}
               onChange={handleInputChange}
@@ -404,6 +394,7 @@ export default function DocenteForm({
             <label className="block text-gray-700 font-medium mb-1">Segundo Apellido</label>
             <input
               type="text"
+              name="apellido_materno"
               placeholder="Apellido2"
               value={formValues.apellido_materno}
               onChange={handleInputChange}
@@ -416,9 +407,10 @@ export default function DocenteForm({
             <label className="block text-gray-700 font-medium mb-1">Cédula de identidad</label>
             <input
               type="text"
+              name="cedulaIdentidad"
               placeholder="Cédula de Identidad"
               value={formValues.cedulaIdentidad}
-              onChange={handleCedulaChange}
+              onChange={handleInputChange}
               onBlur={async (e) => {
                 const value = e.currentTarget.value;
                 validateCedulaLength(e.currentTarget, value);
@@ -433,6 +425,7 @@ export default function DocenteForm({
           <div>
             <label className="block text-gray-700 font-medium mb-1">Sexo</label>
             <select
+              name="sexo"
               value={formValues.sexo}
               onChange={handleInputChange}
               className="input-style"
@@ -448,6 +441,7 @@ export default function DocenteForm({
           <div>
             <label className="block text-gray-700 font-medium mb-1">Nivel académico</label>
             <select
+              name="nivelAcademico"
               value={formValues.nivelAcademico}
               onChange={handleInputChange}
               className="input-style"
@@ -463,6 +457,7 @@ export default function DocenteForm({
           <div>
             <label className="block text-gray-700 font-medium mb-1">Profesión</label>
             <select
+              name="profesiones"
               value={formValues.profesiones}
               onChange={handleInputChange}
               className="input-style"
@@ -478,6 +473,7 @@ export default function DocenteForm({
           <div>
             <label className="block text-gray-700 font-medium mb-1">Fecha de nacimiento</label>
             <input
+              name="fechaNacimiento"
               type="date"
               value={formValues.fechaNacimiento}
               onChange={handleInputChange}
@@ -497,6 +493,7 @@ export default function DocenteForm({
           <div>
             <label className="block text-gray-700 font-medium mb-1">País de origen</label>
             <select
+              name="pais"
               value={formValues.pais}
               onChange={handleInputChange}
               className="input-style"
@@ -512,6 +509,7 @@ export default function DocenteForm({
           <div>
             <label className="block text-gray-700 font-medium mb-1">Municipio</label>
             <select
+              name="municipio"
               value={formValues.municipio}
               onChange={handleInputChange}
               className="input-style"
@@ -527,6 +525,7 @@ export default function DocenteForm({
           <div>
             <label className="block text-gray-700 font-medium mb-1">Dirección domiciliar</label>
             <input
+              name="direccionDomiciliar"
               type="text"
               placeholder="Dirección domiciliar"
               value={formValues.direccionDomiciliar}
@@ -539,10 +538,11 @@ export default function DocenteForm({
           <div>
             <label className="block text-gray-700 font-medium mb-1">Teléfono</label>
             <input
+              name="telefono"
               type="text"
               placeholder="Teléfono"
               value={formValues.telefono}
-              onChange={handleTelefonoChange}
+              onChange={handleInputChange}
               onBlur={(e) => validateTelefono(e.currentTarget, e.currentTarget.value)}
               ref={telefonoRef}
               className="input-style"
@@ -553,6 +553,7 @@ export default function DocenteForm({
             <label className="block text-gray-700 font-medium mb-1">Correo</label>
             <input
               type="text"
+              name="correo"
               placeholder="Correo"
               value={formValues.correo}
               onChange={handleInputChange}
@@ -565,6 +566,7 @@ export default function DocenteForm({
             <label className="block text-gray-700 font-medium mb-1">Fecha de contratación</label>
             <input
               type="date"
+              name="fechaContratado"
               value={formValues.fechaContratado}
               onChange={handleInputChange}
               className="input-style"
@@ -584,6 +586,7 @@ export default function DocenteForm({
             <label className="block text-gray-700 font-medium mb-1">Nombre del contacto</label>
             <input
               type="text"
+              name="nombreContactoEmergencia"
               placeholder="Nombre del contacto"
               value={formValues.nombreContactoEmergencia}
               onChange={handleInputChange}
@@ -596,9 +599,10 @@ export default function DocenteForm({
             <label className="block text-gray-700 font-medium mb-1">Número de contacto</label>
             <input
               type="text"
+              name="telefonoContactoEmergencia"
               placeholder="Teléfono del contacto"
               value={formValues.telefonoContactoEmergencia}
-              onChange={handleTelefonoEmergenciaChange}
+              onChange={handleInputChange}
               onBlur={(e) => validateTelefono(e.currentTarget, e.currentTarget.value)}
               ref={telefonoEmergenciaRef}
               className="input-style"
