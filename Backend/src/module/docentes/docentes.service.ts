@@ -11,7 +11,7 @@ export class DocentesService {
   constructor(
     @InjectRepository(Docentes)
     private readonly docenteRepository: Repository<Docentes>,
-  ) {}
+  ) { }
 
   private defaultRelations = [
     'sexo',
@@ -24,10 +24,10 @@ export class DocentesService {
   async createDocente(createDocenteDto: DocentesDTO, file?: Express.Multer.File): Promise<Docentes> {
     try {
 
-        // const nuevoDocente = this.docenteRepository.create(createDocenteDto);
-        // return await this.docenteRepository.save(nuevoDocente);
+      // const nuevoDocente = this.docenteRepository.create(createDocenteDto);
+      // return await this.docenteRepository.save(nuevoDocente);
       if (file) {
-        createDocenteDto.foto_docente = `uploads/docentes/${file.filename}`; // guardar el nombre del archivo
+        createDocenteDto.foto_docente = `/uploads/docentes/${file.filename}`; // guardar el nombre del archivo
       }
       const nuevoDocente = await this.docenteRepository.create(
         createDocenteDto,
@@ -105,7 +105,7 @@ export class DocentesService {
 
 
       if (file) {
-        payload.foto_docente = `uploads/docentes/${file.filename}`;
+        payload.foto_docente = `/uploads/docentes/${file.filename}`;
       }
       // Actualizar solo los campos enviados, conservando los valores previos
       Object.assign(docente, payload);

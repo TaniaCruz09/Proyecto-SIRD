@@ -15,22 +15,13 @@ interface DocenteRowProps {
 
 export default function DocenteRow({ fetchDocentes, docente }: DocenteRowProps) {
 
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const getImageUrl = (path?: string) => {
+    if (!path) return null;
+    return `${process.env.NEXT_PUBLIC_API_UPLOADS}${path}`;
+  };
 
-  const handleClick = () => {
-    fileInputRef.current?.click()
-  }
+  console.log("Imagen:", getImageUrl(docente.foto_docente));
 
-  const handlefileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      setSelectedFile(file)
-      const previewUrl = URL.createObjectURL(file)
-      console.log("archivo seleccionado", file)
-      console.log("vista previa", previewUrl)
-    }
-  }
   return (
     <tr className="hover:bg-gray-100 cursor-pointer">
       <td className="p-3 border-b border-gray-200">{docente.id}</td>
@@ -38,7 +29,7 @@ export default function DocenteRow({ fetchDocentes, docente }: DocenteRowProps) 
         <Avatar className="w-10 h-10 border-2 border-green-200">
           {docente.foto_docente ? (
             <AvatarImage
-              src={`${process.env.NEXT_PUBLIC_API_UPLOADS}${docente.foto_docente.replace(/^\/+/, "")}`}
+              src={getImageUrl(docente.foto_docente) || "/placeholder.svg"}
               alt={docente.nombres}
               onError={(e) => (e.currentTarget.src = "/placeholder.svg")}
             />
@@ -55,13 +46,6 @@ export default function DocenteRow({ fetchDocentes, docente }: DocenteRowProps) 
             </AvatarFallback>
           )}
         </Avatar>
-        <input
-          type="file"
-          accept="image/*"
-          ref={fileInputRef}
-          onChange={handlefileChange}
-          className="hidden"
-        />
       </td>
       <td className="p-3 border-b border-gray-200">{docente.nombres}</td>
       <td className="p-3 border-b border-gray-200">{docente.apellido_paterno}  {docente.apellido_materno}</td>

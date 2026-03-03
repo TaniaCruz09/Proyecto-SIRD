@@ -6,9 +6,6 @@ import { getMunicipios } from "@/actions/catalogos/municipioMethods";
 import { getProfesiones } from "@/actions/catalogos/profesionMethods";
 import { getSexos } from "@/actions/catalogos/sexoMethods";
 import {
-  saveDocente,
-  updateDocente,
-  uploadDocenteImage,
   getDocentes,
 } from "@/actions/docentesMethods/docentesMethods";
 import {
@@ -29,6 +26,7 @@ interface DocenteFormProps {
   defaultValues?: Docente | null;
   onSuccess: () => void;
 }
+
 export default function DocenteForm({
   defaultValues,
   onSuccess,
@@ -37,38 +35,38 @@ export default function DocenteForm({
   const formRef = useRef<HTMLFormElement | null>(null)
   const cedulaRef = useRef<HTMLInputElement | null>(null)
   const telefonoRef = useRef<HTMLInputElement | null>(null)
-  const [nombres, setNombres] = useState<string>("");
-  const [apellidos, setApellidos] = useState(""); // 🔹 Un solo campo
-  const [cedulaIdentidad, setCedulaIdentidad] = useState<string>("");
-  const [sexo, setSexo] = useState<string>("");
-  const [nivelAcademico, setNivelAcademico] = useState<string>("");
-  const [telefono, setTelefono] = useState<string>("");
-  const [correo, setCorreo] = useState<string>("");
-  const [fechaNacimiento, setFechaNacimiento] = useState<string>("");
-  const [pais, setPais] = useState<string>("");
-  const [municipio, setMunicipio] = useState<string>("");
-  const [fechaContratado, setFechaContratado] = useState<string>("");
-  const [direccionDomiciliar, setDireccionDomiciliar] = useState<string>("");
-  const [profession, setProfession] = useState("");
+  const telefonoEmergenciaRef = useRef<HTMLInputElement | null>(null)
 
-  const [telefonoContactoEmergencia, setTelefonoContactoEmergencia] =
-    useState<string>("");
-  const [nombreContactoEmergencia, setNombreContactoEmergencia] = useState("");
-
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-
-  const fileInputRef = useRef<HTMLInputElement | null>(null) // aca
-  const isEdit = Boolean(defaultValues?.id)  // aca
+  const [formValues, setFormValues] = useState({
+    nombres: "",
+    apellido_paterno: "",
+    apellido_materno: "",
+    cedulaIdentidad: "",
+    sexo: "",
+    nivelAcademico: "",
+    telefono: "",
+    correo: "",
+    fechaNacimiento: "",
+    pais: "",
+    municipio: "",
+    fechaContratado: "",
+    direccionDomiciliar: "",
+    profesiones: "",
+    telefonoContactoEmergencia: "",
+    nombreContactoEmergencia: ""
+  });
 
   const [sexos, setSexos] = useState<Sexo[]>([]);
   const [nivelesAcademicos, setNivelesAcademicos] = useState<NivelAcademico[]>([]);
   const [profesiones, setProfesiones] = useState<Profesion[]>([]);
   const [paises, setPaises] = useState<Pais[]>([]);
   const [municipios, setMunicipios] = useState<Municipio[]>([]);
-  const telefonoEmergenciaRef = useRef<HTMLInputElement | null>(null)
 
-  // const isEdit = Boolean(defaultValues?.id);
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const isEdit = Boolean(defaultValues?.id)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -99,12 +97,66 @@ export default function DocenteForm({
     fetchData();
   }, []);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (!selectedFile) return;
-    setFile(selectedFile);
-    setPreview(URL.createObjectURL(selectedFile));
-  };
+
+  //Inicializar valores si estamos editando
+  useEffect(() => {
+    if (defaultValues) {
+      setFormValues({
+        nombres: defaultValues.nombres ?? "",
+        apellido_paterno: defaultValues.apellido_paterno ?? "",
+        apellido_materno: defaultValues.apellido_materno ?? "",
+        cedulaIdentidad: defaultValues.cedula_identidad ?? "",
+        sexo: defaultValues.sexo?.id?.toString() || "",
+        nivelAcademico: defaultValues.nivel_academico?.[0]?.id?.toString() || "",
+        telefono: defaultValues.telefono ?? "",
+        correo: defaultValues.correo ?? "",
+        fechaNacimiento: defaultValues.fecha_nacimiento
+          ? new Date(defaultValues.fecha_nacimiento).toISOString().split("T")[0]
+          : "",
+        pais: defaultValues.pais?.id?.toString() || "",
+        municipio: defaultValues.municipio?.id?.toString() || "",
+        fechaContratado: defaultValues.fechaContratado ? new Date(defaultValues.fechaContratado).toISOString().split("T")[0]
+          : "",
+        direccionDomiciliar: defaultValues.direccion_domiciliar ?? "",
+        profesiones: defaultValues.profession?.[0]?.id?.toString() || "",
+        telefonoContactoEmergencia: defaultValues.telefono_contacto_emergencia ?? "",
+        nombreContactoEmergencia: defaultValues.nombre_contacto_emergencia ?? "",
+      });
+
+      if (defaultValues.foto_docente) {
+        const path = defaultValues.foto_docente
+        setPreview(`${process.env.NEXT_PUBLIC_API_UPLOADS}${path}`);
+      }
+    }
+  }, [defaultValues]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    let newValue = value;
+
+    // teléfonos: solo dígitos y máximo 8
+    if (name === "telefono" || name === "telefono") {
+      newValue = value.replace(/\D/g, "").slice(0, 8);
+    }
+
+    // telefonoContactoEmergencia: solo dígitos y máximo 8
+    if (name === "telefonoContactoEmergencia" || name === "telefonoContactoEmergencia") {
+      newValue = value.replace(/\D/g, "").slice(0, 8);
+    }
+
+    // Limitar largo de cédulas
+    if (name === "cedula_identidad" || name === "cedula_identidad") {
+      newValue = value.slice(0, 16);
+    }
+
+    // Limpiar mensajes de validacion nativa al escribir
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) {
+      e.target.setCustomValidity("");
+    }
+
+    setFormValues(prev => ({ ...prev, [name]: newValue }));
+
+  }
 
   const setInputValidity = (input: HTMLInputElement | null, message: string) => {
     if (!input) return;
@@ -115,22 +167,11 @@ export default function DocenteForm({
     }
   };
 
-  const handleCedulaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.slice(0, 16);
-    e.target.setCustomValidity("");
-    setCedulaIdentidad(value);
-  };
-
-  const handleTelefonoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 8);
-    e.target.setCustomValidity("");
-    setTelefono(value);
-  };
-
-  const handleTelefonoEmergenciaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 8);
-    e.target.setCustomValidity("");
-    setTelefonoContactoEmergencia(value);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+    setFile(selectedFile);
+    setPreview(URL.createObjectURL(selectedFile));
   };
 
   const validateCedulaLength = (input: HTMLInputElement | null, value: string) => {
@@ -172,42 +213,6 @@ export default function DocenteForm({
     }
   };
 
-
-  // 🔹 Prellenado en modo edición
-  useEffect(() => {
-    if (defaultValues) {
-      setNombres(defaultValues.nombres || "");
-      setApellidos(
-        `${defaultValues.apellido_paterno || ""} ${defaultValues.apellido_materno || ""}`.trim()
-      );
-      setCedulaIdentidad(defaultValues.cedula_identidad || "");
-      setSexo(defaultValues.sexo?.id?.toString() || "");
-      setNivelAcademico(defaultValues.nivel_academico?.[0]?.id?.toString() || "");
-      setProfession(defaultValues.profession?.[0]?.id?.toString() || "");
-      setTelefono(defaultValues.telefono || "");
-      setCorreo(defaultValues.correo || "");
-      setPais(defaultValues.pais?.id?.toString() || "");
-      setMunicipio(defaultValues.municipio?.id?.toString() || "");
-      setDireccionDomiciliar(defaultValues.direccion_domiciliar || "");
-      setNombreContactoEmergencia(defaultValues.nombre_contacto_emergencia || "");
-      setTelefonoContactoEmergencia(defaultValues.telefono_contacto_emergencia || "");
-      setFechaNacimiento(
-        defaultValues.fecha_nacimiento
-          ? new Date(defaultValues.fecha_nacimiento).toISOString().split("T")[0]
-          : ""
-      );
-      setFechaContratado(
-        defaultValues.fechaContratado
-          ? new Date(defaultValues.fechaContratado).toISOString().split("T")[0]
-          : ""
-      );
-
-      if (defaultValues.foto_docente) {
-        setPreview(`${process.env.NEXT_PUBLIC_API_UPLOADS}${defaultValues.foto_docente}`);
-      }
-    }
-  }, [defaultValues]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -215,11 +220,10 @@ export default function DocenteForm({
       if (formRef.current && !formRef.current.reportValidity()) {
         return;
       }
-
-      const cedulaOk = validateCedulaLength(cedulaRef.current, cedulaIdentidad)
-      const telefonoOk = validateTelefono(telefonoRef.current, telefono)
-      const cedulaUnique = await checkCedulaUnique(cedulaIdentidad, cedulaRef.current)
-      const telEmergenciaOk = validateTelefono(telefonoEmergenciaRef.current, telefonoContactoEmergencia)
+      const cedulaOk = validateCedulaLength(cedulaRef.current, formValues.cedulaIdentidad)
+      const telefonoOk = validateTelefono(telefonoRef.current, formValues.telefono)
+      const cedulaUnique = await checkCedulaUnique(formValues.cedulaIdentidad, cedulaRef.current)
+      const telEmergenciaOk = validateTelefono(telefonoEmergenciaRef.current, formValues.telefonoContactoEmergencia)
       if (!cedulaOk || !telefonoOk || !cedulaUnique) {
         return;
       }
@@ -227,11 +231,16 @@ export default function DocenteForm({
         return;
       }
       // --- Obtener objetos completos ---
-      const selectedSexo = sexos.find((s) => s.id === parseInt(sexo));
-      const selectedPais = paises.find((p) => p.id === parseInt(pais));
-      const selectedMunicipio = municipios.find((m) => m.id === parseInt(municipio));
-      const selectedNivelAcademico = nivelesAcademicos.find((n) => n.id === parseInt(nivelAcademico));
-      const selectedProfesion = profesiones.find((p) => p.id === parseInt(profession));
+      const selectedSexo = sexos.find((s) => s.id === parseInt(formValues.sexo));
+      const selectedPais = paises.find((p) => p.id === parseInt(formValues.pais));
+      const selectedMunicipio = municipios.find((m) => m.id === parseInt(formValues.municipio));
+      const selectedNivelAcademico = nivelesAcademicos.find(
+        (n) => n.id === parseInt(formValues.nivelAcademico)
+      );
+
+      const selectedProfesion = profesiones.find(
+        (p) => p.id === parseInt(formValues.profesiones)
+      );
       if (
         !selectedSexo ||
         !selectedPais ||
@@ -244,26 +253,22 @@ export default function DocenteForm({
         return;
       }
 
-      // --- Dividir apellidos ---
-      const [apellido_paterno = "", apellido_materno = ""] = apellidos
-        .trim()
-        .split(" ", 2);
 
       // --- Crear FormData ---
       const formData = new FormData();
-      formData.append("nombres", nombres);
-      formData.append("apellido_paterno", apellido_paterno);
-      formData.append("apellido_materno", apellido_materno);
-      formData.append("cedula_identidad", cedulaIdentidad);
-      formData.append("telefono", telefono);
-      formData.append("correo", correo);
-      if (fechaNacimiento) formData.append("fecha_nacimiento", fechaNacimiento);
-      if (fechaContratado) formData.append("fechaContratado", fechaContratado);
-      formData.append("direccion_domiciliar", direccionDomiciliar);
-      formData.append("nombre_contacto_emergencia", nombreContactoEmergencia);
+      formData.append("nombres", formValues.nombres);
+      formData.append("apellido_paterno", formValues.apellido_paterno);
+      formData.append("apellido_materno", formValues.apellido_materno);
+      formData.append("cedula_identidad", formValues.cedulaIdentidad);
+      formData.append("telefono", formValues.telefono);
+      formData.append("correo", formValues.correo);
+      if (formValues.fechaNacimiento) formData.append("fecha_nacimiento", formValues.fechaNacimiento);
+      if (formValues.fechaContratado) formData.append("fechaContratado", formValues.fechaContratado);
+      formData.append("direccion_domiciliar", formValues.direccionDomiciliar);
+      formData.append("nombre_contacto_emergencia", formValues.nombreContactoEmergencia);
       formData.append(
         "telefono_contacto_emergencia",
-        telefonoContactoEmergencia
+        formValues.telefonoContactoEmergencia
       );
 
       // --- Arrays convertidos a JSON ---
@@ -297,7 +302,7 @@ export default function DocenteForm({
       // Actualizar preview si se guardó foto
       if (savedDocente.foto_docente) {
         setPreview(
-          `${process.env.NEXT_PUBLIC_API_UPLOADS}/${savedDocente.foto_docente}`
+          `${process.env.NEXT_PUBLIC_API_UPLOADS}${savedDocente.foto_docente}`
         );
       }
 
@@ -340,8 +345,8 @@ export default function DocenteForm({
                 />
               ) : (
                 <AvatarFallback className="text-md font-bold bg-green-100 text-green-700">
-                  {nombres && apellidos
-                    ? `${nombres[0] ?? ""}${apellidos[0] ?? ""}`
+                  {formValues.nombres && formValues.apellido_paterno
+                    ? `${formValues.nombres[0] ?? ""}${formValues.apellido_paterno ?? ""}`
                     : <User className="w-10 h-10" />
                   }
                 </AvatarFallback>
@@ -364,21 +369,35 @@ export default function DocenteForm({
             <label className="block text-gray-700 font-medium mb-1">Nombres</label>
             <input
               type="text"
-              placeholder="Nombres"
-              value={nombres}
-              onChange={(e) => setNombres(e.target.value)}
+              name="nombres"
+              placeholder="Ej: Juan Carlos"
+              value={formValues.nombres}
+              onChange={handleInputChange}
               className="input-style"
               required
             />
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Apellidos</label>
+            <label className="block text-gray-700 font-medium mb-1">Primer Apellido</label>
             <input
               type="text"
-              placeholder="Apellidos"
-              value={apellidos}
-              onChange={(e) => setApellidos(e.target.value)}
+              name="apellido_paterno"
+              placeholder="Apellido1"
+              value={formValues.apellido_paterno}
+              onChange={handleInputChange}
+              className="input-style"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">Segundo Apellido</label>
+            <input
+              type="text"
+              name="apellido_materno"
+              placeholder="Apellido2"
+              value={formValues.apellido_materno}
+              onChange={handleInputChange}
               className="input-style"
               required
             />
@@ -388,9 +407,10 @@ export default function DocenteForm({
             <label className="block text-gray-700 font-medium mb-1">Cédula de identidad</label>
             <input
               type="text"
+              name="cedulaIdentidad"
               placeholder="Cédula de Identidad"
-              value={cedulaIdentidad}
-              onChange={handleCedulaChange}
+              value={formValues.cedulaIdentidad}
+              onChange={handleInputChange}
               onBlur={async (e) => {
                 const value = e.currentTarget.value;
                 validateCedulaLength(e.currentTarget, value);
@@ -405,8 +425,9 @@ export default function DocenteForm({
           <div>
             <label className="block text-gray-700 font-medium mb-1">Sexo</label>
             <select
-              value={sexo}
-              onChange={(e) => setSexo(e.target.value)}
+              name="sexo"
+              value={formValues.sexo}
+              onChange={handleInputChange}
               className="input-style"
               required
             >
@@ -420,8 +441,9 @@ export default function DocenteForm({
           <div>
             <label className="block text-gray-700 font-medium mb-1">Nivel académico</label>
             <select
-              value={nivelAcademico}
-              onChange={(e) => setNivelAcademico(e.target.value)}
+              name="nivelAcademico"
+              value={formValues.nivelAcademico}
+              onChange={handleInputChange}
               className="input-style"
               required
             >
@@ -435,8 +457,9 @@ export default function DocenteForm({
           <div>
             <label className="block text-gray-700 font-medium mb-1">Profesión</label>
             <select
-              value={profession}
-              onChange={(e) => setProfession(e.target.value)}
+              name="profesiones"
+              value={formValues.profesiones}
+              onChange={handleInputChange}
               className="input-style"
               required
             >
@@ -450,9 +473,10 @@ export default function DocenteForm({
           <div>
             <label className="block text-gray-700 font-medium mb-1">Fecha de nacimiento</label>
             <input
+              name="fechaNacimiento"
               type="date"
-              value={fechaNacimiento}
-              onChange={(e) => setFechaNacimiento(e.target.value)}
+              value={formValues.fechaNacimiento}
+              onChange={handleInputChange}
               className="input-style"
               required
             />
@@ -469,8 +493,9 @@ export default function DocenteForm({
           <div>
             <label className="block text-gray-700 font-medium mb-1">País de origen</label>
             <select
-              value={pais}
-              onChange={(e) => setPais(e.target.value)}
+              name="pais"
+              value={formValues.pais}
+              onChange={handleInputChange}
               className="input-style"
               required
             >
@@ -484,8 +509,9 @@ export default function DocenteForm({
           <div>
             <label className="block text-gray-700 font-medium mb-1">Municipio</label>
             <select
-              value={municipio}
-              onChange={(e) => setMunicipio(e.target.value)}
+              name="municipio"
+              value={formValues.municipio}
+              onChange={handleInputChange}
               className="input-style"
               required
             >
@@ -499,10 +525,11 @@ export default function DocenteForm({
           <div>
             <label className="block text-gray-700 font-medium mb-1">Dirección domiciliar</label>
             <input
+              name="direccionDomiciliar"
               type="text"
               placeholder="Dirección domiciliar"
-              value={direccionDomiciliar}
-              onChange={(e) => setDireccionDomiciliar(e.target.value)}
+              value={formValues.direccionDomiciliar}
+              onChange={handleInputChange}
               className="input-style"
               required
             />
@@ -511,10 +538,11 @@ export default function DocenteForm({
           <div>
             <label className="block text-gray-700 font-medium mb-1">Teléfono</label>
             <input
+              name="telefono"
               type="text"
               placeholder="Teléfono"
-              value={telefono}
-              onChange={handleTelefonoChange}
+              value={formValues.telefono}
+              onChange={handleInputChange}
               onBlur={(e) => validateTelefono(e.currentTarget, e.currentTarget.value)}
               ref={telefonoRef}
               className="input-style"
@@ -525,9 +553,10 @@ export default function DocenteForm({
             <label className="block text-gray-700 font-medium mb-1">Correo</label>
             <input
               type="text"
+              name="correo"
               placeholder="Correo"
-              value={correo}
-              onChange={(e) => setCorreo(e.target.value)}
+              value={formValues.correo}
+              onChange={handleInputChange}
               className="input-style"
               required
             />
@@ -537,8 +566,9 @@ export default function DocenteForm({
             <label className="block text-gray-700 font-medium mb-1">Fecha de contratación</label>
             <input
               type="date"
-              value={fechaContratado}
-              onChange={(e) => setFechaContratado(e.target.value)}
+              name="fechaContratado"
+              value={formValues.fechaContratado}
+              onChange={handleInputChange}
               className="input-style"
               required
             />
@@ -556,9 +586,10 @@ export default function DocenteForm({
             <label className="block text-gray-700 font-medium mb-1">Nombre del contacto</label>
             <input
               type="text"
+              name="nombreContactoEmergencia"
               placeholder="Nombre del contacto"
-              value={nombreContactoEmergencia}
-              onChange={(e) => setNombreContactoEmergencia(e.target.value)}
+              value={formValues.nombreContactoEmergencia}
+              onChange={handleInputChange}
               className="input-style"
               required
             />
@@ -568,9 +599,10 @@ export default function DocenteForm({
             <label className="block text-gray-700 font-medium mb-1">Número de contacto</label>
             <input
               type="text"
+              name="telefonoContactoEmergencia"
               placeholder="Teléfono del contacto"
-              value={telefonoContactoEmergencia}
-              onChange={handleTelefonoEmergenciaChange}
+              value={formValues.telefonoContactoEmergencia}
+              onChange={handleInputChange}
               onBlur={(e) => validateTelefono(e.currentTarget, e.currentTarget.value)}
               ref={telefonoEmergenciaRef}
               className="input-style"
