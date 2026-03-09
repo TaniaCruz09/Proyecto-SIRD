@@ -14,7 +14,7 @@ export class StudentService {
     constructor(
         @InjectRepository(StudentEntity)
         private readonly StudentRepo: Repository<StudentEntity>,
-    ) {}
+    ) { }
 
     // ---------------------------------------------
     // Helpers para evitar repetir joins complejos
@@ -83,7 +83,8 @@ export class StudentService {
             this.baseRelationsWithGroups(qb)
                 .leftJoinAndSelect('grupo.docenteGuia', 'DocenteGuia')
                 .leftJoinAndSelect('grupo.grupoAsignaturaDocente', 'grupoAsignaturaDocenteDeGrupo')
-                .leftJoinAndSelect('grupoAsignaturaDocenteDeGrupo.asignatura', 'asignatura');
+                .leftJoinAndSelect('grupoAsignaturaDocenteDeGrupo.asignatura', 'asignatura')
+                .leftJoinAndSelect('turno.modalidad', 'modalidad')
 
             return await qb.getOne();
         } catch (error) {
