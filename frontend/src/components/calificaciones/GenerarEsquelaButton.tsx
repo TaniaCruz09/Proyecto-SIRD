@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { FileText } from "lucide-react"
 import { getEsquelaByGrupo, saveEsquelaHead } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
 import { EsquelaHeadInterface } from "@/interfaces/calificaciones/EsquelaHead"
+import { useEsquelaGrupo } from "@/hooks/useEsquelaGrupo"
 
 interface GenerarEsquelaButtonProps {
     grupoId: number
@@ -13,24 +14,8 @@ interface GenerarEsquelaButtonProps {
 
 export default function GenerarEsquelaButton({ grupoId }: GenerarEsquelaButtonProps) {
     const router = useRouter()
-    const [yaTieneEsquela, setYaTieneEsquela] = useState(false)
-    const [esquela, setEsquela] = useState<EsquelaHeadInterface>()
-    const [loading, setLoading] = useState(true)
 
-    useEffect(() => {
-        const verificarEsquela = async () => {
-            try {
-                const response = await getEsquelaByGrupo(grupoId)
-                setYaTieneEsquela(!!response) // si hay objeto, true; si es null, false
-                setEsquela(response)
-            } catch (error) {
-                setYaTieneEsquela(false)
-            } finally {
-                setLoading(false)
-            }
-        }
-        verificarEsquela()
-    }, [grupoId])
+    const { yaTieneEsquela, esquela, loading, refetch } = useEsquelaGrupo(grupoId)
 
     const handleClick = async () => {
         if (yaTieneEsquela && esquela?.id) {
@@ -42,8 +27,7 @@ export default function GenerarEsquelaButton({ grupoId }: GenerarEsquelaButtonPr
             const payload = { grupo_asignatura: { id: grupoId } }
             const response = await saveEsquelaHead(payload)
             if (response && response.id) {
-                setEsquela(response)
-                setYaTieneEsquela(true)
+                await refetch()
                 router.push(`/esquela-calificaciones/${response.id}`)
             }
         } catch (error) {
