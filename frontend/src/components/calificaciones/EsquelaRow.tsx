@@ -49,6 +49,7 @@ interface GADItem {
 
 interface EsquelaRowProps {
   esquelaHeadId: number
+  estudianteId?: number
 }
 
 type VistaType = "ALL" | "FINAL" | `C-${number}` | `S-${number}`
@@ -62,7 +63,7 @@ type Columna = {
 
 /* ================= COMPONENT ================= */
 
-export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
+export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
   const [esquelaHead, setEsquelaHead] = useState<EsquelaHeadInterface>()
   const [calificaciones, setCalificaciones] = useState<any[]>([])
   const [vista, setVista] = useState<VistaType>("ALL")
@@ -139,6 +140,7 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
       .flatMap((g) => g.gruposConEstudiantes.map((ge) => ge.estudiante))
       .filter((v): v is Estudiante => Boolean(v && v.id))
       .filter((v, i, self) => self.findIndex((s) => s.id === v.id) === i)
+      .filter((est) => !estudianteId || est.id === estudianteId)
 
   const findNota = (estId: number, asigId: number, corteId: number) => {
     const row = calificaciones.find(
@@ -269,10 +271,10 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
 
       const columnas: Columna[] = [
         {
-        key: `semestre-${sem.id}`,
-        label: sem.label,
-        corteIds: sem.cortes.map((corte) => corte.id),
-        type: "SEMESTRE",
+          key: `semestre-${sem.id}`,
+          label: sem.label,
+          corteIds: sem.cortes.map((corte) => corte.id),
+          type: "SEMESTRE",
         },
       ]
 
@@ -407,86 +409,86 @@ export function EsquelaRow({ esquelaHeadId }: EsquelaRowProps) {
     sheet.getCell(5, Math.floor(totalColumns / 2) + 1).alignment = { horizontal: 'center' }
     const startRow = sheet.rowCount + 1
 
-     /* =====================================================
-       HEADER ESQUELA (DINAMICO)
-     ===================================================== */
+    /* =====================================================
+      HEADER ESQUELA (DINAMICO)
+    ===================================================== */
 
-      const header1Data: any[] = [
-        "N°",
-        "Nombres y Apellidos",
-        "Código del estudiante",
-        "Sexo"
-      ]
+    const header1Data: any[] = [
+      "N°",
+      "Nombres y Apellidos",
+      "Código del estudiante",
+      "Sexo"
+    ]
 
-      asignaturas.forEach(a => {
-        header1Data.push(a.asignatura.asignatura)
-        for (let i = 1; i < columnasExport.length * 2; i++) {
-          header1Data.push("")
-        }
+    asignaturas.forEach(a => {
+      header1Data.push(a.asignatura.asignatura)
+      for (let i = 1; i < columnasExport.length * 2; i++) {
+        header1Data.push("")
+      }
+    })
+
+    const header1 = sheet.addRow(header1Data)
+
+    let colIndex = 5
+    asignaturas.forEach(() => {
+      sheet.mergeCells(
+        header1.number,
+        colIndex,
+        header1.number,
+        colIndex + columnasExport.length * 2 - 1
+      )
+      colIndex += columnasExport.length * 2
+    })
+
+    header1.eachCell(cell => {
+      cell.font = { bold: true }
+      cell.alignment = { horizontal: "center", vertical: "middle" }
+      cell.border = borderAll
+    })
+
+
+
+    const header2Data: any[] = ["", "", "", ""]
+
+    asignaturas.forEach(() => {
+      columnasExport.forEach((col) => {
+        header2Data.push(col.label)
+        header2Data.push("")
       })
+    })
 
-      const header1 = sheet.addRow(header1Data)
+    const header2 = sheet.addRow(header2Data)
 
-      let colIndex = 5
-      asignaturas.forEach(() => {
-        sheet.mergeCells(
-          header1.number,
-          colIndex,
-          header1.number,
-          colIndex + columnasExport.length * 2 - 1
-        )
-        colIndex += columnasExport.length * 2
+    let col2 = 5
+    asignaturas.forEach(() => {
+      columnasExport.forEach(() => {
+        sheet.mergeCells(header2.number, col2, header2.number, col2 + 1)
+        col2 += 2
       })
+    })
 
-      header1.eachCell(cell => {
-        cell.font = { bold: true }
-        cell.alignment = { horizontal: "center", vertical: "middle" }
-        cell.border = borderAll
+    header2.eachCell(cell => {
+      cell.font = { bold: true }
+      cell.alignment = { horizontal: "center", vertical: "middle" }
+      cell.border = borderAll
+    })
+
+    const header3Data: any[] = ["", "", "", ""]
+
+    asignaturas.forEach(() => {
+      columnasExport.forEach(() => {
+        header3Data.push("CUAL")
+        header3Data.push("CUANT")
       })
+    })
 
+    const header3 = sheet.addRow(header3Data)
 
-
-      const header2Data: any[] = ["", "", "", ""]
-
-      asignaturas.forEach(() => {
-        columnasExport.forEach((col) => {
-          header2Data.push(col.label)
-          header2Data.push("")
-        })
-      })
-
-      const header2 = sheet.addRow(header2Data)
-
-      let col2 = 5
-      asignaturas.forEach(() => {
-        columnasExport.forEach(() => {
-          sheet.mergeCells(header2.number, col2, header2.number, col2 + 1)
-          col2 += 2
-        })
-      })
-
-      header2.eachCell(cell => {
-        cell.font = { bold: true }
-        cell.alignment = { horizontal: "center", vertical: "middle" }
-        cell.border = borderAll
-      })
-
-      const header3Data: any[] = ["", "", "", ""]
-
-      asignaturas.forEach(() => {
-        columnasExport.forEach(() => {
-          header3Data.push("CUAL")
-          header3Data.push("CUANT")
-        })
-      })
-
-      const header3 = sheet.addRow(header3Data)
-
-      header3.eachCell(cell => {
-        cell.font = { bold: true }
-        cell.alignment = { horizontal: "center", vertical: "middle" }
-        cell.border = borderAll
-      })
+    header3.eachCell(cell => {
+      cell.font = { bold: true }
+      cell.alignment = { horizontal: "center", vertical: "middle" }
+      cell.border = borderAll
+    })
 
     /* ==========================
     DATOS
