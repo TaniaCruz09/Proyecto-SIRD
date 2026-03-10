@@ -4,6 +4,7 @@ import { NivelAcademico } from "./catalogoInterface/NivelAcademicoInterface";
 import { Pais } from "./catalogoInterface/PaisInterface";
 import { Profesion } from "./catalogoInterface/ProfesionInterface";
 import { Sexo } from "./catalogoInterface/SexoInterface";
+import { GrupoEscolar } from "./organizacionEscolarInterface/grupoInterface";
 
 export interface Docente {
   id: number,
@@ -33,6 +34,7 @@ export interface Docente {
   user_update_id?: number | null;
   deleted_at?: string | null;
   deleted_at_id?: number | null;
+  grupos?: GrupoEscolar[];
 }
 
 export interface DocentePayload {
@@ -55,6 +57,7 @@ export interface DocentePayload {
   profession?: Profesion[],
   pais?: Pais,
   municipio?: Municipio,
+  grupos?: GrupoEscolar[];
   user_create_id?: number | null;
   created_at?: string;
   update_at?: string;
