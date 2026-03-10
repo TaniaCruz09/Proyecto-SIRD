@@ -2,7 +2,7 @@
 
 import { getDocenteById } from '@/actions/docentesMethods/docentesMethods'
 import { Docente } from '@/interfaces'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import EditDocenteModal from '@/components/modals/docentes/EditDocenteModal'
@@ -23,12 +23,27 @@ import {
   Globe,
   Building2,
 } from "lucide-react"
+import { TablaRegistrosDocente } from '@/components/tables/expedientes/Tabla-registros-docente'
+export interface AsignacionDocente {
+  id: string
+  grado: string
+  modalidad: string
+  materia: string
+  anioLectivo: string
+  activo: boolean
+  cantidadEstudiantes: number
+}
 
 export default function page() {
   const [docenteData, setDocenteData] = useState<Docente | null>(null)
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   const { docenteId } = useParams();
+
+  const handleVerGrupo = (asignacionId: string) => {
+    router.push(`/add-students-to-group/${asignacionId}`)
+  }
 
   const fetchDocenteById = async () => {
     try {
@@ -53,6 +68,27 @@ export default function page() {
   if (!docenteData) {
     return <div className="p-6 text-center text-red-500">No se encontró el docente</div>
   }
+
+  const asignaciones: AsignacionDocente[] =
+    docenteData.grupos?.map((grupo) => ({
+      id: String(grupo.id),
+      grado: `${grupo.grado.grades} ${grupo.seccion.seccion} ${grupo.turno.turno}`,
+      modalidad: grupo?.turno?.modalidad?.modalidad ?? "Sin modalidad",
+      // Concatenamos todas las materias en un string
+      materia:
+        grupo.grupoAsignaturaDocente && grupo.grupoAsignaturaDocente.length > 0
+          ? grupo.grupoAsignaturaDocente
+            .map((gd) => gd.asignatura?.asignatura)
+            .join(", ")
+          : "Sin materias",
+      anioLectivo: String(grupo.organizacionEscolar.anio_lectivo.anio_lectivo),
+      activo: grupo.organizacionEscolar.anio_lectivo.isActive,
+      // Tomamos la cantidad de estudiantes de la primera materia
+      cantidadEstudiantes: grupo.grupoAsignaturaDocente && grupo.grupoAsignaturaDocente.length > 0
+        ? grupo.grupoAsignaturaDocente[0].cantidadEstudiantes ?? 0
+        : 0,
+    })) || [];
+
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       {/* Header del Perfil */}
@@ -173,6 +209,8 @@ export default function page() {
           </div>
         </CardContent>
       </Card>
+      <TablaRegistrosDocente asignaciones={asignaciones}
+        onVerGrupo={handleVerGrupo} />
     </div>
   )
 }

@@ -57,14 +57,31 @@ export class DocentesService {
         .leftJoinAndSelect('docente.profession', 'profession')
         .leftJoinAndSelect('docente.pais', 'pais')
         .leftJoinAndSelect('docente.municipio', 'municipio')
+
         .leftJoinAndSelect('docente.grupos', 'grupos')
         .leftJoinAndSelect('grupos.grado', 'grado')
         .leftJoinAndSelect('grupos.seccion', 'seccion')
         .leftJoinAndSelect('grupos.turno', 'turno')
         .leftJoinAndSelect('turno.modalidad', 'modalidad')
+
         .leftJoinAndSelect('grupos.organizacionEscolar', 'organizacionEscolar')
         .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo')
+
+        .leftJoinAndSelect(
+          'grupos.grupoAsignaturaDocente',
+          'grupoAsignaturaDocente',
+          'grupoAsignaturaDocente.docente_id = docente.id'
+        )
+        .leftJoinAndSelect('grupoAsignaturaDocente.asignatura', 'asignatura')
+
         .leftJoinAndSelect('grupos.esquelaHead', 'esquelaHead')
+
+        // 👇 SOLO CONTAR ESTUDIANTES
+        .loadRelationCountAndMap(
+          'grupoAsignaturaDocente.cantidadEstudiantes',
+          'grupoAsignaturaDocente.gruposConEstudiantes'
+        )
+
         .where('docente.id = :id', { id })
         .getOne();
     } catch (error) {
