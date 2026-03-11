@@ -68,11 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     localStorage.setItem('docente', JSON.stringify(user.docente))
                 }
                 else if (user.roles?.includes("Docente")) {
-                    const d = await getDocenteById(user.id)   // ← tu endpoint que sí devuelve docente completo
-                    if (d) {
-                        setDocente(d)
-                        localStorage.setItem('docente', JSON.stringify(d))
-                    }
+                    console.warn('Usuario con rol Docente sin relacion docente en /users/:id')
                 }
 
             } catch (err) {
@@ -108,8 +104,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                         setDocente(fullUser.docente)
                         localStorage.setItem('docente', JSON.stringify(fullUser.docente))
                     } else {
-                        const d = await getDocenteById(Number(userId))
-                        if (d) {
+                        const docenteId = fullUser?.docente?.id
+                        if (docenteId) {
+                            const d = await getDocenteById(Number(docenteId))
                             setDocente(d)
                             localStorage.setItem('docente', JSON.stringify(d))
                         }
@@ -140,9 +137,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                                 setDocente(fullUser.docente)
                                 localStorage.setItem('docente', JSON.stringify(fullUser.docente))
                             } else {
-                                // Si no viene en getUserById, llamar a getDocenteById
-                                const d = await getDocenteById(Number(userId))
-                                if (d) {
+                                // Si no viene en getUserById, usar el id de la relacion si existe
+                                const docenteId = fullUser?.docente?.id
+                                if (docenteId) {
+                                    const d = await getDocenteById(Number(docenteId))
                                     setDocente(d)
                                     localStorage.setItem('docente', JSON.stringify(d))
                                 }

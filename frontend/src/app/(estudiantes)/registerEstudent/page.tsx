@@ -29,15 +29,21 @@ export default function RegistroEstudiantes() {
         fetchEstudiantes()
     }, [])
 
-    //filtro que busca por el nombre
-    const filteredStudent = student.filter((u) =>
-        u.name?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Filtro por nombre o codigo de estudiante
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    const filteredStudent = student.filter((u) => {
+        if (!normalizedSearch) return true;
+
+        const fullName = `${u.name ?? ""} ${u.lastName ?? ""}`.toLowerCase();
+        const code = String(u.studentCode ?? "").toLowerCase();
+
+        return fullName.includes(normalizedSearch) || code.includes(normalizedSearch);
+    });
     return (
         <div className="mx-6">
             <div className="flex items-center justify-between">
                 <h1 className="ml-10 text-2xl font-bold mb-4 tracking-tight text-gray-600 text-center">
-                    Estudiante
+                    Estudiantes
                 </h1>
                 <div className="flex justify-end mr-10 mb-6 mt-5">
                     <AddStudentModal fetchStudent={fetchEstudiantes} />
@@ -51,7 +57,7 @@ export default function RegistroEstudiantes() {
                     value={searchTerm}
                     onChange={setSearchTerm}
                     onClear={() => setSearchTerm("")}
-                    placeholder="Buscar estudiante"
+                    placeholder="Buscar por nombre o codigo de estudiante"
                 />
             </div>
             <RegisterEstudentTable
