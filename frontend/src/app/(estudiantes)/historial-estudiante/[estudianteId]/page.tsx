@@ -172,33 +172,13 @@ export default function StudentProfile() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
 
                                 <div className="flex items-center gap-2">
-                                    <MapPin className="w-4 h-4 text-green-600" />
-                                    <span>País: {studentData.pais.pais}</span>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <MapPin className="w-4 h-4 text-green-600" />
-                                    <span>Municipio: {studentData.municipio.municipio}</span>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <CreditCard className="w-4 h-4 text-green-600" />
-                                    <span>Cédula: {studentData.identityCard}</span>
-                                </div>
-
-                                <div className="flex items-center gap-2">
                                     <User className="w-4 h-4 text-green-600" />
                                     <span>Sexo: {studentData.gender.gender}</span>
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    <MapPin className="w-4 h-4 text-green-600" />
-                                    <span>Dirección: {studentData.address}</span>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <User className="w-4 h-4 text-green-600" />
-                                    <span>Tutor: {studentData.tutorName}</span>
+                                    <Phone className="w-4 h-4 text-green-600" />
+                                    <span>Teléfono del estudiante: {studentData.phone}</span>
                                 </div>
 
                                 <div className="flex items-center gap-2">
@@ -206,10 +186,6 @@ export default function StudentProfile() {
                                     <span>Cédula del tutor: {studentData.tutorIdentityCard}</span>
                                 </div>
 
-                                <div className="flex items-center gap-2">
-                                    <Phone className="w-4 h-4 text-green-600" />
-                                    <span>Teléfono del tutor: {studentData.tutorPhoneNumber}</span>
-                                </div>
 
                                 <div className="flex items-center gap-2">
                                     <CalendarDays className="w-4 h-4 text-green-600" />
@@ -221,6 +197,36 @@ export default function StudentProfile() {
                                             year: "numeric",
                                         })}
                                     </span>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <User className="w-4 h-4 text-green-600" />
+                                    <span>Tutor: {studentData.tutorName}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <MapPin className="w-4 h-4 text-green-600" />
+                                    <span>País: {studentData.pais.pais}</span>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <CreditCard className="w-4 h-4 text-green-600" />
+                                    <span>Cédula: {studentData.identityCard}</span>
+                                </div>
+
+
+                                <div className="flex items-center gap-2">
+                                    <Phone className="w-4 h-4 text-green-600" />
+                                    <span>Teléfono del tutor: {studentData.tutorPhoneNumber}</span>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <MapPin className="w-4 h-4 text-green-600" />
+                                    <span>Municipio: {studentData.municipio.municipio}</span>
+                                </div>
+
+                                <div className="flex items-start gap-2">
+                                    <MapPin className="w-4 h-4 text-green-600" />
+                                    <span className="flex-1 text-left break-words">Dirección: {studentData.address}</span>
                                 </div>
 
                             </div>
