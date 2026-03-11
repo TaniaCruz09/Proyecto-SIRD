@@ -6,6 +6,7 @@ import { getFiltarStudent } from "@/actions/resgisterEstudentMethods/regiterEstu
 import { GrupoConAsignaturasResponse } from "@/interfaces/organizacionEscolarInterface/gruposConAsignaturas";
 import { GrupoConEstudiantePayload } from "@/interfaces/organizacionEscolarInterface/asignarEstudianteInterface";
 import { useToast } from "@/hooks/use-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 interface Props {
     anioId: number;
@@ -59,9 +60,7 @@ export default function BuscarAsignarEstudianteAutocomplete({
 
     const getImageUrl = (path?: string) => {
         if (!path) return null;
-
-        const cleanPath = path.replace(/^\/?uploads\//, "");
-        return `${process.env.NEXT_PUBLIC_API_UPLOADS}uploads/${cleanPath}`;
+        return `${process.env.NEXT_PUBLIC_API_UPLOADS}${path}`;
     };
 
     const estaAsignado = (student: any) => {
@@ -158,12 +157,24 @@ export default function BuscarAsignarEstudianteAutocomplete({
                             onClick={() => handleAsignar(student)}
                             className="flex items-center gap-3 p-3 hover:bg-slate-100 cursor-pointer"
                         >
-                            <img
-                                src={getImageUrl(student.profileImage) || "/avatar.png"}
-                                alt={student.name}
-                                className="w-10 h-10 rounded-full object-cover border"
-                            />
-
+                            <Avatar className="w-11 h-11 border-2 border-green-200">
+                                {student.profileImage ? (
+                                    <AvatarImage
+                                        src={getImageUrl(student.profileImage) || "/placeholder.svg"}
+                                        alt={student.name}
+                                    />
+                                ) : (
+                                    <AvatarFallback className="text-md font-bold bg-green-100 text-green-700">
+                                        {`${student.name.split(" ")
+                                            .map((n: string) => n[0])
+                                            .join("")
+                                            .slice(0, 1)}${student.lastName.split("")
+                                                .map((n: string) => n[0])
+                                                .join("")
+                                                .slice(0, 1)}`}
+                                    </AvatarFallback>
+                                )}
+                            </Avatar>
 
                             <div>
                                 <p className="font-semibold text-slate-800">
