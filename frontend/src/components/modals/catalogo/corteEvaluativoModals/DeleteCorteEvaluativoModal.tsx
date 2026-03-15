@@ -31,6 +31,11 @@ export default function DeleteCorteEvaluativoModal({ idEliminar, fetchCortesEval
       });
     } catch (error) {
       console.error("error al eliminar el Corte Evaluativo", error)
+      toast({
+        title: "No se pudo eliminar",
+        description: error instanceof Error ? error.message : "Ocurrió un error inesperado.",
+        variant: "destructive",
+      });
     } finally {
       setShowConfirm(false);
       setCorteEvaluativoToDelete(null)
