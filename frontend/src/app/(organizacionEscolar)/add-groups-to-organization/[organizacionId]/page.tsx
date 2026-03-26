@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Trash2, Users, GraduationCap, BookOpen, Save, UserCheck, ChevronRight } from "lucide-react"
+import { ArrowLeft, Trash2, Users, GraduationCap, BookOpen, UserCheck, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import type {
@@ -10,11 +10,17 @@ import type {
 } from "@/interfaces"
 import GrupoTableForm from "@/components/forms/organizacionEscolarForms/GrupoTableForm"
 import { getOrganizacionEscolarById } from "@/actions/organizacionEscolarMethods/organizacionMethods"
+import { deleteGrupo } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods"
+import { useToast } from "@/hooks/use-toast"
+import ConfirmDialog from "@/components/modals/organizacionEscolar/grupoConAsignatura/ConfirmAccion"
 
 export default function OrganizationGroups() {
     const { organizacionId } = useParams();
     const router = useRouter()
+    const { toast } = useToast()
     const [organizacionEscolar, setOrganizacionEscolar] = useState<OrganizacionEscolar>()
+    const [deletingGroupId, setDeletingGroupId] = useState<number | null>(null)
+    const [groupToDelete, setGroupToDelete] = useState<{ id: number; label: string } | null>(null)
 
     const fetchOrganizacionEscolarById = async () => {
         try {
@@ -29,6 +35,33 @@ export default function OrganizationGroups() {
     useEffect(() => {
         fetchOrganizacionEscolarById()
     }, [])
+
+    const confirmDeleteGroup = (groupId: number, label: string) => {
+        setGroupToDelete({ id: groupId, label })
+    }
+
+    const handleDeleteGroup = async () => {
+        if (!groupToDelete) return
+        try {
+            setDeletingGroupId(groupToDelete.id)
+            await deleteGrupo(groupToDelete.id)
+            toast({
+                title: "Grupo eliminado",
+                description: "Se elimino el grupo con sus materias y estudiantes asignados.",
+                variant: "success",
+            })
+            await fetchOrganizacionEscolarById()
+        } catch (error: any) {
+            toast({
+                title: "No se pudo eliminar",
+                description: error?.message || "Ocurrio un error al eliminar el grupo.",
+                variant: "destructive",
+            })
+        } finally {
+            setGroupToDelete(null)
+            setDeletingGroupId(null)
+        }
+    }
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">
@@ -86,7 +119,8 @@ export default function OrganizationGroups() {
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                // onClick={() => removeGroup(g.id)}
+                                                onClick={() => confirmDeleteGroup(g.id, `${g.grado?.grades ?? "N/A"} - ${g.seccion?.seccion ?? "N/A"} - ${g.turno?.turno ?? "N/A"}`)}
+                                                disabled={deletingGroupId === g.id}
                                                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                             >
                                                 <Trash2 className="h-4 w-4" />
@@ -147,6 +181,18 @@ export default function OrganizationGroups() {
                     )}
                 </CardContent>
             </Card>
+
+            <ConfirmDialog
+                isOpen={!!groupToDelete}
+                title="Eliminar grupo de forma permanente"
+                message={
+                    <span>
+                        Estas a punto de eliminar el grupo <strong>{groupToDelete?.label}</strong>. Esta accion borrara tambien sus materias y estudiantes asignados, y no se puede deshacer.
+                    </span>
+                }
+                onCancel={() => setGroupToDelete(null)}
+                onConfirm={handleDeleteGroup}
+            />
         </div>
     )
 }

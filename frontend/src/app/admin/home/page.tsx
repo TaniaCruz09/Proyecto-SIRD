@@ -120,15 +120,15 @@ export default function HomePage() {
           </Link>
 
           {/* Card 2: Registro Calificaciones */}
-          <Link href="/calificaciones">
+          <Link href="/registerGroups">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-70">
               <Card className="bg-gradient-to-br from-emerald-200 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
                 <CardContent className="text-center">
                   <CardHeader className="flex flex-col items-center">
                     <FaBook className="text-emerald-900 text-2xl" />
                   </CardHeader>
-                  <div className="text-lg font-bold text-slate-800">Calificaciones</div>
-                  <p className="text-sm text-slate-600">Revisa calificaciones de los grados</p>
+                  <div className="text-lg font-bold text-slate-800">Grupos escolares</div>
+                  <p className="text-sm text-slate-600">Gestiona los grupos escolares</p>
                 </CardContent>
               </Card>
             </motion.div>
