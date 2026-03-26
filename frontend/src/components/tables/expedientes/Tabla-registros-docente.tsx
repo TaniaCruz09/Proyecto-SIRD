@@ -22,11 +22,12 @@ export interface AsignacionDocente {
     anioLectivo: string
     activo: boolean
     cantidadEstudiantes: number
+    esquela: number
 }
 
 interface TablaRegistrosDocenteProps {
     asignaciones: AsignacionDocente[]
-    onVerGrupo: (asignacionId: string) => void
+    onVerGrupo: (asignacionId: number) => void
 }
 
 export function TablaRegistrosDocente({ asignaciones, onVerGrupo }: TablaRegistrosDocenteProps) {
@@ -121,11 +122,12 @@ export function TablaRegistrosDocente({ asignaciones, onVerGrupo }: TablaRegistr
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => onVerGrupo(asignacion.id)}
+                                                disabled={!asignacion?.esquela}
+                                                onClick={() => onVerGrupo(asignacion.esquela)}
                                                 className="gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
                                             >
                                                 <Users className="w-4 h-4" />
-                                                Ver Grupo
+                                                {asignacion?.esquela ? "Ver Esquela" : "Esquela no creada"}
                                             </Button>
                                         </TableCell>
                                     </TableRow>
