@@ -8,8 +8,8 @@ import { EsquelaHeadInterface, EsquelaRowInterface } from "@/interfaces/califica
 import { Corte } from "@/interfaces"
 import { EsquelaRowPayload } from "@/interfaces/calificaciones/EsquelaRow"
 import { saveEsquelaRow, updateEsquelaRow } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods"
-import { getCortesEvaluativos } from "@/actions/catalogos/corteEvaluativoMethods"
 import { getNotasCualitativas } from "@/actions/catalogos/notaCualitativaMethods"
+import { getAnioLectivoById } from "@/actions/catalogos/anioLectivoMethods"
 import CardCortesEvaluativos from "@/components/calificaciones/CardCortesEvaluativos"
 import { Asignatura, CorteUI, Estudiante } from "@/interfaces/calificaciones/AgregarCalificaciones"
 import HeaderAgregarCalificaciones from "@/components/calificaciones/HeaderAgregarCalificaciones"
@@ -29,6 +29,12 @@ const getInitials = (nombre?: string) => {
     if (partes.length === 0) return ""
     if (partes.length === 1) return (partes[0]?.[0] ?? "").toUpperCase()
     return ((partes[0][0] ?? "") + (partes[1][0] ?? "")).toUpperCase()
+}
+
+type AnyPeriodo = {
+    orden?: number
+    cortes?: Corte[]
+    cortesPeriodo?: Array<{ orden?: number; corte?: Corte }>
 }
 
 export default function Calificaciones({
@@ -56,33 +62,68 @@ export default function Calificaciones({
 
     const storageKey = `calificaciones_${esquelaId}_${grupoId}`
 
-    // ---------- Cargar cortes ----------
-    useEffect(() => {
-        const fetchCortes = async () => {
-            try {
-                const response = await getCortesEvaluativos()
-                if (!Array.isArray(response)) return
+    const ordenarCortes = (items: Corte[]) =>
+        [...items].sort((a, b) => {
+            const ordenA = a.orden ?? Number.MAX_SAFE_INTEGER
+            const ordenB = b.orden ?? Number.MAX_SAFE_INTEGER
+            if (ordenA !== ordenB) return ordenA - ordenB
+            return (a.id ?? 0) - (b.id ?? 0)
+        })
 
-                setCortes(response)
+    const buildCortesFromAnioLectivo = (anioLectivoData: any): Corte[] => {
+        if (!anioLectivoData) return []
 
-                if (response.length > 0 && corteActivo == null) {
-                    setCorteActivo(response[0].id)
-                }
+        const periodos: AnyPeriodo[] =
+            Array.isArray(anioLectivoData.periodosLectivos) && anioLectivoData.periodosLectivos.length > 0
+                ? anioLectivoData.periodosLectivos
+                : Array.isArray(anioLectivoData.periodos)
+                    ? anioLectivoData.periodos
+                    : []
 
-                const colores = ["bg-blue-500", "bg-yellow-500", "bg-green-500", "bg-purple-500"]
-                const adaptados: CorteUI[] = response.map((c, i) => ({
-                    ...c,
-                    color: colores[i % colores.length]
-                }))
-                setCortesUI(adaptados)
-            } catch (error) {
-                console.error("Error al cargar los cortes evaluativos", error)
-            }
+        if (periodos.length > 0) {
+            const unique = new Map<number, Corte>()
+
+            periodos
+                .slice()
+                .sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
+                .forEach((periodo) => {
+                    const fromCortes = Array.isArray(periodo.cortes) ? periodo.cortes : []
+                    const fromCortesPeriodo: Corte[] = Array.isArray(periodo.cortesPeriodo)
+                        ? periodo.cortesPeriodo
+                            .slice()
+                            .sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
+                            .map((item) => {
+                                const corte = item.corte
+                                return {
+                                    id: Number(corte?.id ?? 0),
+                                    abreviatura: corte?.abreviatura ?? "",
+                                    corte: corte?.corte ?? `Corte ${item.orden ?? ""}`,
+                                    semestre: corte?.semestre,
+                                    orden: item.orden,
+                                }
+                            })
+                            .filter((corte) => Number.isFinite(corte.id) && corte.id > 0)
+                        : []
+
+                    const merged = fromCortes.length > 0 ? fromCortes : fromCortesPeriodo
+                    ordenarCortes(merged).forEach((corte) => {
+                        if (corte?.id && !unique.has(corte.id)) {
+                            unique.set(corte.id, corte)
+                        }
+                    })
+                })
+
+            return ordenarCortes(Array.from(unique.values()))
         }
 
-        fetchCortes()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+        const fallback = (
+            anioLectivoData.cortes ??
+            anioLectivoData.cortesAnioLectivo?.map((item: any) => item.corte) ??
+            []
+        ) as Corte[]
+
+        return ordenarCortes(fallback)
+    }
 
     useEffect(() => {
         const fetchNotas = async () => {
@@ -109,6 +150,39 @@ export default function Calificaciones({
         try {
             const response = await getEsquelaHeadById(Number(esquelaId))
             setEsquela(response)
+
+            const anioLectivoRef = response?.grupo_asignatura?.organizacionEscolar?.anio_lectivo as any
+            let anioLectivoSource = anioLectivoRef
+
+            if (anioLectivoRef?.id) {
+                try {
+                    const anioLectivoById = await getAnioLectivoById(Number(anioLectivoRef.id))
+                    if (anioLectivoById) {
+                        anioLectivoSource = anioLectivoById
+                    }
+                } catch (error) {
+                    console.warn("No se pudo obtener anio lectivo por id, se usara la data embebida en esquela", error)
+                }
+            }
+
+            const cortesDelAnio = buildCortesFromAnioLectivo(anioLectivoSource)
+            setCortes(cortesDelAnio)
+
+            const colores = ["bg-blue-500", "bg-yellow-500", "bg-green-500", "bg-purple-500"]
+            const adaptados: CorteUI[] = cortesDelAnio.map((c, i) => ({
+                ...c,
+                color: colores[i % colores.length]
+            }))
+            setCortesUI(adaptados)
+
+            if (cortesDelAnio.length > 0) {
+                const existeCorteActivo = cortesDelAnio.some((c) => c.id === corteActivo)
+                if (!existeCorteActivo) {
+                    setCorteActivo(cortesDelAnio[0].id)
+                }
+            } else {
+                setCorteActivo(null)
+            }
 
             // Extraer estudiantes (normalizando arrays y evitando duplicados)
             let rawStudents: any[] = []

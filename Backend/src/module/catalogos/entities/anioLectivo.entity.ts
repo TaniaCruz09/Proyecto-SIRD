@@ -14,6 +14,7 @@ import * as moment from 'moment-timezone';
 import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity';
 import { AnioLectivoCorte } from './anioLectivoCorte.entity';
 import { Cortes } from './corte.entity';
+import { PeriodoLectivo } from './periodoLectivo.entity';
 
 @Entity({ name: 'anioLectivo', schema: 'catalogos' })
 export class AnioLectivo {
@@ -38,6 +39,9 @@ export class AnioLectivo {
 
     @OneToMany(() => AnioLectivoCorte, (corte) => corte.anioLectivo)
     cortesAnioLectivo?: AnioLectivoCorte[];
+
+    @OneToMany(() => PeriodoLectivo, (periodoLectivo) => periodoLectivo.anioLectivo)
+    periodosLectivos?: PeriodoLectivo[];
 
     cortes?: Cortes[];
 

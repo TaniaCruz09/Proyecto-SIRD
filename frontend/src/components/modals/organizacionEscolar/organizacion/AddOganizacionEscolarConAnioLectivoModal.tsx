@@ -6,9 +6,10 @@ import { Plus } from 'lucide-react'
 
 interface AddOganizacionEscolarConAnioLectivoModalProp {
     idAnioLectivo: number
+    onSuccess?: () => void | Promise<void>
 }
 
-export default function AddOganizacionEscolarConAnioLectivoModal({ idAnioLectivo }: AddOganizacionEscolarConAnioLectivoModalProp) {
+export default function AddOganizacionEscolarConAnioLectivoModal({ idAnioLectivo, onSuccess }: AddOganizacionEscolarConAnioLectivoModalProp) {
     const [showModal, setShowModal] = useState<boolean>(false);
     return (
         <div>
@@ -29,7 +30,8 @@ export default function AddOganizacionEscolarConAnioLectivoModal({ idAnioLectivo
                         content={
                             <OrganizacionEscolarConAnioLectivoForm
                                 idAnioLectivo={idAnioLectivo}
-                                onSuccess={() => {
+                                onSuccess={async () => {
+                                    await onSuccess?.()
                                     setShowModal(false)
                                 }} />
                         }

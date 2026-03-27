@@ -103,7 +103,7 @@ async resetPassword(tempToken: string, newPassword: string) {
     
     const user = await this.userRepository.findOne({
       where: { email },
-      relations: ['roles', 'docente', 'docente.profession'],
+      relations: ['roles'],
     });
 
     if (!user) {
@@ -161,7 +161,7 @@ async resetPassword(tempToken: string, newPassword: string) {
 
   async getUserById(id: number): Promise<User> {
     try {
-      const user = await this.userRepository.findOne({ where: { id }, relations: ['roles', 'docente', 'docente.profession'] });
+      const user = await this.userRepository.findOne({ where: { id }, relations: ['roles', 'docente'] });
       return user;
     } catch (error) {
       Utilities.catchError(error);

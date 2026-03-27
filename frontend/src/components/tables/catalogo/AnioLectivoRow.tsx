@@ -16,10 +16,25 @@ export default function AnioLectivoRow({ fetchAniosLectivos, anioLectivo }: Anio
     anioLectivo.cortesAnioLectivo?.map((item) => item.corte) ??
     []
 
+  const periodosLabel =
+    anioLectivo.periodos?.length
+      ? anioLectivo.periodos
+        .slice()
+        .sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
+        .map((periodo) => {
+          const cortesPeriodo = periodo.cortes
+            .map((corte) => corte.abreviatura || corte.corte)
+            .join(", ")
+          return `${periodo.nombre}: ${cortesPeriodo || "Sin cortes"}`
+        })
+        .join(" | ")
+      : null
+
   const cortesLabel =
-    cortes.length > 0
+    periodosLabel ??
+    (cortes.length > 0
       ? cortes.map((corte) => corte.abreviatura || corte.corte).join(", ")
-      : "Sin cortes"
+      : "Sin cortes")
 
   return (
     <tr className="hover:bg-gray-100 cursor-pointer">

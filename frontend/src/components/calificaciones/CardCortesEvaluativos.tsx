@@ -11,6 +11,30 @@ interface CardCortesEvaluativosProps {
     corteActivo: number | null
     setCorteActivo: (c: number) => void
     cortesUI: CorteUI[]
+    tipoPeriodizacion?: string
+}
+
+const formatTipoPeriodizacion = (tipo?: string) => {
+    const value = (tipo ?? "").trim().toUpperCase()
+
+    switch (value) {
+        case "SEMESTRE":
+        case "SEMESTRAL":
+            return "semestral"
+        case "CUATRIMESTRE":
+        case "CUATRIMESTRAL":
+            return "cuatrimestral"
+        case "TRIMESTRE":
+        case "TRIMESTRAL":
+            return "trimestral"
+        case "BIMESTRE":
+        case "BIMESTRAL":
+            return "bimestral"
+        case "PERSONALIZADO":
+            return "personalizado"
+        default:
+            return ""
+    }
 }
 
 export default function CardCortesEvaluativos({
@@ -18,8 +42,11 @@ export default function CardCortesEvaluativos({
     asignaturaActiva,
     corteActivo,
     setCorteActivo,
-    cortesUI
+    cortesUI,
+    tipoPeriodizacion,
 }: CardCortesEvaluativosProps) {
+
+    const tipoPeriodizacionLabel = formatTipoPeriodizacion(tipoPeriodizacion)
 
     const verificarCorteCompleto = (corteId: number, asignaturaId: number) => {
         return estudiantes.every(est => {
@@ -38,7 +65,11 @@ export default function CardCortesEvaluativos({
     return (
         <Card className="mb-6 border-2 border-primary/20">
             <CardHeader>
-                <CardTitle className="text-xl">Seleccionar Período de Calificación</CardTitle>
+                <CardTitle className="text-xl">
+                    {tipoPeriodizacionLabel
+                        ? `Período ${tipoPeriodizacionLabel} `
+                        : "Seleccionar Período de Calificación"}
+                </CardTitle>
                 <CardDescription>
                     Los cortes se habilitan progresivamente al completar todas las calificaciones del corte anterior
                 </CardDescription>

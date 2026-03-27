@@ -5,6 +5,8 @@ export { AcademicLevelController } from "./controllers/academiclevel.controller"
 
 export { AnioLectivo } from "./entities/anioLectivo.entity";
 export { AnioLectivoCorte } from "./entities/anioLectivoCorte.entity";
+export { PeriodoLectivo } from "./entities/periodoLectivo.entity";
+export { PeriodoLectivoCorte } from "./entities/periodoLectivoCorte.entity";
 export { CreateAnioLectivoDTO } from "./dtos/anioLectivo.dto";
 export { AnioLectivoService } from "./services/anioLectivo.service";
 export { AnioLectivoController } from "./controllers/anioLectivo.controller";
@@ -78,6 +80,11 @@ export { Turno } from "./entities/turnos.entity";
 export { CreateTurnoDto } from "./dtos/turnos.dto";
 export { TurnoService } from "./services/turnos.service";
 export { TurnoController } from "./controllers/turnos.controller";
+
+export { TipoPeriodizacion } from './entities/tipoPeriodizacion.entity';
+export { CreateTipoPeriodizacionDto } from './dtos/tipoPeriodizacion.dto';
+export { TipoPeriodizacionService } from './services/tipoPeriodizacion.service';
+export { TipoPeriodizacionController } from './controllers/tipoPeriodizacion.controller';
 
 
 

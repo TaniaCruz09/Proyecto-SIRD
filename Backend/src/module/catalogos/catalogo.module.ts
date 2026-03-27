@@ -46,6 +46,8 @@ import { AnioLectivo } from './entities/anioLectivo.entity';
 import { AnioLectivoController } from './controllers/anioLectivo.controller';
 import { AnioLectivoService } from './services/anioLectivo.service';
 import { AnioLectivoCorte } from './entities/anioLectivoCorte.entity';
+import { PeriodoLectivo } from './entities/periodoLectivo.entity';
+import { PeriodoLectivoCorte } from './entities/periodoLectivoCorte.entity';
 import { NotaCualitativa } from './entities/notaCualitativa.entity';
 import { NotaCualitativaController } from './controllers/notaCualitativa.controller';
 import { NotaCualitativaService } from './services/notaCualitativa.service';
@@ -53,6 +55,9 @@ import { OrganizacionEscolar } from '../organizacionEscolar/entities/organizacio
 import { Grupos } from '../organizacionEscolar/entities/grupos.entity';
 import { GrupoAsignaturaDocente } from '../organizacionEscolar/entities/GrupoAsignaturaDocente.entity';
 import { GrupoAsignaturaConEstudiantes } from '../organizacionEscolar/entities/grupo-asignatura-con-estudiantes.entity';
+import { TipoPeriodizacion } from './entities/tipoPeriodizacion.entity';
+import { TipoPeriodizacionController } from './controllers/tipoPeriodizacion.controller';
+import { TipoPeriodizacionService } from './services/tipoPeriodizacion.service';
 
 @Module({
   imports: [
@@ -73,11 +78,14 @@ import { GrupoAsignaturaConEstudiantes } from '../organizacionEscolar/entities/g
       Cortes,
       AnioLectivo,
       AnioLectivoCorte,
+      PeriodoLectivo,
+      PeriodoLectivoCorte,
       NotaCualitativa,
       OrganizacionEscolar,
       Grupos,
       GrupoAsignaturaDocente,
       GrupoAsignaturaConEstudiantes,
+      TipoPeriodizacion,
     ]),
   ],
   controllers: [
@@ -96,7 +104,8 @@ import { GrupoAsignaturaConEstudiantes } from '../organizacionEscolar/entities/g
     SemestreController,
     CortesController,
     AnioLectivoController,
-    NotaCualitativaController
+    NotaCualitativaController,
+    TipoPeriodizacionController,
 
   ],
   providers: [
@@ -115,7 +124,8 @@ import { GrupoAsignaturaConEstudiantes } from '../organizacionEscolar/entities/g
     SemestreService,
     CortesService,
     AnioLectivoService,
-    NotaCualitativaService
+    NotaCualitativaService,
+    TipoPeriodizacionService,
   ],
   exports: [CatalogoModule, TypeOrmModule],
 })

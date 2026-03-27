@@ -123,6 +123,19 @@ export function AcademicYearsDashboard() {
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-4">
+                                {anioLectivo.periodos?.length ? (
+                                    <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                                        {anioLectivo.periodos
+                                            .slice()
+                                            .sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
+                                            .map((periodo) => {
+                                                const cortes = periodo.cortes.map((corte) => corte.abreviatura || corte.corte).join(", ")
+                                                return `${periodo.nombre}: ${cortes || "Sin cortes"}`
+                                            })
+                                            .join(" | ")}
+                                    </div>
+                                ) : null}
+
                                 {anioLectivo.organizacionEscolar.length > 0 ? (
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         {anioLectivo.organizacionEscolar.map((org) => (
@@ -164,6 +177,7 @@ export function AcademicYearsDashboard() {
 
                                         <AddOganizacionEscolarConAnioLectivoModal
                                             idAnioLectivo={Number(anioLectivo.id)}
+                                            onSuccess={fetchAniosLectivos}
                                         />
 
                                     </div>
@@ -172,6 +186,7 @@ export function AcademicYearsDashboard() {
                                 <div className="flex gap-2 pt-4 border-t border-slate-200">
                                     <AddOganizacionEscolarConAnioLectivoModal
                                         idAnioLectivo={Number(anioLectivo.id)}
+                                        onSuccess={fetchAniosLectivos}
                                     />
                                     <Button
                                         onClick={() => router.push(`/catalogo/anioLectivo?idAnioLectivo=${anioLectivo.id}`)}

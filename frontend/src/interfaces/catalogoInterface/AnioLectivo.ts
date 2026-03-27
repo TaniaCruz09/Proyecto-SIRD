@@ -2,6 +2,23 @@
 import { OrganizacionEscolar } from "../organizacionEscolarInterface/organizacionInterface";
 import { Corte } from "./corteEvaluativoInterface";
 
+export interface PeriodoLectivo {
+    id?: number,
+    nombre: string,
+    abreviatura?: string,
+    tipo?: string,
+    orden: number,
+    cortes: Corte[],
+}
+
+export interface PeriodoLectivoPayload {
+    id?: number,
+    nombre: string,
+    abreviatura?: string,
+    tipo?: string,
+    orden: number,
+    cortes: { id: number, orden?: number }[],
+}
 
 export interface AnioLectivo {
     id: number,
@@ -11,6 +28,7 @@ export interface AnioLectivo {
     organizacionEscolar: OrganizacionEscolar[],
     cortes?: Corte[],
     cortesAnioLectivo?: { corte: Corte }[],
+    periodos?: PeriodoLectivo[],
 
 }
 
@@ -20,4 +38,8 @@ export interface AnioLectivoPayload {
     created_at?: Date,
     organizacionEscolar?: OrganizacionEscolar[],
     cortes?: { id: number }[],
+    periodos?: PeriodoLectivoPayload[],
+    tipo_periodizacion?: string,
+    cantidad_periodos?: number,
+    cantidad_cortes?: number,
 }

@@ -16,6 +16,7 @@ export default function AddAniosLectivosModal({ fetchAniosLectivos }: AddAniosLe
         <ModalBase
           onshowModal={showModal}
           onCloseModal={() => setShowModal(false)}
+          containerClassName="max-w-6xl overflow-hidden p-0"
           content={
             <AnioLectivoForm onSuccess={() => {
               fetchAniosLectivos()

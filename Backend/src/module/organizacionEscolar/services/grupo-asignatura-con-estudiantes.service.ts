@@ -144,83 +144,83 @@ export class GrupoAsignaturaConEstudiantesService {
         grupoDestinoId: number,
     ) {
         try {
-            // 1️⃣ Eliminar todas las asignaciones del estudiante en el grupo de origen
-            await this.grupoConEstudianteRepo
-                .createQueryBuilder()
-                .delete()
-                .from(GrupoAsignaturaConEstudiantes)
-                .where("estudianteId = :estudianteId", { estudianteId })
-                .andWhere(
-                    `grupoAsignaturaDocenteId IN (
+            if (grupoOrigenId === grupoDestinoId) {
+                throw new Error('El grupo destino debe ser diferente al grupo origen');
+            }
+
+            const resultado = await this.grupoConEstudianteRepo.manager.transaction(async (manager) => {
+                const grupoAsignaturasDestino = await manager
+                    .getRepository(GrupoAsignaturaDocente)
+                    .createQueryBuilder('gad')
+                    .leftJoinAndSelect('gad.grupo', 'grupo')
+                    .leftJoinAndSelect('gad.asignatura', 'asignatura')
+                    .where('grupo.id = :grupoDestinoId', { grupoDestinoId })
+                    .getMany();
+
+                if (!grupoAsignaturasDestino.length) {
+                    throw new Error('El grupo destino no tiene asignaturas asignadas');
+                }
+
+                await manager
+                    .createQueryBuilder()
+                    .delete()
+                    .from(GrupoAsignaturaConEstudiantes)
+                    .where('estudianteId = :estudianteId', { estudianteId })
+                    .andWhere(
+                        `grupoAsignaturaDocenteId IN (
             SELECT gad.id
             FROM "organizacion_escolar"."grupo_asignatura_docente" gad
             WHERE gad."grupo_id" = :grupoOrigenId
         )`,
-                    { grupoOrigenId }
-                )
-                .execute();
+                        { grupoOrigenId },
+                    )
+                    .execute();
 
-            // 2️⃣ Buscar todas las asignaturas-docente del grupo destino
-            const grupoAsignaturasDestino = await this.grupoAsignaturaDocenteRepo
-                .createQueryBuilder('gad')
-                .leftJoinAndSelect('gad.grupo', 'grupo')
-                .leftJoinAndSelect('gad.asignatura', 'asignatura')
-                .where('grupo.id = :grupoDestinoId', { grupoDestinoId })
-                .getMany();
+                const nuevasAsignaciones = grupoAsignaturasDestino.map((gad) =>
+                    manager.getRepository(GrupoAsignaturaConEstudiantes).create({
+                        grupoAsignaturaDocente: { id: gad.id },
+                        estudiante: { id: estudianteId },
+                    }),
+                );
 
-            if (!grupoAsignaturasDestino.length) {
-                throw new Error('El grupo destino no tiene asignaturas asignadas');
-            }
+                const guardadas = await manager.getRepository(GrupoAsignaturaConEstudiantes).save(nuevasAsignaciones);
 
-            // 3️⃣ Crear nuevas asignaciones para el estudiante en el grupo destino
-            const nuevasAsignaciones = grupoAsignaturasDestino.map(gad =>
-                this.grupoConEstudianteRepo.create({
-                    grupoAsignaturaDocente: { id: gad.id },
-                    estudiante: { id: estudianteId },
-                })
-            );
-
-            // 4️⃣ Guardar todas las nuevas asignaciones
-            const resultado = await this.grupoConEstudianteRepo.save(nuevasAsignaciones);
-
-            // 5️⃣ Transferir calificaciones del grupo origen al destino
-            const esquelaHeadOrigen = await this.esquelaHeadRepo.findOne({
-                where: { grupo_asignatura: { id: grupoOrigenId } },
-            });
-
-            if (esquelaHeadOrigen) {
-                let esquelaHeadDestino = await this.esquelaHeadRepo.findOne({
-                    where: { grupo_asignatura: { id: grupoDestinoId } },
+                const esquelaHeadOrigen = await manager.getRepository(EsquelaHeadEntity).findOne({
+                    where: { grupo_asignatura: { id: grupoOrigenId } },
                 });
 
-                if (!esquelaHeadDestino) {
-                    // Crear uno si no existe
-                    esquelaHeadDestino = await this.esquelaHeadRepo.save({
-                        grupo_asignatura: { id: grupoDestinoId },
-                        user_create_id: 1, // Asumir un usuario, o pasar como parámetro
+                if (esquelaHeadOrigen) {
+                    let esquelaHeadDestino = await manager.getRepository(EsquelaHeadEntity).findOne({
+                        where: { grupo_asignatura: { id: grupoDestinoId } },
                     });
-                }
 
-                // Buscar todas las EsquelaRow del estudiante en el grupo origen
-                const calificacionesOrigen = await this.esquelaRowRepo
-                    .createQueryBuilder('er')
-                    .leftJoinAndSelect('er.asignatura', 'asignatura')
-                    .where('er.estudiante = :estudianteId', { estudianteId })
-                    .andWhere('er.esquelaHead = :esquelaHeadId', { esquelaHeadId: esquelaHeadOrigen.id })
-                    .getMany();
-
-                // Para cada calificación, verificar si la asignatura existe en el grupo destino
-                const asignaturasDestino = grupoAsignaturasDestino.map(gad => gad.asignatura.id);
-
-                for (const calif of calificacionesOrigen) {
-                    if (asignaturasDestino.includes(calif.asignatura.id)) {
-                        // Transferir al destino
-                        calif.esquelaHead = esquelaHeadDestino;
-                        await this.esquelaRowRepo.save(calif);
+                    if (!esquelaHeadDestino) {
+                        esquelaHeadDestino = await manager.getRepository(EsquelaHeadEntity).save({
+                            grupo_asignatura: { id: grupoDestinoId },
+                            user_create_id: 1,
+                        });
                     }
-                    // Si no, quizás dejarla o eliminarla, pero por ahora transferir solo si coincide
+
+                    const calificacionesOrigen = await manager
+                        .getRepository(EsquelaRow)
+                        .createQueryBuilder('er')
+                        .leftJoinAndSelect('er.asignatura', 'asignatura')
+                        .where('er.estudiante = :estudianteId', { estudianteId })
+                        .andWhere('er.esquelaHead = :esquelaHeadId', { esquelaHeadId: esquelaHeadOrigen.id })
+                        .getMany();
+
+                    const asignaturasDestino = grupoAsignaturasDestino.map((gad) => gad.asignatura.id);
+
+                    for (const calif of calificacionesOrigen) {
+                        if (asignaturasDestino.includes(calif.asignatura.id)) {
+                            calif.esquelaHead = esquelaHeadDestino;
+                            await manager.getRepository(EsquelaRow).save(calif);
+                        }
+                    }
                 }
-            }
+
+                return guardadas;
+            });
 
             return {
                 message: 'Estudiante movido exitosamente',

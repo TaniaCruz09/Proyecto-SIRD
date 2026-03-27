@@ -14,6 +14,7 @@ import { User } from '../../auth/entities';
 import { SemestreEntity } from './semestres.entity';
 import { EsquelaRow } from '../../calificaciones/esquelas_rows/esquelas_rows.entity';
 import { AnioLectivoCorte } from './anioLectivoCorte.entity';
+import { PeriodoLectivoCorte } from './periodoLectivoCorte.entity';
 
 @Entity({ schema: 'catalogos', name: 'cortes' })
 export class Cortes {
@@ -42,6 +43,9 @@ export class Cortes {
 
   @OneToMany(() => AnioLectivoCorte, (anioLectivoCorte) => anioLectivoCorte.corte)
   anioLectivoCortes?: AnioLectivoCorte[];
+
+  @OneToMany(() => PeriodoLectivoCorte, (periodoLectivoCorte) => periodoLectivoCorte.corte)
+  periodoLectivoCortes?: PeriodoLectivoCorte[];
 
   // ID del Usuario que creo el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true })
