@@ -16,6 +16,7 @@ interface AuthContextProps {
     logout: (reason?: "idle" | "expired") => Promise<void>
     loading: boolean
     loadingAuth: boolean
+    isLoggingOut: boolean
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined)
@@ -33,8 +34,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const idleTimerRef = useRef<number | null>(null)
     const lastRefreshRef = useRef<number>(0)
     const logoutOnceRef = useRef(false)
+    const [isLoggingOut, setIsLoggingOut] = useState(false)
+
 
     useEffect(() => {
+
         const initializeAuth = async () => {
             try {
                 const userId = localStorage.getItem('userId')
@@ -85,6 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, [router])
 
     const login = async (newRol?: string, newRoles?: string[], user?: any) => {
+        setIsLoggingOut(false)
         try {
             setLoading(true)
             setLoadingAuth(true)
@@ -166,9 +171,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const logout = async (reason?: "idle" | "expired") => {
         if (logoutOnceRef.current) return
         logoutOnceRef.current = true
+
+        setIsLoggingOut(true) // 🔥 ACTIVAS SPINNER GLOBAL
+
         try {
-            setLoading(true)
             await logoutUser()
+            router.push('/auth/login')
+
         } catch (err) {
             console.error('Error en logout:', err)
         } finally {
@@ -189,14 +198,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setRol(null)
             setRoles([])
             setDocente(null)
+
             localStorage.removeItem('rol')
             localStorage.removeItem('roles')
             localStorage.removeItem('docente')
             localStorage.removeItem('userId')
             localStorage.removeItem('user')
+
             setSessionActive(false)
-            router.push('/auth/login')
-            setLoading(false)
         }
     }
 
@@ -249,7 +258,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!hydrated) return null
 
     return (
-        <AuthContext.Provider value={{ rol, roles, docente, login, logout, loading, loadingAuth }}>
+        <AuthContext.Provider value={{ rol, roles, docente, login, logout, loading, loadingAuth, isLoggingOut }}>
             {children}
         </AuthContext.Provider>
     )

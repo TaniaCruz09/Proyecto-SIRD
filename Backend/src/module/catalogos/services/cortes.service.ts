@@ -8,7 +8,6 @@ import { EsquelaRow } from '../../calificaciones/esquelas_rows/esquelas_rows.ent
 import { AnioLectivoCorte } from '../entities/anioLectivoCorte.entity';
 import { PeriodoLectivoCorte } from '../entities/periodoLectivoCorte.entity';
 
-
 @Injectable()
 export class CortesService {
   constructor(
