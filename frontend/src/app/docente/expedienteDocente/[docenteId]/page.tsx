@@ -32,6 +32,7 @@ export interface AsignacionDocente {
   anioLectivo: string
   activo: boolean
   cantidadEstudiantes: number
+  esquela: number
 }
 
 export default function page() {
@@ -41,8 +42,8 @@ export default function page() {
 
   const { docenteId } = useParams();
 
-  const handleVerGrupo = (asignacionId: string) => {
-    router.push(`/add-students-to-group/${asignacionId}`)
+  const handleVerGrupo = (asignacionId: number) => {
+    router.push(`/esquela-calificaciones/${asignacionId}`)
   }
 
   const fetchDocenteById = async () => {
@@ -87,6 +88,7 @@ export default function page() {
       cantidadEstudiantes: grupo.grupoAsignaturaDocente && grupo.grupoAsignaturaDocente.length > 0
         ? grupo.grupoAsignaturaDocente[0].cantidadEstudiantes ?? 0
         : 0,
+      esquela: grupo.esquelaHead?.id ?? 0
     })) || [];
 
   return (
