@@ -14,7 +14,6 @@ import { getDocenteById } from "@/actions/docentesMethods/docentesMethods"
 import { GrupoEscolar } from "@/interfaces"
 import Header from "@/components/Header"
 import { useRouter } from "next/navigation"
-import ConfirmModal from "@/app/recuperarContrasena/modal/modalCambioRol"
 import GenerarEsquelaButton from "@/components/calificaciones/GenerarEsquelaButton"
 
 
@@ -22,48 +21,11 @@ export default function HomePage() {
   const [grupos, setGrupos] = useState<GrupoEscolar[]>([])
   const [searchYear, setSearchYear] = useState("")
   const router = useRouter()
-  const { rol, login, roles, docente } = useAuth()
-  const rolesArray = roles ? (Array.isArray(roles) ? roles : [roles]) : []
-  const tieneMultiplesRoles = rolesArray.length > 1 // 🔹 aquí traemos el rol actual y la función para cambiarlo
-  const [cambiandoRol, setCambiandoRol] = useState(false)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [nuevoRol, setNuevoRol] = useState<'Admin' | 'Docente'>(() => {
-    // valor por defecto seguro si rol no está listo aún
-    return rol === 'Docente' ? 'Admin' : 'Docente'
-  })
-
-  useEffect(() => {
-    // cuando cambien roles o rol actualiza nuevoRol por si el hook se inicializa después del login
-    if (!rol) return
-    const current = String(rol).toLowerCase()
-    const other = rolesArray.find(r => String(r).toLowerCase() !== current)
-    if (other) setNuevoRol(String(other).toLowerCase() === 'admin' ? 'Admin' : 'Docente')
-    else setNuevoRol(current === 'admin' ? 'Docente' : 'Admin')
-  }, [roles, rol])
-
-  console.log('Roles disponibles para el usuario (normalizado) desde docentes:', rolesArray)
-
-
-  const handleAbrirModal = () => {
-    if (!rol) return
-    const current = String(rol).toLowerCase()
-    const other = rolesArray.find(r => String(r).toLowerCase() !== current)
-    setNuevoRol(other ? (String(other).toLowerCase() === 'admin' ? 'Admin' : 'Docente') : (rol === 'Admin' ? 'Docente' : 'Admin'))
-    setIsModalOpen(true)
-  }
-
-  const handleConfirmarCambio = async () => {
-    setCambiandoRol(true)
-    await login(nuevoRol)
-    await new Promise(r => setTimeout(r, 100))
-    setIsModalOpen(false)
-    router.push(nuevoRol === 'Admin' ? '/admin/home' : '/docente/home')
-  }
+  const { rol, docente } = useAuth()
 
 
   // Obtener las clases desde el backend
   useEffect(() => {
-
     if (!docente?.id) return;
     const fetchDocente = async (docenteId: number) => {
       try {
@@ -122,19 +84,7 @@ export default function HomePage() {
         .toString()
         .includes(searchYear)
   )
-  // 🔹 Mostrar loading mientras se carga el docente
-  if (cambiandoRol) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando datos del admin...</p>
-        </div>
-      </div>
-    )
-  }
 
-  console.log(filteredHistoricalClasses)
 
   return (
     <div className="min-h-screen bg-purple-100/30">
@@ -149,36 +99,14 @@ export default function HomePage() {
           {/* Accesos Directos */}
           <section className="mb-7">
             <div className="flex items-center justify-between bg-purple-100/30 rounded-xl p-4 font-semibold text-black">
-              {/* Botón para cambiar rol */}
-              {tieneMultiplesRoles && (
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={handleAbrirModal}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg"
-                  >
-                    {rol === 'Admin' ? 'Cambiar a rol Docente' : 'Cambiar a rol Admin'}
-                  </Button>
-
-
-                  <ConfirmModal
-                    isOpen={isModalOpen}
-                    title="Cambiar Rol"
-                    message={`¿Estás seguro que quieres cambiar tu rol a ${nuevoRol}?`}
-                    onConfirm={handleConfirmarCambio}
-                    onCancel={() => setIsModalOpen(false)}
-                  />
-                </div>
-              )}
-
-              {/* Accesos directos */}
               <div className="flex items-center gap-2 text-gray-700">
                 <FaArrowUpRightFromSquare className="text-lg" />
                 <p>Accesos directos</p>
               </div>
             </div>
 
-
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 place-items-center">
+
               {/* Card 1 */}
               <Link href={"/docente/gruposAsignados"}>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-67">
@@ -193,6 +121,7 @@ export default function HomePage() {
                   </Card>
                 </motion.div>
               </Link>
+
               {/* Card 2 */}
               <Link href={"/calificaciones"}>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-67">
@@ -207,6 +136,7 @@ export default function HomePage() {
                   </Card>
                 </motion.div>
               </Link>
+
               {/* Card 3 */}
               <Link href={"/docente/registerDocente"}>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-67">
