@@ -32,6 +32,39 @@ const getInitials = (nombre?: string) => {
     return ((partes[0][0] ?? "") + (partes[1][0] ?? "")).toUpperCase()
 }
 
+const deduplicarCortesPorId = (items: Corte[]) => {
+    const unique = new Map<number, Corte>()
+
+    items.forEach((item) => {
+        if (item?.id != null && !unique.has(item.id)) {
+            unique.set(item.id, item)
+        }
+    })
+
+    return Array.from(unique.values())
+}
+
+const extraerCortesDesdePeriodos = (anioLectivoData: any): Corte[] => {
+    const periodos = anioLectivoData?.periodos ?? anioLectivoData?.periodosLectivos ?? []
+
+    if (!Array.isArray(periodos)) return []
+
+    const cortes: Corte[] = []
+
+    periodos.forEach((periodo: any) => {
+        const cortesDirectos = Array.isArray(periodo?.cortes) ? periodo.cortes : []
+        const cortesRelacion = Array.isArray(periodo?.cortesPeriodo)
+            ? periodo.cortesPeriodo
+                .map((item: any) => item?.corte)
+                .filter((item: Corte | undefined) => Boolean(item))
+            : []
+
+        cortes.push(...cortesDirectos, ...cortesRelacion)
+    })
+
+    return deduplicarCortesPorId(cortes)
+}
+
 export default function Calificaciones({
     esquelaId,
     grupoId,
@@ -74,19 +107,23 @@ export default function Calificaciones({
         const fetchCortes = async () => {
             try {
                 const anioLectivoData = esquela?.grupo_asignatura?.organizacionEscolar?.anio_lectivo
-                const cortesFromAnio =
-                    anioLectivoData?.cortes ??
-                    anioLectivoData?.cortesAnioLectivo?.map((item: any) => item.corte) ??
-                    []
+                const cortesDesdeRelacion = anioLectivoData?.cortesAnioLectivo?.map((item: any) => item.corte) ?? []
+                const cortesDesdeAnio = anioLectivoData?.cortes ?? []
+                const cortesDesdePeriodos = extraerCortesDesdePeriodos(anioLectivoData)
+                const cortesFromAnio = deduplicarCortesPorId([
+                    ...cortesDesdeRelacion,
+                    ...cortesDesdeAnio,
+                    ...cortesDesdePeriodos,
+                ])
 
                 let ordered: Corte[] = []
 
                 if (cortesFromAnio.length > 0) {
                     ordered = ordenarCortes(cortesFromAnio)
-                } else {
+                } else if (!anioLectivoData) {
                     const response = await getCortesEvaluativos()
                     if (Array.isArray(response)) {
-                        ordered = ordenarCortes(response)
+                        ordered = ordenarCortes(deduplicarCortesPorId(response))
                     }
                 }
 
@@ -450,6 +487,10 @@ export default function Calificaciones({
     }
 
     const anioLectivo = esquela?.grupo_asignatura.organizacionEscolar.anio_lectivo.anio_lectivo
+    const tipoPeriodizacion =
+        (esquela?.grupo_asignatura?.organizacionEscolar?.anio_lectivo as any)?.tipo_periodizacion ??
+        (esquela?.grupo_asignatura?.organizacionEscolar?.anio_lectivo as any)?.periodos?.[0]?.tipo ??
+        (esquela?.grupo_asignatura?.organizacionEscolar?.anio_lectivo as any)?.periodosLectivos?.[0]?.tipo
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -466,6 +507,7 @@ export default function Calificaciones({
                 corteActivo={corteActivo}
                 setCorteActivo={setCorteActivo}
                 cortesUI={cortesUI}
+                tipoPeriodizacion={tipoPeriodizacion}
             />
 
             {/* Tabs para asignaturas */}

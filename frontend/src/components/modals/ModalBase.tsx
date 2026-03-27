@@ -4,24 +4,30 @@ interface ModalBaseProps {
   onshowModal: boolean;
   onCloseModal: () => void;
   content?: React.ReactNode;
+  containerClassName?: string;
 }
 
-const ModalBase = ({ onshowModal, content, onCloseModal }: ModalBaseProps) => {
+const ModalBase = ({ onshowModal, content, onCloseModal, containerClassName }: ModalBaseProps) => {
   if (!onshowModal) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/40">
-      <div
-        className={`bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg max-h-[calc(100vh-80px)] mx-4 relative flex justify-center item-center
-        `}
-      >
+    <div className="fixed inset-0 z-50 bg-black/45 backdrop-blur-[2px]">
+      <div className="h-full w-full overflow-y-auto px-2 py-3 sm:px-4 sm:py-6">
+        <div className="mx-auto flex min-h-full w-full items-center justify-center">
+          <div
+            className={`relative w-full rounded-3xl border border-slate-200 bg-white shadow-2xl max-h-[calc(100dvh-24px)] overflow-y-auto sm:max-h-[calc(100dvh-48px)]
+            ${containerClassName ?? "max-w-lg p-6"}
+            `}
+          >
         <button
           onClick={onCloseModal}
-          className="absolute top-3 right-3 text-gray-400 hover:text-red-600/80 text-2xl font-bold"
+          className="absolute right-3 top-3 z-20 text-2xl font-bold text-gray-400 transition-colors hover:text-red-600/80"
         >
           <GrLogout />
         </button>
-        {content}
+            <div className="w-full">{content}</div>
+          </div>
+        </div>
       </div>
     </div>
   );

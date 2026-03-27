@@ -16,18 +16,49 @@ export class EsquelaRowService {
         private readonly esquelaHeadRepo: Repository<EsquelaHeadEntity>,
     ) { }
 
+    private isMissingPeriodoTableError(error: unknown): boolean {
+        const message = (error as { message?: string })?.message ?? '';
+        return (
+            message.includes('catalogos.periodo_lectivo') ||
+            message.includes('periodo_lectivo_corte')
+        );
+    }
+
     private async validateCorteForEsquelaHead(esquelaHeadId: number, corteId: number): Promise<void> {
-        const count = await this.esquelaHeadRepo
-            .createQueryBuilder('head')
-            .leftJoin('head.grupo_asignatura', 'grupo')
-            .leftJoin('grupo.organizacionEscolar', 'org')
-            .leftJoin('org.anio_lectivo', 'anio')
-            .leftJoin('anio.cortesAnioLectivo', 'anioLectivoCorte')
-            .leftJoin('anioLectivoCorte.corte', 'corte')
-            .where('head.id = :esquelaHeadId', { esquelaHeadId })
-            .andWhere('corte.id = :corteId', { corteId })
-            .andWhere('corte.delete_at IS NULL')
-            .getCount();
+        let count = 0;
+
+        try {
+            count = await this.esquelaHeadRepo
+                .createQueryBuilder('head')
+                .leftJoin('head.grupo_asignatura', 'grupo')
+                .leftJoin('grupo.organizacionEscolar', 'org')
+                .leftJoin('org.anio_lectivo', 'anio')
+                .leftJoin('anio.cortesAnioLectivo', 'anioLectivoCorte')
+                .leftJoin('anioLectivoCorte.corte', 'corte')
+                .leftJoin('anio.periodosLectivos', 'periodoLectivo')
+                .leftJoin('periodoLectivo.cortesPeriodo', 'periodoLectivoCorte')
+                .leftJoin('periodoLectivoCorte.corte', 'cortePeriodo')
+                .where('head.id = :esquelaHeadId', { esquelaHeadId })
+                .andWhere('(corte.id = :corteId OR cortePeriodo.id = :corteId)', { corteId })
+                .andWhere('(corte.delete_at IS NULL OR cortePeriodo.delete_at IS NULL)')
+                .getCount();
+        } catch (error) {
+            if (!this.isMissingPeriodoTableError(error)) {
+                throw error;
+            }
+
+            count = await this.esquelaHeadRepo
+                .createQueryBuilder('head')
+                .leftJoin('head.grupo_asignatura', 'grupo')
+                .leftJoin('grupo.organizacionEscolar', 'org')
+                .leftJoin('org.anio_lectivo', 'anio')
+                .leftJoin('anio.cortesAnioLectivo', 'anioLectivoCorte')
+                .leftJoin('anioLectivoCorte.corte', 'corte')
+                .where('head.id = :esquelaHeadId', { esquelaHeadId })
+                .andWhere('corte.id = :corteId', { corteId })
+                .andWhere('corte.delete_at IS NULL')
+                .getCount();
+        }
 
         if (count === 0) {
             throw new BadRequestException('El corte no pertenece al anio lectivo del grupo');

@@ -27,6 +27,38 @@ function getInitials(fullName: string): string {
     .toUpperCase()
 }
 
+function toRoman(num: number): string {
+  const romans = [
+    { value: 10, numeral: "X" },
+    { value: 9, numeral: "IX" },
+    { value: 5, numeral: "V" },
+    { value: 4, numeral: "IV" },
+    { value: 1, numeral: "I" },
+  ]
+
+  let n = num
+  let result = ""
+  romans.forEach((item) => {
+    while (n >= item.value) {
+      result += item.numeral
+      n -= item.value
+    }
+  })
+
+  return result || String(num)
+}
+
+function getDocenteNombreCompleto(docente?: {
+  nombres?: string
+  apellido_paterno?: string
+  apellido_materno?: string
+}): string {
+  return [docente?.nombres, docente?.apellido_paterno, docente?.apellido_materno]
+    .filter(Boolean)
+    .join(" ")
+    .trim()
+}
+
 /* ================= TYPES ================= */
 
 interface Estudiante {
@@ -43,7 +75,13 @@ interface GEItem {
 }
 
 interface GADItem {
+  id?: number
   asignatura: { id: number; asignatura: string }
+  docente?: {
+    nombres?: string
+    apellido_paterno?: string
+    apellido_materno?: string
+  }
   gruposConEstudiantes: GEItem[]
 }
 
@@ -58,7 +96,25 @@ type Columna = {
   key: string
   label: string
   corteIds: number[]
-  type: "CORTE" | "SEMESTRE" | "FINAL"
+  type: "CORTE" | "PERIODO" | "FINAL"
+}
+
+type PeriodoAgrupado = {
+  id: number
+  label: string
+  tipo: string
+  orden: number
+  cortes: Corte[]
+}
+
+type AnyPeriodo = {
+  id?: number
+  nombre?: string
+  abreviatura?: string
+  tipo?: string
+  orden?: number
+  cortes?: Corte[]
+  cortesPeriodo?: Array<{ orden?: number; corte?: Corte }>
 }
 
 /* ================= COMPONENT ================= */
@@ -167,9 +223,63 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
   const anioLectivoData = esquelaHead?.grupo_asignatura?.organizacionEscolar?.anio_lectivo
 
   const ordenarCortes = (items: Corte[]) =>
-    [...items].sort((a, b) => (a.id ?? 0) - (b.id ?? 0))
+    [...items].sort((a, b) => {
+      const ordenA = a.orden ?? Number.MAX_SAFE_INTEGER
+      const ordenB = b.orden ?? Number.MAX_SAFE_INTEGER
+      if (ordenA !== ordenB) return ordenA - ordenB
+      return (a.id ?? 0) - (b.id ?? 0)
+    })
+
+  const periodosDesdeAnio = React.useMemo<PeriodoAgrupado[]>(() => {
+    const rawPeriodos = (
+      (anioLectivoData as { periodos?: AnyPeriodo[] } | undefined)?.periodos ??
+      (anioLectivoData as { periodosLectivos?: AnyPeriodo[] } | undefined)?.periodosLectivos ??
+      []
+    ) as AnyPeriodo[]
+
+    if (!rawPeriodos.length) {
+      return []
+    }
+
+    return rawPeriodos
+      .slice()
+      .sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
+      .map((periodo, index) => {
+        const cortesDesdePeriodos = periodo.cortes ?? []
+        const cortesDesdeRelacion =
+          periodo.cortesPeriodo
+            ?.slice()
+            .sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
+            .map((item) => ({ ...(item.corte ?? {}), orden: item.orden }))
+            .filter((item) => Boolean(item.id)) as Corte[] | undefined
+
+        const cortes = ordenarCortes(cortesDesdePeriodos.length ? cortesDesdePeriodos : (cortesDesdeRelacion ?? []))
+
+        return {
+          id: periodo.id ?? index + 1,
+          label: periodo.nombre || periodo.abreviatura || `Periodo ${index + 1}`,
+          tipo: periodo.tipo ?? "PERSONALIZADO",
+          orden: periodo.orden ?? index + 1,
+          cortes,
+        }
+      })
+      .filter((periodo) => periodo.cortes.length > 0)
+  }, [anioLectivoData])
 
   const cortesDisponibles = React.useMemo(() => {
+    if (periodosDesdeAnio.length > 0) {
+      const unique = new Map<number, Corte>()
+      periodosDesdeAnio.forEach((periodo) => {
+        periodo.cortes.forEach((corte) => {
+          if (corte?.id) {
+            unique.set(corte.id, corte)
+          }
+        })
+      })
+
+      return ordenarCortes(Array.from(unique.values()))
+    }
+
     const cortesFromAnio =
       anioLectivoData?.cortes ??
       anioLectivoData?.cortesAnioLectivo?.map((item) => item.corte) ?? []
@@ -187,10 +297,14 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
     })
 
     return ordenarCortes(Array.from(unique.values()))
-  }, [anioLectivoData, calificaciones])
+  }, [anioLectivoData, calificaciones, periodosDesdeAnio])
 
-  const semestres = React.useMemo(() => {
-    const map = new Map<number, { id: number; label: string; cortes: Corte[] }>()
+  const periodos = React.useMemo<PeriodoAgrupado[]>(() => {
+    if (periodosDesdeAnio.length > 0) {
+      return periodosDesdeAnio
+    }
+
+    const map = new Map<number, PeriodoAgrupado>()
     cortesDisponibles.forEach((corte) => {
       const id = corte.semestre?.id ?? 0
       const label = corte.semestre?.semestre ?? "Sin semestre"
@@ -198,11 +312,14 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
       if (current) {
         current.cortes.push(corte)
       } else {
-        map.set(id, { id, label, cortes: [corte] })
+        map.set(id, { id, label, tipo: corte.semestre ? "SEMESTRE" : "PERSONALIZADO", orden: map.size + 1, cortes: [corte] })
       }
     })
-    return Array.from(map.values())
-  }, [cortesDisponibles])
+    return Array.from(map.values()).map((periodo) => ({
+      ...periodo,
+      cortes: ordenarCortes(periodo.cortes),
+    }))
+  }, [periodosDesdeAnio, cortesDisponibles])
 
   const getColumnas = React.useCallback((): Columna[] => {
     if (cortesDisponibles.length === 0) return []
@@ -211,21 +328,28 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
       const allCorteIds = cortesDisponibles.map((corte) => corte.id)
       const columnas: Columna[] = []
 
-      semestres.forEach((sem) => {
-        sem.cortes.forEach((corte) => {
+      periodos.forEach((periodo) => {
+        periodo.cortes.forEach((corte, index) => {
+          const abreviatura = (corte.abreviatura ?? "").trim()
+          const corteNombre = (corte.corte ?? "").trim()
+          const matchNumero = abreviatura.match(/^C(\d+)$/i) ?? corteNombre.match(/^(?:Corte\s*)?(\d+)$/i)
+          const label = matchNumero
+            ? `${toRoman(Number(matchNumero[1]))} corte`
+            : abreviatura || corteNombre
+
           columnas.push({
             key: `corte-${corte.id}`,
-            label: corte.abreviatura || corte.corte,
+            label: label || `${toRoman(index + 1)} corte`,
             corteIds: [corte.id],
             type: "CORTE",
           })
         })
 
         columnas.push({
-          key: `semestre-${sem.id}`,
-          label: sem.label,
-          corteIds: sem.cortes.map((corte) => corte.id),
-          type: "SEMESTRE",
+          key: `periodo-${periodo.id}`,
+          label: periodo.label,
+          corteIds: periodo.cortes.map((corte) => corte.id),
+          type: "PERIODO",
         })
       })
 
@@ -265,16 +389,16 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
     }
 
     if (vista.startsWith("S-")) {
-      const semestreId = Number(vista.replace("S-", ""))
-      const sem = semestres.find((item) => item.id === semestreId)
-      if (!sem) return []
+      const periodoId = Number(vista.replace("S-", ""))
+      const periodo = periodos.find((item) => item.id === periodoId)
+      if (!periodo) return []
 
       const columnas: Columna[] = [
         {
-          key: `semestre-${sem.id}`,
-          label: sem.label,
-          corteIds: sem.cortes.map((corte) => corte.id),
-          type: "SEMESTRE",
+          key: `periodo-${periodo.id}`,
+          label: periodo.label,
+          corteIds: periodo.cortes.map((corte) => corte.id),
+          type: "PERIODO",
         },
       ]
 
@@ -282,7 +406,7 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
     }
 
     return []
-  }, [vista, cortesDisponibles, semestres])
+  }, [vista, cortesDisponibles, periodos])
 
   const columnas = getColumnas()
 
@@ -294,21 +418,17 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
     return Math.round(values.reduce((sum, v) => sum + v, 0) / values.length)
   }
 
-  const notaFinalSemestres = (estId: number, asigId: number) => {
-    const semestresOrdenados = [...semestres].sort((a, b) => a.id - b.id)
-    if (semestresOrdenados.length === 0) return 0
+  const notaFinalPeriodos = (estId: number, asigId: number) => {
+    const periodosOrdenados = [...periodos].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
+    if (periodosOrdenados.length === 0) return 0
 
-    const primerByLabel = semestresOrdenados.find((s) => /(^|\s)(1|1er|primer)/i.test(s.label))
-    const segundoByLabel = semestresOrdenados.find((s) => /(^|\s)(2|2do|segundo)/i.test(s.label))
+    const promedios = periodosOrdenados
+      .map((periodo) => promedioCortes(estId, asigId, periodo.cortes.map((corte) => corte.id)))
+      .filter((nota) => Number.isFinite(nota))
 
-    const primerSem = primerByLabel ?? semestresOrdenados[0]
-    const segundoSem = segundoByLabel ?? semestresOrdenados.find((s) => s.id !== primerSem.id)
+    if (promedios.length === 0) return 0
 
-    const primerSemestre = promedioCortes(estId, asigId, primerSem.cortes.map((c) => c.id))
-    if (!segundoSem) return primerSemestre
-
-    const segundoSemestre = promedioCortes(estId, asigId, segundoSem.cortes.map((c) => c.id))
-    return Math.round((primerSemestre + segundoSemestre) / 2)
+    return Math.round(promedios.reduce((sum, nota) => sum + nota, 0) / promedios.length)
   }
   /* ==========================
     cOLORES ESTILOS DE LA TABLA
@@ -394,8 +514,8 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
         return corte?.abreviatura || corte?.corte || "CORTE"
       }
       if (vista.startsWith("S-")) {
-        const semestreId = Number(vista.replace("S-", ""))
-        return semestres.find((item) => item.id === semestreId)?.label || "SEMESTRE"
+        const periodoId = Number(vista.replace("S-", ""))
+        return periodos.find((item) => item.id === periodoId)?.label || "PERIODO"
       }
       return "COMPLETO"
     })()
@@ -524,7 +644,7 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
           const cuant = col.type === "CORTE"
             ? findNota(est.id, a.asignatura.id, col.corteIds[0]).cuant
             : col.type === "FINAL"
-              ? notaFinalSemestres(est.id, a.asignatura.id)
+              ? notaFinalPeriodos(est.id, a.asignatura.id)
               : promedioCortes(est.id, a.asignatura.id, col.corteIds)
           rowData.push(getQualitativeGrade(cuant))
           rowData.push(cuant)
@@ -575,14 +695,14 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
 
   const botones: { key: VistaType; label: string }[] = []
   botones.push({ key: "ALL", label: "Completa" })
-  semestres.forEach((sem) => {
-    sem.cortes.forEach((corte) => {
+  periodos.forEach((periodo) => {
+    periodo.cortes.forEach((corte) => {
       botones.push({
         key: `C-${corte.id}` as VistaType,
         label: corte.abreviatura || corte.corte,
       })
     })
-    botones.push({ key: `S-${sem.id}` as VistaType, label: sem.label })
+    botones.push({ key: `S-${periodo.id}` as VistaType, label: periodo.label })
   })
   botones.push({ key: "FINAL", label: "Nota Final" })
 
@@ -646,6 +766,25 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
                           : "bg-violet-100 text-violet-900"}`}
                   >
                     {a.asignatura.asignatura}
+                  </TableHead>
+                ))}
+              </TableRow>
+
+              <TableRow className="bg-white border-b border-rose-200">
+                <TableHead colSpan={5}></TableHead>
+                {asignaturas.map((a, idx) => (
+                  <TableHead
+                    key={`docente-${a.id ?? idx}`}
+                    colSpan={Math.max(columnas.length, 1) * 2}
+                    className={`text-center font-semibold text-xs
+                      ${idx % 3 === 0 ? "bg-emerald-50 text-emerald-800"
+                        : idx % 3 === 1 ? "bg-amber-50 text-amber-800"
+                          : "bg-violet-50 text-violet-800"}`}
+                  >
+                    <div className="flex flex-col items-center justify-center leading-tight">
+                      <span className="text-[11px] font-bold tracking-wide">Docente asignado</span>
+                      <span>{getDocenteNombreCompleto(a.docente) || "Sin docente asignado"}</span>
+                    </div>
                   </TableHead>
                 ))}
               </TableRow>
@@ -721,7 +860,7 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
                       const cuant = col.type === "CORTE"
                         ? findNota(est.id, a.asignatura.id, col.corteIds[0]).cuant
                         : col.type === "FINAL"
-                          ? notaFinalSemestres(est.id, a.asignatura.id)
+                          ? notaFinalPeriodos(est.id, a.asignatura.id)
                           : promedioCortes(est.id, a.asignatura.id, col.corteIds)
 
                       const cual = getQualitativeGrade(cuant)

@@ -6,6 +6,7 @@ import { Cortes } from '../entities/corte.entity';
 import { CreateCortesDto } from '../dtos/create-corte.dto';
 import { EsquelaRow } from '../../calificaciones/esquelas_rows/esquelas_rows.entity';
 import { AnioLectivoCorte } from '../entities/anioLectivoCorte.entity';
+import { PeriodoLectivoCorte } from '../entities/periodoLectivoCorte.entity';
 
 
 @Injectable()
@@ -82,6 +83,9 @@ export class CortesService {
 
         // Elimina la relacion con anio lectivo.
         await manager.getRepository(AnioLectivoCorte).delete({ corteId: id });
+
+        // Elimina la relacion con periodos lectivos.
+        await manager.getRepository(PeriodoLectivoCorte).delete({ corteId: id });
 
         corte.delete_at = new Date();
         corte.delete_at_id = userId;
