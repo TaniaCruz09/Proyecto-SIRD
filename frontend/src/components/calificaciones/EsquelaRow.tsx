@@ -293,6 +293,23 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
     if (values.length === 0) return 0
     return Math.round(values.reduce((sum, v) => sum + v, 0) / values.length)
   }
+
+  const notaFinalSemestres = (estId: number, asigId: number) => {
+    const semestresOrdenados = [...semestres].sort((a, b) => a.id - b.id)
+    if (semestresOrdenados.length === 0) return 0
+
+    const primerByLabel = semestresOrdenados.find((s) => /(^|\s)(1|1er|primer)/i.test(s.label))
+    const segundoByLabel = semestresOrdenados.find((s) => /(^|\s)(2|2do|segundo)/i.test(s.label))
+
+    const primerSem = primerByLabel ?? semestresOrdenados[0]
+    const segundoSem = segundoByLabel ?? semestresOrdenados.find((s) => s.id !== primerSem.id)
+
+    const primerSemestre = promedioCortes(estId, asigId, primerSem.cortes.map((c) => c.id))
+    if (!segundoSem) return primerSemestre
+
+    const segundoSemestre = promedioCortes(estId, asigId, segundoSem.cortes.map((c) => c.id))
+    return Math.round((primerSemestre + segundoSemestre) / 2)
+  }
   /* ==========================
     cOLORES ESTILOS DE LA TABLA
  ========================== */
@@ -506,7 +523,9 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
         columnasExport.forEach((col) => {
           const cuant = col.type === "CORTE"
             ? findNota(est.id, a.asignatura.id, col.corteIds[0]).cuant
-            : promedioCortes(est.id, a.asignatura.id, col.corteIds)
+            : col.type === "FINAL"
+              ? notaFinalSemestres(est.id, a.asignatura.id)
+              : promedioCortes(est.id, a.asignatura.id, col.corteIds)
           rowData.push(getQualitativeGrade(cuant))
           rowData.push(cuant)
         })
@@ -701,7 +720,9 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
                     columnas.map((col) => {
                       const cuant = col.type === "CORTE"
                         ? findNota(est.id, a.asignatura.id, col.corteIds[0]).cuant
-                        : promedioCortes(est.id, a.asignatura.id, col.corteIds)
+                        : col.type === "FINAL"
+                          ? notaFinalSemestres(est.id, a.asignatura.id)
+                          : promedioCortes(est.id, a.asignatura.id, col.corteIds)
 
                       const cual = getQualitativeGrade(cuant)
 
