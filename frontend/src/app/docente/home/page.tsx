@@ -79,6 +79,7 @@ export default function HomePage() {
             grado: g.grado,
             seccion: g.seccion,
             turno: g.turno,
+            numero_estudiantes: g.numero_estudiantes ?? g.grupoAsignaturaDocente?.[0]?.cantidadEstudiantes ?? 0,
             organizacionEscolar: g.organizacionEscolar,
             docenteGuia: g.docenteGuia,
             grupoAsignaturaDocente: g.grupoAsignaturaDocente,
@@ -265,7 +266,7 @@ export default function HomePage() {
                     <CardContent className="pt-0">
                       <div className="grid grid-cols-3 gap-4 mb-4">
                         <div className="bg-gray-100 rounded-lg p-3 text-center">
-                          <div className="text-2xl font-bold text-gray-800">0</div>
+                          <div className="text-2xl font-bold text-gray-800">{grupo.numero_estudiantes ?? 0}</div>
                           <div className="text-gray-500 text-sm">Estudiantes</div>
                         </div>
                         <div className="bg-gray-100 rounded-lg p-3 text-center">
