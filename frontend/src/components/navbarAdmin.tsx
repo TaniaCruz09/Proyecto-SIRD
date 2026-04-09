@@ -13,6 +13,7 @@ import {
   FaClock,
   FaColumns,
   FaFlag,
+  FaExchangeAlt,
   FaGraduationCap,
   FaHome,
   FaLayerGroup,
@@ -32,6 +33,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import ConfirmModal from "@/app/recuperarContrasena/modal/modalCambioRol"
 import CerrarSecion from '@/components/cerrarSesion'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 // Menús solo para Admin
 const authSubmenu = [
@@ -73,10 +75,11 @@ function NavbarAdmin() {
   const [openCatalogs, setOpenCatalogs] = useState(false)
   const [openOrganizacionEscolar, setOpenOrganizacionEscolar] = useState(false)
 
-  const { rol, login, roles, loading, isLoggingOut } = useAuth()
+  const { rol, login, roles, loading, docente } = useAuth()
   const [cambiandoRol, setCambiandoRol] = useState(false)
   const [rolDestino, setRolDestino] = useState<'Admin' | 'Docente' | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [nombreUsuario, setNombreUsuario] = useState('')
   const [nuevoRol, setNuevoRol] = useState<'Admin' | 'Docente'>(() => {
     // valor por defecto seguro si rol no está listo aún
     return rol === 'Docente' ? 'Admin' : 'Docente'
@@ -93,6 +96,18 @@ function NavbarAdmin() {
   useEffect(() => {
     const savedScroll = sessionStorage.getItem('sidebar-scroll')
     if (savedScroll && scrollRef.current) scrollRef.current.scrollTop = parseInt(savedScroll)
+  }, [])
+
+  useEffect(() => {
+    const userStored = localStorage.getItem('user')
+    if (!userStored) return
+
+    try {
+      const user = JSON.parse(userStored)
+      setNombreUsuario(user?.name ?? '')
+    } catch {
+      setNombreUsuario('')
+    }
   }, [])
 
   useEffect(() => {
@@ -117,6 +132,21 @@ function NavbarAdmin() {
   const handleSaveScroll = () => {
     if (scrollRef.current) sessionStorage.setItem('sidebar-scroll', scrollRef.current.scrollTop.toString())
   }
+
+  const getDocenteInitials = () => {
+    if (!docente) return 'DC'
+    const nombre = docente.nombres?.trim()?.[0] ?? ''
+    const apellido = docente.apellido_paterno?.trim()?.[0] ?? ''
+    return `${nombre}${apellido}`.toUpperCase() || 'DC'
+  }
+
+  const nombreDocente = docente
+    ? `${docente.nombres} ${docente.apellido_paterno} ${docente.apellido_materno || ''}`.trim()
+    : 'Docente'
+
+  const profesionDocente = docente?.profession?.length
+    ? docente.profession.map((p: any) => p.profession).join(', ')
+    : 'Profesión no registrada'
 
   const isActive = (route: string) =>
     pathname === route
@@ -178,8 +208,33 @@ function NavbarAdmin() {
         </div>
       )}
 
-      <nav className="w-70 bg-gray-900 text-white h-screen overflow-hidden shadow-md">
-        <div ref={scrollRef} className="h-full overflow-y-auto p-4 space-y-2">
+      <nav className="w-70 bg-gray-900 text-white h-screen overflow-hidden shadow-md flex flex-col">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2">
+          {rol === 'Admin' && (
+            <div className="mb-4 border-b border-slate-700 pb-4 text-center">
+              <p className="text-xs uppercase tracking-wide text-slate-400">Administrador</p>
+              <p className="mt-1 text-sm font-semibold text-white">{nombreUsuario || 'Usuario'}</p>
+            </div>
+          )}
+
+          {rol === 'Docente' && (
+            <div className="mb-4 border-b border-slate-700 pb-4 text-center">
+              <Avatar className="mx-auto h-24 w-24 border-2 border-sky-300/70">
+                {docente?.foto_docente ? (
+                  <AvatarImage
+                    src={`${process.env.NEXT_PUBLIC_API_UPLOADS}${docente.foto_docente}`}
+                    alt={nombreDocente}
+                  />
+                ) : null}
+                <AvatarFallback className="bg-sky-100 text-lg font-bold text-sky-700">
+                  {getDocenteInitials()}
+                </AvatarFallback>
+              </Avatar>
+              <p className="mt-3 text-sm font-semibold text-white">{nombreDocente}</p>
+              <p className="mt-1 text-xs text-sky-200">{profesionDocente}</p>
+            </div>
+          )}
+
           {/* Solo Admin */}
           {rol === 'Admin' && (
             <>
@@ -288,30 +343,6 @@ function NavbarAdmin() {
             </>
           )}
 
-          {/* Botón para cambiar rol */}
-          {tieneMultiplesRoles && (
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={handleAbrirModal}
-                disabled={cambiandoRol}
-                className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {rol === 'Admin' ? 'Cambiar a rol Docente' : 'Cambiar a rol Admin'}
-              </Button>
-
-
-              <ConfirmModal
-                isOpen={isModalOpen}
-                title="Cambiar Rol"
-                message={`¿Estás seguro que quieres cambiar tu rol a ${nuevoRol}?`}
-                onConfirm={handleConfirmarCambio}
-                onCancel={() => !cambiandoRol && setIsModalOpen(false)}
-              />
-            </div>
-          )}
-
-          <CerrarSecion />
-
           {/* Solo Docentes */}
           {rol === 'Docente' && (
             <Link
@@ -323,6 +354,29 @@ function NavbarAdmin() {
               <span>Home Docente</span>
             </Link>
           )}
+        </div>
+
+        <div className="border-t border-slate-700 bg-slate-900/90 p-4 space-y-3">
+          <Button
+            onClick={handleAbrirModal}
+            disabled={cambiandoRol || !tieneMultiplesRoles}
+            className="w-full justify-center gap-2 rounded-lg border border-slate-600 bg-slate-800 py-1.5 text-sm font-semibold text-slate-100 shadow-sm transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <FaExchangeAlt className="text-xs" />
+            {tieneMultiplesRoles
+              ? (rol === 'Admin' ? 'Cambiar a rol Docente' : 'Cambiar a rol Admin')
+              : 'No hay otro rol disponible'}
+          </Button>
+
+          <CerrarSecion />
+
+          <ConfirmModal
+            isOpen={isModalOpen}
+            title="Cambiar Rol"
+            message={`¿Estás seguro que quieres cambiar tu rol a ${nuevoRol}?`}
+            onConfirm={handleConfirmarCambio}
+            onCancel={() => !cambiandoRol && setIsModalOpen(false)}
+          />
         </div>
       </nav>
     </>

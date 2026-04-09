@@ -7,93 +7,41 @@ import { AcademicYearsDashboard } from '@/components/organizacionEscolar/tablero
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import Link from 'next/link'
 import Header from '@/components/Header'
-import { Button } from '@/components/ui/button'
-import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { useEffect, useState } from 'react'
-import ConfirmModal from '@/app/recuperarContrasena/modal/modalCambioRol'
 
 export default function HomePage() {
-  const router = useRouter()
-  const { rol, login, roles } = useAuth()
-  const rolesArray = roles ? (Array.isArray(roles) ? roles : [roles]) : []
-  const tieneMultiplesRoles = rolesArray.length > 1
-  const [cambiandoRol, setCambiandoRol] = useState(false)
+  const { rol } = useAuth()
+  const [nombreUsuario, setNombreUsuario] = useState('')
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [nuevoRol, setNuevoRol] = useState<'Admin' | 'Docente'>(() => {
-    // valor por defecto seguro si rol no está listo aún
-    return rol === 'Docente' ? 'Admin' : 'Docente'
-  })
   useEffect(() => {
-    // cuando cambien roles o rol actualiza nuevoRol por si el hook se inicializa después del login
-    if (!rol) return
-    const current = String(rol).toLowerCase()
-    const other = rolesArray.find(r => String(r).toLowerCase() !== current)
-    if (other) setNuevoRol(String(other).toLowerCase() === 'admin' ? 'Admin' : 'Docente')
-    else setNuevoRol(current === 'admin' ? 'Docente' : 'Admin')
-  }, [roles, rol])
+    const userStored = localStorage.getItem('user')
+    if (!userStored) return
 
-  console.log('Roles disponibles para el usuario (normalizado):', rolesArray)
-
-  const handleAbrirModal = () => {
-    if (!rol) return
-    const current = String(rol).toLowerCase()
-    const other = rolesArray.find(r => String(r).toLowerCase() !== current)
-    setNuevoRol(other ? (String(other).toLowerCase() === 'admin' ? 'Admin' : 'Docente') : (rol === 'Admin' ? 'Docente' : 'Admin'))
-    setIsModalOpen(true)
-  }
-
-  const handleConfirmarCambio = async () => {
-    setCambiandoRol(true)
-    await login(nuevoRol)
-    setIsModalOpen(false)
-    router.push(nuevoRol === 'Admin' ? '/admin/home' : '/docente/home')
-  }
-  // 🔹 Mostrar loading mientras se carga el docente
-  if (cambiandoRol) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando datos del docente...</p>
-        </div>
-      </div>
-    )
-  }
+    try {
+      const user = JSON.parse(userStored)
+      setNombreUsuario(user?.name ?? '')
+    } catch {
+      setNombreUsuario('')
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-purple-100/30">
       <Header title="Sistema de Calificaciones SIRD" subTitle="Panel de Administración" />
       <main className="max-w-7xl mx-auto px-6">
         <div className="m-5">
-          <h2 className="text-2xl font-bold text-foreground mb-1">Bienvenido {rol}</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-1">
+            {rol === 'Admin'
+              ? `Bienvenido Admin${nombreUsuario ? `, ${nombreUsuario}` : ''}`
+              : `Bienvenido ${rol}`}
+          </h2>
           <p className="text-muted-foreground">
             Administra fácilmente las funciones del sistema desde aquí
           </p>
         </div>
 
         <div className="flex items-center justify-between bg-purple-100/30 rounded-xl p-4 font-semibold text-black">
-          {/* Botón para cambiar rol solo si tiene más de un rol */}
-          {tieneMultiplesRoles && (
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={handleAbrirModal}
-                className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg"
-              >
-                {rol === 'Admin' ? 'Cambiar a Docente' : 'Cambiar a Admin'}
-              </Button>
-
-              <ConfirmModal
-                isOpen={isModalOpen}
-                title="Cambiar Rol"
-                message={`¿Estás seguro que quieres cambiar tu rol a ${nuevoRol}?`}
-                onConfirm={handleConfirmarCambio}
-                onCancel={() => setIsModalOpen(false)}
-              />
-            </div>
-          )}
-
           {/* Accesos directos */}
           <div className="flex items-center gap-2 text-gray-700">
             <FaArrowUpRightFromSquare className="text-lg" />

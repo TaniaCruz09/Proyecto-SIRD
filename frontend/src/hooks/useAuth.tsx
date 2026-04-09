@@ -176,8 +176,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         try {
             await logoutUser()
-            router.push('/auth/login')
-
         } catch (err) {
             console.error('Error en logout:', err)
         } finally {
@@ -206,6 +204,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             localStorage.removeItem('user')
 
             setSessionActive(false)
+            router.replace('/auth/login')
+            setIsLoggingOut(false)
+            logoutOnceRef.current = false
         }
     }
 
