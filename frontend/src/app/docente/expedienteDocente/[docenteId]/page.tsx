@@ -78,16 +78,21 @@ export default function page() {
       // Concatenamos todas las materias en un string
       materia:
         grupo.grupoAsignaturaDocente && grupo.grupoAsignaturaDocente.length > 0
-          ? grupo.grupoAsignaturaDocente
-            .map((gd) => gd.asignatura?.asignatura)
+          ? Array.from(new Set(
+            grupo.grupoAsignaturaDocente
+              .map((gd) => gd.asignatura?.asignatura)
+              .filter(Boolean)
+          ))
             .join(", ")
           : "Sin materias",
       anioLectivo: String(grupo.organizacionEscolar.anio_lectivo.anio_lectivo),
       activo: grupo.organizacionEscolar.anio_lectivo.isActive,
-      // Tomamos la cantidad de estudiantes de la primera materia
-      cantidadEstudiantes: grupo.grupoAsignaturaDocente && grupo.grupoAsignaturaDocente.length > 0
-        ? grupo.grupoAsignaturaDocente[0].cantidadEstudiantes ?? 0
-        : 0,
+      cantidadEstudiantes: new Set(
+        (grupo.grupoAsignaturaDocente || [])
+          .flatMap((gd) => gd.gruposConEstudiantes || [])
+          .map((relacion) => relacion?.estudiante?.id)
+          .filter((id) => Number.isFinite(Number(id)))
+      ).size,
       esquela: grupo.esquelaHead?.id ?? 0
     })) || [];
 

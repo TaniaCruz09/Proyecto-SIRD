@@ -36,17 +36,33 @@ export default function HomePage() {
 
         const mappedClasses: GrupoEscolar[] = (res.grupos || [])
           .filter((g: any) => g.organizacionEscolar !== null)
-          .map((g: any) => ({
-            id: g.id,
-            grado: g.grado,
-            seccion: g.seccion,
-            turno: g.turno,
-            numero_estudiantes: g.numero_estudiantes ?? g.grupoAsignaturaDocente?.[0]?.cantidadEstudiantes ?? 0,
-            organizacionEscolar: g.organizacionEscolar,
-            docenteGuia: g.docenteGuia,
-            grupoAsignaturaDocente: g.grupoAsignaturaDocente,
-            esquelaHead: g.esquelaHead,
-          }))
+          .map((g: any) => {
+            const materiasUnicas = new Set(
+              (g.grupoAsignaturaDocente || [])
+                .map((rel: any) => rel?.asignatura?.id)
+                .filter((id: any) => Number.isFinite(Number(id)))
+            )
+
+            const estudiantesUnicos = new Set(
+              (g.grupoAsignaturaDocente || [])
+                .flatMap((rel: any) => rel?.gruposConEstudiantes || [])
+                .map((relacion: any) => relacion?.estudiante?.id)
+                .filter((id: any) => Number.isFinite(Number(id)))
+            )
+
+            return {
+              id: g.id,
+              grado: g.grado,
+              seccion: g.seccion,
+              turno: g.turno,
+              numero_estudiantes: estudiantesUnicos.size,
+              numero_materias: materiasUnicas.size,
+              organizacionEscolar: g.organizacionEscolar,
+              docenteGuia: g.docenteGuia,
+              grupoAsignaturaDocente: g.grupoAsignaturaDocente,
+              esquelaHead: g.esquelaHead,
+            }
+          })
 
         setGrupos(mappedClasses)
         // si el contexto no tiene docente, setearlo (opcional)
@@ -200,8 +216,8 @@ export default function HomePage() {
                           <div className="text-gray-500 text-sm">Estudiantes</div>
                         </div>
                         <div className="bg-gray-100 rounded-lg p-3 text-center">
-                          <div className="text-2xl font-bold text-gray-800">0</div>
-                          <div className="text-gray-500 text-sm">Promedio</div>
+                          <div className="text-2xl font-bold text-gray-800">{grupo.numero_materias ?? 0}</div>
+                          <div className="text-gray-500 text-sm">Materias</div>
                         </div>
                         <div className="bg-gray-100 rounded-lg p-3 text-center">
                           <div className="text-lg font-bold text-gray-800">

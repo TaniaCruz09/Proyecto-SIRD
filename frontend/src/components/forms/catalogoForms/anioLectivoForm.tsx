@@ -109,7 +109,7 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
         const tipos = Array.isArray(data) ? (data as TipoPeriodizacion[]) : [];
         setTiposPeriodizacion(tipos);
       } catch (error) {
-        console.error("Error al cargar tipos de periodizacion:", error);
+        console.error("Error al cargar tipos de periodo:", error);
         toast({
           title: "No se pudieron cargar los tipos",
           description: "Se usarán valores predeterminados para continuar.",

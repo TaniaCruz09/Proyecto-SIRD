@@ -26,11 +26,11 @@ export default function DeleteTipoPeriodizacionModal({ idEliminar, fetchTiposPer
       await fetchTiposPeriodizacion();
       toast({
         title: "Registro eliminado",
-        description: "El tipo de periodizacion se elimino correctamente.",
+        description: "El tipo de periodo se elimino correctamente.",
         variant: "destructive",
       });
     } catch (error) {
-      console.error("error al eliminar tipo de periodizacion", error)
+      console.error("error al eliminar tipo de periodo", error)
       toast({
         title: "No se pudo eliminar",
         description: error instanceof Error ? error.message : "Ocurrio un error inesperado.",

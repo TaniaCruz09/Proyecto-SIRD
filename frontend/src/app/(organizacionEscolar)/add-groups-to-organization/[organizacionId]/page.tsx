@@ -110,6 +110,21 @@ export default function OrganizationGroups() {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {organizacionEscolar?.grupos?.map((g) => (
+                                (() => {
+                                    const totalEstudiantes = new Set(
+                                        (g.grupoAsignaturaDocente || [])
+                                            .flatMap((rel) => rel?.gruposConEstudiantes || [])
+                                            .map((relacion) => relacion?.estudiante?.id)
+                                            .filter((id) => Number.isFinite(Number(id)))
+                                    ).size
+
+                                    const totalMaterias = new Set(
+                                        (g.grupoAsignaturaDocente || [])
+                                            .map((rel) => rel?.asignatura?.id)
+                                            .filter((id) => Number.isFinite(Number(id)))
+                                    ).size
+
+                                    return (
                                 <Card key={g.id} className="bg-slate-50 border-slate-200 hover:shadow-md transition-shadow">
                                     <CardContent className="p-4">
                                         <div className="flex items-center justify-between mb-3">
@@ -141,8 +156,10 @@ export default function OrganizationGroups() {
                                             </div>
 
                                             <div className="flex justify-between text-sm">
-                                                <span className="text-slate-600">Estudiantes:</span>
-                                                {/* <span className="font-medium text-slate-800">{group.estudiantesActuales || 0}</span> */}
+                                                <span className="text-slate-600">Estudiantes: {totalEstudiantes}</span>
+                                            </div>
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-slate-600">Materias: {totalMaterias}</span>
                                             </div>
                                         </div>
 
@@ -176,6 +193,8 @@ export default function OrganizationGroups() {
                                         </div>
                                     </CardContent>
                                 </Card>
+                                    )
+                                })()
                             ))}
                         </div>
                     )}
