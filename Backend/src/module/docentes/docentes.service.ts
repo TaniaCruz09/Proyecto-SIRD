@@ -69,18 +69,13 @@ export class DocentesService {
 
         .leftJoinAndSelect(
           'grupos.grupoAsignaturaDocente',
-          'grupoAsignaturaDocente',
-          'grupoAsignaturaDocente.docente_id = docente.id'
+          'grupoAsignaturaDocente'
         )
         .leftJoinAndSelect('grupoAsignaturaDocente.asignatura', 'asignatura')
+        .leftJoinAndSelect('grupoAsignaturaDocente.gruposConEstudiantes', 'gruposConEstudiantes')
+        .leftJoinAndSelect('gruposConEstudiantes.estudiante', 'estudiante')
 
         .leftJoinAndSelect('grupos.esquelaHead', 'esquelaHead')
-
-        // 👇 SOLO CONTAR ESTUDIANTES
-        .loadRelationCountAndMap(
-          'grupoAsignaturaDocente.cantidadEstudiantes',
-          'grupoAsignaturaDocente.gruposConEstudiantes'
-        )
 
         .where('docente.id = :id', { id })
         .getOne();
@@ -102,6 +97,8 @@ export class DocentesService {
         .leftJoinAndSelect('grupo.organizacionEscolar', 'organizacionEscolar')
         .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo')
         .leftJoinAndSelect('grupoAsignaturaDocente.asignatura', 'asignatura')
+        .leftJoinAndSelect('grupoAsignaturaDocente.gruposConEstudiantes', 'gruposConEstudiantes')
+        .leftJoinAndSelect('gruposConEstudiantes.estudiante', 'estudiante')
         .where('docente.id = :id', { id })
         .getOne();
     } catch (error) {

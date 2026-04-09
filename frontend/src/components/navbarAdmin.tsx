@@ -43,7 +43,7 @@ const authSubmenu = [
 
 const catalogSubmenu = [
   { label: 'Años Lectivos', href: '/catalogo/anioLectivo', icon: FaCalendarAlt },
-  { label: 'Tipos de Periodización', href: '/catalogo/tipoPeriodizacion', icon: FaLayerGroup },
+  { label: 'Tipos de Periodos', href: '/catalogo/tipoPeriodizacion', icon: FaLayerGroup },
   { label: 'Asignaturas', href: '/catalogo/asignatura', icon: FaBook },
   { label: 'Cortes', href: '/catalogo/corteEvaluativo', icon: FaChartLine },
   { label: 'Departamentos', href: '/catalogo/departamento', icon: FaBuilding },

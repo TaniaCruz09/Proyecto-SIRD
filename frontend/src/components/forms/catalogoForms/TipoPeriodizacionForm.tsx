@@ -52,24 +52,24 @@ export default function TipoPeriodizacionForm({ defaultValues, onSuccess }: Tipo
         await updateTipoPeriodizacion(defaultValues.id, payload);
         toast({
           title: "Registro actualizado",
-          description: "El tipo de periodizacion se actualizo correctamente.",
+          description: "El tipo de periodo se actualizo correctamente.",
           variant: "success",
         });
       } else {
         await saveTipoPeriodizacion(payload);
         toast({
           title: "Registro creado",
-          description: "El tipo de periodizacion se creo correctamente.",
+          description: "El tipo de periodo se creo correctamente.",
           variant: "success",
         });
       }
 
       onSuccess();
     } catch (error) {
-      console.error("Error al guardar tipo de periodizacion:", error);
+      console.error("Error al guardar tipo de periodo:", error);
       toast({
         title: "Error al guardar",
-        description: "No se pudo guardar el tipo de periodizacion.",
+        description: "No se pudo guardar el tipo de periodo.",
         variant: "destructive",
       });
     }
@@ -78,7 +78,7 @@ export default function TipoPeriodizacionForm({ defaultValues, onSuccess }: Tipo
   return (
     <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto px-2">
       <h2 className="text-xl font-semibold text-gray-700 mb-4">
-        {isEdit ? "Editar Tipo de Periodizacion" : "Agregar Tipo de Periodizacion"}
+        {isEdit ? "Editar Tipo de Periodo" : "Agregar Tipo de Periodo"}
       </h2>
 
       <input

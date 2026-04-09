@@ -79,8 +79,19 @@ export default function AddClasesOrganizacionEscolarPage() {
   }, [grupoId]);
   const grupo = grupos?.grado.grades ?? "N/A"
   const docenteGuia = grupos?.docenteGuia?.nombres ?? "N/A"
-  const docenteGuiaApellidos = grupos?.docenteGuia?.apellido_materno ?? "N/A"
+  const docenteGuiaApellidos = grupos?.docenteGuia?.apellido_materno || grupos?.docenteGuia?.apellido_paterno 
   const seccion = grupos?.seccion.seccion ?? "N/A"
+  const totalMaterias = new Set(
+    (grupos?.grupoAsignaturaDocente || [])
+      .map((rel) => rel?.asignatura?.id)
+      .filter((id) => Number.isFinite(Number(id)))
+  ).size
+  const totalEstudiantes = new Set(
+    (grupos?.grupoAsignaturaDocente || [])
+      .flatMap((rel) => rel?.gruposConEstudiantes || [])
+      .map((relacion) => relacion?.estudiante?.id)
+      .filter((id) => Number.isFinite(Number(id)))
+  ).size
 
   // Función para traer las relaciones del grupo
   const fetchRelaciones = async () => {
@@ -94,11 +105,15 @@ export default function AddClasesOrganizacionEscolarPage() {
     setGrupoConAsignaturas(relacionesUnicas);
   };
 
+  const refreshGroupData = async () => {
+    await Promise.all([fetchGrupoById(), fetchRelaciones()])
+  }
+
   useEffect(() => {
     async function fetchData() {
       if (!grupoId) return;
       try {
-        await fetchRelaciones();
+        await refreshGroupData();
         setMateriasDisponibles(await getAsignaturas());
         setDocentesDisponibles(await getDocentes());
       } catch (error) {
@@ -118,7 +133,7 @@ export default function AddClasesOrganizacionEscolarPage() {
           setLoading(true);
           const res = await eliminarUnaAsignaturaAsignatura(Number(grupoId), asignaturaId);
           console.log(res?.message || "Asignatura eliminada correctamente ✅");
-          await fetchRelaciones();
+          await refreshGroupData();
         } catch (error: any) {
           console.log(error.message || "Error al eliminar asignatura ❌");
         } finally {
@@ -139,7 +154,7 @@ export default function AddClasesOrganizacionEscolarPage() {
           setLoading(true);
           const res = await eliminarGrupoConTodasSusAsignatura(Number(grupoId));
           console.log(res?.message || "Todas las asignaturas eliminadas ✅");
-          await fetchRelaciones();
+          await refreshGroupData();
         } catch (error: any) {
           console.log(error.message || "Error al eliminar todas las asignaturas ❌");
         } finally {
@@ -169,7 +184,7 @@ export default function AddClasesOrganizacionEscolarPage() {
 
     try {
       await saveGrupoConAsignatura(payload);
-      await fetchRelaciones();
+      await refreshGroupData();
       setSelectedAsignatura(0);
       setSelectedDocente(0);
     } catch (error) {
@@ -189,7 +204,7 @@ export default function AddClasesOrganizacionEscolarPage() {
         <div>
           <strong>Grupo Seleccionado</strong>
           <h2 style={{ color: "#15803d" }}>
-            Docente Guia: {docenteGuia || "N/A"}{docenteGuiaApellidos || "N/A"}
+            Docente Guia: {docenteGuia || "N/A"} {docenteGuiaApellidos || "N/A"}
           </h2>
           <p>
 
@@ -197,7 +212,8 @@ export default function AddClasesOrganizacionEscolarPage() {
           </p>
         </div>
         <div style={{ textAlign: "right" }}>
-          <p>Materias asignadas: {grupoConAsignaturas.length}</p>
+          <p>Estudiantes asignados: {totalEstudiantes}</p>
+          <p>Materias asignadas: {totalMaterias}</p>
         </div>
       </div>
 
@@ -288,7 +304,7 @@ export default function AddClasesOrganizacionEscolarPage() {
             relacion={editando}
             docentesDisponibles={docentesDisponibles}
             onClose={() => setEditando(null)}
-            onSave={fetchRelaciones}
+            onSave={refreshGroupData}
           />
         </div>
       )}

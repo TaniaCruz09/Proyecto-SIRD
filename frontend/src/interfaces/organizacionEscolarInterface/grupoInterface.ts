@@ -11,6 +11,8 @@ export interface GrupoEscolar {
     grado: Grado,
     seccion: Seccion,
     turno: Turno,
+    numero_estudiantes?: number,
+    numero_materias?: number,
     organizacionEscolar: OrganizacionEscolar,
     docenteGuia: Docente,
     grupoAsignaturaDocente?: GrupoConAsignaturasResponse[];

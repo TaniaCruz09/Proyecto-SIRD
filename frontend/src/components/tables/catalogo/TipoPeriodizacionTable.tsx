@@ -46,7 +46,7 @@ export default function TipoPeriodizacionTable({
             ) : (
               <tr>
                 <td colSpan={9} className="text-center text-gray-500 py-10">
-                  No hay tipos de periodizacion registrados.
+                  No hay tipos de periodo registrados.
                 </td>
               </tr>
             )}

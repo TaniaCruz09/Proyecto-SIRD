@@ -59,10 +59,27 @@ export default function GruposAsignados() {
                 }
 
                 const gruposPorAnio: Record<string, AnioEscolar> = {}
+                const estudiantesPorGrupo = new Map<string, Set<number>>()
 
                 docentes.grupoAsignaturaDocente.forEach((relacion: any) => {
                     const grupo = relacion.grupo
                     const anio = grupo?.organizacionEscolar?.anio_lectivo
+                    const grupoKey = grupo?.id?.toString()
+                        const estudiantesRelacion = new Set<number>(
+                        (relacion?.gruposConEstudiantes || [])
+                            .map((item: any) => item?.estudiante?.id)
+                            .filter((id: any) => Number.isFinite(Number(id)))
+                            .map((id: any) => Number(id))
+                    )
+
+                    if (grupoKey) {
+                        if (!estudiantesPorGrupo.has(grupoKey)) {
+                            estudiantesPorGrupo.set(grupoKey, new Set<number>())
+                        }
+
+                        const acumulado = estudiantesPorGrupo.get(grupoKey)!
+                        estudiantesRelacion.forEach((id: number) => acumulado.add(id))
+                    }
 
                     if (!anio?.id) {
                         return
@@ -88,13 +105,16 @@ export default function GruposAsignados() {
 
                     const grupoExistente = gruposArray.find(g => g.id === grupo.id.toString())
                     if (grupoExistente) {
-                        grupoExistente.materia += `, ${relacion.asignatura.asignatura}`
+                        if (!grupoExistente.materia.split(', ').includes(relacion.asignatura.asignatura)) {
+                            grupoExistente.materia += `, ${relacion.asignatura.asignatura}`
+                        }
+                        grupoExistente.numeroEstudiantes = estudiantesPorGrupo.get(grupo.id.toString())?.size || 0
                     } else {
                         gruposArray.push({
                             id: grupo.id.toString(),
                             nombre: `${grupo.grado.grades} ${grupo.seccion.seccion}`,
                             materia: relacion.asignatura.asignatura,
-                            numeroEstudiantes: grupo.numero_estudiantes || 0
+                            numeroEstudiantes: estudiantesPorGrupo.get(grupo.id.toString())?.size || 0
                         })
                     }
                 })
