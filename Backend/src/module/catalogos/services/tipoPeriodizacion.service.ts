@@ -44,7 +44,7 @@ export class TipoPeriodizacionService {
     try {
       const item = await this.tipoPeriodizacionRepository.findOne({ where: { id } });
       if (!item) {
-        throw new NotFoundException('Tipo de periodizacion no encontrado');
+        throw new NotFoundException('Tipo de periodo no encontrado');
       }
 
       Object.assign(item, {
@@ -63,7 +63,7 @@ export class TipoPeriodizacionService {
     try {
       const item = await this.tipoPeriodizacionRepository.findOne({ where: { id } });
       if (!item) {
-        throw new NotFoundException('Tipo de periodizacion no encontrado');
+        throw new NotFoundException('Tipo de periodo no encontrado');
       }
 
       item.delete_at = new Date();

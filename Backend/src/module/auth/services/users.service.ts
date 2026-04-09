@@ -161,7 +161,7 @@ async resetPassword(tempToken: string, newPassword: string) {
 
   async getUserById(id: number): Promise<User> {
     try {
-      const user = await this.userRepository.findOne({ where: { id }, relations: ['roles', 'docente'] });
+      const user = await this.userRepository.findOne({ where: { id }, relations: ['roles', 'docente','docente.profession'] });
       return user;
     } catch (error) {
       Utilities.catchError(error);
@@ -171,7 +171,7 @@ async resetPassword(tempToken: string, newPassword: string) {
   async updated(id: number, payload: UserPartialTypeDto) {
     const oldUser = await this.userRepository.findOne({
       where: { id },
-      relations: ['roles', 'docente'],
+      relations: ['roles', 'docente','docente.profession'],
     });
 
     if (!oldUser) throw new NotFoundException('No se encontró el usuario');
