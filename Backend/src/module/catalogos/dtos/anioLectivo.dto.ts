@@ -35,6 +35,10 @@ class PeriodoLectivoDto {
     @IsNumber()
     id?: number;
 
+    @IsOptional()
+    @IsNumber()
+    tipo_periodizacion_id?: number;
+
     @IsNotEmpty()
     @IsNumber()
     orden: number;

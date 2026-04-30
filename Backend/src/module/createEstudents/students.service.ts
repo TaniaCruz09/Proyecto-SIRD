@@ -29,7 +29,7 @@ export class StudentService {
 
     private baseRelationsWithGroups(qb: any) {
         return this.baseRelations(qb)
-            .leftJoinAndSelect('student.grupoAsignaturaConEstudiantes', 'grupoAsignaturaConEstudiantes')
+            .leftJoinAndSelect('student.grupoAsignaturaConEstudiantes', 'grupoAsignaturaConEstudiantes', 'grupoAsignaturaConEstudiantes.deleted_at IS NULL')
             .leftJoinAndSelect('grupoAsignaturaConEstudiantes.grupoAsignaturaDocente', 'grupoAsignaturaDocente')
             .leftJoinAndSelect('grupoAsignaturaDocente.grupo', 'grupo')
             .leftJoinAndSelect('grupo.organizacionEscolar', 'organizacionEscolar')
@@ -65,7 +65,7 @@ export class StudentService {
     async getStudent(): Promise<StudentEntity[]> {
         try {
             const qb = this.StudentRepo.createQueryBuilder('student');
-            this.baseRelations(qb);
+            this.baseRelations(qb).where('student.deleted_at IS NULL');
             return await qb.getMany();
         } catch (error) {
             Utilities.catchError(error);
@@ -78,7 +78,8 @@ export class StudentService {
     async getStudentById(id: number): Promise<StudentEntity> {
         try {
             const qb = this.StudentRepo.createQueryBuilder('student')
-                .where('student.id = :id', { id });
+                .where('student.id = :id', { id })
+                .andWhere('student.deleted_at IS NULL');
 
             this.baseRelationsWithGroups(qb)
                 .leftJoinAndSelect('grupo.docenteGuia', 'DocenteGuia')
@@ -124,14 +125,22 @@ export class StudentService {
 
                 if (!student) throw new NotFoundException("Profesión no encontrada");
 
-                await manager.getRepository(GrupoAsignaturaConEstudiantes).delete({ estudiante: { id } });
+                await manager
+                    .getRepository(GrupoAsignaturaConEstudiantes)
+                    .createQueryBuilder()
+                    .update(GrupoAsignaturaConEstudiantes)
+                    .set({ deleted_at: new Date() })
+                    .where('estudianteId = :id', { id })
+                    .andWhere('deleted_at IS NULL')
+                    .execute();
 
                 await manager
                     .getRepository(EsquelaRow)
                     .createQueryBuilder()
-                    .delete()
-                    .from(EsquelaRow)
+                    .update(EsquelaRow)
+                    .set({ deleted_at: new Date() })
                     .where('estudiante_id = :id', { id })
+                    .andWhere('deleted_at IS NULL')
                     .execute();
 
                 student.deleted_at = new Date();
@@ -153,13 +162,12 @@ export class StudentService {
 
             const qb = this.StudentRepo.createQueryBuilder('student');
             this.baseRelationsWithGroups(qb)
+                .where('student.deleted_at IS NULL')
                 .leftJoinAndSelect('turno.modalidad', 'modalidad');
 
             if (name) qb.andWhere('student.name ILIKE :name', { name: `%${name}%` });
             if (lastName) qb.andWhere('student.lastName ILIKE :lastName', { lastName: `%${lastName}%` });
             if (studentCode) qb.andWhere('student.studentCode ILIKE :studentCode', { studentCode: `%${studentCode}%` });
-
-            qb.take(30);
 
             const students = await qb.getMany();
 

@@ -45,6 +45,16 @@ export class CreatePeriodoLectivoCorte20260322000100 implements MigrationInterfa
     `);
 
     await queryRunner.query(`
+      create unique index if not exists ux_periodo_lectivo_anio_orden_idx
+      on catalogos.periodo_lectivo(anio_lectivo_id, orden)
+    `);
+
+    await queryRunner.query(`
+      create unique index if not exists ux_periodo_lectivo_corte_periodo_corte_idx
+      on catalogos.periodo_lectivo_corte(periodo_lectivo_id, corte_id)
+    `);
+
+    await queryRunner.query(`
       do $$
       declare
         semestre_col text;

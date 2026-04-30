@@ -66,6 +66,7 @@ export default function BuscarAsignarEstudianteAutocomplete({
     const estaAsignado = (student: any) => {
         if (student.asignadoGrupo) return true;
         if (Array.isArray(student.grupos) && student.grupos.length > 0) return true;
+        if (Array.isArray(student.grupoAsignaturaConEstudiantes) && student.grupoAsignaturaConEstudiantes.length > 0) return true;
         return false;
     };
 
@@ -129,6 +130,17 @@ export default function BuscarAsignarEstudianteAutocomplete({
             setFiltered([]);
         } catch (e) {
             console.error("Error asignando estudiante", e);
+
+            const grupoAsignado = getGrupoAsignadoLabel(student);
+            const errorMessage = e instanceof Error ? e.message : "No se pudo asignar el estudiante";
+
+            toast({
+                title: errorMessage.toLowerCase().includes("ya") ? "Estudiante ya asignado" : "Error al asignar estudiante",
+                description: grupoAsignado
+                    ? `${student.name} ${student.lastName} ya pertenece a ${grupoAsignado}`
+                    : errorMessage,
+                variant: "destructive",
+            });
         }
     };
 

@@ -6,6 +6,7 @@ import { Cortes } from '../entities/corte.entity';
 import { CreateCortesDto } from '../dtos/create-corte.dto';
 import { EsquelaRow } from '../../calificaciones/esquelas_rows/esquelas_rows.entity';
 import { AnioLectivoCorte } from '../entities/anioLectivoCorte.entity';
+import { AnioLectivoCalendarizacion } from '../entities/anioLectivoCalendarizacion.entity';
 import { PeriodoLectivoCorte } from '../entities/periodoLectivoCorte.entity';
 
 @Injectable()
@@ -13,6 +14,8 @@ export class CortesService {
   constructor(
     @InjectRepository(Cortes)
     private readonly corteRepository: Repository<Cortes>,
+    @InjectRepository(AnioLectivoCalendarizacion)
+    private readonly anioLectivoCalendarizacionRepository: Repository<AnioLectivoCalendarizacion>,
   ) { }
 
   async createcorte(payload: CreateCortesDto): Promise<Cortes> {
@@ -85,6 +88,11 @@ export class CortesService {
 
         // Elimina la relacion con periodos lectivos.
         await manager.getRepository(PeriodoLectivoCorte).delete({ corteId: id });
+
+        await manager.getRepository(AnioLectivoCalendarizacion).update(
+          { corteId: id, delete_at: null },
+          { isActive: false, delete_at: new Date(), deleted_at_id: userId },
+        );
 
         corte.delete_at = new Date();
         corte.delete_at_id = userId;

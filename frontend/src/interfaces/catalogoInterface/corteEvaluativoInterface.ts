@@ -11,5 +11,4 @@ export interface Corte {
 export interface CortePayload {
     abreviatura: string,
     corte: string,
-    semestre: Semestre
 }

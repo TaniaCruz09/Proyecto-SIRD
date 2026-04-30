@@ -1,4 +1,5 @@
 import { saveAnioLectivo, updateAnioLectivo } from "@/actions/catalogos/anioLectivoMethods";
+import { getCortesEvaluativos } from "@/actions/catalogos/corteEvaluativoMethods";
 import { getTiposPeriodizacion } from "@/actions/catalogos/tipoPeriodizacionMethods";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,80 +14,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { AnioLectivo, AnioLectivoPayload, TipoPeriodizacion } from "@/interfaces";
+import { AnioLectivo, AnioLectivoPayload, Corte, TipoPeriodizacion } from "@/interfaces";
 import { Calendar, CheckCircle2, Layers3, SplitSquareVertical } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-type TipoPeriodizacionCode = string;
-
-type PreviewPeriodo = {
-  nombre: string;
-  abreviatura: string;
-  cortes: string[];
-};
-
-const resolveCantidadPeriodosFallback = (tipo: TipoPeriodizacionCode) => {
-  switch (tipo.toUpperCase()) {
-    case "SEMESTRE":
-      return 2;
-    case "CUATRIMESTRE":
-      return 3;
-    case "TRIMESTRE":
-      return 4;
-    case "BIMESTRE":
-      return 6;
-    default:
-      return 1;
-  }
-};
-
-const buildPeriodoNombre = (orden: number, etiquetaPeriodo?: string, prefijoAbreviatura?: string) => {
-  const etiqueta = etiquetaPeriodo?.trim() || "Periodo";
-  const prefijo = prefijoAbreviatura?.trim() || "P";
-
-  return {
-    nombre: `${etiqueta} ${orden}`,
-    abreviatura: `${prefijo}${orden}`,
-  };
-};
-
-const buildPreview = (
-  totalPeriodos: number,
-  cantidadCortes: number,
-  etiquetaPeriodo?: string,
-  prefijoAbreviatura?: string,
-): PreviewPeriodo[] => {
-  if (totalPeriodos <= 0) {
-    return [];
-  }
-
-  const totalCortes = Number.isFinite(cantidadCortes) ? Math.max(0, cantidadCortes) : 0;
-
-  const base = Math.floor(totalCortes / totalPeriodos);
-  const remainder = totalCortes % totalPeriodos;
-  let corteActual = 1;
-
-  return Array.from({ length: totalPeriodos }, (_, index) => {
-    const orden = index + 1;
-    const naming = buildPeriodoNombre(orden, etiquetaPeriodo, prefijoAbreviatura);
-    const cortesEnPeriodo = base + (index < remainder ? 1 : 0);
-    const cortes = Array.from({ length: cortesEnPeriodo }, () => {
-      const label = `C${corteActual}`;
-      corteActual += 1;
-      return label;
-    });
-
-    return {
-      nombre: naming.nombre,
-      abreviatura: naming.abreviatura,
-      cortes,
-    };
-  });
-};
-
 interface AnioLectivoFormProps {
   defaultValues?: AnioLectivo | null;
-  onSuccess: () => void;
+  onSuccess: (anioLectivo: AnioLectivo) => void;
+}
+
+interface PreviewPeriodo {
+  orden: number;
+  nombre: string;
+  abreviatura: string;
+  cortes: Corte[];
 }
 
 export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormProps) {
@@ -94,31 +35,37 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
   const submitLockRef = useRef(false);
   const [anioLectivo, setAnioLectivo] = useState("");
   const [isActive, setIsActive] = useState(false);
-  const [tipoPeriodizacion, setTipoPeriodizacion] = useState<TipoPeriodizacionCode>("SEMESTRE");
+  const [selectedPeriodoId, setSelectedPeriodoId] = useState("");
   const [tiposPeriodizacion, setTiposPeriodizacion] = useState<TipoPeriodizacion[]>([]);
-  const [cantidadPeriodos, setCantidadPeriodos] = useState("2");
-  const [cantidadCortes, setCantidadCortes] = useState("4");
+  const [cortesDisponibles, setCortesDisponibles] = useState<Corte[]>([]);
+  const [selectedCorteIds, setSelectedCorteIds] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const isEdit = Boolean(defaultValues?.id);
 
   useEffect(() => {
-    const loadTiposPeriodizacion = async () => {
+    const loadCatalogos = async () => {
       try {
-        const data = await getTiposPeriodizacion();
-        const tipos = Array.isArray(data) ? (data as TipoPeriodizacion[]) : [];
-        setTiposPeriodizacion(tipos);
+        const [tiposData, cortesData] = await Promise.all([
+          getTiposPeriodizacion(),
+          getCortesEvaluativos(),
+        ]);
+
+        setTiposPeriodizacion(Array.isArray(tiposData) ? (tiposData as TipoPeriodizacion[]) : []);
+        setCortesDisponibles(
+          (Array.isArray(cortesData) ? (cortesData as Corte[]) : []).sort((left, right) => left.id - right.id),
+        );
       } catch (error) {
-        console.error("Error al cargar tipos de periodo:", error);
+        console.error("Error al cargar catálogos del año lectivo:", error);
         toast({
-          title: "No se pudieron cargar los tipos",
-          description: "Se usarán valores predeterminados para continuar.",
+          title: "No se pudieron cargar los catálogos",
+          description: "Revisa los catálogos de periodización y cortes antes de continuar.",
           variant: "destructive",
         });
       }
     };
 
-    loadTiposPeriodizacion();
+    loadCatalogos();
   }, [toast]);
 
   const tiposActivos = useMemo(
@@ -126,21 +73,24 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
     [tiposPeriodizacion],
   );
 
-  const tipoSeleccionado = useMemo(
-    () => tiposActivos.find((tipo) => tipo.codigo === tipoPeriodizacion) ?? null,
-    [tiposActivos, tipoPeriodizacion],
-  );
+  const fallbackCortes = useMemo(() => {
+    const periodos = defaultValues?.periodos ?? [];
+    const map = new Map<number, Corte>();
 
-  useEffect(() => {
-    if (tiposActivos.length === 0) {
-      return;
+    for (const corte of periodos.flatMap((periodo) => periodo.cortes ?? [])) {
+      if (corte?.id && !map.has(corte.id)) {
+        map.set(corte.id, corte);
+      }
     }
 
-    const existeTipoSeleccionado = tiposActivos.some((tipo) => tipo.codigo === tipoPeriodizacion);
-    if (!existeTipoSeleccionado) {
-      setTipoPeriodizacion(tiposActivos[0].codigo);
+    for (const corte of defaultValues?.cortes ?? []) {
+      if (corte?.id && !map.has(corte.id)) {
+        map.set(corte.id, corte);
+      }
     }
-  }, [tiposActivos, tipoPeriodizacion]);
+
+    return map;
+  }, [defaultValues]);
 
   useEffect(() => {
     if (!defaultValues) {
@@ -148,49 +98,99 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
     }
 
     const periodos = defaultValues.periodos ?? [];
-    const tipoDesdeDefault = (defaultValues as unknown as { tipo_periodizacion?: string }).tipo_periodizacion;
-    const tipo = (tipoDesdeDefault?.toUpperCase() || periodos[0]?.tipo?.toUpperCase() || "SEMESTRE") as TipoPeriodizacionCode;
-    const totalCortes = periodos.reduce((acc, periodo) => acc + (periodo.cortes?.length ?? 0), 0);
+    const primerPeriodo = periodos[0];
+    const selectedIds = [
+      ...periodos.flatMap((periodo) => periodo.cortes ?? []),
+      ...(defaultValues.cortes ?? []),
+    ].map((corte) => corte.id);
 
     setAnioLectivo(String(defaultValues.anio_lectivo ?? ""));
     setIsActive(Boolean(defaultValues.isActive));
-    setTipoPeriodizacion(tipo);
-    setCantidadPeriodos(String(periodos.length || resolveCantidadPeriodosFallback(tipo)));
-    setCantidadCortes(String(totalCortes || defaultValues.cortes?.length || 4));
+    setSelectedCorteIds(Array.from(new Set(selectedIds.filter((id) => Number.isFinite(id)))));
+
+    if (primerPeriodo?.tipo_periodizacion_id) {
+      setSelectedPeriodoId(String(primerPeriodo.tipo_periodizacion_id));
+    }
   }, [defaultValues]);
 
   useEffect(() => {
-    if (tipoPeriodizacion.toUpperCase() === "PERSONALIZADO") {
+    if (!defaultValues || selectedPeriodoId || tiposActivos.length === 0) {
       return;
     }
 
-    if (tipoSeleccionado?.cantidad_periodos) {
-      setCantidadPeriodos(String(tipoSeleccionado.cantidad_periodos));
+    const codigoPeriodo = defaultValues.periodos?.[0]?.tipo?.toUpperCase();
+    if (!codigoPeriodo) {
       return;
     }
 
-    setCantidadPeriodos(String(resolveCantidadPeriodosFallback(tipoPeriodizacion)));
-  }, [tipoPeriodizacion, tipoSeleccionado]);
+    const tipo = tiposActivos.find((item) => item.codigo === codigoPeriodo);
+    if (tipo?.id) {
+      setSelectedPeriodoId(String(tipo.id));
+    }
+  }, [defaultValues, selectedPeriodoId, tiposActivos]);
 
-  const cantidadPeriodosNumerica =
-    tipoPeriodizacion.toUpperCase() === "PERSONALIZADO"
-      ? Number.parseInt(cantidadPeriodos, 10) || 0
-      : tipoSeleccionado?.cantidad_periodos || resolveCantidadPeriodosFallback(tipoPeriodizacion);
-  const cantidadCortesNumerica = Number.parseInt(cantidadCortes, 10) || 0;
+  useEffect(() => {
+    if (defaultValues || selectedPeriodoId || tiposActivos.length === 0) {
+      return;
+    }
 
-  const preview = useMemo(
-    () =>
-      buildPreview(
-        cantidadPeriodosNumerica,
-        cantidadCortesNumerica,
-        tipoSeleccionado?.etiqueta_periodo,
-        tipoSeleccionado?.prefijo_abreviatura,
-      ),
-    [cantidadPeriodosNumerica, cantidadCortesNumerica, tipoSeleccionado],
+    const tipoSemestre = tiposActivos.find((tipo) => tipo.codigo?.toUpperCase() === "SEMESTRE");
+    const tipoInicial = tipoSemestre ?? tiposActivos[0];
+
+    if (tipoInicial?.id) {
+      setSelectedPeriodoId(String(tipoInicial.id));
+    }
+  }, [defaultValues, selectedPeriodoId, tiposActivos]);
+
+  const periodoSeleccionado = useMemo(
+    () => tiposActivos.find((tipo) => String(tipo.id) === selectedPeriodoId) ?? null,
+    [selectedPeriodoId, tiposActivos],
   );
 
-  const totalPeriodos = preview.length;
-  const configuracionValida = totalPeriodos > 0 && cantidadCortesNumerica >= totalPeriodos;
+  const totalPeriodos = periodoSeleccionado?.cantidad_periodos ?? 0;
+
+  const selectedCortes = useMemo(
+    () =>
+      selectedCorteIds
+        .map((id) => cortesDisponibles.find((corte) => corte.id === id) ?? fallbackCortes.get(id))
+        .filter((corte): corte is Corte => Boolean(corte)),
+    [cortesDisponibles, fallbackCortes, selectedCorteIds],
+  );
+
+  const previewPeriodos = useMemo<PreviewPeriodo[]>(() => {
+    if (!periodoSeleccionado || totalPeriodos <= 0 || selectedCortes.length === 0) {
+      return [];
+    }
+
+    const baseCortes = Math.floor(selectedCortes.length / totalPeriodos);
+    const remainder = selectedCortes.length % totalPeriodos;
+    let currentIndex = 0;
+
+    return Array.from({ length: totalPeriodos }, (_, index) => {
+      const orden = index + 1;
+      const cortesEnPeriodo = baseCortes + (index < remainder ? 1 : 0);
+      const cortes = selectedCortes.slice(currentIndex, currentIndex + cortesEnPeriodo);
+      currentIndex += cortesEnPeriodo;
+
+      return {
+        orden,
+        nombre: `${periodoSeleccionado.etiqueta_periodo || periodoSeleccionado.nombre || "Periodo"} ${orden}`,
+        abreviatura: `${periodoSeleccionado.prefijo_abreviatura || periodoSeleccionado.codigo || "P"}${orden}`,
+        cortes,
+      };
+    });
+  }, [periodoSeleccionado, selectedCortes, totalPeriodos]);
+
+  const tieneCortesSuficientes = !periodoSeleccionado || selectedCortes.length >= totalPeriodos;
+  const configuracionValida = Boolean(periodoSeleccionado) && selectedCortes.length > 0 && tieneCortesSuficientes;
+
+  const toggleCorteSelection = (corteId: number) => {
+    setSelectedCorteIds((current) =>
+      current.includes(corteId)
+        ? current.filter((id) => id !== corteId)
+        : [...current, corteId],
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -213,12 +213,12 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
       return;
     }
 
-    const anioLectivoNumber = Number(anioLectivo);
-
-    if (!configuracionValida) {
+    if (!configuracionValida || !periodoSeleccionado) {
       toast({
         title: "Configuración inválida",
-        description: "La cantidad de cortes debe ser mayor o igual a la cantidad de períodos.",
+        description: !tieneCortesSuficientes && totalPeriodos > 0
+          ? `Debes seleccionar al menos ${totalPeriodos} cortes para ${periodoSeleccionado.nombre.toLowerCase()}.`
+          : "Debes seleccionar un período del catálogo y al menos un corte.",
         variant: "destructive",
       });
       submitLockRef.current = false;
@@ -227,31 +227,31 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
     }
 
     const payload: AnioLectivoPayload = {
-      anio_lectivo: anioLectivoNumber,
+      anio_lectivo: Number(anioLectivo),
       isActive,
-      tipo_periodizacion: tipoPeriodizacion,
-      cantidad_periodos: tipoPeriodizacion.toUpperCase() === "PERSONALIZADO" ? cantidadPeriodosNumerica : undefined,
-      cantidad_cortes: cantidadCortesNumerica,
+      tipo_periodizacion: periodoSeleccionado.codigo,
+      cantidad_periodos: periodoSeleccionado.cantidad_periodos,
+      cortes: selectedCortes.map((corte) => ({ id: corte.id })),
     };
 
     try {
       if (isEdit && defaultValues?.id) {
-        await updateAnioLectivo(defaultValues.id, payload);
+        const updatedAnioLectivo = await updateAnioLectivo(defaultValues.id, payload);
         toast({
           title: "Año lectivo actualizado",
-          description: "La distribución automática se actualizó correctamente.",
+          description: "El backend regeneró los períodos y distribuyó los cortes automáticamente.",
           variant: "success",
         });
+        onSuccess(updatedAnioLectivo);
       } else {
-        await saveAnioLectivo(payload);
+        const createdAnioLectivo = await saveAnioLectivo(payload);
         toast({
           title: "Año lectivo creado",
-          description: "La estructura del año lectivo se generó automáticamente.",
+          description: "El backend generó los períodos y repartió los cortes automáticamente.",
           variant: "success",
         });
+        onSuccess(createdAnioLectivo);
       }
-
-      onSuccess();
     } catch (error) {
       console.error("Error al guardar año lectivo:", error);
       toast({
@@ -274,15 +274,15 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="outline" className="rounded-full border-amber-300 bg-amber-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-900">
                   <SplitSquareVertical className="h-3.5 w-3.5" />
-                  Configuración automática
+                  Configuración por ID
                 </Badge>
                 <Badge variant="outline" className="rounded-full border-stone-200 bg-white px-3 py-1 text-stone-700">
                   <Layers3 className="h-3.5 w-3.5" />
-                  {totalPeriodos} períodos
+                  {periodoSeleccionado ? `${totalPeriodos} períodos` : "0 períodos"}
                 </Badge>
                 <Badge variant="outline" className="rounded-full border-stone-200 bg-white px-3 py-1 text-stone-700">
                   <CheckCircle2 className="h-3.5 w-3.5" />
-                  {cantidadCortesNumerica || 0} cortes
+                  {selectedCortes.length} cortes
                 </Badge>
               </div>
 
@@ -294,7 +294,7 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
                   {isEdit ? "Editar Año Lectivo" : "Nuevo Año Lectivo"}
                 </CardTitle>
                 <CardDescription className="max-w-2xl text-sm leading-6 text-slate-600 sm:text-[15px]">
-                  Define el año, el tipo de periodización y la cantidad total de cortes. El sistema se encarga de construir la estructura académica.
+                  Define el año lectivo, selecciona el tipo de periodización y revisa cómo el backend dividirá los cortes automáticamente entre sus períodos.
                 </CardDescription>
               </div>
             </div>
@@ -312,9 +312,7 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
                   className={`relative flex h-9 w-16 shrink-0 items-center rounded-full p-1 transition-colors duration-300 ${isActive ? "bg-emerald-500" : "bg-stone-300"}`}
                   aria-label="Cambiar estado del año lectivo"
                 >
-                  <div
-                    className={`h-7 w-7 rounded-full bg-white shadow-md transition-transform duration-300 ${isActive ? "translate-x-7" : "translate-x-0"}`}
-                  />
+                  <div className={`h-7 w-7 rounded-full bg-white shadow-md transition-transform duration-300 ${isActive ? "translate-x-7" : "translate-x-0"}`} />
                 </button>
               </div>
             </div>
@@ -327,7 +325,7 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
               <section className="rounded-[28px] border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
                 <div className="mb-5 space-y-1">
                   <p className="text-base font-semibold text-slate-950">Configuración principal</p>
-                  <p className="text-sm leading-6 text-slate-500">Una sola captura para describir cómo se divide el año escolar.</p>
+                  <p className="text-sm leading-6 text-slate-500">Primero selecciona el tipo de periodización, luego marca los cortes que el backend debe repartir entre sus períodos.</p>
                 </div>
 
                 <div className="space-y-4">
@@ -338,7 +336,7 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
                       type="text"
                       inputMode="numeric"
                       maxLength={4}
-                      placeholder="Ej: 2026"
+                      placeholder="Ej: 2040"
                       value={anioLectivo}
                       onChange={(e) => setAnioLectivo(e.target.value.replace(/\D/g, "").slice(0, 4))}
                       className="h-12 rounded-2xl border-stone-200 bg-stone-50 text-base text-slate-900 shadow-none"
@@ -346,51 +344,57 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
                     />
                   </div>
 
-                  <div className="grid gap-4 xl:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-slate-700">Tipo de periodización</Label>
-                      <Select value={tipoPeriodizacion} onValueChange={setTipoPeriodizacion}>
-                        <SelectTrigger className="h-12 w-full rounded-2xl border-stone-200 bg-stone-50 text-left text-slate-900 shadow-none">
-                          <SelectValue placeholder="Selecciona una opción" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {tiposActivos.length > 0 ? (
-                            tiposActivos.map((tipo) => (
-                              <SelectItem key={tipo.id} value={tipo.codigo}>
-                                {tipo.nombre}
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <SelectItem value="SEMESTRE">Semestral</SelectItem>
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-slate-700">Cantidad total de cortes</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={cantidadCortes}
-                        onChange={(e) => setCantidadCortes(e.target.value)}
-                        className="h-12 rounded-2xl border-stone-200 bg-stone-50 text-base text-slate-900 shadow-none"
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-slate-700">Tipo de periodización</Label>
+                    <Select value={selectedPeriodoId} onValueChange={setSelectedPeriodoId}>
+                      <SelectTrigger className="h-12 w-full rounded-2xl border-stone-200 bg-stone-50 text-left text-slate-900 shadow-none">
+                        <SelectValue placeholder="Selecciona un tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {tiposActivos.map((tipo) => (
+                          <SelectItem key={tipo.id} value={String(tipo.id)}>
+                            {tipo.nombre} · {tipo.cantidad_periodos} períodos
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  {tipoPeriodizacion.toUpperCase() === "PERSONALIZADO" ? (
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-slate-700">Cantidad de períodos</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={cantidadPeriodos}
-                        onChange={(e) => setCantidadPeriodos(e.target.value)}
-                        className="h-12 rounded-2xl border-stone-200 bg-stone-50 text-base text-slate-900 shadow-none"
-                      />
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-slate-700">Cortes del catálogo</Label>
+                    <div className="rounded-[24px] border border-stone-200 bg-stone-50 p-3 sm:p-4">
+                      {cortesDisponibles.length > 0 ? (
+                        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                          {cortesDisponibles.map((corte) => {
+                            const isSelected = selectedCorteIds.includes(corte.id);
+
+                            return (
+                              <button
+                                key={corte.id}
+                                type="button"
+                                onClick={() => toggleCorteSelection(corte.id)}
+                                className={`rounded-2xl border px-4 py-3 text-left transition ${isSelected ? "border-slate-900 bg-slate-900 text-white shadow-sm" : "border-stone-200 bg-white text-slate-700 hover:border-stone-300 hover:bg-stone-100"}`}
+                              >
+                                <div className="flex items-center justify-between gap-3">
+                                  <div>
+                                    <p className="text-sm font-semibold">{corte.corte}</p>
+                                    <p className={`text-xs ${isSelected ? "text-slate-200" : "text-slate-500"}`}>
+                                      ID {corte.id} · {corte.abreviatura}
+                                    </p>
+                                  </div>
+                                  <span className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${isSelected ? "bg-white/15 text-white" : "bg-stone-100 text-stone-500"}`}>
+                                    {isSelected ? "Asignado" : "Disponible"}
+                                  </span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-slate-500">No hay cortes disponibles en el catálogo.</p>
+                      )}
                     </div>
-                  ) : null}
+                  </div>
                 </div>
               </section>
 
@@ -398,7 +402,7 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-base font-semibold text-slate-950">Resumen rápido</p>
-                    <p className="mt-1 text-sm leading-6 text-slate-500">Validación automática de la configuración.</p>
+                    <p className="mt-1 text-sm leading-6 text-slate-500">Este año guardará el tipo de periodización y los cortes; el backend generará los períodos y hará la división automáticamente.</p>
                   </div>
                   <div className={`rounded-full px-3 py-1 text-xs font-semibold ${configuracionValida ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
                     {configuracionValida ? "Válido" : "Revisar"}
@@ -407,17 +411,29 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
                   <div className="rounded-2xl border border-stone-200 bg-white p-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">Períodos</p>
-                    <p className="mt-2 text-3xl font-semibold leading-none text-slate-950">{totalPeriodos}</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">Tipo</p>
+                    <p className="mt-2 text-lg font-semibold leading-none text-slate-950">
+                      {periodoSeleccionado ? `${periodoSeleccionado.nombre}` : "Sin seleccionar"}
+                    </p>
+                    <p className="mt-2 text-xs text-stone-500">
+                      {periodoSeleccionado ? `${totalPeriodos} períodos automáticos` : "Selecciona un tipo del catálogo"}
+                    </p>
                   </div>
                   <div className="rounded-2xl border border-stone-200 bg-white p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">Cortes</p>
-                    <p className="mt-2 text-3xl font-semibold leading-none text-slate-950">{cantidadCortesNumerica || 0}</p>
+                    <p className="mt-2 text-3xl font-semibold leading-none text-slate-950">{selectedCortes.length}</p>
+                    <p className="mt-2 text-xs text-stone-500">
+                      {periodoSeleccionado ? `Mínimo requerido: ${totalPeriodos}` : "Selecciona un tipo primero"}
+                    </p>
                   </div>
                   <div className={`rounded-2xl border p-4 ${configuracionValida ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"}`}>
                     <p className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${configuracionValida ? "text-emerald-700" : "text-amber-700"}`}>Estado</p>
                     <p className={`mt-2 text-sm font-semibold leading-6 ${configuracionValida ? "text-emerald-900" : "text-amber-900"}`}>
-                      {configuracionValida ? "La distribución puede generarse correctamente." : "La cantidad de cortes debe cubrir todos los períodos."}
+                      {configuracionValida
+                        ? "La configuración está lista para que el backend genere los períodos automáticamente."
+                        : !tieneCortesSuficientes && totalPeriodos > 0
+                          ? `Faltan cortes para repartir ${totalPeriodos} períodos.`
+                          : "Debes elegir un tipo del catálogo y al menos un corte."}
                     </p>
                   </div>
                 </div>
@@ -427,51 +443,64 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
             <section className="rounded-[28px] border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-950">Vista previa de distribución</h3>
-                  <p className="text-sm leading-6 text-slate-500">Así quedarán organizados los cortes dentro de cada período.</p>
+                  <h3 className="text-lg font-semibold text-slate-950">Vista previa</h3>
+                  <p className="text-sm leading-6 text-slate-500">Así dividirá el backend los cortes dentro de cada período generado automáticamente.</p>
                 </div>
                 <p className="text-xs font-medium uppercase tracking-[0.16em] text-stone-400">Generación automática</p>
               </div>
 
               <div className="mt-5 grid gap-4 lg:grid-cols-2">
-                {preview.map((periodo, index) => (
-                  <div key={periodo.nombre} className="rounded-[24px] border border-stone-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-4 shadow-sm sm:p-5">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-3">
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-sm font-semibold text-white">
-                            {index + 1}
-                          </span>
-                          <div>
-                            <p className="text-base font-semibold text-slate-950">{periodo.nombre}</p>
-                            <p className="text-xs uppercase tracking-[0.16em] text-stone-500">{periodo.abreviatura}</p>
+                {previewPeriodos.length > 0 ? (
+                  previewPeriodos.map((periodo) => (
+                    <div
+                      key={periodo.orden}
+                      className="rounded-[24px] border border-stone-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-4 shadow-sm sm:p-5"
+                    >
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-3">
+                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-sm font-semibold text-white">
+                              {periodo.orden}
+                            </span>
+                            <div>
+                              <p className="text-base font-semibold text-slate-950">{periodo.nombre}</p>
+                              <p className="text-xs uppercase tracking-[0.16em] text-stone-500">{periodo.abreviatura}</p>
+                            </div>
                           </div>
                         </div>
+
+                        <Badge variant="outline" className="w-fit rounded-full border-stone-200 bg-stone-50 px-3 py-1 text-stone-700">
+                          {periodo.cortes.length} cortes
+                        </Badge>
                       </div>
 
-                      <Badge variant="outline" className="w-fit rounded-full border-stone-200 bg-stone-50 px-3 py-1 text-stone-700">
-                        {periodo.cortes.length} cortes
-                      </Badge>
+                      <div className="mt-4 flex flex-wrap gap-2.5">
+                        {periodo.cortes.length > 0 ? (
+                          periodo.cortes.map((corte) => (
+                            <span
+                              key={`${periodo.orden}-${corte.id}`}
+                              className="rounded-full border border-slate-200 bg-slate-950 px-3 py-1.5 text-xs font-semibold tracking-wide text-white"
+                            >
+                              {corte.corte} · ID {corte.id}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-stone-500">Este período no recibirá cortes con la selección actual.</span>
+                        )}
+                      </div>
                     </div>
-
-                    <div className="mt-4 flex flex-wrap gap-2.5">
-                      {periodo.cortes.map((corte) => (
-                        <span
-                          key={`${periodo.nombre}-${corte}`}
-                          className="rounded-full border border-slate-200 bg-slate-950 px-3 py-1.5 text-xs font-semibold tracking-wide text-white"
-                        >
-                          {corte}
-                        </span>
-                      ))}
-                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-[24px] border border-dashed border-stone-200 bg-stone-50 p-5 text-sm text-stone-500 lg:col-span-2">
+                    Selecciona un tipo de periodización y al menos un corte para ver cómo se generarán los períodos automáticamente.
                   </div>
-                ))}
+                )}
               </div>
             </section>
 
             <div className="flex flex-col gap-4 border-t border-stone-200 pt-5 sm:pt-6 lg:flex-row lg:items-center lg:justify-between">
               <p className="max-w-2xl text-sm leading-6 text-slate-500">
-                El sistema crea los cortes automáticamente y los distribuye de la forma más equilibrada posible entre los períodos definidos.
+                El formulario ahora replica la regla del backend: guarda el tipo y los cortes seleccionados, y el servicio genera los períodos y reparte los cortes automáticamente.
               </p>
               <Button
                 type="submit"

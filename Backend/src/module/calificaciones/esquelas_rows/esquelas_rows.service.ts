@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { EsquelaRow } from './esquelas_rows.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Utilities } from 'src/common/helpers/utilities';
 import { CreateEsquelaRowDto } from './esquelas_rows.dto';
@@ -83,6 +83,7 @@ export class EsquelaRowService {
     async findAll(): Promise<EsquelaRow[]> {
         try {
             return await this.calificacionRepo.find({
+                where: { deleted_at: IsNull() },
                 relations: ['estudiante', 'asignatura']
             })
         } catch (error) {
@@ -93,7 +94,7 @@ export class EsquelaRowService {
     async findOne(id: number): Promise<EsquelaRow> {
         try {
             const calificacion = await this.calificacionRepo.findOne({
-                where: { id },
+                where: { id, deleted_at: IsNull() },
                 relations: ['estudiante', 'asignatura']
             })
             return calificacion;
@@ -116,7 +117,8 @@ export class EsquelaRowService {
                 .leftJoinAndSelect('head.grupo_asignatura', 'grupo')
                 .leftJoinAndSelect('grupo.organizacionEscolar', 'org')
                 .leftJoinAndSelect('org.anio_lectivo', 'anio')
-                .where('estudiante.id = :estudianteId', { estudianteId })
+                .where('row.deleted_at IS NULL')
+                .andWhere('estudiante.id = :estudianteId', { estudianteId })
                 .andWhere('anio.anio_lectivo = :anioLectivo', { anioLectivo })
                 .getMany();
         } catch (error) {
@@ -128,7 +130,7 @@ export class EsquelaRowService {
         try {
             if (payload.corte || payload.esquelaHead) {
                 const existing = await this.calificacionRepo.findOne({
-                    where: { id },
+                    where: { id, deleted_at: IsNull() },
                     relations: ['corte', 'esquelaHead'],
                 });
                 const corteId = payload.corte?.id ?? existing?.corte?.id;
@@ -139,6 +141,9 @@ export class EsquelaRowService {
                 await this.validateCorteForEsquelaHead(esquelaHeadId, corteId);
             }
             const calificaciones = await this.calificacionRepo.preload({ id, ...payload });
+            if (!calificaciones || calificaciones.deleted_at) {
+                throw new NotFoundException('Calificación no encontrada');
+            }
             return await this.calificacionRepo.save(calificaciones)
         } catch (error) {
             Utilities.catchError(error)
@@ -147,7 +152,7 @@ export class EsquelaRowService {
 
     async remove(id: number): Promise<void> {
         try {
-            const result = await this.calificacionRepo.delete(id);
+            await this.calificacionRepo.softDelete(id);
         } catch (error) {
             Utilities.catchError(error)
         }

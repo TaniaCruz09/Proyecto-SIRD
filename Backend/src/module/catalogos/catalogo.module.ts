@@ -58,6 +58,9 @@ import { GrupoAsignaturaConEstudiantes } from '../organizacionEscolar/entities/g
 import { TipoPeriodizacion } from './entities/tipoPeriodizacion.entity';
 import { TipoPeriodizacionController } from './controllers/tipoPeriodizacion.controller';
 import { TipoPeriodizacionService } from './services/tipoPeriodizacion.service';
+import { AnioLectivoCalendarizacion } from './entities/anioLectivoCalendarizacion.entity';
+import { AnioLectivoCalendarizacionController } from './controllers/anioLectivoCalendarizacion.controller';
+import { AnioLectivoCalendarizacionService } from './services/anioLectivoCalendarizacion.service';
 
 @Module({
   imports: [
@@ -86,6 +89,7 @@ import { TipoPeriodizacionService } from './services/tipoPeriodizacion.service';
       GrupoAsignaturaDocente,
       GrupoAsignaturaConEstudiantes,
       TipoPeriodizacion,
+      AnioLectivoCalendarizacion,
     ]),
   ],
   controllers: [
@@ -106,6 +110,7 @@ import { TipoPeriodizacionService } from './services/tipoPeriodizacion.service';
     AnioLectivoController,
     NotaCualitativaController,
     TipoPeriodizacionController,
+    AnioLectivoCalendarizacionController,
 
   ],
   providers: [
@@ -126,6 +131,7 @@ import { TipoPeriodizacionService } from './services/tipoPeriodizacion.service';
     AnioLectivoService,
     NotaCualitativaService,
     TipoPeriodizacionService,
+    AnioLectivoCalendarizacionService,
   ],
   exports: [CatalogoModule, TypeOrmModule],
 })

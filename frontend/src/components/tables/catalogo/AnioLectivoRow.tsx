@@ -3,6 +3,9 @@
 import DeleteAñoLectivoModal from '@/components/modals/catalogo/anioLectivoModals/DeleteAnioLectivoModal';
 import EditAñoLectivoModal from '@/components/modals/catalogo/anioLectivoModals/EditAnioLectivoModal';
 import { AnioLectivo } from '@/interfaces';
+import { Button } from '@/components/ui/button';
+import { CalendarDays } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import React from 'react'
 
 interface AnioLectivoRowProp {
@@ -11,6 +14,7 @@ interface AnioLectivoRowProp {
 }
 
 export default function AnioLectivoRow({ fetchAniosLectivos, anioLectivo }: AnioLectivoRowProp) {
+  const router = useRouter();
   const cortes =
     anioLectivo.cortes ??
     anioLectivo.cortesAnioLectivo?.map((item) => item.corte) ??
@@ -48,6 +52,18 @@ export default function AnioLectivoRow({ fetchAniosLectivos, anioLectivo }: Anio
         >
           {anioLectivo.isActive ? "Activo" : "Inactivo"}
         </span>
+      </td>
+      <td className="p-3 px-2 py-2 border-b border-gray-200 text-center">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={() => router.push(`/catalogo/anioLectivo/calendarizacion?idAnioLectivo=${anioLectivo.id}`)}
+        >
+          <CalendarDays className="h-4 w-4" />
+          Editar calendario
+        </Button>
       </td>
       <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><EditAñoLectivoModal añoLectivo={anioLectivo} fetchAñoLectivo={fetchAniosLectivos} /></td>
       <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><DeleteAñoLectivoModal idEliminar={anioLectivo.id} fetchAñoLectivo={fetchAniosLectivos} /></td>

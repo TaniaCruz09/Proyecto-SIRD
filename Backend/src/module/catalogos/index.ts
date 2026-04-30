@@ -5,11 +5,15 @@ export { AcademicLevelController } from "./controllers/academiclevel.controller"
 
 export { AnioLectivo } from "./entities/anioLectivo.entity";
 export { AnioLectivoCorte } from "./entities/anioLectivoCorte.entity";
+export { AnioLectivoCalendarizacion } from './entities/anioLectivoCalendarizacion.entity';
 export { PeriodoLectivo } from "./entities/periodoLectivo.entity";
 export { PeriodoLectivoCorte } from "./entities/periodoLectivoCorte.entity";
 export { CreateAnioLectivoDTO } from "./dtos/anioLectivo.dto";
+export { UpsertAnioLectivoCalendarizacionDto } from './dtos/anioLectivoCalendarizacion.dto';
 export { AnioLectivoService } from "./services/anioLectivo.service";
+export { AnioLectivoCalendarizacionService } from './services/anioLectivoCalendarizacion.service';
 export { AnioLectivoController } from "./controllers/anioLectivo.controller";
+export { AnioLectivoCalendarizacionController } from './controllers/anioLectivoCalendarizacion.controller';
 
 export { Asignatura } from "./entities/asignatura.entity";
 export { CreateAsignaturaDto } from "./dtos/asignatura.dto"

@@ -44,6 +44,8 @@ export default function RegisterEstudentRow({ student, fetchStudent }: StudentRo
             <td className="p-3 border-b border-gray-200">{student.name}</td>
             <td className="p-3 border-b border-gray-200">{student.lastName}</td>
             <td className="p-3 border-b border-gray-200">{student.studentCode}</td>
+            <td className="p-3 border-b border-gray-200">{student.asignadoAnio ?? "Sin asignacion"}</td>
+            <td className="p-3 border-b border-gray-200">{student.asignadoGrupo ?? student.organizacionEscolarResumen ?? "Sin grupo asignado"}</td>
             <td className="p-3 border-b border-gray-200 text-center">
                 <Link
                     href={`/historial-estudiante/${student.id}`}

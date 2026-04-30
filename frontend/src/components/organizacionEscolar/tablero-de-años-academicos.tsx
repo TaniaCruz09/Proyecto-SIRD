@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Calendar, Settings, Eye, GraduationCap } from "lucide-react"
+import { Calendar, Settings, Eye, GraduationCap, CalendarDays } from "lucide-react"
 import { getAniosLectivos } from "@/actions/catalogos/anioLectivoMethods"
 import { AnioLectivo } from "@/interfaces"
 import { useRouter } from "next/navigation"
@@ -116,7 +116,7 @@ export function AcademicYearsDashboard() {
                                             Año Lectivo {anioLectivo.anio_lectivo}
                                         </CardTitle>
                                         <CardDescription className="text-slate-500">
-                                            Creado el {new Date(anioLectivo.created_at).toLocaleDateString()}
+                                            Creado el {anioLectivo.created_at ? new Date(anioLectivo.created_at).toLocaleDateString() : 'Sin fecha de creación'}
                                         </CardDescription>
                                     </div>
                                     <Badge className={getStatusColor(anioLectivo.isActive)}>{getStatusText(anioLectivo.isActive)}</Badge>
@@ -188,6 +188,15 @@ export function AcademicYearsDashboard() {
                                         idAnioLectivo={Number(anioLectivo.id)}
                                         onSuccess={fetchAniosLectivos}
                                     />
+                                    <Button
+                                        onClick={() => router.push(`/catalogo/anioLectivo/calendarizacion?idAnioLectivo=${anioLectivo.id}`)}
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex items-center gap-2 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
+                                    >
+                                        <CalendarDays className="h-4 w-4" />
+                                        Editar o ver calendario
+                                    </Button>
                                     <Button
                                         onClick={() => router.push(`/catalogo/anioLectivo?idAnioLectivo=${anioLectivo.id}`)}
                                         variant="outline"

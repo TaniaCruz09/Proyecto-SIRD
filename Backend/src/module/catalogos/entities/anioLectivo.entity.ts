@@ -13,6 +13,7 @@ import { User } from '../../auth/entities';
 import * as moment from 'moment-timezone';
 import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity';
 import { AnioLectivoCorte } from './anioLectivoCorte.entity';
+import { AnioLectivoCalendarizacion } from './anioLectivoCalendarizacion.entity';
 import { Cortes } from './corte.entity';
 import { PeriodoLectivo } from './periodoLectivo.entity';
 
@@ -42,6 +43,9 @@ export class AnioLectivo {
 
     @OneToMany(() => PeriodoLectivo, (periodoLectivo) => periodoLectivo.anioLectivo)
     periodosLectivos?: PeriodoLectivo[];
+
+    @OneToMany(() => AnioLectivoCalendarizacion, (calendarizacion) => calendarizacion.anioLectivo)
+    calendarizaciones?: AnioLectivoCalendarizacion[];
 
     cortes?: Cortes[];
 

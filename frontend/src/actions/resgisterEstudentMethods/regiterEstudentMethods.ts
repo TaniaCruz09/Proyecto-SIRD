@@ -12,8 +12,15 @@ export async function getRegisterEstudent() {
     return response.data
 }
 
-export async function getFiltarStudent(params: string, anioId: number) {
-    const endPoint = `/student/filtrar?${params}&anioId=${anioId}`
+export async function getFiltarStudent(params?: string, anioId?: number | string) {
+    const searchParams = new URLSearchParams(params ?? "")
+
+    if (anioId !== undefined && anioId !== null && String(anioId).trim() !== "" && Number(anioId) > 0) {
+        searchParams.set("anioId", String(anioId))
+    }
+
+    const query = searchParams.toString()
+    const endPoint = query ? `/student/filtrar?${query}` : '/student/filtrar'
     const response = await feching(endPoint, 'no-cache', 'GET')
     if (!response || response.error) {
         throw new Error(response?.error)

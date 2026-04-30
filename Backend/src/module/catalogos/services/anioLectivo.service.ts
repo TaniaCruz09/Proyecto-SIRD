@@ -6,6 +6,7 @@ import { AnioLectivo } from '../entities/anioLectivo.entity';
 import { CreateAnioLectivoDTO } from '../dtos/anioLectivo.dto';
 import { Cortes } from '../entities/corte.entity';
 import { AnioLectivoCorte } from '../entities/anioLectivoCorte.entity';
+import { AnioLectivoCalendarizacion } from '../entities/anioLectivoCalendarizacion.entity';
 import { PeriodoLectivo } from '../entities/periodoLectivo.entity';
 import { PeriodoLectivoCorte } from '../entities/periodoLectivoCorte.entity';
 import { TipoPeriodizacion } from '../entities/tipoPeriodizacion.entity';
@@ -29,7 +30,35 @@ export class AnioLectivoService {
         private periodoLectivoCorteRepo: Repository<PeriodoLectivoCorte>,
         @InjectRepository(TipoPeriodizacion)
         private tipoPeriodizacionRepo: Repository<TipoPeriodizacion>,
+        @InjectRepository(AnioLectivoCalendarizacion)
+        private anioLectivoCalendarizacionRepo: Repository<AnioLectivoCalendarizacion>,
     ) { }
+
+    private async syncCalendarizacionesWithCortes(
+        anioLectivoId: number,
+        activeCorteIds: number[],
+        userId?: number,
+    ): Promise<void> {
+        const currentRows = await this.anioLectivoCalendarizacionRepo.find({
+            where: { anioLectivoId, isActive: true, delete_at: null },
+        });
+
+        const activeIdsSet = new Set(activeCorteIds);
+        const rowsToInvalidate = currentRows.filter((item) => !activeIdsSet.has(item.corteId));
+
+        if (rowsToInvalidate.length === 0) {
+            return;
+        }
+
+        const deletedAt = new Date();
+        for (const item of rowsToInvalidate) {
+            item.isActive = false;
+            item.delete_at = deletedAt;
+            item.deleted_at_id = userId ?? item.deleted_at_id ?? null;
+        }
+
+        await this.anioLectivoCalendarizacionRepo.save(rowsToInvalidate);
+    }
 
     private isMissingPeriodoTableError(error: unknown): boolean {
         const message = (error as { message?: string })?.message ?? '';
@@ -52,6 +81,7 @@ export class AnioLectivoService {
         if (includePeriodos) {
             query
                 .leftJoinAndSelect('anio_lectivo.periodosLectivos', 'periodoLectivo')
+                .leftJoinAndSelect('periodoLectivo.tipoPeriodizacion', 'tipoPeriodizacion')
                 .leftJoinAndSelect('periodoLectivo.cortesPeriodo', 'periodoLectivoCorte')
                 .leftJoinAndSelect('periodoLectivoCorte.corte', 'cortePeriodo')
                 .leftJoinAndSelect('cortePeriodo.semestre', 'semestreCortePeriodo');
@@ -85,6 +115,7 @@ export class AnioLectivoService {
                 .sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
                 .map((periodo) => ({
                     id: periodo.id,
+                    tipo_periodizacion_id: periodo.tipoPeriodizacionId,
                     nombre: periodo.nombre,
                     abreviatura: periodo.abreviatura,
                     tipo: periodo.tipo,
@@ -168,20 +199,23 @@ export class AnioLectivoService {
         };
     }
 
-    private async generateAutomaticPeriodos(
+    private async generatePeriodosFromCortes(
         anioLectivoId: number,
         tipoPeriodizacion: string,
-        cantidadCortes: number,
-        auditUserId?: number,
+        cortes: { id: number }[],
         cantidadPeriodos?: number,
     ): Promise<void> {
         const tipoConfig = await this.resolveTipoPeriodizacionConfig(tipoPeriodizacion, cantidadPeriodos);
         const tipo = tipoConfig.codigo;
-        const totalCortes = Number(cantidadCortes);
+        const normalizedCortes = (cortes ?? [])
+            .map((corte) => Number(corte?.id))
+            .filter((id) => Number.isFinite(id));
+        const uniqueCorteIds = Array.from(new Set(normalizedCortes));
+        const totalCortes = uniqueCorteIds.length;
         const totalPeriodos = tipoConfig.totalPeriodos;
 
         if (!Number.isFinite(totalCortes) || totalCortes <= 0) {
-            throw new BadRequestException('La cantidad de cortes debe ser mayor que cero');
+            throw new BadRequestException('Debes seleccionar al menos un corte existente');
         }
 
         if (totalPeriodos <= 0) {
@@ -195,18 +229,17 @@ export class AnioLectivoService {
         await this.anioLectivoCorteRepo.delete({ anioLectivoId });
         await this.periodoLectivoRepo.delete({ anioLectivoId });
 
+        const validCortes = await this.corteRepo.find({
+            where: { id: In(uniqueCorteIds), delete_at: null },
+            select: ['id'],
+        });
+        const validIds = new Set(validCortes.map((corte) => corte.id));
+        if (validIds.size !== uniqueCorteIds.length) {
+            throw new BadRequestException('Uno o mas cortes no existen o estan eliminados');
+        }
+
         const baseCortes = Math.floor(totalCortes / totalPeriodos);
         const remainder = totalCortes % totalPeriodos;
-
-        const generatedCortes = await this.corteRepo.save(
-            Array.from({ length: totalCortes }, (_, index) =>
-                this.corteRepo.create({
-                    abreviatura: `C${index + 1}`,
-                    corte: `Corte ${index + 1}`,
-                    user_create_id: auditUserId,
-                }),
-            ),
-        );
 
         const periodoRows = await this.periodoLectivoRepo.save(
             Array.from({ length: totalPeriodos }, (_, index) => {
@@ -235,15 +268,15 @@ export class AnioLectivoService {
             const cortesEnPeriodo = baseCortes + (i < remainder ? 1 : 0);
 
             for (let j = 0; j < cortesEnPeriodo; j++) {
-                const corte = generatedCortes[currentIndex];
-                if (!corte?.id) {
+                const corteId = uniqueCorteIds[currentIndex];
+                if (!Number.isFinite(corteId)) {
                     break;
                 }
 
                 relationRows.push(
                     this.periodoLectivoCorteRepo.create({
                         periodoLectivo: { id: periodo.id } as PeriodoLectivo,
-                        corte: { id: corte.id } as Cortes,
+                        corte: { id: corteId } as Cortes,
                         orden: j + 1,
                     }),
                 );
@@ -283,18 +316,17 @@ export class AnioLectivoService {
 
             if (Array.isArray(periodos) && periodos.length > 0) {
                 await this.replacePeriodos(saved.id, periodos);
-            } else if (Number.isFinite(cantidad_cortes) && cantidad_cortes > 0) {
-                await this.generateAutomaticPeriodos(
+            } else if (Array.isArray(cortes)) {
+                await this.generatePeriodosFromCortes(
                     saved.id,
                     tipo_periodizacion,
-                    cantidad_cortes,
-                    createAnioLectivoDto.user_create_id,
+                    cortes,
                     cantidad_periodos,
                 );
             }
 
             if (Array.isArray(cortes)) {
-                await this.replaceCortes(saved.id, cortes);
+                await this.replaceCortes(saved.id, cortes, createAnioLectivoDto.user_create_id);
             }
 
             return await this.getAnioLectivoById(saved.id);
@@ -397,18 +429,17 @@ export class AnioLectivoService {
 
             if (Array.isArray(periodos) && periodos.length > 0) {
                 await this.replacePeriodos(saved.id, periodos);
-            } else if (Number.isFinite(cantidad_cortes) && cantidad_cortes > 0) {
-                await this.generateAutomaticPeriodos(
+            } else if (Array.isArray(cortes)) {
+                await this.generatePeriodosFromCortes(
                     saved.id,
                     tipo_periodizacion,
-                    cantidad_cortes,
-                    payload.user_update_id,
+                    cortes,
                     cantidad_periodos,
                 );
             }
 
             if (Array.isArray(cortes)) {
-                await this.replaceCortes(saved.id, cortes);
+                await this.replaceCortes(saved.id, cortes, payload.user_update_id);
             }
 
             return await this.getAnioLectivoById(saved.id);
@@ -435,13 +466,16 @@ export class AnioLectivoService {
         }
     }
 
-    private async replaceCortes(anioLectivoId: number, cortes: { id: number }[]): Promise<void> {
+    private async replaceCortes(anioLectivoId: number, cortes: { id: number }[], userId?: number): Promise<void> {
         const ids = (cortes ?? []).map((corte) => corte?.id).filter((id) => Number.isFinite(id));
         const uniqueIds = Array.from(new Set(ids));
 
         await this.anioLectivoCorteRepo.delete({ anioLectivoId });
 
-        if (uniqueIds.length === 0) return;
+        if (uniqueIds.length === 0) {
+            await this.syncCalendarizacionesWithCortes(anioLectivoId, [], userId);
+            return;
+        }
 
         const validCortes = await this.corteRepo.find({
             where: { id: In(uniqueIds), delete_at: null },
@@ -460,11 +494,13 @@ export class AnioLectivoService {
         );
 
         await this.anioLectivoCorteRepo.save(rows);
+        await this.syncCalendarizacionesWithCortes(anioLectivoId, Array.from(validIds), userId);
     }
 
     private async replacePeriodos(
         anioLectivoId: number,
         periodos: {
+            tipo_periodizacion_id?: number;
             nombre?: string;
             abreviatura?: string;
             tipo?: string;
@@ -474,16 +510,42 @@ export class AnioLectivoService {
     ): Promise<void> {
         await this.periodoLectivoRepo.delete({ anioLectivoId });
 
+        const tipoIds = Array.from(
+            new Set(
+                (periodos ?? [])
+                    .map((periodo) => periodo?.tipo_periodizacion_id)
+                    .filter((id) => Number.isFinite(id)),
+            ),
+        );
+
+        const tipos = tipoIds.length > 0
+            ? await this.tipoPeriodizacionRepo.find({
+                where: { id: In(tipoIds), isActive: true, delete_at: null },
+            })
+            : [];
+        const tiposMap = new Map(tipos.map((tipo) => [tipo.id, tipo]));
+        if (tiposMap.size !== tipoIds.length) {
+            throw new BadRequestException('Uno o mas periodos no existen o estan inactivos');
+        }
+
         const normalized = (periodos ?? [])
-            .map((periodo, index) => ({
-                nombre: periodo?.nombre?.trim(),
-                abreviatura: periodo?.abreviatura?.trim() || null,
-                tipo: (periodo?.tipo?.trim() || 'PERSONALIZADO').toUpperCase(),
-                orden: Number.isFinite(periodo?.orden as number)
-                    ? Number(periodo.orden)
-                    : index + 1,
-                cortes: Array.isArray(periodo?.cortes) ? periodo.cortes : [],
-            }))
+            .map((periodo, index) => {
+                const tipoPeriodizacionId = Number.isFinite(periodo?.tipo_periodizacion_id as number)
+                    ? Number(periodo.tipo_periodizacion_id)
+                    : undefined;
+                const tipoCatalogo = tipoPeriodizacionId ? tiposMap.get(tipoPeriodizacionId) : undefined;
+
+                return {
+                    tipoPeriodizacionId,
+                    nombre: tipoCatalogo?.nombre?.trim() || periodo?.nombre?.trim(),
+                    abreviatura: tipoCatalogo?.prefijo_abreviatura?.trim() || periodo?.abreviatura?.trim() || null,
+                    tipo: (tipoCatalogo?.codigo?.trim() || periodo?.tipo?.trim() || 'PERSONALIZADO').toUpperCase(),
+                    orden: Number.isFinite(periodo?.orden as number)
+                        ? Number(periodo.orden)
+                        : index + 1,
+                    cortes: Array.isArray(periodo?.cortes) ? periodo.cortes : [],
+                };
+            })
             .filter((periodo) => Boolean(periodo.nombre));
 
         if (normalized.length === 0) {
@@ -496,6 +558,9 @@ export class AnioLectivoService {
                 nombre: periodo.nombre,
                 abreviatura: periodo.abreviatura,
                 tipo: periodo.tipo,
+                tipoPeriodizacion: periodo.tipoPeriodizacionId
+                    ? ({ id: periodo.tipoPeriodizacionId } as TipoPeriodizacion)
+                    : undefined,
                 orden: periodo.orden,
             }),
         );
@@ -614,6 +679,10 @@ export class AnioLectivoService {
                 }
 
                 await manager.getRepository(AnioLectivoCorte).delete({ anioLectivoId: id });
+                await manager.getRepository(AnioLectivoCalendarizacion).update(
+                    { anioLectivoId: id, delete_at: null },
+                    { isActive: false, delete_at: new Date(), deleted_at_id: userId },
+                );
 
                 // Registrar el usuario que eliminó y la fecha de eliminación
                 anioLectivo.deleted_at = new Date();

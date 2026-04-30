@@ -14,6 +14,11 @@ export type { Seccion, SeccionPayload } from "./catalogoInterface/SeccionInterfa
 export type { Semestre, SemestrePayload } from "./catalogoInterface/SemestreInterface"
 export type { Turno, TurnoPayload } from "./catalogoInterface/TurnoInterface"
 export type { AnioLectivo, AnioLectivoPayload, PeriodoLectivo, PeriodoLectivoPayload } from "./catalogoInterface/AnioLectivo"
+export type {
+	AnioLectivoCalendarizacionItem,
+	UpsertAnioLectivoCalendarizacionItemPayload,
+	UpsertAnioLectivoCalendarizacionPayload,
+} from './catalogoInterface/AnioLectivoCalendarizacion'
 export type { TipoPeriodizacion, TipoPeriodizacionPayload } from "./catalogoInterface/TipoPeriodizacionInterface"
 
 export type { Docente, DocentePayload } from "./DocenteInterface";

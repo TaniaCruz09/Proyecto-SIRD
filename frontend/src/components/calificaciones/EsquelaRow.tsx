@@ -458,6 +458,7 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
     const workbook = new ExcelJS.Workbook()
     const sheet = workbook.addWorksheet("Esquela")
     sheet.properties.defaultRowHeight = 22
+    const isGeneralView = vista === "ALL"
 
     const borderAll: Partial<Borders> = {
       top: { style: "thin" as BorderStyle },
@@ -468,7 +469,9 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
 
 
     const columnasExport = columnas
-    const totalColumns = 4 + asignaturas.length * (columnasExport.length * 2)
+    const totalColumns = isGeneralView
+      ? 4 + asignaturas.length * (columnasExport.length * 2)
+      : 4 + asignaturas.length * 2
 
 
     /* ==========================
@@ -484,7 +487,7 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
     sheet.getCell("A2").alignment = { horizontal: "center" }
 
     sheet.mergeCells(3, 1, 3, Math.floor(totalColumns / 2))
-    sheet.getCell("A3").value = ` CALIFICACIONES DE ${esquelaHead?.grupo_asignatura?.turno.turno}`
+    sheet.getCell("A3").value = ` CALIFICACIONES DE ${esquelaHead?.grupo_asignatura?.turno.modalidad?.modalidad}`
     sheet.getCell("A3").font = { bold: true, size: 12 }
     sheet.getCell("A3").alignment = { horizontal: "center" }
     sheet.mergeCells(
@@ -520,24 +523,11 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
     sheet.getCell(4, colStart).alignment = { horizontal: "center" }
     colStart += colCentro
 
-    // Corte
+    // Grupo
     sheet.mergeCells(4, colStart, 4, colStart + colCorte - 1)
-    const vistaLabel = (() => {
-      if (vista === "ALL") return "COMPLETO"
-      if (vista === "FINAL") return "NOTA FINAL"
-      if (vista.startsWith("C-")) {
-        const corteId = Number(vista.replace("C-", ""))
-        const corte = cortesDisponibles.find((item) => item.id === corteId)
-        return corte?.abreviatura || corte?.corte || "CORTE"
-      }
-      if (vista.startsWith("S-")) {
-        const periodoId = Number(vista.replace("S-", ""))
-        return periodos.find((item) => item.id === periodoId)?.label || "PERIODO"
-      }
-      return "COMPLETO"
-    })()
+    const grupoLabel = ` Grado: ${esquelaHead?.grupo_asignatura?.grado.grades ?? "GRUPO"}`
 
-    sheet.getCell(4, colStart).value = vistaLabel
+    sheet.getCell(4, colStart).value = grupoLabel
     sheet.getCell(4, colStart).font = { bold: true }
     sheet.getCell(4, colStart).alignment = { horizontal: "center" }
     colStart += colCorte
@@ -549,7 +539,7 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
     sheet.getCell(4, colStart).alignment = { horizontal: "center" }
 
     sheet.mergeCells(5, 1, 5, Math.floor(totalColumns / 2))
-    sheet.getCell("A5").value = `TURNO: ${esquelaHead?.grupo_asignatura?.turno.modalidad?.modalidad ?? ""}`
+    sheet.getCell("A5").value = `TURNO: ${esquelaHead?.grupo_asignatura?.turno.turno ?? ""}`
     sheet.getCell("A5").font = { bold: true }
     sheet.getCell("A5").alignment = { horizontal: "center" }
     sheet.mergeCells(
@@ -561,88 +551,156 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
     sheet.getCell(5, Math.floor(totalColumns / 2) + 1).value = `ASIGNATURAS CURSO ESCOLAR ${esquelaHead?.grupo_asignatura.organizacionEscolar.anio_lectivo.anio_lectivo}`
     sheet.getCell(5, Math.floor(totalColumns / 2) + 1).font = { bold: true }
     sheet.getCell(5, Math.floor(totalColumns / 2) + 1).alignment = { horizontal: 'center' }
-    const startRow = sheet.rowCount + 1
-
     /* =====================================================
       HEADER ESQUELA (DINAMICO)
     ===================================================== */
+    if (isGeneralView) {
+      const header1Data: any[] = [
+        "N°",
+        "Nombres y Apellidos",
+        "Código del estudiante",
+        "Sexo"
+      ]
 
-    const header1Data: any[] = [
-      "N°",
-      "Nombres y Apellidos",
-      "Código del estudiante",
-      "Sexo"
-    ]
+      asignaturas.forEach(a => {
+        header1Data.push(a.asignatura.asignatura)
+        for (let i = 1; i < columnasExport.length * 2; i++) {
+          header1Data.push("")
+        }
+      })
 
-    asignaturas.forEach(a => {
-      header1Data.push(a.asignatura.asignatura)
-      for (let i = 1; i < columnasExport.length * 2; i++) {
-        header1Data.push("")
+      const header1 = sheet.addRow(header1Data)
+
+      let colIndex = 5
+      asignaturas.forEach(() => {
+        sheet.mergeCells(
+          header1.number,
+          colIndex,
+          header1.number,
+          colIndex + columnasExport.length * 2 - 1
+        )
+        colIndex += columnasExport.length * 2
+      })
+
+      header1.eachCell(cell => {
+        cell.font = { bold: true }
+        cell.alignment = { horizontal: "center", vertical: "middle" }
+        cell.border = borderAll
+      })
+
+      const header2Data: any[] = ["", "", "", ""]
+
+      asignaturas.forEach(() => {
+        columnasExport.forEach((col) => {
+          header2Data.push(col.label)
+          header2Data.push("")
+        })
+      })
+
+      const header2 = sheet.addRow(header2Data)
+
+      let col2 = 5
+      asignaturas.forEach(() => {
+        columnasExport.forEach(() => {
+          sheet.mergeCells(header2.number, col2, header2.number, col2 + 1)
+          col2 += 2
+        })
+      })
+
+      header2.eachCell(cell => {
+        cell.font = { bold: true }
+        cell.alignment = { horizontal: "center", vertical: "middle" }
+        cell.border = borderAll
+      })
+
+      const header3Data: any[] = ["", "", "", ""]
+
+      asignaturas.forEach(() => {
+        columnasExport.forEach(() => {
+          header3Data.push("CUALI")
+          header3Data.push("CUANTI")
+        })
+      })
+
+      const header3 = sheet.addRow(header3Data)
+      header3.height = 48
+
+      header3.eachCell(cell => {
+        cell.font = { bold: false, size: 8 }
+        cell.alignment = { horizontal: "center", vertical: "middle", textRotation: 90, wrapText: true }
+        cell.border = borderAll
+      })
+
+      for (let column = 1; column <= 4; column++) {
+        sheet.mergeCells(header1.number, column, header3.number, column)
+        sheet.getCell(header1.number, column).alignment = column === 4
+          ? { horizontal: "center", vertical: "middle", textRotation: 90, wrapText: true }
+          : { horizontal: "center", vertical: "middle", wrapText: true }
+        sheet.getCell(header1.number, column).font = { bold: true }
+        sheet.getCell(header1.number, column).border = borderAll
       }
-    })
+    } else {
+      const header1Data: any[] = [
+        "N°",
+        "Nombres y Apellidos",
+        "Código del estudiante",
+        "Sexo"
+      ]
 
-    const header1 = sheet.addRow(header1Data)
-
-    let colIndex = 5
-    asignaturas.forEach(() => {
-      sheet.mergeCells(
-        header1.number,
-        colIndex,
-        header1.number,
-        colIndex + columnasExport.length * 2 - 1
-      )
-      colIndex += columnasExport.length * 2
-    })
-
-    header1.eachCell(cell => {
-      cell.font = { bold: true }
-      cell.alignment = { horizontal: "center", vertical: "middle" }
-      cell.border = borderAll
-    })
-
-
-
-    const header2Data: any[] = ["", "", "", ""]
-
-    asignaturas.forEach(() => {
-      columnasExport.forEach((col) => {
-        header2Data.push(col.label)
-        header2Data.push("")
+      asignaturas.forEach((a) => {
+        header1Data.push(a.asignatura.asignatura)
+        header1Data.push("")
       })
-    })
 
-    const header2 = sheet.addRow(header2Data)
+      const header1 = sheet.addRow(header1Data)
 
-    let col2 = 5
-    asignaturas.forEach(() => {
-      columnasExport.forEach(() => {
-        sheet.mergeCells(header2.number, col2, header2.number, col2 + 1)
-        col2 += 2
+      let colIndex = 5
+      asignaturas.forEach(() => {
+        sheet.mergeCells(header1.number, colIndex, header1.number, colIndex + 1)
+        const cell = sheet.getCell(header1.number, colIndex)
+        cell.alignment = { horizontal: "center", vertical: "middle", textRotation: 90, wrapText: true }
+        cell.font = { bold: true }
+        cell.border = borderAll
+        colIndex += 2
       })
-    })
 
-    header2.eachCell(cell => {
-      cell.font = { bold: true }
-      cell.alignment = { horizontal: "center", vertical: "middle" }
-      cell.border = borderAll
-    })
+      const header2Data: any[] = ["", "", "", ""]
 
-    const header3Data: any[] = ["", "", "", ""]
-
-    asignaturas.forEach(() => {
-      columnasExport.forEach(() => {
-        header3Data.push("CUAL")
-        header3Data.push("CUANT")
+      asignaturas.forEach(() => {
+        header2Data.push("CUALI")
+        header2Data.push("CUANTI")
       })
-    })
 
-    const header3 = sheet.addRow(header3Data)
+      const header2 = sheet.addRow(header2Data)
 
-    header3.eachCell(cell => {
-      cell.font = { bold: true }
-      cell.alignment = { horizontal: "center", vertical: "middle" }
-      cell.border = borderAll
-    })
+      header1.height = 110
+      header2.height = 48
+
+      header1.eachCell((cell, colNumber) => {
+        cell.font = { bold: true }
+        cell.alignment = colNumber === 4
+          ? { horizontal: "center", vertical: "middle", textRotation: 90, wrapText: true }
+          : colNumber <= 4
+          ? { horizontal: "center", vertical: "middle", wrapText: true }
+          : { horizontal: "center", vertical: "middle", textRotation: 90, wrapText: true }
+        cell.border = borderAll
+      })
+
+      header2.eachCell(cell => {
+        cell.font = { bold: true, size: 8 }
+        cell.alignment = { horizontal: "center", vertical: "middle", textRotation: 90, wrapText: true }
+        cell.border = borderAll
+      })
+
+      for (let column = 1; column <= 4; column++) {
+        sheet.mergeCells(header1.number, column, header2.number, column)
+        sheet.getCell(header1.number, column).alignment = column === 4
+          ? { horizontal: "center", vertical: "middle", textRotation: 90, wrapText: true }
+          : { horizontal: "center", vertical: "middle", wrapText: true }
+        sheet.getCell(header1.number, column).font = { bold: true }
+        sheet.getCell(header1.number, column).border = borderAll
+      }
+    }
 
     /* ==========================
     DATOS
@@ -704,7 +762,7 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
           col.width = 6
           break
         default: // Notas
-          col.width = 6
+          col.width = isGeneralView ? 6 : 5
       }
     })
 

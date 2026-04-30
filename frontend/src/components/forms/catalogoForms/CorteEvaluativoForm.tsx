@@ -4,8 +4,7 @@ import {
   saveCorteEvaluativo,
   updateCorteEvaluativo,
 } from "@/actions/catalogos/corteEvaluativoMethods";
-import { getSemestres } from "@/actions/catalogos/semestreMethods";
-import { Corte, Semestre } from "@/interfaces";
+import { Corte } from "@/interfaces";
 import React, { useEffect, useState } from "react";
 import { useToast } from '@/hooks/use-toast'
 
@@ -21,8 +20,6 @@ export default function CorteEvaluativoForm({
   const { toast } = useToast()
   const [corteEvaluativo, setCorteEvaluativo] = useState<string>("");
   const [abreviatura, setAbriatura] = useState<string>("");
-  const [semestre, setSemestre] = useState<string>("");
-  const [semestres, setSemestres] = useState<Semestre[]>([]);
 
   const isEdit = Boolean(defaultValues?.id);
 
@@ -31,44 +28,16 @@ export default function CorteEvaluativoForm({
     if (defaultValues) {
       setCorteEvaluativo(defaultValues.corte || "");
       setAbriatura(defaultValues.abreviatura || "");
-      setSemestre(String(defaultValues.semestre?.id || ""));
     }
   }, [defaultValues]);
-
-  useEffect(() => {
-    const fetchSemestres = async () => {
-      try {
-        const response = await getSemestres();
-        setSemestres(response);
-      } catch (error) {
-        console.error("Error al cargar semestres:", error);
-      }
-    };
-
-    fetchSemestres();
-  }, []);
 
   //funcion que guarda o edita
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const selectedSemestre = semestres.find(
-        (s) => s.id === parseInt(semestre)
-      );
-
-      if (!selectedSemestre) {
-        toast({
-          title: "Seleccione un semestre",
-          description: "Debe seleccionar un semestre antes de guardar.",
-          variant: "destructive",
-        })
-        return;
-      }
-
       const dataToSend = {
         corte: corteEvaluativo,
         abreviatura: abreviatura,
-         semestre: selectedSemestre,
       };
       
       if (isEdit && defaultValues?.id) {
@@ -113,20 +82,6 @@ export default function CorteEvaluativoForm({
         className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
         required
       />
-      <select
-        name=""
-        id=""
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        value={semestre}
-        onChange={(e) => setSemestre(e.target.value)}
-      >
-        <option value="">Semestres</option>
-        {semestres?.map((r) => (
-          <option key={r.id} value={r.id}>
-            {r.semestre}
-          </option>
-        ))}
-      </select>
 
       <div className="flex justify-center">
         <button

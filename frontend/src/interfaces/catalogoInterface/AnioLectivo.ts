@@ -4,6 +4,7 @@ import { Corte } from "./corteEvaluativoInterface";
 
 export interface PeriodoLectivo {
     id?: number,
+    tipo_periodizacion_id?: number,
     nombre: string,
     abreviatura?: string,
     tipo?: string,
@@ -13,6 +14,7 @@ export interface PeriodoLectivo {
 
 export interface PeriodoLectivoPayload {
     id?: number,
+    tipo_periodizacion_id?: number,
     nombre: string,
     abreviatura?: string,
     tipo?: string,

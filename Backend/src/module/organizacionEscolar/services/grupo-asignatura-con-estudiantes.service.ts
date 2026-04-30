@@ -53,6 +53,7 @@ export class GrupoAsignaturaConEstudiantesService {
                 .innerJoin('grupo.organizacionEscolar', 'org')
                 .innerJoin('org.anio_lectivo', 'anio')
                 .where('gce.estudiante = :estudianteId', { estudianteId: dto.estudiante.id })
+                .andWhere('gce.deleted_at IS NULL')
                 .andWhere('anio.id = :anioId', { anioId })
                 .andWhere('grupo.id != :grupoId', { grupoId: gca.grupo.id }) // ❌ no permitir en OTRO grupo del mismo año
                 .getOne();
@@ -65,6 +66,7 @@ export class GrupoAsignaturaConEstudiantesService {
             const yaAsignado = await this.grupoConEstudianteRepo
                 .createQueryBuilder('gce')
                 .where('gce.estudiante = :estudianteId', { estudianteId: dto.estudiante.id })
+                .andWhere('gce.deleted_at IS NULL')
                 .andWhere('gce.grupoAsignaturaDocente = :gadId', { gadId: dto.grupoAsignaturaDocente.id })
                 .getOne();
 
@@ -98,6 +100,7 @@ export class GrupoAsignaturaConEstudiantesService {
                 .leftJoinAndSelect('turno.modalidad', 'modalidad')
                 .leftJoinAndSelect('grupo.docenteGuia', 'docenteGuia')
                 .leftJoinAndSelect('gce.estudiante', 'estudiante')
+                .where('gce.deleted_at IS NULL')
                 .getMany();
 
             return gruposConEstudiantes;
@@ -124,7 +127,8 @@ export class GrupoAsignaturaConEstudiantesService {
                 .leftJoinAndSelect('grupo.docenteGuia', 'docenteGuia')
                 .leftJoinAndSelect('gce.estudiante', 'estudiante')
                 .leftJoinAndSelect('estudiante.gender', 'gender')
-                .where("grupo.id = :grupoId", { grupoId })
+                .where('gce.deleted_at IS NULL')
+                .andWhere("grupo.id = :grupoId", { grupoId })
                 .getMany();
 
             // return data.map(item => ({
@@ -163,9 +167,10 @@ export class GrupoAsignaturaConEstudiantesService {
 
                 await manager
                     .createQueryBuilder()
-                    .delete()
-                    .from(GrupoAsignaturaConEstudiantes)
+                    .update(GrupoAsignaturaConEstudiantes)
+                    .set({ deleted_at: new Date() })
                     .where('estudianteId = :estudianteId', { estudianteId })
+                    .andWhere('deleted_at IS NULL')
                     .andWhere(
                         `grupoAsignaturaDocenteId IN (
             SELECT gad.id
@@ -243,6 +248,7 @@ export class GrupoAsignaturaConEstudiantesService {
             .innerJoin('gce.grupoAsignaturaDocente', 'gad')
             .innerJoin('gad.grupo', 'grupo')
             .where('estudiante.id = :idEstudiante', { idEstudiante })
+            .andWhere('gce.deleted_at IS NULL')
             .andWhere('grupo.id = :idGrupo', { idGrupo })
             .select(['gce.id']) // solo nos interesa el id de la relación
             .getMany();
@@ -257,8 +263,8 @@ export class GrupoAsignaturaConEstudiantesService {
         // 3️⃣ Eliminar todas en un solo paso
         await this.grupoConEstudianteRepo
             .createQueryBuilder()
-            .delete()
-            .from('grupo_asignatura_con_estudiantes') // 👈 usa el nombre real de la tabla
+            .update(GrupoAsignaturaConEstudiantes)
+            .set({ deleted_at: new Date() })
             .whereInIds(idsAEliminar)
             .execute();
 

@@ -2,7 +2,7 @@
 
 import RegisterEstudent from "@/interfaces/registerEstudentInterface"
 import RegisterEstudentRow from "./RegisterEstudentRow"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 interface StudentProps {
   student: RegisterEstudent[]
   fetchStudent: () => Promise<void>
@@ -10,9 +10,18 @@ interface StudentProps {
 export default function RegisterEstudentTable({ student, fetchStudent }: StudentProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const EstudentsPerPage = 5
+
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(student.length / EstudentsPerPage))
+    setCurrentPage((prev) => Math.min(prev, totalPages))
+  }, [student.length])
+
   const indexOfLastStudent = currentPage * EstudentsPerPage
   const indexOfFirstStudent = indexOfLastStudent - EstudentsPerPage
   const currentStudents = student.slice(indexOfFirstStudent, indexOfLastStudent)
+
+  const totalPages = Math.max(1, Math.ceil(student.length / EstudentsPerPage))
+
   return (
     <div className="bg-white">
       <div className="bg-white shadow-lg h-[calc(100vh-230px)] overflow-y-auto">
@@ -24,6 +33,8 @@ export default function RegisterEstudentTable({ student, fetchStudent }: Student
               <th className="p-3 border-b border-gray-300">Nombres</th>
               <th className="p-3 border-b border-gray-300">Apellidos</th>
               <th className="p-3 border-b border-gray-300">Codigo del estudiante</th>
+              <th className="p-3 border-b border-gray-300">Anio lectivo</th>
+              <th className="p-3 border-b border-gray-300">Grupo asignado</th>
               <th className="p-1 border-b border-gray-300 text-center">Ver Expediente</th>
               <th className="p-1 border-b border-gray-300 text-center">Editar</th>
               <th className="p-1 border-b border-gray-300 text-center">Eliminar</th>
@@ -40,8 +51,8 @@ export default function RegisterEstudentTable({ student, fetchStudent }: Student
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="px-4 py-3">
-                  No hay docentes registrados.
+                <td colSpan={10} className="px-4 py-3">
+                  No hay estudiantes registrados con esos filtros.
                 </td>
               </tr>
             )}
@@ -52,7 +63,7 @@ export default function RegisterEstudentTable({ student, fetchStudent }: Student
       {/* Paginación */}
       <div className="flex justify-between items-center px-6 py-4 text-sm text-gray-600">
         <p>
-          Página {currentPage} de {Math.ceil(student.length / EstudentsPerPage)}
+          Página {currentPage} de {totalPages}
         </p>
         <div className="space-x-2">
           <button
@@ -65,10 +76,10 @@ export default function RegisterEstudentTable({ student, fetchStudent }: Student
           <button
             onClick={() =>
               setCurrentPage((prev) =>
-                prev < Math.ceil(student.length / EstudentsPerPage) ? prev + 1 : prev
+                prev < totalPages ? prev + 1 : prev
               )
             }
-            disabled={currentPage === Math.ceil(student.length / EstudentsPerPage)}
+            disabled={currentPage === totalPages}
             className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
           >
             Siguiente

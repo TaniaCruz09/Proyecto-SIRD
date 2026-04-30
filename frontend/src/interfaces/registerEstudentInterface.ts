@@ -29,6 +29,9 @@ export default interface RegisterEstudent {
     currentYear: string
     gpa: number
     academicHistory: AcademicYear[]
+    asignadoAnio?: string | null
+    asignadoGrupo?: string | null
+    organizacionEscolarResumen?: string | null
 
     user_create_id?: number | null;
     created_at?: string;

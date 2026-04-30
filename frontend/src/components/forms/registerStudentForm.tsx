@@ -278,7 +278,7 @@ export default function RegisterEstudentForm({ defeaultValues: defaultValues, on
     <form
       ref={formRef}
       onSubmit={handleSubmit}
-      className="max-w-2xl mx-auto bg-white shadow-lg rounded-2xl p-6 space-y-6 overflow-y-auto"
+      className="w-full space-y-6 overflow-y-auto rounded-2xl px-2 py-4 sm:px-4"
     >
       {/* Título */}
       <h2 className="text-2xl font-semibold text-center text-indigo-700 border-b pb-2">

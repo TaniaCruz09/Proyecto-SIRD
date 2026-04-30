@@ -325,7 +325,7 @@ export default function DocenteForm({
 
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6 overflow-y-auto px-4">
+    <form ref={formRef} onSubmit={handleSubmit} className="w-full space-y-6 overflow-y-auto px-2 py-4 sm:px-4">
       <h2 className="text-2xl font-semibold text-center text-indigo-700 border-b pb-2">
         {isEdit ? "✏️ Editar Docente" : "👤 Agregar Docente"}
       </h2>

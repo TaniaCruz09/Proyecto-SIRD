@@ -20,6 +20,7 @@ export default function AddStudentModal({ fetchStudent }: AddStudentModalProp) {
         <ModalBase
           onshowModal={showModal}
           onCloseModal={() => setShowModal(false)}
+          containerClassName="max-w-2xl p-4 sm:p-5"
           content={
             <RegisterEstudentForm
               onSucess={() => {

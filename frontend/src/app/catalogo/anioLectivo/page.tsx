@@ -3,7 +3,9 @@ import { getAniosLectivos } from "@/actions/catalogos/anioLectivoMethods";
 import AddAniosLectivosModal from "@/components/modals/catalogo/anioLectivoModals/AddAnioLectivoModal";
 import SearchBar from "@/components/SearchBar";
 import AnioLectivoTable from "@/components/tables/catalogo/AnioLectivoTable";
+import { Button } from "@/components/ui/button";
 import { AnioLectivo } from "@/interfaces";
+import { CalendarDays } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
@@ -61,12 +63,25 @@ export default function Page() {
         <h2 className="pl-10 text-xl font-bold text-gray-600">
           Listado de Años Lectivos
         </h2>
-        <SearchBar
-          value={searchTerm}
-          onChange={setSearchTerm}
-          onClear={() => setSearchTerm("")}
-          placeholder="Buscar Año lectivo"
-        />
+        <div className="flex items-center gap-3 pr-4">
+          {idAnioLectivo ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="gap-2"
+              onClick={() => router.push(`/catalogo/anioLectivo/calendarizacion?idAnioLectivo=${idAnioLectivo}`)}
+            >
+              <CalendarDays className="h-4 w-4" />
+              Editar calendario
+            </Button>
+          ) : null}
+          <SearchBar
+            value={searchTerm}
+            onChange={setSearchTerm}
+            onClear={() => setSearchTerm("")}
+            placeholder="Buscar Año lectivo"
+          />
+        </div>
       </div>
       <AnioLectivoTable anioLectivo={filteredAnioLectivo} fetchAniosLectivos={fetchAniosLectivos} />
     </div>

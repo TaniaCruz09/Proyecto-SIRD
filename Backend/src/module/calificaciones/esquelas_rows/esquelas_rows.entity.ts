@@ -3,6 +3,7 @@ import { Cortes } from 'src/module/catalogos/entities/corte.entity';
 import { StudentEntity } from 'src/module/createEstudents/students.entity';
 import {
     Column,
+    DeleteDateColumn,
     Entity,
     JoinColumn,
     ManyToOne,
@@ -45,4 +46,7 @@ export class EsquelaRow {
     @ManyToOne(() => EsquelaHeadEntity, (esquelaHead) => esquelaHead.esquelaRow)
     @JoinColumn({ name: 'esquelaHead_id' })
     esquelaHead: EsquelaHeadEntity;
+
+    @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
+    deleted_at: Date;
 }
