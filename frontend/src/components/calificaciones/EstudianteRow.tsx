@@ -18,6 +18,8 @@ interface Props {
     onGuardar: (estudiante: any, asignaturaId: number, nota: string, setNotaBD: (nota: string) => void, isUpdate: boolean) => Promise<void> | void
     notaBD?: { notaCuantitativa?: number; notaCualitativa?: string }
     isAnioActivo: boolean
+    isCorteEditable: boolean
+    corteBloqueadoMensaje?: string
 }
 
 export default function EstudianteRow({
@@ -28,7 +30,9 @@ export default function EstudianteRow({
     getInitials,
     onGuardar,
     notaBD,
-    isAnioActivo
+    isAnioActivo,
+    isCorteEditable,
+    corteBloqueadoMensaje,
 }: Props) {
     // usamos string para permitir borrar y editar libremente
     const inicial = typeof notaBD?.notaCuantitativa !== "undefined" ? String(notaBD.notaCuantitativa) : ""
@@ -121,7 +125,8 @@ export default function EstudianteRow({
                             pattern="[0-9]*"
                             placeholder="0-100"
                             value={notaLocal}
-                            readOnly={!isAnioActivo}
+                            readOnly={!isAnioActivo || !isCorteEditable}
+                            title={corteBloqueadoMensaje}
                             onChange={(e) => {
                                 // permitimos borrar y solo números hasta 3 dígitos
                                 const v = e.target.value
@@ -129,7 +134,7 @@ export default function EstudianteRow({
                                     setNotaLocal(v)
                                 }
                             }}
-                            disabled={!editando || guardando}
+                            disabled={!editando || guardando || !isCorteEditable || !isAnioActivo}
                             className="text-center text-lg font-semibold h-12 border-2 focus:border-primary"
                         />
 
@@ -138,7 +143,8 @@ export default function EstudianteRow({
                                 size="icon"
                                 variant="secondary"
                                 onClick={handleGuardarClick}
-                                disabled={!isAnioActivo || guardando || notaLocal.trim() === ""}
+                                disabled={!isAnioActivo || !isCorteEditable || guardando || notaLocal.trim() === ""}
+                                title={corteBloqueadoMensaje}
                             >
                                 <Save className="h-4 w-4" />
                             </Button>
@@ -147,7 +153,8 @@ export default function EstudianteRow({
                                 size="icon"
                                 variant="outline"
                                 onClick={() => setEditando(true)}
-                                disabled={!isAnioActivo} // <-- aquí se bloquea edición si el año no está activo
+                                disabled={!isAnioActivo || !isCorteEditable}
+                                title={corteBloqueadoMensaje}
                             >
                                 <Edit className="h-4 w-4" />
                             </Button>

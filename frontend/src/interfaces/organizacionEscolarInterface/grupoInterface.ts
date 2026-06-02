@@ -12,6 +12,7 @@ export interface GrupoEscolar {
     seccion: Seccion,
     turno: Turno,
     numero_estudiantes?: number,
+    numero_estudiantes_inactivos?: number,
     numero_materias?: number,
     organizacionEscolar: OrganizacionEscolar,
     docenteGuia: Docente,

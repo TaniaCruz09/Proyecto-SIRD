@@ -13,7 +13,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import * as moment from 'moment-timezone';
-import { User } from '../../auth/entities';
+import { User } from '../../auth/entities/user.entity';
 
 @Entity({ schema: 'catalogos', name: 'pais' })
 export class Pais {

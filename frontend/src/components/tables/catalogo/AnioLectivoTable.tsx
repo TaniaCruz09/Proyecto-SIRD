@@ -30,7 +30,6 @@ export default function AnioLectivoTable({
               <th className="p-3 border-b">Años Lectivos</th>
               <th className="p-3 border-b">Cortes</th>
               <th className="p-3 border-b">Estado</th>
-              <th className="p-1 border-b text-center">Calendario</th>
               <th className="p-1 border-b text-center">Editar</th>
               <th className="p-1 border-b text-center">Eliminar</th>
             </tr>
@@ -46,7 +45,7 @@ export default function AnioLectivoTable({
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="px-4 py-3">
+                <td colSpan={6} className="px-4 py-3">
                   No hay años lectivos registrados.
                 </td>
               </tr>

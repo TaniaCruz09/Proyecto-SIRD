@@ -16,6 +16,11 @@ export class UpsertAnioLectivoCalendarizacionItemDto {
   @IsInt()
   corte_id: number;
 
+  @IsNotEmpty()
+  @Type(() => Number)
+  @IsInt()
+  modalidad_id: number;
+
   @IsOptional()
   @IsDateString()
   fecha_inicio?: string | null;

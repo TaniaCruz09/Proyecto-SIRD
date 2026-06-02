@@ -23,10 +23,16 @@ export class AnioLectivoCalendarizacionController {
     private readonly anioLectivoCalendarizacionService: AnioLectivoCalendarizacionService,
   ) {}
 
-  @Get('/anio-lectivo/:anioLectivoId')
-  async getByAnioLectivo(@Param('anioLectivoId', ParseIntPipe) anioLectivoId: number) {
+  @Get('/anio-lectivo/:anioLectivoId/modalidad/:modalidadId')
+  async getByAnioLectivoAndModalidad(
+    @Param('anioLectivoId', ParseIntPipe) anioLectivoId: number,
+    @Param('modalidadId', ParseIntPipe) modalidadId: number,
+  ) {
     try {
-      const data = await this.anioLectivoCalendarizacionService.getByAnioLectivo(anioLectivoId);
+      const data = await this.anioLectivoCalendarizacionService.getByAnioLectivoAndModalidad(
+        anioLectivoId,
+        modalidadId,
+      );
       return {
         data,
         message: 'Calendarizacion encontrada',
@@ -36,9 +42,10 @@ export class AnioLectivoCalendarizacionController {
     }
   }
 
-  @Put('/anio-lectivo/:anioLectivoId')
-  async upsertByAnioLectivo(
+  @Put('/anio-lectivo/:anioLectivoId/modalidad/:modalidadId')
+  async upsertByAnioLectivoAndModalidad(
     @Param('anioLectivoId', ParseIntPipe) anioLectivoId: number,
+    @Param('modalidadId', ParseIntPipe) modalidadId: number,
     @Body() payload: UpsertAnioLectivoCalendarizacionDto,
     @Req() req,
   ) {
@@ -48,8 +55,9 @@ export class AnioLectivoCalendarizacionController {
         return { message: 'Usuario no autenticado', statusCode: 401 };
       }
 
-      const data = await this.anioLectivoCalendarizacionService.upsertByAnioLectivo(
+      const data = await this.anioLectivoCalendarizacionService.upsertByAnioLectivoAndModalidad(
         anioLectivoId,
+        modalidadId,
         payload,
         userId,
       );

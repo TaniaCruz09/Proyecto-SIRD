@@ -9,24 +9,18 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import * as moment from 'moment-timezone';
-import { User } from '../../auth/entities';
+import { User } from '../../auth/entities/user.entity';
 
 @Entity({ schema: 'catalogos', name: 'tipo_periodizacion' })
 export class TipoPeriodizacion {
   @PrimaryGeneratedColumn()
   id?: number;
 
-  @Column({ type: 'varchar', length: 30, unique: true, name: 'codigo' })
-  codigo: string;
-
   @Column({ type: 'varchar', length: 60, name: 'nombre' })
   nombre: string;
 
   @Column({ type: 'int2', name: 'cantidad_periodos', default: 1 })
   cantidad_periodos: number;
-
-  @Column({ type: 'varchar', length: 40, name: 'etiqueta_periodo', nullable: true })
-  etiqueta_periodo?: string;
 
   @Column({ type: 'varchar', length: 10, name: 'prefijo_abreviatura', nullable: true })
   prefijo_abreviatura?: string;

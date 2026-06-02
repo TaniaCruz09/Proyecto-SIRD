@@ -33,7 +33,7 @@ export default function Page() {
 
   //filtro
   const filteredTurno = turnos.filter((u) =>
-    u.turno.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.turno ?? "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

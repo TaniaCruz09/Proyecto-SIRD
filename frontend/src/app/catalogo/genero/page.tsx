@@ -33,7 +33,7 @@ export default function Page() {
 
   //filtro
   const filteredSexo = sexos.filter((u) =>
-    u.gender.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.gender ?? "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

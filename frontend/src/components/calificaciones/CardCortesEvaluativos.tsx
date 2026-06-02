@@ -1,17 +1,22 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { CheckCircle, Lock } from 'lucide-react'
 import { CorteUI } from '@/interfaces/calificaciones/AgregarCalificaciones'
 
+type CorteStatus = {
+    habilitado: boolean
+    completo: boolean
+    mensaje: string
+    rango: string
+}
 
 interface CardCortesEvaluativosProps {
-    estudiantes: any[] // tu tipo Estudiante
-    asignaturaActiva: number
     corteActivo: number | null
     setCorteActivo: (c: number) => void
     cortesUI: CorteUI[]
     tipoPeriodizacion?: string
+    getCorteStatus: (corteId: number) => CorteStatus
 }
 
 const formatTipoPeriodizacion = (tipo?: string) => {
@@ -38,29 +43,14 @@ const formatTipoPeriodizacion = (tipo?: string) => {
 }
 
 export default function CardCortesEvaluativos({
-    estudiantes,
-    asignaturaActiva,
     corteActivo,
     setCorteActivo,
     cortesUI,
     tipoPeriodizacion,
+    getCorteStatus,
 }: CardCortesEvaluativosProps) {
 
     const tipoPeriodizacionLabel = formatTipoPeriodizacion(tipoPeriodizacion)
-
-    const verificarCorteCompleto = (corteId: number, asignaturaId: number) => {
-        return estudiantes.every(est => {
-            const calificacion = est.calificaciones[asignaturaId]?.[corteId]
-            return typeof calificacion !== "undefined" && calificacion !== ""
-        })
-    }
-
-    const verificarCorteHabilitado = (index: number, asignaturaId: number) => {
-        if (index === 0) return true
-        const corteAnterior = cortesUI[index - 1]
-        if (!corteAnterior) return false
-        return verificarCorteCompleto(corteAnterior.id, asignaturaId)
-    }
 
     return (
         <Card className="mb-6 border-2 border-primary/20">
@@ -71,15 +61,14 @@ export default function CardCortesEvaluativos({
                         : "Seleccionar Período de Calificación"}
                 </CardTitle>
                 <CardDescription>
-                    Los cortes se habilitan progresivamente al completar todas las calificaciones del corte anterior
+                    Los cortes se habilitan por secuencia y por las fechas configuradas en el calendario del año lectivo
                 </CardDescription>
             </CardHeader>
 
             <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {cortesUI.map((corte, index) => {
-                        const habilitado = verificarCorteHabilitado(index, asignaturaActiva)
-                        const completo = verificarCorteCompleto(corte.id, asignaturaActiva)
+                    {cortesUI.map((corte) => {
+                        const { habilitado, completo, mensaje, rango } = getCorteStatus(corte.id)
 
                         return (
                             <Button
@@ -87,6 +76,7 @@ export default function CardCortesEvaluativos({
                                 variant={corteActivo === corte.id ? "default" : "outline"}
                                 disabled={!habilitado}
                                 onClick={() => setCorteActivo(corte.id)}
+                                title={mensaje}
                                 className={`h-auto py-4 flex flex-col items-start gap-2 relative ${corteActivo === corte.id ? "ring-2 ring-primary ring-offset-2" : ""}`}
                             >
                                 <div className="flex items-center gap-2 w-full">
@@ -97,8 +87,10 @@ export default function CardCortesEvaluativos({
                                 </div>
 
                                 <span className="text-xs opacity-80">
-                                    {!habilitado ? "Bloqueado" : completo ? "Completado" : "En progreso"}
+                                    {!habilitado ? mensaje : completo ? "Completado" : mensaje}
                                 </span>
+
+                                {rango ? <span className="text-[11px] opacity-70">{rango}</span> : null}
                             </Button>
                         )
                     })}

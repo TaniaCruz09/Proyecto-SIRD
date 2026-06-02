@@ -13,18 +13,25 @@ interface EditAñoLectivoModalProp {
 export default function EditAñoLectivoModal({ añoLectivo, fetchAñoLectivo }: EditAñoLectivoModalProp) {
     const [showModal, setShowModal] = useState(false);
     const [anioLectivoToEdit, setAnioLectivoToEdit] = useState<AnioLectivo>(añoLectivo);
+    const [isLoadingDetail, setIsLoadingDetail] = useState(false);
 
     const handleOpenModal = async () => {
-        setShowModal(true);
+        if (isLoadingDetail) {
+            return;
+        }
+
+        setIsLoadingDetail(true);
 
         try {
             const fullAnioLectivo = await getAnioLectivoById(añoLectivo.id);
-            if (fullAnioLectivo) {
-                setAnioLectivoToEdit(fullAnioLectivo);
-            }
+            setAnioLectivoToEdit(fullAnioLectivo || añoLectivo);
+            setShowModal(true);
         } catch (error) {
             console.error("No se pudo cargar el detalle del año lectivo para edición", error);
             setAnioLectivoToEdit(añoLectivo);
+            setShowModal(true);
+        } finally {
+            setIsLoadingDetail(false);
         }
     };
 
@@ -38,6 +45,7 @@ export default function EditAñoLectivoModal({ añoLectivo, fetchAñoLectivo }: 
                     containerClassName="max-w-6xl overflow-hidden p-0"
                     content={
                         <AnioLectivoForm
+                            key={`${anioLectivoToEdit.id}-${anioLectivoToEdit.periodos?.length ?? 0}`}
                             defaultValues={anioLectivoToEdit}
                             onSuccess={() => {
                                 fetchAñoLectivo();

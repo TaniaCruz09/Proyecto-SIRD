@@ -37,4 +37,7 @@ export interface Asignatura {
 
 export interface CorteUI extends Corte {
     color: string
+    fecha_inicio?: string | null
+    fecha_fin?: string | null
+    observacion?: string | null
 }

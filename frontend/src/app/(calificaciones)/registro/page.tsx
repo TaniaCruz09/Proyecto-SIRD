@@ -18,7 +18,9 @@ export default function RegistroCalificaciones() {
         if (idOrganizacionEscolar && anio && asignatura) {
             getEstudiantesAsignados(Number(idOrganizacionEscolar))
                 .then(data => {
-                    const soloEstudiantes = data.map((item: any) => item.estudiante);
+                    const soloEstudiantes = data
+                        .filter((item: any) => item?.activo !== false)
+                        .map((item: any) => item.estudiante);
                     setEstudiantes(soloEstudiantes);
                 })
                 .catch(err => {

@@ -15,10 +15,8 @@ interface TipoPeriodizacionFormProps {
 
 export default function TipoPeriodizacionForm({ defaultValues, onSuccess }: TipoPeriodizacionFormProps) {
   const { toast } = useToast();
-  const [codigo, setCodigo] = useState("");
   const [nombre, setNombre] = useState("");
   const [cantidadPeriodos, setCantidadPeriodos] = useState("1");
-  const [etiquetaPeriodo, setEtiquetaPeriodo] = useState("");
   const [prefijoAbreviatura, setPrefijoAbreviatura] = useState("");
   const [isActive, setIsActive] = useState(true);
 
@@ -27,10 +25,8 @@ export default function TipoPeriodizacionForm({ defaultValues, onSuccess }: Tipo
   useEffect(() => {
     if (!defaultValues) return;
 
-    setCodigo(defaultValues.codigo || "");
     setNombre(defaultValues.nombre || "");
     setCantidadPeriodos(String(defaultValues.cantidad_periodos || 1));
-    setEtiquetaPeriodo(defaultValues.etiqueta_periodo || "");
     setPrefijoAbreviatura(defaultValues.prefijo_abreviatura || "");
     setIsActive(defaultValues.isActive ?? true);
   }, [defaultValues]);
@@ -40,10 +36,8 @@ export default function TipoPeriodizacionForm({ defaultValues, onSuccess }: Tipo
 
     try {
       const payload = {
-        codigo: codigo.trim().toUpperCase(),
         nombre: nombre.trim(),
         cantidad_periodos: Number.parseInt(cantidadPeriodos, 10) || 1,
-        etiqueta_periodo: etiquetaPeriodo.trim() || undefined,
         prefijo_abreviatura: prefijoAbreviatura.trim() || undefined,
         isActive,
       };
@@ -81,58 +75,62 @@ export default function TipoPeriodizacionForm({ defaultValues, onSuccess }: Tipo
         {isEdit ? "Editar Tipo de Periodo" : "Agregar Tipo de Periodo"}
       </h2>
 
-      <input
-        type="text"
-        placeholder="Codigo (ej: SEMESTRE)"
-        value={codigo}
-        onChange={(e) => setCodigo(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        required
-      />
-
-      <input
-        type="text"
-        placeholder="Nombre (ej: Semestral)"
-        value={nombre}
-        onChange={(e) => setNombre(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        required
-      />
-
-      <input
-        type="number"
-        min="1"
-        placeholder="Cantidad de periodos"
-        value={cantidadPeriodos}
-        onChange={(e) => setCantidadPeriodos(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        required
-      />
-
-      <input
-        type="text"
-        placeholder="Etiqueta del periodo (ej: Semestre)"
-        value={etiquetaPeriodo}
-        onChange={(e) => setEtiquetaPeriodo(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-      />
-
-      <input
-        type="text"
-        placeholder="Prefijo abreviatura (ej: S)"
-        value={prefijoAbreviatura}
-        onChange={(e) => setPrefijoAbreviatura(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-      />
-
-      <label className="flex items-center gap-2 text-sm text-gray-700">
+      <div className="space-y-2">
+        <label htmlFor="tipo-periodizacion-nombre" className="block text-sm font-medium text-gray-700">
+          Nombre
+        </label>
         <input
-          type="checkbox"
-          checked={isActive}
-          onChange={(e) => setIsActive(e.target.checked)}
+          id="tipo-periodizacion-nombre"
+          type="text"
+          placeholder="Ej: Semestral"
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+          required
         />
-        Activo
-      </label>
+      </div>
+
+      <div className="space-y-2">
+        <label htmlFor="tipo-periodizacion-cantidad" className="block text-sm font-medium text-gray-700">
+          Cantidad de periodos
+        </label>
+        <input
+          id="tipo-periodizacion-cantidad"
+          type="number"
+          min="1"
+          placeholder="Ej: 2"
+          value={cantidadPeriodos}
+          onChange={(e) => setCantidadPeriodos(e.target.value)}
+          className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label htmlFor="tipo-periodizacion-prefijo" className="block text-sm font-medium text-gray-700">
+          Prefijo
+        </label>
+        <input
+          id="tipo-periodizacion-prefijo"
+          type="text"
+          placeholder="Ej: S"
+          value={prefijoAbreviatura}
+          onChange={(e) => setPrefijoAbreviatura(e.target.value)}
+          className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <span className="block text-sm font-medium text-gray-700">Estado</span>
+        <label className="flex items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={isActive}
+            onChange={(e) => setIsActive(e.target.checked)}
+          />
+          Activo
+        </label>
+      </div>
 
       <div className="flex justify-center">
         <button

@@ -145,24 +145,37 @@ export function AcademicYearsDashboard() {
                                                     <CardDescription className="text-xs text-slate-500">{org.turno?.modalidad?.modalidad || "Sin modalidad"}</CardDescription>
                                                 </CardHeader>
                                                 <CardContent className="pt-0">
-                                                    <div className="flex gap-1 mt-2">
+                                                    <div className="flex flex-col gap-1 mt-2">
+                                                        <div className="flex gap-1">
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="flex-1 text-xs h-7 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
+                                                                onClick={() => router.push(`/add-groups-to-organization/${org.id}`)}
+                                                            >
+                                                                <Eye className="h-3 w-3 mr-1" />
+                                                                Ver
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="flex-1 text-xs h-7 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
+                                                                onClick={() => router.push(`/organizacion?organizacionId=${org.id}`)}
+                                                            >
+                                                                <Settings className="h-3 w-3 mr-1" />
+                                                                Gestionar
+                                                            </Button>
+                                                        </div>
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            className="flex-1 text-xs h-7 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
-                                                            onClick={() => router.push(`/add-groups-to-organization/${org.id}`)}
+                                                            className="w-full text-xs h-7 border-amber-200 text-amber-700 hover:bg-amber-50 bg-transparent"
+                                                            onClick={() => router.push(
+                                                                `/catalogo/anioLectivo/calendarizacion?idAnioLectivo=${anioLectivo.id}&modalidadId=${org.turno?.modalidad?.id ?? 0}`
+                                                            )}
                                                         >
-                                                            <Eye className="h-3 w-3 mr-1" />
-                                                            Ver
-                                                        </Button>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="flex-1 text-xs h-7 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
-                                                            onClick={() => router.push(`/organizacion?organizacionId=${org.id}`)}
-                                                        >
-                                                            <Settings className="h-3 w-3 mr-1" />
-                                                            Gestionar
+                                                            <CalendarDays className="h-3 w-3 mr-1" />
+                                                            Calendarización
                                                         </Button>
                                                     </div>
                                                 </CardContent>
@@ -188,15 +201,6 @@ export function AcademicYearsDashboard() {
                                         idAnioLectivo={Number(anioLectivo.id)}
                                         onSuccess={fetchAniosLectivos}
                                     />
-                                    <Button
-                                        onClick={() => router.push(`/catalogo/anioLectivo/calendarizacion?idAnioLectivo=${anioLectivo.id}`)}
-                                        variant="outline"
-                                        size="sm"
-                                        className="flex items-center gap-2 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
-                                    >
-                                        <CalendarDays className="h-4 w-4" />
-                                        Editar o ver calendario
-                                    </Button>
                                     <Button
                                         onClick={() => router.push(`/catalogo/anioLectivo?idAnioLectivo=${anioLectivo.id}`)}
                                         variant="outline"

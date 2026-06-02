@@ -59,7 +59,7 @@ export default function DocenteRow({ fetchDocentes, docente }: DocenteRowProps) 
         </Link>
       </td>
       <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><EditDocenteModal docente={docente} fetchDocentes={fetchDocentes} /></td>
-      <td className="p-3 px-2 py-3 border-b border-gray-200 text-center"><DeleteDocenteModal idEliminar={docente.id} fetchDocentes={fetchDocentes} /></td>
+      <td className="p-3 px-2 py-3 border-b border-gray-200 text-center"><DeleteDocenteModal idEliminar={docente.id} docenteFullName={`${docente.nombres} ${docente.apellido_paterno} ${docente.apellido_materno}`.trim()} fetchDocentes={fetchDocentes} /></td>
     </tr>
   )
 }

@@ -11,7 +11,7 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 import { GradesEntity, Modalidad, Seccion, Turno } from '../../catalogos';
-import { User } from '../../auth/entities';
+import { User } from '../../auth/entities/user.entity';
 import * as moment from 'moment-timezone';
 import { Docentes } from 'src/module/docentes/docentes.entity';
 import { OrganizacionEscolar } from './organizacionEscolar.entity';

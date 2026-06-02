@@ -34,7 +34,7 @@ export default function Page() {
 
   //filtro
   const filteredCorteEvaluativo = cortesEvaluativos.filter((u) =>
-    u.corte.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.corte ?? "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

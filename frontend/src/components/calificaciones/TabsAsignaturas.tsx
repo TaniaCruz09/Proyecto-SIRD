@@ -16,10 +16,13 @@ export default function TabsAsignaturas({
     anioLectivo,
     handleGuardarIndividual,
     avanzarCorte,
+    puedeAvanzarCorte,
     asignaturaActiva,
     setAsignaturaActiva,
     guardando,
-    isAnioActivo
+    isAnioActivo,
+    isCorteEditable,
+    corteBloqueadoMensaje,
 }: any) {
     return (
         <Tabs
@@ -59,12 +62,19 @@ export default function TabsAsignaturas({
                                 anioLectivo={anioLectivo}
                                 handleGuardarIndividual={handleGuardarIndividual}
                                 isAnioActivo={isAnioActivo}
+                                isCorteEditable={isCorteEditable}
+                                corteBloqueadoMensaje={corteBloqueadoMensaje}
                             />
                         </CardContent>
                     </Card>
 
                     <div className="flex justify-end mb-4">
-                        <Button onClick={avanzarCorte} className="flex items-center gap-2">
+                        <Button
+                            onClick={avanzarCorte}
+                            disabled={!puedeAvanzarCorte || !isAnioActivo}
+                            title={corteBloqueadoMensaje}
+                            className="flex items-center gap-2"
+                        >
                             <CheckCircle className="h-4 w-4" />
                             Aceptar y avanzar al siguiente corte
                         </Button>

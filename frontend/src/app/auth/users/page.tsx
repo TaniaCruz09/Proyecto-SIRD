@@ -7,7 +7,7 @@ import {
 } from "@/actions/authMethods/usersMethods";
 
 import BtnOpenAddModal from "@/components/Buttons/btnOpenAddModal";
-import ConfirmDeletModal from "@/components/modals/ModalConfirmDeletion";
+import ConfirmDeletModal from "@/components/modals/modalConfirmDeletion";
 import SearchBar from "@/components/SearchBar";
 import UserTable from "@/components/tables/UserTable";
 import UserForm from "@/components/forms/UserForm";
@@ -81,9 +81,9 @@ export default function Users() {
   );
 
   return (
-    <div>
+    <div className="mx-6">
       <div className="flex items-center justify-between">
-        <h1 className="ml-10 text-2xl font-bold c mb-4 tracking-tight text-gray-600 text-center">
+        <h1 className="ml-10 text-2xl font-bold mb-4 tracking-tight text-gray-600 text-center">
           Usuarios
         </h1>
         <div className="flex justify-end mr-10 mb-6 mt-5">
@@ -110,19 +110,14 @@ export default function Users() {
           )}
         </div>
       </div>
-      <div className="flex items-center justify-between border rounded-t-xl">
-        <h2 className="pl-10 text-xl font-bold text-gray-600">
-          Lista de usuarios
-        </h2>
+      <div className="flex items-center justify-between bg-white border rounded-t-xl">
+        <h2 className="pl-10 text-xl font-bold text-gray-600">Lista de usuarios</h2>
         <SearchBar
           value={searchTerm}
           onChange={setSearchTerm}
           onClear={() => setSearchTerm("")}
           placeholder="Buscar por nombre o correo..."
         />
-      </div>
-      <div>
-
       </div>
       <UserTable
         users={filteredUsers}

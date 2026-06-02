@@ -1,4 +1,4 @@
-// src/middleware.ts
+// src/proxy.ts
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import * as jose from 'jose'
@@ -7,7 +7,7 @@ export const config = {
     matcher: ['/admin/:path*', '/docente/home:path*'], // rutas a proteger
 }
 
-export default async function middleware(req: NextRequest) {
+export default async function proxy(req: NextRequest) {
     const { pathname } = req.nextUrl
 
     // Obtener token desde cookie
@@ -23,7 +23,7 @@ export default async function middleware(req: NextRequest) {
     }
 
     try {
-        console.log('Token de cookie en middleware:', token)
+        console.log('Token de cookie en proxy:', token)
 
         // Convertir el secreto a Uint8Array (requerido por jose)
         const secret = new TextEncoder().encode(process.env.JWT_SECRET!)

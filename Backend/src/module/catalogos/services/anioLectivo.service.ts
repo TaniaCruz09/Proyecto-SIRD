@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { In, Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Utilities } from 'src/common/helpers/utilities';
 import { AnioLectivo } from '../entities/anioLectivo.entity';
@@ -66,6 +66,36 @@ export class AnioLectivoService {
             message.includes('catalogos.periodo_lectivo') ||
             message.includes('periodo_lectivo_corte')
         );
+    }
+
+    private async syncOnlyHighestAnioLectivoActive(userId?: number): Promise<void> {
+        const aniosLectivos = await this.anioLectivoRepo.find({
+            where: { deleted_at: IsNull() },
+            order: { anio_lectivo: 'DESC', id: 'DESC' },
+        });
+
+        if (aniosLectivos.length === 0) {
+            return;
+        }
+
+        const highestAnioLectivoId = aniosLectivos[0].id;
+        const now = new Date();
+        const rowsToUpdate = aniosLectivos.filter((anioLectivo) => {
+            const shouldBeActive = anioLectivo.id === highestAnioLectivoId;
+            return anioLectivo.isActive !== shouldBeActive;
+        });
+
+        if (rowsToUpdate.length === 0) {
+            return;
+        }
+
+        for (const anioLectivo of rowsToUpdate) {
+            anioLectivo.isActive = anioLectivo.id === highestAnioLectivoId;
+            anioLectivo.update_at = now;
+            anioLectivo.user_update_id = userId ?? anioLectivo.user_update_id;
+        }
+
+        await this.anioLectivoRepo.save(rowsToUpdate);
     }
 
     private buildAnioLectivoQuery(includePeriodos: boolean) {
@@ -140,53 +170,74 @@ export class AnioLectivoService {
         return (tipo || 'PERSONALIZADO').trim().toUpperCase();
     }
 
-    private resolveFallbackTipoConfig(tipo: string, cantidadPeriodos?: number) {
-        switch (tipo) {
+    private buildTipoPeriodizacionConfig(
+        tipo: string,
+        totalPeriodos: number,
+        etiquetaPeriodo: string,
+        prefijoAbreviatura: string,
+        tipoPeriodizacionId?: number,
+    ) {
+        return {
+            tipo,
+            totalPeriodos,
+            etiquetaPeriodo,
+            prefijoAbreviatura,
+            tipoPeriodizacionId,
+        };
+    }
+
+    private resolveFallbackTipoConfig(tipo?: string, cantidadPeriodos?: number) {
+        const tipoNormalizado = this.normalizeTipoPeriodizacion(tipo);
+
+        switch (tipoNormalizado) {
             case 'SEMESTRE':
-                return { codigo: tipo, totalPeriodos: 2, etiquetaPeriodo: 'Semestre', prefijoAbreviatura: 'S' };
+            case 'SEMESTRAL':
+                return this.buildTipoPeriodizacionConfig('Semestral', 2, 'Semestral', 'S');
             case 'CUATRIMESTRE':
-                return { codigo: tipo, totalPeriodos: 3, etiquetaPeriodo: 'Cuatrimestre', prefijoAbreviatura: 'C' };
+            case 'CUATRIMESTRAL':
+                return this.buildTipoPeriodizacionConfig('Cuatrimestral', 3, 'Cuatrimestral', 'C');
             case 'TRIMESTRE':
-                return { codigo: tipo, totalPeriodos: 4, etiquetaPeriodo: 'Trimestre', prefijoAbreviatura: 'T' };
+            case 'TRIMESTRAL':
+                return this.buildTipoPeriodizacionConfig('Trimestral', 4, 'Trimestral', 'T');
             case 'BIMESTRE':
-                return { codigo: tipo, totalPeriodos: 6, etiquetaPeriodo: 'Bimestre', prefijoAbreviatura: 'B' };
+            case 'BIMESTRAL':
+                return this.buildTipoPeriodizacionConfig('Bimestral', 6, 'Bimestral', 'B');
             default:
-                return {
-                    codigo: 'PERSONALIZADO',
-                    totalPeriodos:
-                        Number.isFinite(cantidadPeriodos) && Number(cantidadPeriodos) > 0
-                            ? Number(cantidadPeriodos)
-                            : 1,
-                    etiquetaPeriodo: 'Periodo',
-                    prefijoAbreviatura: 'P',
-                };
+                return this.buildTipoPeriodizacionConfig(
+                    tipoNormalizado === 'PERSONALIZADO' ? 'Personalizado' : (tipo?.trim() || 'Periodo'),
+                    Number.isFinite(cantidadPeriodos) && Number(cantidadPeriodos) > 0
+                        ? Number(cantidadPeriodos)
+                        : 1,
+                    'Periodo',
+                    'P',
+                );
         }
     }
 
-    private async resolveTipoPeriodizacionConfig(tipo: string, cantidadPeriodos?: number) {
-        const tipoNormalizado = this.normalizeTipoPeriodizacion(tipo);
+    private async resolveTipoPeriodizacionConfig(
+        tipoPeriodizacionId?: number,
+        tipo?: string,
+        cantidadPeriodos?: number,
+    ) {
+        const normalizedId = Number.isFinite(tipoPeriodizacionId) ? Number(tipoPeriodizacionId) : undefined;
 
-        const tipoConfig = await this.tipoPeriodizacionRepo.findOne({
-            where: { codigo: tipoNormalizado, isActive: true, delete_at: null },
-        });
+        if (normalizedId) {
+            const tipoConfig = await this.tipoPeriodizacionRepo.findOne({
+                where: { id: normalizedId, isActive: true, delete_at: null },
+            });
 
-        if (!tipoConfig) {
-            return this.resolveFallbackTipoConfig(tipoNormalizado, cantidadPeriodos);
+            if (tipoConfig) {
+                return this.buildTipoPeriodizacionConfig(
+                    tipoConfig.nombre?.trim() || 'Periodo',
+                    tipoConfig.cantidad_periodos || 1,
+                    tipoConfig.nombre?.trim() || 'Periodo',
+                    tipoConfig.prefijo_abreviatura?.trim() || 'P',
+                    tipoConfig.id,
+                );
+            }
         }
 
-        const totalPeriodos =
-            tipoNormalizado === 'PERSONALIZADO'
-                ? Number.isFinite(cantidadPeriodos) && Number(cantidadPeriodos) > 0
-                    ? Number(cantidadPeriodos)
-                    : tipoConfig.cantidad_periodos || 1
-                : tipoConfig.cantidad_periodos || 1;
-
-        return {
-            codigo: tipoNormalizado,
-            totalPeriodos,
-            etiquetaPeriodo: tipoConfig.etiqueta_periodo || tipoConfig.nombre || 'Periodo',
-            prefijoAbreviatura: tipoConfig.prefijo_abreviatura || tipoConfig.codigo?.charAt(0) || 'P',
-        };
+        return this.resolveFallbackTipoConfig(tipo, cantidadPeriodos);
     }
 
     private buildPeriodoNombre(etiquetaPeriodo: string, prefijoAbreviatura: string, orden: number): { nombre: string; abreviatura: string } {
@@ -201,12 +252,17 @@ export class AnioLectivoService {
 
     private async generatePeriodosFromCortes(
         anioLectivoId: number,
-        tipoPeriodizacion: string,
+        tipoPeriodizacionId: number | undefined,
+        tipoPeriodizacion: string | undefined,
         cortes: { id: number }[],
         cantidadPeriodos?: number,
     ): Promise<void> {
-        const tipoConfig = await this.resolveTipoPeriodizacionConfig(tipoPeriodizacion, cantidadPeriodos);
-        const tipo = tipoConfig.codigo;
+        const tipoConfig = await this.resolveTipoPeriodizacionConfig(
+            tipoPeriodizacionId,
+            tipoPeriodizacion,
+            cantidadPeriodos,
+        );
+        const tipo = tipoConfig.tipo;
         const normalizedCortes = (cortes ?? [])
             .map((corte) => Number(corte?.id))
             .filter((id) => Number.isFinite(id));
@@ -255,6 +311,9 @@ export class AnioLectivoService {
                     nombre: naming.nombre,
                     abreviatura: naming.abreviatura,
                     tipo,
+                    tipoPeriodizacion: tipoConfig.tipoPeriodizacionId
+                        ? ({ id: tipoConfig.tipoPeriodizacionId } as TipoPeriodizacion)
+                        : undefined,
                     orden,
                 });
             }),
@@ -298,6 +357,7 @@ export class AnioLectivoService {
                 cortes,
                 periodos,
                 tipo_periodizacion,
+                tipo_periodizacion_id,
                 cantidad_periodos,
                 cantidad_cortes,
                 ...anioData
@@ -319,6 +379,7 @@ export class AnioLectivoService {
             } else if (Array.isArray(cortes)) {
                 await this.generatePeriodosFromCortes(
                     saved.id,
+                    tipo_periodizacion_id,
                     tipo_periodizacion,
                     cortes,
                     cantidad_periodos,
@@ -328,6 +389,8 @@ export class AnioLectivoService {
             if (Array.isArray(cortes)) {
                 await this.replaceCortes(saved.id, cortes, createAnioLectivoDto.user_create_id);
             }
+
+            await this.syncOnlyHighestAnioLectivoActive(createAnioLectivoDto.user_create_id);
 
             return await this.getAnioLectivoById(saved.id);
         } catch (error) {
@@ -395,6 +458,7 @@ export class AnioLectivoService {
                 cortes,
                 periodos,
                 tipo_periodizacion,
+                tipo_periodizacion_id,
                 cantidad_periodos,
                 cantidad_cortes,
                 ...anioData
@@ -432,6 +496,7 @@ export class AnioLectivoService {
             } else if (Array.isArray(cortes)) {
                 await this.generatePeriodosFromCortes(
                     saved.id,
+                    tipo_periodizacion_id,
                     tipo_periodizacion,
                     cortes,
                     cantidad_periodos,
@@ -441,6 +506,8 @@ export class AnioLectivoService {
             if (Array.isArray(cortes)) {
                 await this.replaceCortes(saved.id, cortes, payload.user_update_id);
             }
+
+            await this.syncOnlyHighestAnioLectivoActive(payload.user_update_id);
 
             return await this.getAnioLectivoById(saved.id);
         } catch (error) {
@@ -539,7 +606,7 @@ export class AnioLectivoService {
                     tipoPeriodizacionId,
                     nombre: tipoCatalogo?.nombre?.trim() || periodo?.nombre?.trim(),
                     abreviatura: tipoCatalogo?.prefijo_abreviatura?.trim() || periodo?.abreviatura?.trim() || null,
-                    tipo: (tipoCatalogo?.codigo?.trim() || periodo?.tipo?.trim() || 'PERSONALIZADO').toUpperCase(),
+                    tipo: tipoCatalogo?.nombre?.trim() || periodo?.tipo?.trim() || 'Personalizado',
                     orden: Number.isFinite(periodo?.orden as number)
                         ? Number(periodo.orden)
                         : index + 1,

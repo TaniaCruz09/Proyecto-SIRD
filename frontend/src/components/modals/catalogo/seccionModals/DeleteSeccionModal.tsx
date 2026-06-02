@@ -1,6 +1,6 @@
 import BtnDelete from '@/components/Buttons/BtnDelete'
 import React, { useState } from 'react'
-import ConfirmDeletModal from '../../ModalConfirmDeletion'
+import ConfirmDeletModal from '../../modalConfirmDeletion'
 import { deleteSeccion } from '@/actions/catalogos/seccionMethods';
 import { useToast } from '@/hooks/use-toast';
 

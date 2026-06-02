@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Utilities } from '../../../common/helpers/utilities';
 import { Grupos } from '../entities/grupos.entity';
 import { GrupoAsignaturaConEstudiantes } from '../entities/grupo-asignatura-con-estudiantes.entity';
-import { AsignarEstudianteAGrupoDto } from '../dtos/grupos-asignatura-con-estudiantes.dto';
+import { ActualizarEstadoEstudianteGrupoDto, AsignarEstudianteAGrupoDto } from '../dtos/grupos-asignatura-con-estudiantes.dto';
 import { GrupoAsignaturaDocente } from '../entities/GrupoAsignaturaDocente.entity';
 import { EsquelaHeadEntity } from '../../calificaciones/esquela_head/entities/squela_head.entity';
 import { EsquelaRow } from '../../calificaciones/esquelas_rows/esquelas_rows.entity';
@@ -27,6 +27,25 @@ export class GrupoAsignaturaConEstudiantesService {
         @InjectRepository(EsquelaRow)
         private esquelaRowRepo: Repository<EsquelaRow>,
     ) { }
+
+    private async obtenerRelacionesActivasPorGrupoYEstudiante(idEstudiante: number, idGrupo: number) {
+        const relaciones = await this.grupoConEstudianteRepo
+            .createQueryBuilder('gce')
+            .innerJoin('gce.estudiante', 'estudiante')
+            .innerJoin('gce.grupoAsignaturaDocente', 'gad')
+            .innerJoin('gad.grupo', 'grupo')
+            .where('estudiante.id = :idEstudiante', { idEstudiante })
+            .andWhere('gce.deleted_at IS NULL')
+            .andWhere('grupo.id = :idGrupo', { idGrupo })
+            .select(['gce.id'])
+            .getMany();
+
+        if (relaciones.length === 0) {
+            throw new NotFoundException('El estudiante no tiene asignaturas en este grupo');
+        }
+
+        return relaciones;
+    }
 
     async saveEstudianteAGrupo(dto: AsignarEstudianteAGrupoDto): Promise<GrupoAsignaturaConEstudiantes> {
         try {
@@ -75,7 +94,10 @@ export class GrupoAsignaturaConEstudiantesService {
             }
 
             // 3️⃣ Crear y guardar la relación
-            const asignacion = this.grupoConEstudianteRepo.create(dto);
+            const asignacion = this.grupoConEstudianteRepo.create({
+                ...dto,
+                activo: dto.activo ?? true,
+            });
             return await this.grupoConEstudianteRepo.save(asignacion);
 
         } catch (error) {
@@ -185,6 +207,7 @@ export class GrupoAsignaturaConEstudiantesService {
                     manager.getRepository(GrupoAsignaturaConEstudiantes).create({
                         grupoAsignaturaDocente: { id: gad.id },
                         estudiante: { id: estudianteId },
+                        activo: true,
                     }),
                 );
 
@@ -241,26 +264,10 @@ export class GrupoAsignaturaConEstudiantesService {
         idEstudiante: number,
         idGrupo: number,
     ) {
-        // 1️⃣ Buscar todas las relaciones con joins
-        const relaciones = await this.grupoConEstudianteRepo
-            .createQueryBuilder('gce')
-            .innerJoin('gce.estudiante', 'estudiante')
-            .innerJoin('gce.grupoAsignaturaDocente', 'gad')
-            .innerJoin('gad.grupo', 'grupo')
-            .where('estudiante.id = :idEstudiante', { idEstudiante })
-            .andWhere('gce.deleted_at IS NULL')
-            .andWhere('grupo.id = :idGrupo', { idGrupo })
-            .select(['gce.id']) // solo nos interesa el id de la relación
-            .getMany();
+        const relaciones = await this.obtenerRelacionesActivasPorGrupoYEstudiante(idEstudiante, idGrupo);
 
-        if (relaciones.length === 0) {
-            throw new NotFoundException('El estudiante no tiene asignaturas en este grupo');
-        }
-
-        // 2️⃣ Extraer los IDs de las relaciones
         const idsAEliminar = relaciones.map(r => r.id);
 
-        // 3️⃣ Eliminar todas en un solo paso
         await this.grupoConEstudianteRepo
             .createQueryBuilder()
             .update(GrupoAsignaturaConEstudiantes)
@@ -268,10 +275,31 @@ export class GrupoAsignaturaConEstudiantesService {
             .whereInIds(idsAEliminar)
             .execute();
 
-        // 4️⃣ Retornar confirmación
         return {
             message: `Estudiante eliminado de todas las asignaturas del grupo ${idGrupo}`,
             eliminados: idsAEliminar,
+        };
+    }
+
+    async actualizarEstadoEstudianteEnGrupo(
+        idEstudiante: number,
+        idGrupo: number,
+        payload: ActualizarEstadoEstudianteGrupoDto,
+    ) {
+        const relaciones = await this.obtenerRelacionesActivasPorGrupoYEstudiante(idEstudiante, idGrupo);
+        const idsActualizar = relaciones.map((relacion) => relacion.id);
+
+        await this.grupoConEstudianteRepo
+            .createQueryBuilder()
+            .update(GrupoAsignaturaConEstudiantes)
+            .set({ activo: payload.activo })
+            .whereInIds(idsActualizar)
+            .execute();
+
+        return {
+            message: `Estado del estudiante actualizado en el grupo ${idGrupo}`,
+            activo: payload.activo,
+            actualizados: idsActualizar,
         };
     }
 

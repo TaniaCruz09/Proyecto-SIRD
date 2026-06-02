@@ -7,19 +7,11 @@ export class CreateTipoPeriodizacionDto {
 
   @IsNotEmpty()
   @IsString()
-  codigo: string;
-
-  @IsNotEmpty()
-  @IsString()
   nombre: string;
 
   @IsNotEmpty()
   @IsNumber()
   cantidad_periodos: number;
-
-  @IsOptional()
-  @IsString()
-  etiqueta_periodo?: string;
 
   @IsOptional()
   @IsString()

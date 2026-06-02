@@ -16,7 +16,8 @@ export class TipoPeriodizacionService {
     try {
       const item = this.tipoPeriodizacionRepository.create({
         ...payload,
-        codigo: payload.codigo?.trim().toUpperCase(),
+        nombre: payload.nombre?.trim(),
+        prefijo_abreviatura: payload.prefijo_abreviatura?.trim() || null,
       });
       return await this.tipoPeriodizacionRepository.save(item);
     } catch (error) {
@@ -49,7 +50,8 @@ export class TipoPeriodizacionService {
 
       Object.assign(item, {
         ...payload,
-        codigo: payload.codigo?.trim().toUpperCase() ?? item.codigo,
+        nombre: payload.nombre?.trim() ?? item.nombre,
+        prefijo_abreviatura: payload.prefijo_abreviatura?.trim() || null,
       });
 
       item.update_at = new Date();

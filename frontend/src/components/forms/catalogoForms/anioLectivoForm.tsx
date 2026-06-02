@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { AnioLectivo, AnioLectivoPayload, Corte, TipoPeriodizacion } from "@/interfaces";
+import { AnioLectivo, AnioLectivoPayload, Corte, PeriodoLectivo, TipoPeriodizacion } from "@/interfaces";
 import { Calendar, CheckCircle2, Layers3, SplitSquareVertical } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
@@ -30,10 +30,67 @@ interface PreviewPeriodo {
   cortes: Corte[];
 }
 
+function normalizeTipoPeriodizacionLabel(value?: string) {
+  const normalized = (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toUpperCase();
+
+  switch (normalized) {
+    case "SEMESTRE":
+    case "SEMESTRAL":
+      return "SEMESTRAL";
+    case "CUATRIMESTRE":
+    case "CUATRIMESTRAL":
+      return "CUATRIMESTRAL";
+    case "TRIMESTRE":
+    case "TRIMESTRAL":
+      return "TRIMESTRAL";
+    case "BIMESTRE":
+    case "BIMESTRAL":
+      return "BIMESTRAL";
+    case "PERSONALIZADO":
+    case "PERIODO":
+      return "PERSONALIZADO";
+    default:
+      return normalized;
+  }
+}
+
+function getPeriodoCatalogMatch(periodo?: PeriodoLectivo) {
+  const rawTipo = periodo?.tipo;
+  if (rawTipo) {
+    return normalizeTipoPeriodizacionLabel(rawTipo);
+  }
+
+  const rawNombre = periodo?.nombre;
+  if (!rawNombre) {
+    return "";
+  }
+
+  return normalizeTipoPeriodizacionLabel(rawNombre.replace(/\s+\d+$/, ""));
+}
+
+function buildSavedPreviewPeriodos(periodos?: PeriodoLectivo[]): PreviewPeriodo[] {
+  return (periodos ?? [])
+    .slice()
+    .sort((left, right) => (left.orden ?? 0) - (right.orden ?? 0))
+    .map((periodo, index) => ({
+      orden: periodo.orden ?? index + 1,
+      nombre: periodo.nombre || `Periodo ${index + 1}`,
+      abreviatura: periodo.abreviatura || `P${index + 1}`,
+      cortes: (periodo.cortes ?? []).slice().sort((left, right) => (left.orden ?? 0) - (right.orden ?? 0)),
+    }))
+    .filter((periodo) => periodo.cortes.length > 0 || Boolean(periodo.nombre));
+}
+
 export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormProps) {
   const { toast } = useToast();
   const submitLockRef = useRef(false);
-  const [anioLectivo, setAnioLectivo] = useState("");
+  const [anioLectivo, setAnioLectivo] = useState(
+    defaultValues?.anio_lectivo ? String(defaultValues.anio_lectivo) : String(new Date().getFullYear())
+  );
   const [isActive, setIsActive] = useState(false);
   const [selectedPeriodoId, setSelectedPeriodoId] = useState("");
   const [tiposPeriodizacion, setTiposPeriodizacion] = useState<TipoPeriodizacion[]>([]);
@@ -107,34 +164,39 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
     setAnioLectivo(String(defaultValues.anio_lectivo ?? ""));
     setIsActive(Boolean(defaultValues.isActive));
     setSelectedCorteIds(Array.from(new Set(selectedIds.filter((id) => Number.isFinite(id)))));
-
-    if (primerPeriodo?.tipo_periodizacion_id) {
-      setSelectedPeriodoId(String(primerPeriodo.tipo_periodizacion_id));
-    }
   }, [defaultValues]);
 
   useEffect(() => {
-    if (!defaultValues || selectedPeriodoId || tiposActivos.length === 0) {
+    if (!defaultValues || tiposActivos.length === 0) {
       return;
     }
 
-    const codigoPeriodo = defaultValues.periodos?.[0]?.tipo?.toUpperCase();
-    if (!codigoPeriodo) {
+    const primerPeriodo = defaultValues.periodos?.[0];
+    if (primerPeriodo?.tipo_periodizacion_id) {
+      setSelectedPeriodoId(String(primerPeriodo.tipo_periodizacion_id));
       return;
     }
 
-    const tipo = tiposActivos.find((item) => item.codigo === codigoPeriodo);
-    if (tipo?.id) {
-      setSelectedPeriodoId(String(tipo.id));
+    const periodoActual = getPeriodoCatalogMatch(primerPeriodo);
+    if (!periodoActual) {
+      setSelectedPeriodoId("");
+      return;
     }
-  }, [defaultValues, selectedPeriodoId, tiposActivos]);
+
+    const tipo = tiposActivos.find(
+      (item) => normalizeTipoPeriodizacionLabel(item.nombre) === periodoActual,
+    );
+    setSelectedPeriodoId(tipo?.id ? String(tipo.id) : "");
+  }, [defaultValues, tiposActivos]);
 
   useEffect(() => {
     if (defaultValues || selectedPeriodoId || tiposActivos.length === 0) {
       return;
     }
 
-    const tipoSemestre = tiposActivos.find((tipo) => tipo.codigo?.toUpperCase() === "SEMESTRE");
+    const tipoSemestre = tiposActivos.find(
+      (tipo) => normalizeTipoPeriodizacionLabel(tipo.nombre) === "SEMESTRAL",
+    );
     const tipoInicial = tipoSemestre ?? tiposActivos[0];
 
     if (tipoInicial?.id) {
@@ -157,7 +219,12 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
     [cortesDisponibles, fallbackCortes, selectedCorteIds],
   );
 
-  const previewPeriodos = useMemo<PreviewPeriodo[]>(() => {
+  const savedPreviewPeriodos = useMemo(
+    () => buildSavedPreviewPeriodos(defaultValues?.periodos),
+    [defaultValues],
+  );
+
+  const autoPreviewPeriodos = useMemo<PreviewPeriodo[]>(() => {
     if (!periodoSeleccionado || totalPeriodos <= 0 || selectedCortes.length === 0) {
       return [];
     }
@@ -174,12 +241,14 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
 
       return {
         orden,
-        nombre: `${periodoSeleccionado.etiqueta_periodo || periodoSeleccionado.nombre || "Periodo"} ${orden}`,
-        abreviatura: `${periodoSeleccionado.prefijo_abreviatura || periodoSeleccionado.codigo || "P"}${orden}`,
+        nombre: `${periodoSeleccionado.nombre || "Periodo"} ${orden}`,
+        abreviatura: `${periodoSeleccionado.prefijo_abreviatura || "P"}${orden}`,
         cortes,
       };
     });
   }, [periodoSeleccionado, selectedCortes, totalPeriodos]);
+
+  const previewPeriodos = autoPreviewPeriodos.length > 0 ? autoPreviewPeriodos : savedPreviewPeriodos;
 
   const tieneCortesSuficientes = !periodoSeleccionado || selectedCortes.length >= totalPeriodos;
   const configuracionValida = Boolean(periodoSeleccionado) && selectedCortes.length > 0 && tieneCortesSuficientes;
@@ -229,7 +298,7 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
     const payload: AnioLectivoPayload = {
       anio_lectivo: Number(anioLectivo),
       isActive,
-      tipo_periodizacion: periodoSeleccionado.codigo,
+      tipo_periodizacion_id: periodoSeleccionado.id,
       cantidad_periodos: periodoSeleccionado.cantidad_periodos,
       cortes: selectedCortes.map((corte) => ({ id: corte.id })),
     };

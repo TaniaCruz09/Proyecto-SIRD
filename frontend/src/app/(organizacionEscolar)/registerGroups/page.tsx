@@ -8,7 +8,7 @@ import { GrupoEscolar } from '@/interfaces';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
 
-export default function page() {
+export default function RegisterGroupsPage() {
     const [grupos, setGrupos] = useState<GrupoEscolar[]>([])
     const [selectedAnio, setSelectedAnio] = useState<string>("");
     const [selectedModalidad, setSelectedModalidad] = useState<string>("");

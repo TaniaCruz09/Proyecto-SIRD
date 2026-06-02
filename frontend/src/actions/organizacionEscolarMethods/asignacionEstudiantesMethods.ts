@@ -66,4 +66,19 @@ export async function eliminarEstudianteAsignado(grupoId: number, estudianteId: 
     return response.data;
 }
 
+export async function actualizarEstadoEstudianteEnGrupo(
+    grupoId: number,
+    estudianteId: number,
+    activo: boolean,
+) {
+    const endPoint = `/grupo-asignatura-estudiantes/grupo/${grupoId}/estudiante/${estudianteId}/estado`;
+    const response = await feching(endPoint, "no-cache", "PATCH", { activo });
+
+    if (!response.data || response.error) {
+        throw new Error(response?.error || "Error al actualizar el estado del estudiante en el grupo");
+    }
+
+    return response.data;
+}
+
 

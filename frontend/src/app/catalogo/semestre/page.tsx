@@ -33,7 +33,7 @@ export default function Page() {
 
   //filtro
   const filteredSemestres = semestres.filter((u) =>
-    u.semestre.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.semestre ?? "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

@@ -30,7 +30,6 @@ export default function CorteEvaluativoTable({
               <th className="p-3 border-b border-gray-300">Id</th>
               <th className="p-3 border-b border-gray-300">Cortes Evaluativos</th>
               <th className="p-3 border-b border-gray-300">Abreviatura</th>
-              <th className="p-3 border-b border-gray-300">Semestre</th>
               <th className="p-1 border-b border-gray-300 text-center">
                 Editar
               </th>

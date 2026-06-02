@@ -33,7 +33,7 @@ export default function Page() {
 
   //filtro
   const filteredProfesion = profesiones.filter((u) =>
-    u.profession.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.profession ?? "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

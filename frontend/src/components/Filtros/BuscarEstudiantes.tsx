@@ -64,33 +64,16 @@ export default function BuscarAsignarEstudianteAutocomplete({
     };
 
     const estaAsignado = (student: any) => {
-        if (student.asignadoGrupo) return true;
-        if (Array.isArray(student.grupos) && student.grupos.length > 0) return true;
-        if (Array.isArray(student.grupoAsignaturaConEstudiantes) && student.grupoAsignaturaConEstudiantes.length > 0) return true;
-        return false;
+        // `asignadoGrupo` ya viene filtrado por el anioId actual desde el backend
+        return !!student.asignadoGrupo;
     };
 
     const getGrupoAsignadoLabel = (student: any) => {
+        // `asignadoGrupo` ya viene filtrado por el anioId actual desde el backend
         if (typeof student.asignadoGrupo === "string" && student.asignadoGrupo.trim()) {
             return student.asignadoGrupo;
         }
-
-        const grupoRel = Array.isArray(student.grupoAsignaturaConEstudiantes)
-            ? student.grupoAsignaturaConEstudiantes.find((item: any) => item?.grupoAsignaturaDocente?.grupo)
-            : null;
-        const grupo = grupoRel?.grupoAsignaturaDocente?.grupo
-            ?? (Array.isArray(student.grupos) ? student.grupos[0] : null);
-
-        if (!grupo) return null;
-
-        const grado = grupo.grado?.grades ?? "";
-        const seccion = grupo.seccion?.seccion ?? "";
-        const turno = grupo.turno?.turno ?? "";
-        const modalidad = grupo.turno?.modalidad?.modalidad ?? "";
-        const base = `${grado} ${seccion}`.trim();
-        const extras = [turno, modalidad].filter(Boolean).join(" - ");
-
-        return [base, extras].filter(Boolean).join(" - ") || null;
+        return null;
     };
 
     /* 🔹 Asignar estudiante */

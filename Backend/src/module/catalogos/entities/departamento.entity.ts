@@ -14,7 +14,7 @@ import {
 } from 'typeorm';
 import { Centro } from '../../centroEducativo/entities/centro.entity';
 import * as moment from 'moment-timezone';
-import { User } from '../../auth/entities';
+import { User } from '../../auth/entities/user.entity';
 import { Municipio } from './municipio.entity';
 
 @Entity({ schema: 'catalogos', name: 'departamento' })

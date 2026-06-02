@@ -1,5 +1,5 @@
 import * as moment from 'moment-timezone';
-import { User } from '../../auth/entities';
+import { User } from '../../auth/entities/user.entity';
 import {
   Column,
   CreateDateColumn,

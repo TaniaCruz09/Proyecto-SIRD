@@ -34,7 +34,7 @@ export default function Page() {
 
   //filtro
   const filteredCentro = centroEducativo.filter((u) =>
-    u.nombreCentro.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.nombreCentro ?? "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

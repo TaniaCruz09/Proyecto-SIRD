@@ -33,7 +33,7 @@ export default function Page() {
 
   //filtro
   const filteredGrado = grados.filter((u) =>
-    u.grades.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.grades ?? "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

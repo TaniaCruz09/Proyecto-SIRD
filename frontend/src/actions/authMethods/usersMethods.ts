@@ -1,7 +1,7 @@
 "use server";
 
 import { Docente } from "@/interfaces";
-import { Role } from "@/interfaces/AuthInterface";
+import { Role } from "@/interfaces/authInterface";
 import { feching } from "@/utils/cliente-http";
 
 

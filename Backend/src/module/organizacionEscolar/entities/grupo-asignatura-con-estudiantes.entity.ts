@@ -1,5 +1,5 @@
 import { StudentEntity } from 'src/module/createEstudents/students.entity';
-import { User } from '../../auth/entities';
+import { User } from '../../auth/entities/user.entity';
 import * as moment from 'moment-timezone';
 import { Grupos } from './grupos.entity';
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
@@ -22,6 +22,9 @@ export class GrupoAsignaturaConEstudiantes {
     onDelete: "CASCADE",
   })
   estudiante: StudentEntity;
+
+  @Column({ name: 'activo', type: 'boolean', default: true })
+  activo: boolean;
 
   //ID del usuario que creó el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true }) // Nuevo campo

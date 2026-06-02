@@ -4,8 +4,11 @@ import {
 } from '@/interfaces';
 import { feching } from '@/utils/cliente-http';
 
-export async function getAnioLectivoCalendarizacion(anioLectivoId: number) {
-  const endpoint = `/anio-lectivo-calendarizacion/anio-lectivo/${anioLectivoId}`;
+export async function getAnioLectivoCalendarizacion(
+  anioLectivoId: number,
+  modalidadId: number,
+) {
+  const endpoint = `/anio-lectivo-calendarizacion/anio-lectivo/${anioLectivoId}/modalidad/${modalidadId}`;
   const response = await feching(endpoint, 'no-cache', 'GET');
 
   if (!response.data || response.error) {
@@ -17,9 +20,10 @@ export async function getAnioLectivoCalendarizacion(anioLectivoId: number) {
 
 export async function upsertAnioLectivoCalendarizacion(
   anioLectivoId: number,
+  modalidadId: number,
   payload: UpsertAnioLectivoCalendarizacionPayload,
 ) {
-  const endpoint = `/anio-lectivo-calendarizacion/anio-lectivo/${anioLectivoId}`;
+  const endpoint = `/anio-lectivo-calendarizacion/anio-lectivo/${anioLectivoId}/modalidad/${modalidadId}`;
   const response = await feching(endpoint, 'no-cache', 'PUT', payload);
 
   if (!response.data || response.error) {

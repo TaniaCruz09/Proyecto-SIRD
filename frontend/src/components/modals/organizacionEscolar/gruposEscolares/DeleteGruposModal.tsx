@@ -1,7 +1,7 @@
 import { deleteGrupo } from '@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods';
 import BtnDelete from '@/components/Buttons/BtnDelete'
 import React, { useState } from 'react'
-import ConfirmDeletModal from '../../ModalConfirmDeletion';
+import ConfirmDeletModal from '../../modalConfirmDeletion';
 import { useToast } from '@/hooks/use-toast';
 
 interface DeleteGruposModalProps {

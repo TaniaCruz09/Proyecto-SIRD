@@ -1,13 +1,11 @@
 "use client"
 import React from "react"
+import { useParams } from "next/navigation"
 import { EsquelaTable } from "@/components/calificaciones/EsquelaTable";
 import { ParcialButtons } from "@/components/Buttons/ParcialButtons";
 
-interface PageProps {
-    params: { id: string; corte: string }
-}
-
-export default function EsquelaCortePage({ params }: PageProps) {
+export default function EsquelaCortePage() {
+    const params = useParams<{ id: string; corte: string }>()
     const esquelaId = Number(params.id)
     const corte = params.corte as "1" | "2" | "1S" | "3" | "4" | "2S" | "F"
 

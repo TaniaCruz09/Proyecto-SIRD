@@ -35,7 +35,7 @@ export interface AsignacionDocente {
   esquela: number
 }
 
-export default function page() {
+export default function DocenteExpedientePage() {
   const [docenteData, setDocenteData] = useState<Docente | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()

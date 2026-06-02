@@ -28,6 +28,30 @@ interface Estudiante {
     studentCode: string
     gender: { gender: string }
     profileImage?: string
+    activoEnGrupo?: boolean
+}
+
+const getEstudiantesDesdeAsignaturas = (asignaturas: any[] = [], incluirInactivos = true): Estudiante[] => {
+    const estudiantesMap = new Map<number, Estudiante>()
+
+    asignaturas.forEach((gad) => {
+        gad?.gruposConEstudiantes?.forEach((ge: any) => {
+            const estudiante = ge?.estudiante
+            if (!estudiante?.id) return
+
+            const activoEnGrupo = ge?.activo !== false
+            if (!incluirInactivos && !activoEnGrupo) return
+
+            if (!estudiantesMap.has(estudiante.id)) {
+                estudiantesMap.set(estudiante.id, {
+                    ...estudiante,
+                    activoEnGrupo,
+                })
+            }
+        })
+    })
+
+    return Array.from(estudiantesMap.values())
 }
 
 interface EsquelaTableProps {
@@ -48,10 +72,10 @@ export function EsquelaTable({ esquelaHeadId, corteFilter = "all" }: EsquelaTabl
 
             const anio = response?.grupo_asignatura?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0
 
-            const estudiantes =
-                response?.grupo_asignatura?.grupoAsignaturaDocente
-                    ?.flatMap((gad: any) => gad.gruposConEstudiantes.map((ge: any) => ge.estudiante))
-                    .filter((v: Estudiante, i: number, self: Estudiante[]) => self.findIndex((s) => s.id === v.id) === i) ?? []
+            const estudiantes = getEstudiantesDesdeAsignaturas(
+                response?.grupo_asignatura?.grupoAsignaturaDocente ?? [],
+                true,
+            )
 
             if (estudiantes.length > 0) {
                 const allRows = await Promise.all(estudiantes.map((est: Estudiante) => getEsquelaRowByEstudianteAndAnio(est.id, anio)))
@@ -103,10 +127,7 @@ export function EsquelaTable({ esquelaHeadId, corteFilter = "all" }: EsquelaTabl
     const anioLectivo = esquelaHead?.grupo_asignatura?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0
 
 
-    const estudiantes: Estudiante[] =
-        asignaturas
-            ?.flatMap((gad) => gad.gruposConEstudiantes.map((ge: any) => ge.estudiante))
-            .filter((v, i, self) => self.findIndex((s) => s.id === v.id) === i) ?? []
+    const estudiantes = getEstudiantesDesdeAsignaturas(asignaturas, corteFilter === "all")
 
     const getQualitativeGrade = (grade: number): string => {
         if (!Number.isFinite(grade)) return "AI"
@@ -175,21 +196,24 @@ export function EsquelaTable({ esquelaHeadId, corteFilter = "all" }: EsquelaTabl
                             </TableHeader>
                             <TableBody>
                                 {estudiantes.map((est: Estudiante, index: number) => (
-                                    <TableRow key={est.id} className="hover:bg-rose-50 border-b border-rose-200">
+                                    <TableRow
+                                        key={est.id}
+                                        className={`${est.activoEnGrupo === false ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-rose-50'} border-b border-rose-200`}
+                                    >
                                         <TableCell className="font-bold text-center">{index + 1}</TableCell>
                                         <TableCell className="border-r border-rose-200">
-                                            <Avatar className="h-12 w-12 ring-2 ring-rose-200">
+                                            <Avatar className={`h-12 w-12 ring-2 ${est.activoEnGrupo === false ? 'ring-red-200' : 'ring-rose-200'}`}>
                                                 {est.profileImage && (
                                                     <AvatarImage src={`${process.env.NEXT_PUBLIC_API_UPLOADS}${est.profileImage}`} alt={est.name} />
                                                 )}
-                                                <AvatarFallback className="bg-rose-100 text-rose-700 font-bold text-sm">
+                                                <AvatarFallback className={`${est.activoEnGrupo === false ? 'bg-red-100 text-red-700' : 'bg-rose-100 text-rose-700'} font-bold text-sm`}>
                                                     {getInitials(est.name)}
                                                 </AvatarFallback>
                                             </Avatar>
                                         </TableCell>
-                                        <TableCell className="font-bold text-center">{est.name}</TableCell>
-                                        <TableCell className="font-semibold text-center">{est.studentCode}</TableCell>
-                                        <TableCell className="text-center font-bold">{est.gender.gender}</TableCell>
+                                        <TableCell className={`font-bold text-center ${est.activoEnGrupo === false ? 'text-red-700' : ''}`}>{est.name}</TableCell>
+                                        <TableCell className={`font-semibold text-center ${est.activoEnGrupo === false ? 'text-red-700' : ''}`}>{est.studentCode}</TableCell>
+                                        <TableCell className={`text-center font-bold ${est.activoEnGrupo === false ? 'text-red-700' : ''}`}>{est.gender.gender}</TableCell>
 
                                         {asignaturas.map((asig, idx) => {
                                             const notas = cortesToRender.map(corte => findNota(est.id, asig.asignatura.id, corte))

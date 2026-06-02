@@ -33,7 +33,7 @@ export default function Page() {
 
   //filtro
   const filteredModalidad = modalidades.filter((u) =>
-    u.modalidad.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.modalidad ?? "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

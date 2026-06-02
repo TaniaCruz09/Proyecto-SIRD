@@ -1,4 +1,4 @@
-import { DeepPartial, Repository } from "typeorm";
+import { DeepPartial, IsNull, Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { StudentEntity } from "./students.entity";
@@ -121,15 +121,25 @@ export class StudentService {
     async deleteStudent(id: number, userId: number): Promise<StudentEntity> {
         try {
             return await this.StudentRepo.manager.transaction(async (manager) => {
-                const student = await manager.getRepository(StudentEntity).findOne({ where: { id } });
+                const student = await manager.getRepository(StudentEntity).findOne({
+                    where: { id, deleted_at: IsNull() },
+                });
 
-                if (!student) throw new NotFoundException("Profesión no encontrada");
+                if (!student) throw new NotFoundException("Estudiante no encontrado");
+
+                const deletedAt = new Date();
 
                 await manager
                     .getRepository(GrupoAsignaturaConEstudiantes)
                     .createQueryBuilder()
                     .update(GrupoAsignaturaConEstudiantes)
-                    .set({ deleted_at: new Date() })
+                    .set({
+                        activo: false,
+                        deleted_at: deletedAt,
+                        deleted_at_id: userId,
+                        user_update_id: userId,
+                        update_at: deletedAt,
+                    })
                     .where('estudianteId = :id', { id })
                     .andWhere('deleted_at IS NULL')
                     .execute();
@@ -138,12 +148,12 @@ export class StudentService {
                     .getRepository(EsquelaRow)
                     .createQueryBuilder()
                     .update(EsquelaRow)
-                    .set({ deleted_at: new Date() })
+                    .set({ deleted_at: deletedAt })
                     .where('estudiante_id = :id', { id })
                     .andWhere('deleted_at IS NULL')
                     .execute();
 
-                student.deleted_at = new Date();
+                student.deleted_at = deletedAt;
                 student.deleted_at_id = userId;
 
                 return await manager.getRepository(StudentEntity).save(student);

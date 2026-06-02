@@ -10,12 +10,13 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import * as moment from 'moment-timezone';
-import { User } from '../../auth/entities';
+import { User } from '../../auth/entities/user.entity';
 import { AnioLectivo } from './anioLectivo.entity';
 import { Cortes } from './corte.entity';
+import { Modalidad } from './modalidad.entity';
 
 @Entity({ schema: 'catalogos', name: 'anio_lectivo_calendarizacion' })
-@Index('ux_anio_lectivo_calendarizacion_anio_corte', ['anioLectivoId', 'corteId'], { unique: true })
+@Index('ux_anio_lectivo_calendarizacion_anio_modalidad_corte', ['anioLectivoId', 'modalidadId', 'corteId'], { unique: true })
 export class AnioLectivoCalendarizacion {
   @PrimaryGeneratedColumn({ name: 'id', type: 'int4' })
   id: number;
@@ -25,6 +26,9 @@ export class AnioLectivoCalendarizacion {
 
   @Column({ name: 'corte_id', type: 'int4' })
   corteId: number;
+
+  @Column({ name: 'modalidad_id', type: 'int4' })
+  modalidadId: number;
 
   @Column({ name: 'fecha_inicio', type: 'date', nullable: true })
   fecha_inicio?: string | null;
@@ -83,6 +87,10 @@ export class AnioLectivoCalendarizacion {
   @ManyToOne(() => Cortes, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'corte_id' })
   corte: Cortes;
+
+  @ManyToOne(() => Modalidad, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'modalidad_id' })
+  modalidad: Modalidad;
 
   @ManyToOne(() => User, (user) => user.id)
   @JoinColumn({ name: 'user_create_id' })

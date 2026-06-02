@@ -12,7 +12,9 @@ export default function ListaEstudiantes({
     getInitials,
     anioLectivo,
     handleGuardarIndividual,
-    isAnioActivo
+    isAnioActivo,
+    isCorteEditable,
+    corteBloqueadoMensaje,
 }: any) {
     const [notasBD, setNotasBD] = useState<{ [estId: number]: any }>({})
 
@@ -58,6 +60,8 @@ export default function ListaEstudiantes({
                             r?.corte?.id === corteActivo
                     )}
                     isAnioActivo={isAnioActivo}
+                    isCorteEditable={isCorteEditable}
+                    corteBloqueadoMensaje={corteBloqueadoMensaje}
                 />
             ))}
         </div>

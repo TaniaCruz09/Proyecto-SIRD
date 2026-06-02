@@ -33,7 +33,7 @@ export default function Page() {
 
   //filtro
   const filteredEtnia = etnias.filter((u) =>
-    u.etnia.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.etnia ?? "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

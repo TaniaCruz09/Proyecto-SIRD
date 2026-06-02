@@ -24,10 +24,8 @@ export default function TipoPeriodizacionTable({
           <thead className="bg-gray-200 uppercase text-xs font-semibold sticky top-0 z-10">
             <tr>
               <th className="p-3 border-b border-gray-300">Id</th>
-              <th className="p-3 border-b border-gray-300">Codigo</th>
               <th className="p-3 border-b border-gray-300">Nombre</th>
               <th className="p-3 border-b border-gray-300">Periodos</th>
-              <th className="p-3 border-b border-gray-300">Etiqueta</th>
               <th className="p-3 border-b border-gray-300">Prefijo</th>
               <th className="p-3 border-b border-gray-300">Estado</th>
               <th className="p-1 border-b border-gray-300 text-center">Editar</th>
@@ -45,7 +43,7 @@ export default function TipoPeriodizacionTable({
               ))
             ) : (
               <tr>
-                <td colSpan={9} className="text-center text-gray-500 py-10">
+                <td colSpan={7} className="text-center text-gray-500 py-10">
                   No hay tipos de periodo registrados.
                 </td>
               </tr>

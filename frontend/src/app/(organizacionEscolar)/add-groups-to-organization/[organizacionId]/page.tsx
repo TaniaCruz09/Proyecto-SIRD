@@ -111,9 +111,18 @@ export default function OrganizationGroups() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {organizacionEscolar?.grupos?.map((g) => (
                                 (() => {
+                                    const relacionesEstudiantes = (g.grupoAsignaturaDocente || [])
+                                        .flatMap((rel) => rel?.gruposConEstudiantes || [])
+
                                     const totalEstudiantes = new Set(
-                                        (g.grupoAsignaturaDocente || [])
-                                            .flatMap((rel) => rel?.gruposConEstudiantes || [])
+                                        relacionesEstudiantes
+                                            .map((relacion) => relacion?.estudiante?.id)
+                                            .filter((id) => Number.isFinite(Number(id)))
+                                    ).size
+
+                                    const totalEstudiantesInactivos = new Set(
+                                        relacionesEstudiantes
+                                            .filter((relacion) => relacion?.activo === false)
                                             .map((relacion) => relacion?.estudiante?.id)
                                             .filter((id) => Number.isFinite(Number(id)))
                                     ).size
@@ -160,6 +169,9 @@ export default function OrganizationGroups() {
                                             </div>
                                             <div className="flex justify-between text-sm">
                                                 <span className="text-slate-600">Materias: {totalMaterias}</span>
+                                            </div>
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-red-600">Inactivos: {totalEstudiantesInactivos}</span>
                                             </div>
                                         </div>
 

@@ -36,9 +36,8 @@ export default function Page() {
   const filteredTipos = tiposPeriodizacion.filter((item) => {
     const value = searchTerm.toLowerCase();
     return (
-      item.codigo.toLowerCase().includes(value) ||
       item.nombre.toLowerCase().includes(value) ||
-      (item.etiqueta_periodo || "").toLowerCase().includes(value)
+      (item.prefijo_abreviatura || "").toLowerCase().includes(value)
     );
   });
 

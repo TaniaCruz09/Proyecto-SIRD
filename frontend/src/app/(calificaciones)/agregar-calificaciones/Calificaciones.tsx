@@ -60,6 +60,61 @@ export default function Calificaciones({
     const [cortesUI, setCortesUI] = useState<CorteUI[]>([])
     const [notasCualitativas, setNotasCualitativas] = useState<NotaCualitativa[]>([])
 
+    const verificarCorteCompleto = (corteId: number, asignaturaId?: number) => {
+        if (asignaturaId == null) return false
+
+        return estudiantes.every(est => {
+            const calificacion = est.calificaciones[asignaturaId]?.[corteId]
+            return typeof calificacion !== "undefined" && calificacion !== ""
+        })
+    }
+
+    const puedeIrACorte = (corteId: number) => {
+        const index = cortes.findIndex(c => c.id === corteId)
+        if (index === -1) return false
+        if (index === 0) return true
+
+        const corteAnterior = cortes[index - 1]
+        return verificarCorteCompleto(corteAnterior.id, asignaturaActiva)
+    }
+
+    const cambiarCorte = (corteId: number) => {
+        if (!puedeIrACorte(corteId)) {
+            alert("Debes completar todas las notas del corte anterior antes de avanzar")
+            return
+        }
+
+        setCorteActivo(corteId)
+    }
+
+    const puedeAvanzarCorte = (() => {
+        if (corteActivo == null || cortes.length === 0) return false
+
+        const index = cortes.findIndex(c => c.id === corteActivo)
+        if (index === -1 || index >= cortes.length - 1) return false
+
+        return puedeIrACorte(cortes[index + 1].id)
+    })()
+
+    const getCorteStatus = (corteId: number) => {
+        const completo = asignaturaActiva != null
+            ? verificarCorteCompleto(corteId, asignaturaActiva)
+            : false
+
+        return {
+            habilitado: puedeIrACorte(corteId),
+            completo,
+            mensaje: puedeIrACorte(corteId)
+                ? completo
+                    ? "Completado"
+                    : "Disponible"
+                : "Completa el corte anterior",
+            rango: "",
+        }
+    }
+
+    const estadoCorteActivo = corteActivo != null ? getCorteStatus(corteActivo) : null
+
     const storageKey = `calificaciones_${esquelaId}_${grupoId}`
 
     const ordenarCortes = (items: Corte[]) =>
@@ -197,7 +252,9 @@ export default function Calificaciones({
                     ga.grupoAsignaturaDocente.forEach((gad: any) => {
                         Array.isArray(gad?.gruposConEstudiantes) &&
                             gad.gruposConEstudiantes.forEach((ge: any) => {
-                                if (ge?.estudiante) rawStudents.push(ge.estudiante)
+                                if (ge?.estudiante && ge?.activo !== false) {
+                                    rawStudents.push(ge.estudiante)
+                                }
                             })
                     })
             })
@@ -324,6 +381,36 @@ export default function Calificaciones({
         }
     }
 
+    const sincronizarFilaGuardada = (savedRow?: EsquelaRowInterface) => {
+        if (!savedRow?.id) return
+
+        setEsquela(prev => {
+            if (!prev) return prev
+
+            const filasActuales = Array.isArray(prev.esquelaRow) ? prev.esquelaRow : []
+            const filaIndex = filasActuales.findIndex((row) => {
+                if (Number(row?.id) === Number(savedRow.id)) {
+                    return true
+                }
+
+                return (
+                    Number(row?.estudiante?.id) === Number(savedRow.estudiante?.id) &&
+                    Number(row?.asignatura?.id) === Number(savedRow.asignatura?.id) &&
+                    Number(row?.corte?.id) === Number(savedRow.corte?.id)
+                )
+            })
+
+            const siguientesFilas = filaIndex >= 0
+                ? filasActuales.map((row, index) => index === filaIndex ? savedRow : row)
+                : [...filasActuales, savedRow]
+
+            return {
+                ...prev,
+                esquelaRow: siguientesFilas,
+            }
+        })
+    }
+
     const obtenerNotaCualitativa = (valor: number): string => {
         if (!Number.isFinite(valor)) return "AI"
         const match = notasCualitativas.find(
@@ -369,32 +456,31 @@ export default function Calificaciones({
             setGuardando(true);
 
             let savedRow;
+            const filasBD: EsquelaRowInterface[] = esquela?.esquelaRow ?? [];
+            const rowBD = filasBD.find(r => {
+                const estudianteIdBD = r?.estudiante?.id
+                const asignaturaIdBD = r?.asignatura?.id
+                const corteIdBD = r?.corte?.id
 
-            if (isUpdate) {
-                const filasBD: EsquelaRowInterface[] =
-                    esquela?.esquelaRow ??
-                    [];
+                if (estudianteIdBD == null || asignaturaIdBD == null || corteIdBD == null) return false
 
-                const rowBD = filasBD.find(
-                    r =>
-                        Number(r.estudiante.id) === Number(estudiante.id) &&
-                        Number(r.asignatura.id) === Number(asignaturaId) &&
-                        Number(r.corte.id) === Number(corteActivo)
-                );
+                return (
+                    Number(estudianteIdBD) === Number(estudiante.id) &&
+                    Number(asignaturaIdBD) === Number(asignaturaId) &&
+                    Number(corteIdBD) === Number(corteActivo)
+                )
+            });
+            const shouldUpdate = Boolean(rowBD)
 
-
-                if (!rowBD) {
-                    alert("No se pudo actualizar: la fila no existe en BD");
-                    setGuardando(false);
-                    return;
-                }
-
+            if (shouldUpdate && rowBD) {
                 savedRow = await updateEsquelaRow(rowBD.id, payload);
 
             } else {
                 // 👉 Guardar nueva nota
                 savedRow = await saveEsquelaRow(payload);
             }
+
+            sincronizarFilaGuardada(savedRow)
 
             setGuardando(false);
 
@@ -425,7 +511,7 @@ export default function Calificaciones({
             // 👉 Actualizar la fila
             setNotaBD(String(notaReal));
 
-            alert(isUpdate ? "Nota actualizada correctamente" : "Nota guardada correctamente");
+            alert(shouldUpdate ? "Nota actualizada correctamente" : "Nota guardada correctamente");
         } catch (error) {
             console.error("Error al guardar nota:", error);
             setGuardando(false);
@@ -439,8 +525,14 @@ export default function Calificaciones({
 
         const index = cortes.findIndex(c => c.id === corteActivo)
         if (index < cortes.length - 1) {
-            setCorteActivo(cortes[index + 1].id)
-            alert(`Corte cambiado a: ${cortes[index + 1].corte}`)
+            const siguienteCorte = cortes[index + 1]
+            if (!puedeIrACorte(siguienteCorte.id)) {
+                alert("Debes completar todas las notas del corte anterior antes de avanzar")
+                return
+            }
+
+            cambiarCorte(siguienteCorte.id)
+            alert(`Corte cambiado a: ${siguienteCorte.corte}`)
         } else {
             alert("Ya estás en el último corte")
         }
@@ -458,11 +550,10 @@ export default function Calificaciones({
 
             {/* Card de cortes */}
             <CardCortesEvaluativos
-                estudiantes={estudiantes}
-                asignaturaActiva={asignaturaActiva ?? 0}
                 corteActivo={corteActivo}
-                setCorteActivo={setCorteActivo}
+                setCorteActivo={cambiarCorte}
                 cortesUI={cortesUI}
+                getCorteStatus={getCorteStatus}
             />
 
             {/* Tabs para asignaturas */}
@@ -477,8 +568,11 @@ export default function Calificaciones({
                 anioLectivo={anioLectivo}
                 handleGuardarIndividual={handleGuardarIndividual}
                 avanzarCorte={avanzarCorte}
+                puedeAvanzarCorte={puedeAvanzarCorte}
                 guardando={guardando}
                 isAnioActivo={isAnioActivo}
+                isCorteEditable={Boolean(estadoCorteActivo?.habilitado && isAnioActivo)}
+                corteBloqueadoMensaje={estadoCorteActivo?.mensaje ?? "Selecciona un corte disponible"}
             />
         </div>
     )

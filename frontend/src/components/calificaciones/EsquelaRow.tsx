@@ -72,6 +72,11 @@ interface Estudiante {
 
 interface GEItem {
   estudiante: Estudiante
+  activo?: boolean
+}
+
+type EstudianteConEstadoGrupo = Estudiante & {
+  activoEnGrupo: boolean
 }
 
 interface GADItem {
@@ -138,11 +143,14 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
       const estudiantes =
         response?.grupo_asignatura?.grupoAsignaturaDocente
           ?.flatMap((g: any) =>
-            g.gruposConEstudiantes.map((ge: any) => ge.estudiante)
+            g.gruposConEstudiantes.map((ge: any) => ({
+              ...ge.estudiante,
+              activoEnGrupo: ge?.activo !== false,
+            }))
           )
-          .filter((v: any): v is Estudiante => Boolean(v && v.id))
+          .filter((v: any): v is EstudianteConEstadoGrupo => Boolean(v && v.id))
           .filter(
-            (v: Estudiante, i: number, self: Estudiante[]) =>
+            (v: EstudianteConEstadoGrupo, i: number, self: EstudianteConEstadoGrupo[]) =>
               self.findIndex((s) => s.id === v.id) === i
           ) ?? []
 
@@ -191,12 +199,19 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
   const asignaturas: GADItem[] =
     esquelaHead?.grupo_asignatura?.grupoAsignaturaDocente ?? []
 
-  const estudiantes: Estudiante[] =
+  const estudiantes: EstudianteConEstadoGrupo[] =
     asignaturas
-      .flatMap((g) => g.gruposConEstudiantes.map((ge) => ge.estudiante))
-      .filter((v): v is Estudiante => Boolean(v && v.id))
+      .flatMap((g) => g.gruposConEstudiantes.map((ge) => ({
+        ...ge.estudiante,
+        activoEnGrupo: ge?.activo !== false,
+      })))
+      .filter((v): v is EstudianteConEstadoGrupo => Boolean(v && v.id))
       .filter((v, i, self) => self.findIndex((s) => s.id === v.id) === i)
       .filter((est) => !estudianteId || est.id === estudianteId)
+
+  const estudiantesVisibles = estudiantes.filter(
+    (est) => vista === "ALL" || est.activoEnGrupo !== false,
+  )
 
   const findNota = (estId: number, asigId: number, corteId: number) => {
     const row = calificaciones.find(
@@ -706,7 +721,7 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
     DATOS
     ========================== */
 
-    estudiantes.forEach((est, index) => {
+    estudiantesVisibles.forEach((est, index) => {
       const rowData = [
         index + 1,
         ` ${est.name} ${est.lastName}`,
@@ -916,8 +931,8 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
 
             {/* ================= BODY ================= */}
             <TableBody>
-              {estudiantes.map((est, index) => (
-                <TableRow key={est.id}>
+              {estudiantesVisibles.map((est, index) => (
+                <TableRow key={est.id} className={est.activoEnGrupo === false ? 'bg-red-50 hover:bg-red-100' : ''}>
                   <TableCell className="text-center font-bold">{index + 1}</TableCell>
 
                   <TableCell>
@@ -925,13 +940,13 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
                       {est.profileImage && (
                         <AvatarImage src={`${process.env.NEXT_PUBLIC_API_UPLOADS}${est.profileImage}`} />
                       )}
-                      <AvatarFallback>{getInitials(est.name)}</AvatarFallback>
+                      <AvatarFallback className={est.activoEnGrupo === false ? 'bg-red-100 text-red-700' : ''}>{getInitials(est.name)}</AvatarFallback>
                     </Avatar>
                   </TableCell>
 
-                  <TableCell className="font-bold text-center">{est.name}</TableCell>
-                  <TableCell className="text-center">{est.studentCode}</TableCell>
-                  <TableCell className="text-center">{est.gender?.gender ?? "—"}</TableCell>
+                  <TableCell className={`font-bold text-center ${est.activoEnGrupo === false ? 'text-red-700' : ''}`}>{est.name}</TableCell>
+                  <TableCell className={`text-center ${est.activoEnGrupo === false ? 'text-red-700' : ''}`}>{est.studentCode}</TableCell>
+                  <TableCell className={`text-center ${est.activoEnGrupo === false ? 'text-red-700' : ''}`}>{est.gender?.gender ?? "—"}</TableCell>
 
                   {asignaturas.map((a, aIdx) =>
                     columnas.map((col) => {

@@ -42,6 +42,7 @@ export interface AnioLectivoPayload {
     cortes?: { id: number }[],
     periodos?: PeriodoLectivoPayload[],
     tipo_periodizacion?: string,
+    tipo_periodizacion_id?: number,
     cantidad_periodos?: number,
     cantidad_cortes?: number,
 }

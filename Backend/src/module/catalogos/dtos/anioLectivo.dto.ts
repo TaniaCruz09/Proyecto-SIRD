@@ -102,6 +102,10 @@ export class CreateAnioLectivoDTO {
 
     @IsOptional()
     @IsNumber()
+    tipo_periodizacion_id?: number;
+
+    @IsOptional()
+    @IsNumber()
     cantidad_periodos?: number;
 
     @IsOptional()

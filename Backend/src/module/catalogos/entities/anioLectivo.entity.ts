@@ -9,7 +9,7 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { User } from '../../auth/entities';
+import { User } from '../../auth/entities/user.entity';
 import * as moment from 'moment-timezone';
 import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity';
 import { AnioLectivoCorte } from './anioLectivoCorte.entity';

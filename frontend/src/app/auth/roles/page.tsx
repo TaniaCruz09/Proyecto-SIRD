@@ -4,7 +4,7 @@ import { deleteRoles, getRoles } from '@/actions/authMethods/rolesMethods'
 import BtnOpenAddModal from '@/components/Buttons/btnOpenAddModal'
 import RoleForm from '@/components/forms/RoleForm'
 import ModalBase from '@/components/modals/ModalBase'
-import ConfirmDeletModal from '@/components/modals/ModalConfirmDeletion'
+import ConfirmDeletModal from '@/components/modals/modalConfirmDeletion'
 import SearchBar from '@/components/SearchBar'
 import RolTable from '@/components/tables/RolTable'
 import { useToast } from '@/hooks/use-toast'
@@ -74,12 +74,12 @@ export default function Roles() {
   };
 
   return (
-    <div>
-      <div className="p-6 flex item-center justify-between">
-        <h1 className="ml-10 text-2xl font-bold c mb-4 tracking-tight text-gray-600 text-center">
+    <div className="mx-6">
+      <div className="flex items-center justify-between">
+        <h1 className="ml-10 text-2xl font-bold mb-4 tracking-tight text-gray-600 text-center">
           Roles
         </h1>
-        <div className="flex justify-end mr-10 mb-5">
+        <div className="flex justify-end mr-10 mb-6 mt-5">
           <BtnOpenAddModal
             text="Agregar nuevo Rol"
             onClick={() => setShowModal(true)}
@@ -101,7 +101,7 @@ export default function Roles() {
             />
           )}
         </div>
-      </ div>
+      </div>
       <div className="flex items-center justify-between bg-white border rounded-t-xl">
         <h2 className='pl-10 text-xl font-bold text-gray-600'>Lista de Roles</h2>
         <SearchBar

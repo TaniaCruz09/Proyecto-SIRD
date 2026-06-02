@@ -10,7 +10,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Grupos } from './grupos.entity';
-import { User } from '../../auth/entities';
+import { User } from '../../auth/entities/user.entity';
 import * as moment from 'moment-timezone';
 import { AnioLectivo } from 'src/module/catalogos/entities/anioLectivo.entity';
 import { Turno } from '../../catalogos';

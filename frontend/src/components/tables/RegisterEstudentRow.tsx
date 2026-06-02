@@ -58,7 +58,11 @@ export default function RegisterEstudentRow({ student, fetchStudent }: StudentRo
                 <EditStudentModal student={student} fetchStudent={fetchStudent} />
             </td>
             <td className="p-3 px-2 py-3 border-b border-gray-200 text-center">
-                <DeleteStudentModal idEliminar={student.id!} fetchStudent={fetchStudent} />
+                <DeleteStudentModal
+                    idEliminar={student.id!}
+                    studentFullName={`${student.name} ${student.lastName}`.trim()}
+                    fetchStudent={fetchStudent}
+                />
             </td>
         </tr>
     )

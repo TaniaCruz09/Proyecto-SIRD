@@ -17,10 +17,8 @@ export default function TipoPeriodizacionRow({
   return (
     <tr className="hover:bg-gray-100 cursor-pointer">
       <td className="p-3 border-b border-gray-200">{tipoPeriodizacion.id}</td>
-      <td className="p-3 border-b border-gray-200">{tipoPeriodizacion.codigo}</td>
       <td className="p-3 border-b border-gray-200">{tipoPeriodizacion.nombre}</td>
       <td className="p-3 border-b border-gray-200">{tipoPeriodizacion.cantidad_periodos}</td>
-      <td className="p-3 border-b border-gray-200">{tipoPeriodizacion.etiqueta_periodo || "-"}</td>
       <td className="p-3 border-b border-gray-200">{tipoPeriodizacion.prefijo_abreviatura || "-"}</td>
       <td className="p-3 border-b border-gray-200">
         <span className={`px-2 py-1 font-medium ${tipoPeriodizacion.isActive ? "text-green-600" : "text-red-600"}`}>

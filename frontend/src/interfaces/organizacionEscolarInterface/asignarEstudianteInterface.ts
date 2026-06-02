@@ -5,6 +5,7 @@ export interface GrupoConEstudiante {
     id: number,
     grupoAsignaturaDocente: GrupoConAsignaturasResponse,
     estudiante: RegisterEstudent,
+    activo?: boolean,
 }
 
 export interface GrupoId {
@@ -14,4 +15,5 @@ export interface GrupoId {
 export interface GrupoConEstudiantePayload {
     grupoAsignaturaDocente: { id: number }
     estudiante: { id: number };
+    activo?: boolean;
 }

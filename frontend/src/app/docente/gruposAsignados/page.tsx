@@ -314,44 +314,50 @@ export default function GruposAsignados() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {anio.organizacionEscolar[0]?.grupos?.map((grupo) => (
-                                        <Card key={grupo.id} className="hover:shadow-md transition-shadow border-2 hover:border-primary/30">
-                                            <CardHeader className="pb-3">
-                                                <div className="flex items-start justify-between">
-                                                    <div>
-                                                        <CardTitle className="text-2xl font-bold text-primary">{grupo.nombre}</CardTitle>
-                                                        <CardDescription className="text-base mt-1">{grupo.materia}</CardDescription>
+                                        <Card key={grupo.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group">
+                                            {/* Barra superior */}
+                                            <div className="h-1.5 bg-gradient-to-r from-blue-400 to-blue-500" />
+                                            <CardContent className="p-6">
+                                                {/* Header */}
+                                                <div className="flex items-start justify-between mb-4">
+                                                    <div className="flex-1 min-w-0">
+                                                        <CardTitle className="text-lg font-bold text-gray-800 truncate">
+                                                            {grupo.nombre}
+                                                        </CardTitle>
+                                                        <CardDescription className="text-sm text-gray-500 mt-0.5 truncate">
+                                                            {grupo.materia}
+                                                        </CardDescription>
                                                     </div>
-                                                    <div className="p-2 bg-secondary/10 rounded-lg">
-                                                        <Users className="h-5 w-5 text-secondary" />
+                                                    <div className="p-2.5 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl ml-3 flex-shrink-0">
+                                                        <Users className="w-5 h-5 text-blue-600" />
                                                     </div>
                                                 </div>
-                                            </CardHeader>
-                                            <CardContent className="space-y-3">
-                                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                    <Users className="h-4 w-4" />
+
+                                                {/* Stats */}
+                                                <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 rounded-lg p-2.5 mb-5">
+                                                    <Users className="w-4 h-4 text-blue-500" />
                                                     <span>
-                                                        {grupo.numeroEstudiantes}{" "}
+                                                        <strong>{grupo.numeroEstudiantes}</strong>{" "}
                                                         {grupo.numeroEstudiantes === 1 ? "estudiante" : "estudiantes"}
                                                     </span>
                                                 </div>
 
+                                                {/* Botón según estado */}
                                                 {anio.isActive ? (
-                                                    <div className="flex flex-col gap-2 pt-2">
-                                                        <Button
-                                                            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                                                            onClick={() => handleCalificaciones(grupo, anio.id)}
-                                                        >
-                                                            <FileEdit className="h-4 w-4 mr-2" />
-                                                            Agregar Calificaciones
-                                                        </Button>
-                                                    </div>
+                                                    <Button
+                                                        className="w-full h-11 text-sm font-medium bg-blue-500 hover:bg-blue-600 text-white rounded-xl shadow-md hover:shadow-lg transition-all"
+                                                        onClick={() => handleCalificaciones(grupo, anio.id)}
+                                                    >
+                                                        <FileEdit className="w-4 h-4 mr-2" />
+                                                        Agregar Calificaciones
+                                                    </Button>
                                                 ) : (
                                                     <Button
                                                         variant="outline"
-                                                        className="w-full border-muted-foreground/30 text-muted-foreground hover:bg-muted bg-transparent"
+                                                        className="w-full h-11 text-sm font-medium border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300 rounded-xl transition-all"
                                                         onClick={() => handleCalificaciones(grupo, anio.id)}
                                                     >
-                                                        <Eye className="h-4 w-4 mr-2" />
+                                                        <Eye className="w-4 h-4 mr-2" />
                                                         Ver Calificaciones
                                                     </Button>
                                                 )}

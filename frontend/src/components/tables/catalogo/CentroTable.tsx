@@ -2,7 +2,6 @@
 import { CentroEscolar } from "@/interfaces/centroInterface";
 import React, { useState } from "react";
 import CentrosRow from "./centroRow";
-import ModalDetalleDocente from "@/components/modals/docentes/ModalDetalleDocente";
 import ModalDetallecentro from "@/components/modals/catalogo/centroEducativoModals/ModalDeatalleCentro";
 
 interface CentroTableProps {

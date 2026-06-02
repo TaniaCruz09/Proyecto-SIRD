@@ -3,7 +3,7 @@ import { RiDeleteBin6Line } from "react-icons/ri";
 import BtnOpenEditModal from "../Buttons/btnOpenEditModal";
 import ModalBase from "../modals/ModalBase";
 import RoleForm from "../forms/RoleForm";
-import { Role } from "@/interfaces/AuthInterface";
+import { Role } from "@/interfaces/authInterface";
 import { useState } from "react";
 
 interface RolRowProps {
