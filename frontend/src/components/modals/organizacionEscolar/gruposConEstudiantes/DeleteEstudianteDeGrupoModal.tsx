@@ -2,7 +2,7 @@
 import { eliminarEstudianteAsignado } from '@/actions/organizacionEscolarMethods/asignacionEstudiantesMethods';
 import BtnDelete from '@/components/Buttons/BtnDelete';
 import React, { useState } from 'react'
-import ConfirmDeletModal from '../../ModalConfirmDeletion';
+import ConfirmDeletModal from '../../modalConfirmDeletion';
 
 interface DeleteEstudianteGrupoProps {
   grupoId: number;

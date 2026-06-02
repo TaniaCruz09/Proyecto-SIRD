@@ -45,6 +45,22 @@ import { SemestreService } from './services/semestre.service';
 import { AnioLectivo } from './entities/anioLectivo.entity';
 import { AnioLectivoController } from './controllers/anioLectivo.controller';
 import { AnioLectivoService } from './services/anioLectivo.service';
+import { AnioLectivoCorte } from './entities/anioLectivoCorte.entity';
+import { PeriodoLectivo } from './entities/periodoLectivo.entity';
+import { PeriodoLectivoCorte } from './entities/periodoLectivoCorte.entity';
+import { NotaCualitativa } from './entities/notaCualitativa.entity';
+import { NotaCualitativaController } from './controllers/notaCualitativa.controller';
+import { NotaCualitativaService } from './services/notaCualitativa.service';
+import { OrganizacionEscolar } from '../organizacionEscolar/entities/organizacionEscolar.entity';
+import { Grupos } from '../organizacionEscolar/entities/grupos.entity';
+import { GrupoAsignaturaDocente } from '../organizacionEscolar/entities/GrupoAsignaturaDocente.entity';
+import { GrupoAsignaturaConEstudiantes } from '../organizacionEscolar/entities/grupo-asignatura-con-estudiantes.entity';
+import { TipoPeriodizacion } from './entities/tipoPeriodizacion.entity';
+import { TipoPeriodizacionController } from './controllers/tipoPeriodizacion.controller';
+import { TipoPeriodizacionService } from './services/tipoPeriodizacion.service';
+import { AnioLectivoCalendarizacion } from './entities/anioLectivoCalendarizacion.entity';
+import { AnioLectivoCalendarizacionController } from './controllers/anioLectivoCalendarizacion.controller';
+import { AnioLectivoCalendarizacionService } from './services/anioLectivoCalendarizacion.service';
 
 @Module({
   imports: [
@@ -63,7 +79,17 @@ import { AnioLectivoService } from './services/anioLectivo.service';
       Pais,
       SemestreEntity,
       Cortes,
-      AnioLectivo
+      AnioLectivo,
+      AnioLectivoCorte,
+      PeriodoLectivo,
+      PeriodoLectivoCorte,
+      NotaCualitativa,
+      OrganizacionEscolar,
+      Grupos,
+      GrupoAsignaturaDocente,
+      GrupoAsignaturaConEstudiantes,
+      TipoPeriodizacion,
+      AnioLectivoCalendarizacion,
     ]),
   ],
   controllers: [
@@ -81,7 +107,10 @@ import { AnioLectivoService } from './services/anioLectivo.service';
     PaisController,
     SemestreController,
     CortesController,
-    AnioLectivoController
+    AnioLectivoController,
+    NotaCualitativaController,
+    TipoPeriodizacionController,
+    AnioLectivoCalendarizacionController,
 
   ],
   providers: [
@@ -99,7 +128,10 @@ import { AnioLectivoService } from './services/anioLectivo.service';
     PaisService,
     SemestreService,
     CortesService,
-    AnioLectivoService
+    AnioLectivoService,
+    NotaCualitativaService,
+    TipoPeriodizacionService,
+    AnioLectivoCalendarizacionService,
   ],
   exports: [CatalogoModule, TypeOrmModule],
 })

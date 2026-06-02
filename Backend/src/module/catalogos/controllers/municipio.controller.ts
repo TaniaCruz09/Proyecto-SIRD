@@ -75,7 +75,7 @@ export class MunicipioController {
     ) {
         try {
             const userId = req.user?.id;
-            if (!userId) {
+            if (!userId) { 
                 return {
                     message: "Usuario no encontrado",
                     statusCode: 401

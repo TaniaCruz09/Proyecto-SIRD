@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Role } from '../entities';
@@ -22,7 +22,7 @@ export class RolesService {
 
   async getRoles(query: QueryParamsRolesDto): Promise<Role[]> {
     const rows = this.roleRepo.createQueryBuilder('pepito').where('id <> 0');
-    console.log(query);
+    
 
     if (query.role)
       rows.andWhere('pepito.role ILIKE :role', { role: `%${query.role}%` });
@@ -43,12 +43,59 @@ export class RolesService {
   }
 
   async createRole(payload: RoleDto): Promise<Role> {
-    const newRole = this.roleRepo.create(payload);
+    const rolName = payload.rol?.trim();
+    const existing = await this.roleRepo.findOne({
+      where: { rol: rolName },
+      withDeleted: true,
+    });
+
+    if (existing) {
+      if (existing.deleteAt) {
+        await this.roleRepo.restore(existing.id);
+        const reactivated = await this.roleRepo.save({
+          ...existing,
+          rol: rolName,
+          isActive: payload.isActive ?? true,
+          deleteAt: null,
+        });
+        return reactivated;
+      }
+
+      throw new ConflictException('Role already exists');
+    }
+
+    const newRole = this.roleRepo.create({
+      ...payload,
+      rol: rolName,
+      isActive: payload.isActive ?? true,
+    });
     return await this.roleRepo.save(newRole);
   }
 
   async updateRole(id: number, payload: RoleDto): Promise<Role> {
-    const role = await this.roleRepo.preload({ id, ...payload });
+    const existingRole = await this.roleRepo.findOne({ where: { id } });
+    if (!existingRole) {
+      throw new NotFoundException("Role doesn't exist");
+    }
+
+    const rolName = payload.rol?.trim();
+    if (rolName) {
+      const duplicate = await this.roleRepo.findOne({
+        where: { rol: rolName },
+        withDeleted: true,
+      });
+
+      if (duplicate && Number(duplicate.id) !== Number(id)) {
+        if (duplicate.deleteAt) {
+          throw new ConflictException(
+            'Deleted role exists with that name. Restore it or choose another name.',
+          );
+        }
+        throw new ConflictException('Role already exists');
+      }
+    }
+
+    const role = await this.roleRepo.preload({ id, ...payload, rol: rolName });
     return await this.roleRepo.save(role);
   }
 

@@ -2,63 +2,85 @@ import { Docente, DocentePayload } from "@/interfaces";
 import { feching } from "@/utils/cliente-http"
 
 export async function getDocentes() {
-    const endPoint = `/docentes`
+  const endPoint = `/docentes`
 
-    const response = await feching(endPoint, "no-cache", "GET");
+  const response = await feching(endPoint, "no-cache", "GET");
 
-    if (!response.data || response.error) {
-        throw new Error(response?.error || "Error al obtener docentes");
-    }
+  if (!response.data || response.error) {
+    throw new Error(response?.error || "Error al obtener docentes");
+  }
 
-    return response.data
+  return response.data
 
 }
 
 export async function getDocenteById(id: number) {
-    const endPoint = `/docentes/${id}`;
+  const endPoint = `/docentes/${id}`;
 
-    const response = await feching(endPoint, "no-cache", "GET");
+  const response = await feching(endPoint, "no-cache", "GET");
 
-    if (!response.data || response.error) {
-        throw new Error(response?.error || "error desconocido desde el front de obtener un usuario")
-    }
+  if (!response.data || response.error) {
+    throw new Error(response?.error || "error desconocido desde el front de obtener un usuario")
+  }
 
-    return response.data;
+  return response.data;
 
 }
 
-export async function saveDocente(docente: DocentePayload) {
-    const endPoint = `/docentes`;
-    console.log(docente, 'este es el docente que se envia al back')
-    const response = await feching(endPoint, "no-cache", "POST", docente)
+export async function getGradosByDocenteId(id: number) {
+  const endPoint = `/docentes/getGradosByDocenteId/${id}`;
 
-    if (!response.data || response.error) {
-        throw new Error(response?.error || "error desconocido desde el front de agragar docente")
-    }
- 
-    return response.data;
-    
+  const response = await feching(endPoint, "no-cache", "GET");
+
+  if (!response.data || response.error) {
+    throw new Error(response?.error || "error desconocido desde el front de obtener un usuario")
+  }
+
+  return response.data;
+
 }
 
-export async function updateDocente(id: number, docente: DocentePayload) {
-    const endPoint = `/docentes/${id}`;
-console.log(docente, 'este es el docente que se envia al back para actualizar')
-    const response = await feching(endPoint, "no-cache", "PUT", docente);
-    if (!response || response.error) {
-        throw new Error(response?.error || "error desconocido desde el front de actualizar docente")
-    }
+export async function saveDocente(formData: FormData) {
+  const endPoint = `/docentes`;
 
-    return response.data;
+  const response = await feching(endPoint, "no-cache", "POST", formData);
+
+  if (!response.data || response.error) {
+    throw new Error(response?.error || "Error desconocido al agregar docente");
+  }
+
+  return response.data;
 }
+
+export async function updateDocente(id: number, formData: FormData) {
+  const endPoint = `/docentes/${id}`;
+  const response = await feching(endPoint, "no-cache", "PUT", formData);
+
+  if (!response || response.error) {
+    throw new Error(response?.error || "Error desconocido al actualizar docente");
+  }
+
+  return response.data;
+}
+
+// // Subir imagen de docente (FormData)
+// export async function uploadDocenteImage(id: number, file: File) {
+//   const formData = new FormData();
+//   formData.append("foto_docente", file);
+
+//   const response = await feching(`/docentes/${id}/uploads/docentes`, "no-cache", "POST", formData);
+//   if (!response.data || response.error) throw new Error(response?.error || "Error al subir la imagen del docente");
+//   return response.data; // { fileName: "nombre.jpg" }
+// }
 
 export async function deleteDocentes(id: number) {
-    const endPoint = `/docentes/${id}`;
+  const endPoint = `/docentes/${id}`;
 
-    const response = await feching(endPoint, "no-cache", "DELETE")
+  const response = await feching(endPoint, "no-cache", "DELETE")
 
-    if (!response.data || response.data.error) {
-        throw new Error(response?.error)
-    }
+  if (!response.data || response.data.error) {
+    throw new Error(response?.error)
+  }
 
-    return response.data
+  return response.data
 }

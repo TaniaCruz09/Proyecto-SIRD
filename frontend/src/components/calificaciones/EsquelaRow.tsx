@@ -1,676 +1,1000 @@
-"use client"
 
+"use client"
+import React, { useEffect, useState } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "../ui/button"
+import { EsquelaHeadInterface } from "@/interfaces/calificaciones/EsquelaHead"
+import { getEsquelaHeadById } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
+import { getEsquelaRowByEstudianteAndAnio } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods"
+import { getNotasCualitativas } from "@/actions/catalogos/notaCualitativaMethods"
 import { EsquelaHead } from "./EsquelaHead"
+import ExcelJS, { Borders, BorderStyle } from "exceljs"
+import { saveAs } from "file-saver"
+import { getCentros } from "@/actions/centroMethods/centroEducativoMethods"
+import { CentroEscolar } from "@/interfaces/centroInterface"
+import { Corte, NotaCualitativa } from "@/interfaces"
 
-interface Student {
-    id: string
-    code: string
-    fullName: string
-    gender: "M" | "F"
-    avatar?: string
-    mathematics: {
-        quantitative1: number
-        qualitative1: string
-        quantitative2: number
-        qualitative2: string
-        quantitative3: number
-        qualitative3: string
-        quantitative4: number
-        qualitative4: string
-    }
-    spanish: {
-        quantitative1: number
-        qualitative1: string
-        quantitative2: number
-        qualitative2: string
-        quantitative3: number
-        qualitative3: string
-        quantitative4: number
-        qualitative4: string
-    }
-    science: {
-        quantitative1: number
-        qualitative1: string
-        quantitative2: number
-        qualitative2: string
-        quantitative3: number
-        qualitative3: string
-        quantitative4: number
-        qualitative4: string
-    }
-}
 
-const sampleStudents: Student[] = [
-    {
-        id: "1",
-        code: "EST001",
-        fullName: "María González Pérez",
-        gender: "F",
-        avatar: "/estudiante-mujer-sonriente.jpg",
-        mathematics: {
-            quantitative1: 85,
-            qualitative1: "Excelente",
-            quantitative2: 78,
-            qualitative2: "Bueno",
-            quantitative3: 92,
-            qualitative3: "Sobresaliente",
-            quantitative4: 88,
-            qualitative4: "Excelente",
-        },
-        spanish: {
-            quantitative1: 90,
-            qualitative1: "Sobresaliente",
-            quantitative2: 85,
-            qualitative2: "Excelente",
-            quantitative3: 88,
-            qualitative3: "Excelente",
-            quantitative4: 92,
-            qualitative4: "Sobresaliente",
-        },
-        science: {
-            quantitative1: 82,
-            qualitative1: "Excelente",
-            quantitative2: 79,
-            qualitative2: "Bueno",
-            quantitative3: 86,
-            qualitative3: "Excelente",
-            quantitative4: 84,
-            qualitative4: "Excelente",
-        },
-    },
-    {
-        id: "2",
-        code: "EST002",
-        fullName: "Carlos Rodríguez López",
-        gender: "M",
-        mathematics: {
-            quantitative1: 72,
-            qualitative1: "Aceptable",
-            quantitative2: 68,
-            qualitative2: "Aceptable",
-            quantitative3: 75,
-            qualitative3: "Bueno",
-            quantitative4: 80,
-            qualitative4: "Bueno",
-        },
-        spanish: {
-            quantitative1: 78,
-            qualitative1: "Bueno",
-            quantitative2: 74,
-            qualitative2: "Aceptable",
-            quantitative3: 82,
-            qualitative3: "Excelente",
-            quantitative4: 79,
-            qualitative4: "Bueno",
-        },
-        science: {
-            quantitative1: 70,
-            qualitative1: "Aceptable",
-            quantitative2: 73,
-            qualitative2: "Aceptable",
-            quantitative3: 77,
-            qualitative3: "Bueno",
-            quantitative4: 81,
-            qualitative4: "Bueno",
-        },
-    },
-    {
-        id: "3",
-        code: "EST003",
-        fullName: "Ana Sofía Martínez",
-        gender: "F",
-        avatar: "/estudiante-joven-concentrada.jpg",
-        mathematics: {
-            quantitative1: 90,
-            qualitative1: "Sobresaliente",
-            quantitative2: 94,
-            qualitative2: "Sobresaliente",
-            quantitative3: 87,
-            qualitative3: "Excelente",
-            quantitative4: 91,
-            qualitative4: "Sobresaliente",
-        },
-        spanish: {
-            quantitative1: 93,
-            qualitative1: "Sobresaliente",
-            quantitative2: 89,
-            qualitative2: "Excelente",
-            quantitative3: 95,
-            qualitative3: "Sobresaliente",
-            quantitative4: 88,
-            qualitative4: "Excelente",
-        },
-        science: {
-            quantitative1: 91,
-            qualitative1: "Sobresaliente",
-            quantitative2: 87,
-            qualitative2: "Excelente",
-            quantitative3: 93,
-            qualitative3: "Sobresaliente",
-            quantitative4: 89,
-            qualitative4: "Excelente",
-        },
-    },
-]
-
-function calculateFirstSemester(subject: any): { quantitative: number; qualitative: string } {
-    const avg = Math.round((subject.quantitative1 + subject.quantitative2) / 2)
-    return {
-        quantitative: avg,
-        qualitative: getQualitativeGrade(avg),
-    }
-}
-
-function calculateSecondSemester(subject: any): { quantitative: number; qualitative: string } {
-    const avg = Math.round((subject.quantitative3 + subject.quantitative4) / 2)
-    return {
-        quantitative: avg,
-        qualitative: getQualitativeGrade(avg),
-    }
-}
-
-function calculateSubjectFinal(firstSem: number, secondSem: number): { quantitative: number; qualitative: string } {
-    const avg = Math.round((firstSem + secondSem) / 2)
-    return {
-        quantitative: avg,
-        qualitative: getQualitativeGrade(avg),
-    }
-}
-
-function getQualitativeGrade(grade: number): string {
-    if (grade >= 90) return "S" // Sobresaliente
-    if (grade >= 80) return "E" // Excelente
-    if (grade >= 70) return "B" // Bueno
-    if (grade >= 60) return "A" // Aceptable
-    return "I" // Insuficiente
-}
-
-function calculateSubjectAverage(subject: any): number {
-    const total = subject.quantitative1 + subject.quantitative2 + subject.quantitative3 + subject.quantitative4
-    return Math.round(total / 4)
-}
-
-function getStatus(finalGrade: number): string {
-    return finalGrade >= 60 ? "Aprobado" : "Reprobado"
-}
-
+/* ================= HELPERS ================= */
 function getInitials(fullName: string): string {
-    return fullName
-        .split(" ")
-        .map((name) => name.charAt(0))
-        .join("")
-        .substring(0, 2)
-        .toUpperCase()
+  return fullName
+    .split(" ")
+    .map(n => n.charAt(0))
+    .join("")
+    .substring(0, 2)
+    .toUpperCase()
 }
 
-function calculateFinalGrade(mathFinal: number, spanishFinal: number, scienceFinal: number): number {
-    const total = mathFinal + spanishFinal + scienceFinal
-    return Math.round(total / 3)
+function toRoman(num: number): string {
+  const romans = [
+    { value: 10, numeral: "X" },
+    { value: 9, numeral: "IX" },
+    { value: 5, numeral: "V" },
+    { value: 4, numeral: "IV" },
+    { value: 1, numeral: "I" },
+  ]
+
+  let n = num
+  let result = ""
+  romans.forEach((item) => {
+    while (n >= item.value) {
+      result += item.numeral
+      n -= item.value
+    }
+  })
+
+  return result || String(num)
 }
 
-export function EsquelaRow() {
-    return (
-        <div className="w-full space-y-6 bg-gradient-to-br from-rose-50 via-pink-50 to-white min-h-screen p-4">
-            <EsquelaHead
-                schoolName="Instituto Nacional San José"
-                grade="11° Grado"
-                section="A"
-                shift="Matutino"
-                year="2024"
-                modality="Bachillerato en Ciencias y Letras"
-                teacherName="Prof. Ana María Rodríguez"
-            />
+function getDocenteNombreCompleto(docente?: {
+  nombres?: string
+  apellido_paterno?: string
+  apellido_materno?: string
+}): string {
+  return [docente?.nombres, docente?.apellido_paterno, docente?.apellido_materno]
+    .filter(Boolean)
+    .join(" ")
+    .trim()
+}
 
-            <Card className="w-full shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
-                <CardContent className="p-0">
-                    <div className="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="bg-gradient-to-r from-rose-100 to-pink-100 hover:from-rose-100 hover:to-pink-100 border-b-2 border-rose-200">
-                                    <TableHead className="font-bold text-rose-900 border-r border-rose-200 bg-white text-center min-w-[80px]">
-                                        Avatar
-                                    </TableHead>
-                                    <TableHead className="font-bold text-rose-900 border-r border-rose-200 bg-white text-center min-w-[80px]">
-                                        Código
-                                    </TableHead>
-                                    <TableHead className="font-bold text-rose-900 border-r border-rose-200 bg-white text-center min-w-[200px]">
-                                        Nombre Completo
-                                    </TableHead>
-                                    <TableHead className="font-bold text-rose-900 border-r border-rose-200 text-center bg-white min-w-[60px]">
-                                        Sexo
-                                    </TableHead>
+/* ================= TYPES ================= */
 
-                                    <TableHead
-                                        className="font-bold text-emerald-900 border-r border-rose-200 text-center bg-emerald-100"
-                                        colSpan={14}
-                                    >
-                                        📐 Matemáticas
-                                    </TableHead>
+interface Estudiante {
+  id: number
+  name: string
+  lastName: string
+  studentCode: string
+  gender?: { gender?: string }
+  profileImage?: string | null
+}
 
-                                    <TableHead
-                                        className="font-bold text-amber-900 border-r border-rose-200 text-center bg-amber-100"
-                                        colSpan={14}
-                                    >
-                                        📚 Español
-                                    </TableHead>
+interface GEItem {
+  estudiante: Estudiante
+  activo?: boolean
+}
 
-                                    <TableHead
-                                        className="font-bold text-violet-900 border-r border-rose-200 text-center bg-violet-100"
-                                        colSpan={14}
-                                    >
-                                        🔬 Ciencias
-                                    </TableHead>
+type EstudianteConEstadoGrupo = Estudiante & {
+  activoEnGrupo: boolean
+}
 
-                                    <TableHead className="font-bold text-rose-900 border-r border-rose-200 text-center bg-rose-100 min-w-[100px]">
-                                        🏆 Nota Final
-                                    </TableHead>
-                                </TableRow>
+interface GADItem {
+  id?: number
+  asignatura: { id: number; asignatura: string }
+  docente?: {
+    nombres?: string
+    apellido_paterno?: string
+    apellido_materno?: string
+  }
+  gruposConEstudiantes: GEItem[]
+}
 
-                                <TableRow className="bg-rose-50 hover:bg-rose-50 border-b border-rose-200">
-                                    <TableHead className="border-r border-rose-200"></TableHead>
-                                    <TableHead className="border-r border-rose-200"></TableHead>
-                                    <TableHead className="border-r border-rose-200"></TableHead>
-                                    <TableHead className="border-r border-rose-200"></TableHead>
+interface EsquelaRowProps {
+  esquelaHeadId: number
+  estudianteId?: number
+}
 
-                                    <TableHead
-                                        className="font-medium text-emerald-800 border-r border-rose-200 text-center text-xs bg-emerald-50 min-w-[60px]"
-                                        colSpan={2}
-                                    >
-                                        1er Parcial
-                                    </TableHead>
-                                    <TableHead
-                                        className="font-medium text-emerald-800 border-r border-rose-200 text-center text-xs bg-emerald-50 min-w-[60px]"
-                                        colSpan={2}
-                                    >
-                                        2do Parcial
-                                    </TableHead>
-                                    <TableHead
-                                        className="font-medium text-emerald-900 border-r border-rose-200 text-center text-xs bg-emerald-200 font-bold min-w-[80px]"
-                                        colSpan={2}
-                                    >
-                                        1er Semestre
-                                    </TableHead>
-                                    <TableHead
-                                        className="font-medium text-emerald-800 border-r border-rose-200 text-center text-xs bg-emerald-50 min-w-[60px]"
-                                        colSpan={2}
-                                    >
-                                        3er Parcial
-                                    </TableHead>
-                                    <TableHead
-                                        className="font-medium text-emerald-800 border-r border-rose-200 text-center text-xs bg-emerald-50 min-w-[60px]"
-                                        colSpan={2}
-                                    >
-                                        4to Parcial
-                                    </TableHead>
-                                    <TableHead
-                                        className="font-medium text-emerald-900 border-r border-rose-200 text-center text-xs bg-emerald-200 font-bold min-w-[80px]"
-                                        colSpan={2}
-                                    >
-                                        2do Semestre
-                                    </TableHead>
-                                    <TableHead
-                                        className="font-medium text-emerald-900 border-r border-rose-200 text-center text-xs bg-emerald-300 font-bold min-w-[80px]"
-                                        colSpan={2}
-                                    >
-                                        Nota Final
-                                    </TableHead>
+type VistaType = "ALL" | "FINAL" | `C-${number}` | `S-${number}`
 
-                                    <TableHead
-                                        className="font-medium text-amber-800 border-r border-rose-200 text-center text-xs bg-amber-50 min-w-[60px]"
-                                        colSpan={2}
-                                    >
-                                        1er Parcial
-                                    </TableHead>
-                                    <TableHead
-                                        className="font-medium text-amber-800 border-r border-rose-200 text-center text-xs bg-amber-50 min-w-[60px]"
-                                        colSpan={2}
-                                    >
-                                        2do Parcial
-                                    </TableHead>
-                                    <TableHead
-                                        className="font-medium text-amber-900 border-r border-rose-200 text-center text-xs bg-amber-200 font-bold min-w-[80px]"
-                                        colSpan={2}
-                                    >
-                                        1er Semestre
-                                    </TableHead>
-                                    <TableHead
-                                        className="font-medium text-amber-800 border-r border-rose-200 text-center text-xs bg-amber-50 min-w-[60px]"
-                                        colSpan={2}
-                                    >
-                                        3er Parcial
-                                    </TableHead>
-                                    <TableHead
-                                        className="font-medium text-amber-800 border-r border-rose-200 text-center text-xs bg-amber-50 min-w-[60px]"
-                                        colSpan={2}
-                                    >
-                                        4to Parcial
-                                    </TableHead>
-                                    <TableHead
-                                        className="font-medium text-amber-900 border-r border-rose-200 text-center text-xs bg-amber-200 font-bold min-w-[80px]"
-                                        colSpan={2}
-                                    >
-                                        2do Semestre
-                                    </TableHead>
-                                    <TableHead
-                                        className="font-medium text-amber-900 border-r border-rose-200 text-center text-xs bg-amber-300 font-bold min-w-[80px]"
-                                        colSpan={2}
-                                    >
-                                        Nota Final
-                                    </TableHead>
+type Columna = {
+  key: string
+  label: string
+  corteIds: number[]
+  type: "CORTE" | "PERIODO" | "FINAL"
+}
 
-                                    <TableHead
-                                        className="font-medium text-violet-800 border-r border-rose-200 text-center text-xs bg-violet-50 min-w-[60px]"
-                                        colSpan={2}
-                                    >
-                                        1er Parcial
-                                    </TableHead>
-                                    <TableHead
-                                        className="font-medium text-violet-800 border-r border-rose-200 text-center text-xs bg-violet-50 min-w-[60px]"
-                                        colSpan={2}
-                                    >
-                                        2do Parcial
-                                    </TableHead>
-                                    <TableHead
-                                        className="font-medium text-violet-900 border-r border-rose-200 text-center text-xs bg-violet-200 font-bold min-w-[80px]"
-                                        colSpan={2}
-                                    >
-                                        1er Semestre
-                                    </TableHead>
-                                    <TableHead
-                                        className="font-medium text-violet-800 border-r border-rose-200 text-center text-xs bg-violet-50 min-w-[60px]"
-                                        colSpan={2}
-                                    >
-                                        3er Parcial
-                                    </TableHead>
-                                    <TableHead
-                                        className="font-medium text-violet-800 border-r border-rose-200 text-center text-xs bg-violet-50 min-w-[60px]"
-                                        colSpan={2}
-                                    >
-                                        4to Parcial
-                                    </TableHead>
-                                    <TableHead
-                                        className="font-medium text-violet-900 border-r border-rose-200 text-center text-xs bg-violet-200 font-bold min-w-[80px]"
-                                        colSpan={2}
-                                    >
-                                        2do Semestre
-                                    </TableHead>
-                                    <TableHead
-                                        className="font-medium text-violet-900 border-r border-rose-200 text-center text-xs bg-violet-300 font-bold min-w-[80px]"
-                                        colSpan={2}
-                                    >
-                                        Nota Final
-                                    </TableHead>
+type PeriodoAgrupado = {
+  id: number
+  label: string
+  tipo: string
+  orden: number
+  cortes: Corte[]
+}
 
-                                    <TableHead className="border-r border-rose-200"></TableHead>
-                                </TableRow>
+type AnyPeriodo = {
+  id?: number
+  nombre?: string
+  abreviatura?: string
+  tipo?: string
+  orden?: number
+  cortes?: Corte[]
+  cortesPeriodo?: Array<{ orden?: number; corte?: Corte }>
+}
 
-                                <TableRow className="bg-rose-100 hover:bg-rose-100 border-b border-rose-200">
-                                    <TableHead className="border-r border-rose-200"></TableHead>
-                                    <TableHead className="border-r border-rose-200"></TableHead>
-                                    <TableHead className="border-r border-rose-200"></TableHead>
-                                    <TableHead className="border-r border-rose-200"></TableHead>
+/* ================= COMPONENT ================= */
 
-                                    {Array.from({ length: 7 }, (_, i) => (
-                                        <>
-                                            <TableHead
-                                                key={`math-cuant-${i}`}
-                                                className="font-medium text-emerald-800 border-r border-rose-200 text-center text-xs bg-emerald-50 min-w-[50px]"
-                                            >
-                                                Cuant.
-                                            </TableHead>
-                                            <TableHead
-                                                key={`math-cual-${i}`}
-                                                className="font-medium text-emerald-800 border-r border-rose-200 text-center text-xs bg-emerald-50 min-w-[40px]"
-                                            >
-                                                Cual.
-                                            </TableHead>
-                                        </>
-                                    ))}
+export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
+  const [esquelaHead, setEsquelaHead] = useState<EsquelaHeadInterface>()
+  const [calificaciones, setCalificaciones] = useState<any[]>([])
+  const [vista, setVista] = useState<VistaType>("ALL")
+  const [centro, setCentro] = useState<CentroEscolar | null>(null)
+  const [notasCualitativas, setNotasCualitativas] = useState<NotaCualitativa[]>([])
 
-                                    {Array.from({ length: 7 }, (_, i) => (
-                                        <>
-                                            <TableHead
-                                                key={`spanish-cuant-${i}`}
-                                                className="font-medium text-amber-800 border-r border-rose-200 text-center text-xs bg-amber-50 min-w-[50px]"
-                                            >
-                                                Cuant.
-                                            </TableHead>
-                                            <TableHead
-                                                key={`spanish-cual-${i}`}
-                                                className="font-medium text-amber-800 border-r border-rose-200 text-center text-xs bg-amber-50 min-w-[40px]"
-                                            >
-                                                Cual.
-                                            </TableHead>
-                                        </>
-                                    ))}
 
-                                    {Array.from({ length: 7 }, (_, i) => (
-                                        <>
-                                            <TableHead
-                                                key={`science-cuant-${i}`}
-                                                className="font-medium text-violet-800 border-r border-rose-200 text-center text-xs bg-violet-50 min-w-[50px]"
-                                            >
-                                                Cuant.
-                                            </TableHead>
-                                            <TableHead
-                                                key={`science-cual-${i}`}
-                                                className="font-medium text-violet-800 border-r border-rose-200 text-center text-xs bg-violet-50 min-w-[40px]"
-                                            >
-                                                Cual.
-                                            </TableHead>
-                                        </>
-                                    ))}
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await getEsquelaHeadById(esquelaHeadId)
+      setEsquelaHead(response)
 
-                                    <TableHead className="border-r border-rose-200"></TableHead>
-                                </TableRow>
-                            </TableHeader>
+      const anio =
+        response?.grupo_asignatura?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0
 
-                            <TableBody>
+      const estudiantes =
+        response?.grupo_asignatura?.grupoAsignaturaDocente
+          ?.flatMap((g: any) =>
+            g.gruposConEstudiantes.map((ge: any) => ({
+              ...ge.estudiante,
+              activoEnGrupo: ge?.activo !== false,
+            }))
+          )
+          .filter((v: any): v is EstudianteConEstadoGrupo => Boolean(v && v.id))
+          .filter(
+            (v: EstudianteConEstadoGrupo, i: number, self: EstudianteConEstadoGrupo[]) =>
+              self.findIndex((s) => s.id === v.id) === i
+          ) ?? []
 
-                                {sampleStudents.map((student, index) => {
-                                    const mathFirstSem = calculateFirstSemester(student.mathematics)
-                                    const mathSecondSem = calculateSecondSemester(student.mathematics)
-                                    const mathFinal = calculateSubjectFinal(mathFirstSem.quantitative, mathSecondSem.quantitative)
+      if (estudiantes.length) {
+        const rows = await Promise.all(
+          estudiantes.map((e: any) =>
+            getEsquelaRowByEstudianteAndAnio(e.id, anio)
+          )
+        )
+        setCalificaciones(rows.flat())
+      }
+    }
 
-                                    const spanishFirstSem = calculateFirstSemester(student.spanish)
-                                    const spanishSecondSem = calculateSecondSemester(student.spanish)
-                                    const spanishFinal = calculateSubjectFinal(
-                                        spanishFirstSem.quantitative,
-                                        spanishSecondSem.quantitative,
-                                    )
 
-                                    const scienceFirstSem = calculateFirstSemester(student.science)
-                                    const scienceSecondSem = calculateSecondSemester(student.science)
-                                    const scienceFinal = calculateSubjectFinal(
-                                        scienceFirstSem.quantitative,
-                                        scienceSecondSem.quantitative,
-                                    )
+    const fetchCentro = async () => {
+      try {
+        const centros = await getCentros()
+        // Si solo tienes un centro registrado
+        setCentro(centros[0])
+      } catch (error) {
+        console.error("Error cargando centro:", error)
+      }
+    }
+    fetchData()
+    fetchCentro()
+  }, [esquelaHeadId])
 
-                                    const finalGrade = calculateFinalGrade(
-                                        mathFinal.quantitative,
-                                        spanishFinal.quantitative,
-                                        scienceFinal.quantitative,
-                                    )
+  useEffect(() => {
+    const fetchNotas = async () => {
+      try {
+        const response = await getNotasCualitativas()
+        if (Array.isArray(response)) {
+          const ordered = response
+            .slice()
+            .sort((a, b) => (a.id ?? 0) - (b.id ?? 0))
+          setNotasCualitativas(ordered)
+        }
+      } catch (error) {
+        console.error("Error cargando notas cualitativas:", error)
+      }
+    }
 
-                                    return (
-                                        <TableRow
-                                            key={student.id ?? index}
-                                            className={`hover:bg-rose-50 transition-colors ${index % 2 === 0 ? "bg-white" : "bg-rose-25"} border-b border-rose-200`}
-                                        >
-                                            <TableCell className="border-r border-rose-200">
-                                                <Avatar className="h-12 w-12 ring-2 ring-rose-200">
-                                                    {student.avatar && (
-                                                        <AvatarImage src={student.avatar || "/placeholder.svg"} alt={student.fullName} />
-                                                    )}
-                                                    <AvatarFallback className="bg-rose-100 text-rose-700 font-bold text-sm">
-                                                        {getInitials(student.fullName)}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 font-bold text-primary text-center">
-                                                {student.code}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 font-semibold text-foreground">
-                                                {student.fullName}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-foreground">
-                                                {student.gender}
-                                            </TableCell>
+    fetchNotas()
+  }, [])
 
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-emerald-50 min-w-[50px]">
-                                                {student.mathematics.quantitative1}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-emerald-700 bg-emerald-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.mathematics.quantitative1)}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-emerald-50 min-w-[50px]">
-                                                {student.mathematics.quantitative2}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-emerald-700 bg-emerald-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.mathematics.quantitative2)}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-emerald-200 text-emerald-900 min-w-[50px]">
-                                                {mathFirstSem.quantitative}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm bg-emerald-200 font-bold text-emerald-900 min-w-[40px]">
-                                                {mathFirstSem.qualitative}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-emerald-50 min-w-[50px]">
-                                                {student.mathematics.quantitative3}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-emerald-700 bg-emerald-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.mathematics.quantitative3)}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-emerald-50 min-w-[50px]">
-                                                {student.mathematics.quantitative4}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-emerald-700 bg-emerald-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.mathematics.quantitative4)}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-emerald-200 text-emerald-900 min-w-[50px]">
-                                                {mathSecondSem.quantitative}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm bg-emerald-200 font-bold text-emerald-900 min-w-[40px]">
-                                                {mathSecondSem.qualitative}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-lg bg-emerald-300 text-emerald-900 min-w-[50px]">
-                                                {mathFinal.quantitative}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm bg-emerald-300 font-bold text-emerald-900 min-w-[40px]">
-                                                {mathFinal.qualitative}
-                                            </TableCell>
+  const asignaturas: GADItem[] =
+    esquelaHead?.grupo_asignatura?.grupoAsignaturaDocente ?? []
 
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-amber-50 min-w-[50px]">
-                                                {student.spanish.quantitative1}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-amber-700 bg-amber-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.spanish.quantitative1)}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-amber-50 min-w-[50px]">
-                                                {student.spanish.quantitative2}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-amber-700 bg-amber-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.spanish.quantitative2)}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-amber-200 text-amber-900 min-w-[50px]">
-                                                {spanishFirstSem.quantitative}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm bg-amber-200 font-bold text-amber-900 min-w-[40px]">
-                                                {spanishFirstSem.qualitative}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-amber-50 min-w-[50px]">
-                                                {student.spanish.quantitative3}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-amber-700 bg-amber-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.spanish.quantitative3)}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-amber-50 min-w-[50px]">
-                                                {student.spanish.quantitative4}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-amber-700 bg-amber-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.spanish.quantitative4)}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-amber-200 text-amber-900 min-w-[50px]">
-                                                {spanishSecondSem.quantitative}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm bg-amber-200 font-bold text-amber-900 min-w-[40px]">
-                                                {spanishSecondSem.qualitative}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-lg bg-amber-300 text-amber-900 min-w-[50px]">
-                                                {spanishFinal.quantitative}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm bg-amber-300 font-bold text-amber-900 min-w-[40px]">
-                                                {spanishFinal.qualitative}
-                                            </TableCell>
+  const estudiantes: EstudianteConEstadoGrupo[] =
+    asignaturas
+      .flatMap((g) => g.gruposConEstudiantes.map((ge) => ({
+        ...ge.estudiante,
+        activoEnGrupo: ge?.activo !== false,
+      })))
+      .filter((v): v is EstudianteConEstadoGrupo => Boolean(v && v.id))
+      .filter((v, i, self) => self.findIndex((s) => s.id === v.id) === i)
+      .filter((est) => !estudianteId || est.id === estudianteId)
 
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-violet-50 min-w-[50px]">
-                                                {student.science.quantitative1}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-violet-700 bg-violet-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.science.quantitative1)}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-violet-50 min-w-[50px]">
-                                                {student.science.quantitative2}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-violet-700 bg-violet-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.science.quantitative2)}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-violet-200 text-violet-900 min-w-[50px]">
-                                                {scienceFirstSem.quantitative}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm bg-violet-200 font-bold text-violet-900 min-w-[40px]">
-                                                {scienceFirstSem.qualitative}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-violet-50 min-w-[50px]">
-                                                {student.science.quantitative3}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-violet-700 bg-violet-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.science.quantitative3)}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-violet-50 min-w-[50px]">
-                                                {student.science.quantitative4}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm font-medium text-violet-700 bg-violet-50 min-w-[40px]">
-                                                {getQualitativeGrade(student.science.quantitative4)}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-base bg-violet-200 text-violet-900 min-w-[50px]">
-                                                {scienceSecondSem.quantitative}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm bg-violet-200 font-bold text-violet-900 min-w-[40px]">
-                                                {scienceSecondSem.qualitative}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center font-bold text-lg bg-violet-300 text-violet-900 min-w-[50px]">
-                                                {scienceFinal.quantitative}
-                                            </TableCell>
-                                            <TableCell className="border-r border-rose-200 text-center text-sm bg-violet-300 font-bold text-violet-900 min-w-[40px]">
-                                                {scienceFinal.qualitative}
-                                            </TableCell>
+  const estudiantesVisibles = estudiantes.filter(
+    (est) => vista === "ALL" || est.activoEnGrupo !== false,
+  )
 
-                                            <TableCell className="border-r border-rose-200 text-center bg-rose-50">
-                                                <div className="flex flex-col items-center">
-                                                    <span
-                                                        className={`font-bold text-xl ${finalGrade >= 60 ? "text-emerald-600" : "text-red-600"}`}
-                                                    >
-                                                        {finalGrade}
-                                                    </span>
-                                                    <span
-                                                        className={`text-xs font-bold ${finalGrade >= 60 ? "text-emerald-600" : "text-red-600"}`}
-                                                    >
-                                                        {getQualitativeGrade(finalGrade)}
-                                                    </span>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    )
-                                })}
-                            </TableBody>
-                        </Table>
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
+  const findNota = (estId: number, asigId: number, corteId: number) => {
+    const row = calificaciones.find(
+      (r) =>
+        r?.estudiante?.id === estId &&
+        r?.asignatura?.id === asigId &&
+        r?.corte?.id === corteId
     )
+
+    return {
+      cuant: row?.notaCuantitativa ?? 0,
+      cual: row?.notaCualitativa ?? "AI"
+    }
+  }
+
+  const getQualitativeGrade = (grade: number): string => {
+    if (!Number.isFinite(grade)) return "AI"
+    const match = notasCualitativas.find(
+      (nota) => grade >= nota.rango_menor && grade <= nota.rango_mayor
+    )
+    return match?.abreviatura ?? "AI"
+  }
+
+  const anioLectivoData = esquelaHead?.grupo_asignatura?.organizacionEscolar?.anio_lectivo
+
+  const ordenarCortes = (items: Corte[]) =>
+    [...items].sort((a, b) => {
+      const ordenA = a.orden ?? Number.MAX_SAFE_INTEGER
+      const ordenB = b.orden ?? Number.MAX_SAFE_INTEGER
+      if (ordenA !== ordenB) return ordenA - ordenB
+      return (a.id ?? 0) - (b.id ?? 0)
+    })
+
+  const periodosDesdeAnio = React.useMemo<PeriodoAgrupado[]>(() => {
+    const rawPeriodos = (
+      (anioLectivoData as { periodos?: AnyPeriodo[] } | undefined)?.periodos ??
+      (anioLectivoData as { periodosLectivos?: AnyPeriodo[] } | undefined)?.periodosLectivos ??
+      []
+    ) as AnyPeriodo[]
+
+    if (!rawPeriodos.length) {
+      return []
+    }
+
+    return rawPeriodos
+      .slice()
+      .sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
+      .map((periodo, index) => {
+        const cortesDesdePeriodos = periodo.cortes ?? []
+        const cortesDesdeRelacion =
+          periodo.cortesPeriodo
+            ?.slice()
+            .sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
+            .map((item) => ({ ...(item.corte ?? {}), orden: item.orden }))
+            .filter((item) => Boolean(item.id)) as Corte[] | undefined
+
+        const cortes = ordenarCortes(cortesDesdePeriodos.length ? cortesDesdePeriodos : (cortesDesdeRelacion ?? []))
+
+        return {
+          id: periodo.id ?? index + 1,
+          label: periodo.nombre || periodo.abreviatura || `Periodo ${index + 1}`,
+          tipo: periodo.tipo ?? "PERSONALIZADO",
+          orden: periodo.orden ?? index + 1,
+          cortes,
+        }
+      })
+      .filter((periodo) => periodo.cortes.length > 0)
+  }, [anioLectivoData])
+
+  const cortesDisponibles = React.useMemo(() => {
+    if (periodosDesdeAnio.length > 0) {
+      const unique = new Map<number, Corte>()
+      periodosDesdeAnio.forEach((periodo) => {
+        periodo.cortes.forEach((corte) => {
+          if (corte?.id) {
+            unique.set(corte.id, corte)
+          }
+        })
+      })
+
+      return ordenarCortes(Array.from(unique.values()))
+    }
+
+    const cortesFromAnio =
+      anioLectivoData?.cortes ??
+      anioLectivoData?.cortesAnioLectivo?.map((item) => item.corte) ?? []
+
+    if (cortesFromAnio.length > 0) {
+      return ordenarCortes(cortesFromAnio)
+    }
+
+    const unique = new Map<number, Corte>()
+    calificaciones.forEach((row) => {
+      const corte = row?.corte
+      if (corte?.id) {
+        unique.set(corte.id, corte)
+      }
+    })
+
+    return ordenarCortes(Array.from(unique.values()))
+  }, [anioLectivoData, calificaciones, periodosDesdeAnio])
+
+  const periodos = React.useMemo<PeriodoAgrupado[]>(() => {
+    if (periodosDesdeAnio.length > 0) {
+      return periodosDesdeAnio
+    }
+
+    const map = new Map<number, PeriodoAgrupado>()
+    cortesDisponibles.forEach((corte) => {
+      const id = corte.semestre?.id ?? 0
+      const label = corte.semestre?.semestre ?? "Sin semestre"
+      const current = map.get(id)
+      if (current) {
+        current.cortes.push(corte)
+      } else {
+        map.set(id, { id, label, tipo: corte.semestre ? "SEMESTRE" : "PERSONALIZADO", orden: map.size + 1, cortes: [corte] })
+      }
+    })
+    return Array.from(map.values()).map((periodo) => ({
+      ...periodo,
+      cortes: ordenarCortes(periodo.cortes),
+    }))
+  }, [periodosDesdeAnio, cortesDisponibles])
+
+  const getColumnas = React.useCallback((): Columna[] => {
+    if (cortesDisponibles.length === 0) return []
+
+    if (vista === "ALL") {
+      const allCorteIds = cortesDisponibles.map((corte) => corte.id)
+      const columnas: Columna[] = []
+
+      periodos.forEach((periodo) => {
+        periodo.cortes.forEach((corte, index) => {
+          const abreviatura = (corte.abreviatura ?? "").trim()
+          const corteNombre = (corte.corte ?? "").trim()
+          const matchNumero = abreviatura.match(/^C(\d+)$/i) ?? corteNombre.match(/^(?:Corte\s*)?(\d+)$/i)
+          const label = matchNumero
+            ? `${toRoman(Number(matchNumero[1]))} corte`
+            : abreviatura || corteNombre
+
+          columnas.push({
+            key: `corte-${corte.id}`,
+            label: label || `${toRoman(index + 1)} corte`,
+            corteIds: [corte.id],
+            type: "CORTE",
+          })
+        })
+
+        columnas.push({
+          key: `periodo-${periodo.id}`,
+          label: periodo.label,
+          corteIds: periodo.cortes.map((corte) => corte.id),
+          type: "PERIODO",
+        })
+      })
+
+      columnas.push({
+        key: "final",
+        label: "Nota Final",
+        corteIds: allCorteIds,
+        type: "FINAL",
+      })
+
+      return columnas
+    }
+
+    if (vista === "FINAL") {
+      return [
+        {
+          key: "final",
+          label: "Nota Final",
+          corteIds: cortesDisponibles.map((corte) => corte.id),
+          type: "FINAL",
+        },
+      ]
+    }
+
+    if (vista.startsWith("C-")) {
+      const corteId = Number(vista.replace("C-", ""))
+      const corte = cortesDisponibles.find((item) => item.id === corteId)
+      if (!corte) return []
+      return [
+        {
+          key: `corte-${corte.id}`,
+          label: corte.abreviatura || corte.corte,
+          corteIds: [corte.id],
+          type: "CORTE",
+        },
+      ]
+    }
+
+    if (vista.startsWith("S-")) {
+      const periodoId = Number(vista.replace("S-", ""))
+      const periodo = periodos.find((item) => item.id === periodoId)
+      if (!periodo) return []
+
+      const columnas: Columna[] = [
+        {
+          key: `periodo-${periodo.id}`,
+          label: periodo.label,
+          corteIds: periodo.cortes.map((corte) => corte.id),
+          type: "PERIODO",
+        },
+      ]
+
+      return columnas
+    }
+
+    return []
+  }, [vista, cortesDisponibles, periodos])
+
+  const columnas = getColumnas()
+
+  const promedioCortes = (estId: number, asigId: number, corteIds: number[]) => {
+    const values = corteIds
+      .map((id) => findNota(estId, asigId, id).cuant)
+      .filter((v) => Number.isFinite(v))
+    if (values.length === 0) return 0
+    return Math.round(values.reduce((sum, v) => sum + v, 0) / values.length)
+  }
+
+  // <<<<<<< HEAD
+  //   const notaFinalSemestres = (estId: number, asigId: number) => {
+  //     const semestresOrdenados = [...semestres].sort((a, b) => a.id - b.id)
+  //     if (semestresOrdenados.length === 0) return 0
+
+  //     const primerByLabel = semestresOrdenados.find((s) => /(^|\s)(1|1er|primer)/i.test(s.label))
+  //     const segundoByLabel = semestresOrdenados.find((s) => /(^|\s)(2|2do|segundo)/i.test(s.label))
+
+  //     const primerSem = primerByLabel ?? semestresOrdenados[0]
+  //     const segundoSem = segundoByLabel ?? semestresOrdenados.find((s) => s.id !== primerSem.id)
+
+  //     const primerSemestre = promedioCortes(estId, asigId, primerSem.cortes.map((c) => c.id))
+  //     if (!segundoSem) return primerSemestre
+
+  //     const segundoSemestre = promedioCortes(estId, asigId, segundoSem.cortes.map((c) => c.id))
+  //     return Math.round((primerSemestre + segundoSemestre) / 2)
+  // =======
+  const notaFinalPeriodos = (estId: number, asigId: number) => {
+    const periodosOrdenados = [...periodos].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
+    if (periodosOrdenados.length === 0) return 0
+
+    const promedios = periodosOrdenados
+      .map((periodo) => promedioCortes(estId, asigId, periodo.cortes.map((corte) => corte.id)))
+      .filter((nota) => Number.isFinite(nota))
+
+    if (promedios.length === 0) return 0
+
+    return Math.round(promedios.reduce((sum, nota) => sum + nota, 0) / promedios.length)
+  }
+  /* ==========================
+    cOLORES ESTILOS DE LA TABLA
+ ========================== */
+
+  const exportToExcel = async () => {
+    if (columnas.length === 0) {
+      return
+    }
+    const workbook = new ExcelJS.Workbook()
+    const sheet = workbook.addWorksheet("Esquela")
+    sheet.properties.defaultRowHeight = 22
+    const isGeneralView = vista === "ALL"
+
+    const borderAll: Partial<Borders> = {
+      top: { style: "thin" as BorderStyle },
+      left: { style: "thin" as BorderStyle },
+      bottom: { style: "thin" as BorderStyle },
+      right: { style: "thin" as BorderStyle }
+    }
+
+
+    const columnasExport = columnas
+    const totalColumns = isGeneralView
+      ? 4 + asignaturas.length * (columnasExport.length * 2)
+      : 4 + asignaturas.length * 2
+
+
+    /* ==========================
+           ENCABEZADO GENERAL
+        ========================== */
+    sheet.mergeCells(1, 1, 1, totalColumns)
+    sheet.getCell("A1").value = "MINISTERIO DE EDUCACION"
+    sheet.getCell("A1").font = { bold: true, size: 12 }
+    sheet.getCell("A1").alignment = { horizontal: "center" }
+    sheet.mergeCells(2, 1, 2, totalColumns)
+    sheet.getCell("A2").value = "MINED NUEVA GUINEA"
+    sheet.getCell("A2").font = { bold: true, size: 12 }
+    sheet.getCell("A2").alignment = { horizontal: "center" }
+
+    sheet.mergeCells(3, 1, 3, Math.floor(totalColumns / 2))
+    sheet.getCell("A3").value = ` CALIFICACIONES DE ${esquelaHead?.grupo_asignatura?.turno.modalidad?.modalidad}`
+    sheet.getCell("A3").font = { bold: true, size: 12 }
+    sheet.getCell("A3").alignment = { horizontal: "center" }
+    sheet.mergeCells(
+      3,
+      Math.floor(totalColumns / 2) + 1,
+      3,
+      totalColumns
+    )
+    sheet.getCell(3, Math.floor(totalColumns / 2) + 1).value = `${centro?.nombreCentro ?? ""} `
+    sheet.getCell(3, Math.floor(totalColumns / 2) + 1).font = { bold: true }
+    sheet.getCell(3, Math.floor(totalColumns / 2) + 1).alignment = { horizontal: 'center' }
+
+
+    const colEst = Math.floor(totalColumns * 0.35)
+    const colCentro = Math.floor(totalColumns * 0.25)
+    const colCorte = Math.floor(totalColumns * 0.2)
+    const colSeccion = totalColumns - (colEst + colCentro + colCorte)
+    // ===== FILA 4: CÓDIGOS / CORTE / SECCIÓN =====
+    let colStart = 1
+
+    // Código del establecimiento
+    sheet.mergeCells(4, colStart, 4, colStart + colEst - 1)
+    sheet.getCell(4, colStart).value =
+      `CÓDIGO DEL ESTABLECIMIENTO: ${centro?.codigoEstablecimiento ?? ""}`
+    sheet.getCell(4, colStart).font = { bold: true }
+    sheet.getCell(4, colStart).alignment = { horizontal: "center" }
+    colStart += colEst
+
+    // Código del centro
+    sheet.mergeCells(4, colStart, 4, colStart + colCentro - 1)
+    sheet.getCell(4, colStart).value = `CÓDIGO DE CENTRO: ${centro?.codigoCentro ?? ""}`
+    sheet.getCell(4, colStart).font = { bold: true }
+    sheet.getCell(4, colStart).alignment = { horizontal: "center" }
+    colStart += colCentro
+
+    // Grupo
+    sheet.mergeCells(4, colStart, 4, colStart + colCorte - 1)
+    const grupoLabel = ` Grado: ${esquelaHead?.grupo_asignatura?.grado.grades ?? "GRUPO"}`
+
+    sheet.getCell(4, colStart).value = grupoLabel
+    sheet.getCell(4, colStart).font = { bold: true }
+    sheet.getCell(4, colStart).alignment = { horizontal: "center" }
+    colStart += colCorte
+
+    // Sección
+    sheet.mergeCells(4, colStart, 4, totalColumns)
+    sheet.getCell(4, colStart).value = `${esquelaHead?.grupo_asignatura?.seccion.seccion ?? ""}`
+    sheet.getCell(4, colStart).font = { bold: true }
+    sheet.getCell(4, colStart).alignment = { horizontal: "center" }
+
+    sheet.mergeCells(5, 1, 5, Math.floor(totalColumns / 2))
+    sheet.getCell("A5").value = `TURNO: ${esquelaHead?.grupo_asignatura?.turno.turno ?? ""}`
+    sheet.getCell("A5").font = { bold: true }
+    sheet.getCell("A5").alignment = { horizontal: "center" }
+    sheet.mergeCells(
+      5,
+      Math.floor(totalColumns / 2) + 1,
+      5,
+      totalColumns
+    )
+    sheet.getCell(5, Math.floor(totalColumns / 2) + 1).value = `ASIGNATURAS CURSO ESCOLAR ${esquelaHead?.grupo_asignatura.organizacionEscolar.anio_lectivo.anio_lectivo}`
+    sheet.getCell(5, Math.floor(totalColumns / 2) + 1).font = { bold: true }
+    sheet.getCell(5, Math.floor(totalColumns / 2) + 1).alignment = { horizontal: 'center' }
+    /* =====================================================
+      HEADER ESQUELA (DINAMICO)
+    ===================================================== */
+    if (isGeneralView) {
+      const header1Data: any[] = [
+        "N°",
+        "Nombres y Apellidos",
+        "Código del estudiante",
+        "Sexo"
+      ]
+
+      asignaturas.forEach(a => {
+        header1Data.push(a.asignatura.asignatura)
+        for (let i = 1; i < columnasExport.length * 2; i++) {
+          header1Data.push("")
+        }
+      })
+
+      const header1 = sheet.addRow(header1Data)
+
+      let colIndex = 5
+      asignaturas.forEach(() => {
+        sheet.mergeCells(
+          header1.number,
+          colIndex,
+          header1.number,
+          colIndex + columnasExport.length * 2 - 1
+        )
+        colIndex += columnasExport.length * 2
+      })
+
+      header1.eachCell(cell => {
+        cell.font = { bold: true }
+        cell.alignment = { horizontal: "center", vertical: "middle" }
+        cell.border = borderAll
+      })
+
+      const header2Data: any[] = ["", "", "", ""]
+
+      asignaturas.forEach(() => {
+        columnasExport.forEach((col) => {
+          header2Data.push(col.label)
+          header2Data.push("")
+        })
+      })
+
+      const header2 = sheet.addRow(header2Data)
+
+      let col2 = 5
+      asignaturas.forEach(() => {
+        columnasExport.forEach(() => {
+          sheet.mergeCells(header2.number, col2, header2.number, col2 + 1)
+          col2 += 2
+        })
+      })
+
+      header2.eachCell(cell => {
+        cell.font = { bold: true }
+        cell.alignment = { horizontal: "center", vertical: "middle" }
+        cell.border = borderAll
+      })
+
+      const header3Data: any[] = ["", "", "", ""]
+
+      asignaturas.forEach(() => {
+        columnasExport.forEach(() => {
+          header3Data.push("CUALI")
+          header3Data.push("CUANTI")
+        })
+      })
+
+      const header3 = sheet.addRow(header3Data)
+      header3.height = 48
+
+      header3.eachCell(cell => {
+        cell.font = { bold: false, size: 8 }
+        cell.alignment = { horizontal: "center", vertical: "middle", textRotation: 90, wrapText: true }
+        cell.border = borderAll
+      })
+
+      for (let column = 1; column <= 4; column++) {
+        sheet.mergeCells(header1.number, column, header3.number, column)
+        sheet.getCell(header1.number, column).alignment = column === 4
+          ? { horizontal: "center", vertical: "middle", textRotation: 90, wrapText: true }
+          : { horizontal: "center", vertical: "middle", wrapText: true }
+        sheet.getCell(header1.number, column).font = { bold: true }
+        sheet.getCell(header1.number, column).border = borderAll
+      }
+    } else {
+      const header1Data: any[] = [
+        "N°",
+        "Nombres y Apellidos",
+        "Código del estudiante",
+        "Sexo"
+      ]
+
+      asignaturas.forEach((a) => {
+        header1Data.push(a.asignatura.asignatura)
+        header1Data.push("")
+      })
+
+      const header1 = sheet.addRow(header1Data)
+
+      let colIndex = 5
+      asignaturas.forEach(() => {
+        sheet.mergeCells(header1.number, colIndex, header1.number, colIndex + 1)
+        const cell = sheet.getCell(header1.number, colIndex)
+        cell.alignment = { horizontal: "center", vertical: "middle", textRotation: 90, wrapText: true }
+        cell.font = { bold: true }
+        cell.border = borderAll
+        colIndex += 2
+      })
+
+      const header2Data: any[] = ["", "", "", ""]
+
+      asignaturas.forEach(() => {
+        header2Data.push("CUALI")
+        header2Data.push("CUANTI")
+      })
+
+      const header2 = sheet.addRow(header2Data)
+
+      header1.height = 110
+      header2.height = 48
+
+      header1.eachCell((cell, colNumber) => {
+        cell.font = { bold: true }
+        cell.alignment = colNumber === 4
+          ? { horizontal: "center", vertical: "middle", textRotation: 90, wrapText: true }
+          : colNumber <= 4
+          ? { horizontal: "center", vertical: "middle", wrapText: true }
+          : { horizontal: "center", vertical: "middle", textRotation: 90, wrapText: true }
+        cell.border = borderAll
+      })
+
+      header2.eachCell(cell => {
+        cell.font = { bold: true, size: 8 }
+        cell.alignment = { horizontal: "center", vertical: "middle", textRotation: 90, wrapText: true }
+        cell.border = borderAll
+      })
+
+      for (let column = 1; column <= 4; column++) {
+        sheet.mergeCells(header1.number, column, header2.number, column)
+        sheet.getCell(header1.number, column).alignment = column === 4
+          ? { horizontal: "center", vertical: "middle", textRotation: 90, wrapText: true }
+          : { horizontal: "center", vertical: "middle", wrapText: true }
+        sheet.getCell(header1.number, column).font = { bold: true }
+        sheet.getCell(header1.number, column).border = borderAll
+      }
+    }
+
+    /* ==========================
+    DATOS
+    ========================== */
+
+    estudiantesVisibles.forEach((est, index) => {
+      const rowData = [
+        index + 1,
+        ` ${est.name} ${est.lastName}`,
+        est.studentCode,
+        est.gender?.gender ?? ""
+      ]
+
+      asignaturas.forEach(a => {
+        columnasExport.forEach((col) => {
+          const cuant = col.type === "CORTE"
+            ? findNota(est.id, a.asignatura.id, col.corteIds[0]).cuant
+            : col.type === "FINAL"
+              // <<<<<<< HEAD
+              //               ? notaFinalSemestres(est.id, a.asignatura.id)
+              // =======
+              ? notaFinalPeriodos(est.id, a.asignatura.id)
+              : promedioCortes(est.id, a.asignatura.id, col.corteIds)
+          rowData.push(getQualitativeGrade(cuant))
+          rowData.push(cuant)
+        })
+      })
+
+      const row = sheet.addRow(rowData)
+
+      row.eachCell(cell => {
+        cell.alignment = { horizontal: "center" }
+        cell.border = borderAll
+        cell.font = { bold: true }
+
+        // 🔴 PINTAR NOTAS BAJAS
+        if (
+          (typeof cell.value === "number" && cell.value < 60) ||
+          cell.value === "AI"
+        ) {
+          cell.font = { bold: true, color: { argb: "FFFF0000" } }
+        }
+      })
+
+    })
+
+    sheet.columns.forEach((col, i) => {
+      switch (i) {
+        case 0: // N°
+          col.width = 5
+          break
+        case 1: // Nombres y Apellidos
+          col.width = 35
+          break
+        case 2: // Código del estudiante
+          col.width = 18
+          break
+        case 3: // Sexo
+          col.width = 6
+          break
+        default: // Notas
+          col.width = isGeneralView ? 6 : 5
+      }
+    })
+
+
+    const buffer = await workbook.xlsx.writeBuffer()
+    saveAs(new Blob([buffer]), "Esquela.xlsx")
+  }
+
+  const botones: { key: VistaType; label: string }[] = []
+  botones.push({ key: "ALL", label: "Completa" })
+  periodos.forEach((periodo) => {
+    periodo.cortes.forEach((corte) => {
+      botones.push({
+        key: `C-${corte.id}` as VistaType,
+        label: corte.abreviatura || corte.corte,
+      })
+    })
+    botones.push({ key: `S-${periodo.id}` as VistaType, label: periodo.label })
+  })
+  botones.push({ key: "FINAL", label: "Nota Final" })
+
+
+  return (
+    <div className="space-y-6 bg-gradient-to-br from-rose-50 via-pink-50 to-white min-h-screen p-4">
+
+      <EsquelaHead
+        nombreCentro={centro?.nombreCentro ?? ""}
+        grade={esquelaHead?.grupo_asignatura?.grado.grades ?? ""}
+        section={esquelaHead?.grupo_asignatura?.seccion.seccion ?? ""}
+        shift={esquelaHead?.grupo_asignatura?.turno.turno ?? ""}
+        year={esquelaHead?.grupo_asignatura?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0}
+        modality={esquelaHead?.grupo_asignatura?.turno.modalidad?.modalidad ?? ""}
+        teacherName={esquelaHead?.grupo_asignatura?.docenteGuia.nombres ?? ""}
+      />
+
+      {/* ===== BOTONES ===== */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+        {botones.map((b) => (
+          <Button
+            key={b.key}
+            onClick={() => setVista(b.key)}
+            variant={vista === b.key ? "default" : "outline"}
+          >
+            {b.label}
+          </Button>
+        ))}
+        <Button
+          variant="secondary"
+          onClick={() => exportToExcel()}
+        >
+          Exportar Excel
+        </Button>
+
+      </div>
+
+      {/* ===== TABLA ===== */}
+      <Card className="shadow-2xl border-0 bg-white/95">
+        <CardContent className="p-0 overflow-x-auto">
+          <Table>
+
+            {/* ================= HEADER ================= */}
+            <TableHeader>
+
+              {/* PRINCIPAL */}
+              <TableRow className="bg-gradient-to-r from-rose-100 to-pink-100 border-b-2 border-rose-200">
+                <TableHead className="text-center font-bold text-rose-900">Nº</TableHead>
+                <TableHead className="text-center font-bold text-rose-900">Foto</TableHead>
+                <TableHead className="text-center font-bold text-rose-900">Estudiante</TableHead>
+                <TableHead className="text-center font-bold text-rose-900">Código</TableHead>
+                <TableHead className="text-center font-bold text-rose-900">Sexo</TableHead>
+
+                {asignaturas.map((a, idx) => (
+                  <TableHead
+                    key={idx}
+                    colSpan={Math.max(columnas.length, 1) * 2}
+                    className={`text-center font-bold
+                      ${idx % 3 === 0 ? "bg-emerald-100 text-emerald-900"
+                        : idx % 3 === 1 ? "bg-amber-100 text-amber-900"
+                          : "bg-violet-100 text-violet-900"}`}
+                  >
+                    {a.asignatura.asignatura}
+                  </TableHead>
+                ))}
+              </TableRow>
+
+              <TableRow className="bg-white border-b border-rose-200">
+                <TableHead colSpan={5}></TableHead>
+                {asignaturas.map((a, idx) => (
+                  <TableHead
+                    key={`docente-${a.id ?? idx}`}
+                    colSpan={Math.max(columnas.length, 1) * 2}
+                    className={`text-center font-semibold text-xs
+                      ${idx % 3 === 0 ? "bg-emerald-50 text-emerald-800"
+                        : idx % 3 === 1 ? "bg-amber-50 text-amber-800"
+                          : "bg-violet-50 text-violet-800"}`}
+                  >
+                    <div className="flex flex-col items-center justify-center leading-tight">
+                      <span className="text-[11px] font-bold tracking-wide">Docente asignado</span>
+                      <span>{getDocenteNombreCompleto(a.docente) || "Sin docente asignado"}</span>
+                    </div>
+                  </TableHead>
+                ))}
+              </TableRow>
+
+              {/* PARCIALES */}
+              <TableRow className="bg-rose-50 border-b border-rose-200">
+                <TableHead colSpan={5}></TableHead>
+                {asignaturas.map((_, idx) => (
+                  <React.Fragment key={idx}>
+                    {columnas.map((col) => (
+                      <TableHead
+                        key={col.key}
+                        colSpan={2}
+                        className={`text-xs text-center font-semibold
+                          ${idx % 3 === 0 ? "bg-emerald-50 text-emerald-800"
+                            : idx % 3 === 1 ? "bg-amber-50 text-amber-800"
+                              : "bg-violet-50 text-violet-800"}`}
+                      >
+                        {col.label}
+                      </TableHead>
+                    ))}
+                  </React.Fragment>
+                ))}
+              </TableRow>
+
+              {/* CUAL / CUANT */}
+              <TableRow className="bg-rose-100 border-b border-rose-200">
+                <TableHead colSpan={5}></TableHead>
+                {asignaturas.map((_, idx) => (
+                  <React.Fragment key={idx}>
+                    {columnas.map((col) => (
+                      <React.Fragment key={col.key}>
+                        <TableHead className={`text-xs text-center
+                          ${idx % 3 === 0 ? "bg-emerald-50"
+                            : idx % 3 === 1 ? "bg-amber-50"
+                              : "bg-violet-50"}`}>
+                          Cual.
+                        </TableHead>
+                        <TableHead className={`text-xs text-center
+                          ${idx % 3 === 0 ? "bg-emerald-50"
+                            : idx % 3 === 1 ? "bg-amber-50"
+                              : "bg-violet-50"}`}>
+                          Cuant.
+                        </TableHead>
+                      </React.Fragment>
+                    ))}
+                  </React.Fragment>
+                ))}
+              </TableRow>
+            </TableHeader>
+
+            {/* ================= BODY ================= */}
+            <TableBody>
+              {estudiantesVisibles.map((est, index) => (
+                <TableRow key={est.id} className={est.activoEnGrupo === false ? 'bg-red-50 hover:bg-red-100' : ''}>
+                  <TableCell className="text-center font-bold">{index + 1}</TableCell>
+
+                  <TableCell>
+                    <Avatar>
+                      {est.profileImage && (
+                        <AvatarImage src={`${process.env.NEXT_PUBLIC_API_UPLOADS}${est.profileImage}`} />
+                      )}
+                      <AvatarFallback className={est.activoEnGrupo === false ? 'bg-red-100 text-red-700' : ''}>{getInitials(est.name)}</AvatarFallback>
+                    </Avatar>
+                  </TableCell>
+
+                  <TableCell className={`font-bold text-center ${est.activoEnGrupo === false ? 'text-red-700' : ''}`}>{est.name}</TableCell>
+                  <TableCell className={`text-center ${est.activoEnGrupo === false ? 'text-red-700' : ''}`}>{est.studentCode}</TableCell>
+                  <TableCell className={`text-center ${est.activoEnGrupo === false ? 'text-red-700' : ''}`}>{est.gender?.gender ?? "—"}</TableCell>
+
+                  {asignaturas.map((a, aIdx) =>
+                    columnas.map((col) => {
+                      const cuant = col.type === "CORTE"
+                        ? findNota(est.id, a.asignatura.id, col.corteIds[0]).cuant
+                        : col.type === "FINAL"
+                          // <<<<<<< HEAD
+                          //                           ? notaFinalSemestres(est.id, a.asignatura.id)
+                          // =======
+                          ? notaFinalPeriodos(est.id, a.asignatura.id)
+                          : promedioCortes(est.id, a.asignatura.id, col.corteIds)
+
+                      const cual = getQualitativeGrade(cuant)
+
+                      const bgColor =
+                        aIdx % 3 === 0
+                          ? "bg-emerald-50"
+                          : aIdx % 3 === 1
+                            ? "bg-amber-50"
+                            : "bg-violet-50"
+
+                      const isFail = cuant < 60 || cual === "AI"
+
+                      return (
+                        <React.Fragment key={`${aIdx}-${col.key}`}>
+                          <TableCell
+                            className={`text-center font-semibold ${bgColor}
+                              ${isFail ? "text-red-600 font-bold" : ""}`}
+                          >
+                            {cual}
+                          </TableCell>
+                          <TableCell
+                            className={`text-center font-bold ${bgColor}
+                              ${cuant < 60 ? "text-red-600" : ""}`}
+                          >
+                            {cuant}
+                          </TableCell>
+                        </React.Fragment>
+                      )
+                    })
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  )
 }

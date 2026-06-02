@@ -37,4 +37,38 @@ export async function logoutUser() {
     console.error("Error en logoutUser:", error)
     throw error
   }
+
+}
+
+  // -----------------------------------------------------------------------------
+// 🔹 Recuperar contraseña - NUEVAS FUNCIONES
+// -----------------------------------------------------------------------------
+
+// Enviar código de recuperación
+export async function requestPasswordReset(email: string) {
+  const endPoint = `/auth/request-reset`;
+  return await feching(endPoint, "no-cache", "POST", { email });
+}
+
+// Verificar código recibido por correo
+export async function verifyResetCode(email: string, code: string) {
+  const endPoint = `/auth/verify-code`;
+  return await feching(endPoint, "no-cache", "POST", { email, code });
+}
+
+// Restablecer contraseña con el token
+export async function resetPassword(token: string, newPassword: string) {
+  const endPoint = `/auth/reset-password`;
+  return await feching(endPoint, "no-cache", "POST", { token, newPassword });
+}
+
+export async function refreshSession() {
+  const endPoint = "/auth/refresh"
+  try {
+    const response = await feching(endPoint, "no-cache", "POST")
+    return response
+  } catch (error) {
+    console.error("Error en refreshSession:", error)
+    throw error
+  }
 }

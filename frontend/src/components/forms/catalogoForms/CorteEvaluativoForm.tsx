@@ -4,9 +4,9 @@ import {
   saveCorteEvaluativo,
   updateCorteEvaluativo,
 } from "@/actions/catalogos/corteEvaluativoMethods";
-import { getSemestres } from "@/actions/catalogos/semestreMethods";
-import { Corte, Semestre } from "@/interfaces";
+import { Corte } from "@/interfaces";
 import React, { useEffect, useState } from "react";
+import { useToast } from '@/hooks/use-toast'
 
 interface CorteEvaluativoFormProps {
   defaultValues?: Corte | null;
@@ -17,10 +17,9 @@ export default function CorteEvaluativoForm({
   defaultValues,
   onSuccess,
 }: CorteEvaluativoFormProps) {
+  const { toast } = useToast()
   const [corteEvaluativo, setCorteEvaluativo] = useState<string>("");
   const [abreviatura, setAbriatura] = useState<string>("");
-  const [semestre, setSemestre] = useState<string>("");
-  const [semestres, setSemestres] = useState<Semestre[]>([]);
 
   const isEdit = Boolean(defaultValues?.id);
 
@@ -29,50 +28,36 @@ export default function CorteEvaluativoForm({
     if (defaultValues) {
       setCorteEvaluativo(defaultValues.corte || "");
       setAbriatura(defaultValues.abreviatura || "");
-      setSemestre(String(defaultValues.semestre?.id || ""));
     }
   }, [defaultValues]);
-
-  useEffect(() => {
-    const fetchSemestres = async () => {
-      try {
-        const response = await getSemestres();
-        setSemestres(response);
-      } catch (error) {
-        console.error("Error al cargar semestres:", error);
-      }
-    };
-
-    fetchSemestres();
-  }, []);
 
   //funcion que guarda o edita
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const selectedSemestre = semestres.find(
-        (s) => s.id === parseInt(semestre)
-      );
-
-      if (!selectedSemestre) {
-        console.error("Semestre no seleccionado o inválido");
-        return;
-      }
-
       const dataToSend = {
         corte: corteEvaluativo,
         abreviatura: abreviatura,
-         semestre: selectedSemestre,
       };
       
       if (isEdit && defaultValues?.id) {
         await updateCorteEvaluativo(defaultValues.id, dataToSend);
+        toast({
+          title: "Registro actualizado",
+          description: "El corte evaluativo se actualizó correctamente.",
+          variant: "success",
+        });
       } else {
         await saveCorteEvaluativo(dataToSend);
       }
       onSuccess();
     } catch (error) {
       console.error("Error al guardar o actualizar corteEvaluativo:", error);
+      toast({
+        title: "Error al guardar",
+        description: "Ocurrió un error al guardar el corte. Intente nuevamente.",
+        variant: "destructive",
+      })
     }
   };
 
@@ -97,20 +82,6 @@ export default function CorteEvaluativoForm({
         className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
         required
       />
-      <select
-        name=""
-        id=""
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        value={semestre}
-        onChange={(e) => setSemestre(e.target.value)}
-      >
-        <option value="">Semestres</option>
-        {semestres?.map((r) => (
-          <option key={r.id} value={r.id}>
-            {r.semestre}
-          </option>
-        ))}
-      </select>
 
       <div className="flex justify-center">
         <button

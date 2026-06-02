@@ -10,7 +10,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from '../../auth/entities';
+import { User } from '../../auth/entities/user.entity';
 import { Turno } from './turnos.entity';
 
 @Entity({ schema: 'catalogos', name: 'modalidad' })

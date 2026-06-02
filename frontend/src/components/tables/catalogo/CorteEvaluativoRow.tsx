@@ -16,7 +16,6 @@ export default function CorteEvaluativoRow({fetchCorteEvaluativo, corteEvaluativ
         <td className="p-3 border-b border-gray-200">{corteEvaluativo.id}</td>
         <td className="p-3 border-b border-gray-200">{corteEvaluativo.corte}</td>
         <td className="p-3 border-b border-gray-200">{corteEvaluativo.abreviatura}</td>
-        <td className="p-3 border-b border-gray-200">{corteEvaluativo.semestre?.semestre || "Sin semestre"}</td>
         <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><EditCorteEvaluativoModal corteEvaluativo={corteEvaluativo} fetchCortesEvaluativos={fetchCorteEvaluativo}/></td>
         <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><DeleteCorteEvaluativoModal idEliminar={corteEvaluativo.id} fetchCortesEvaluativos={fetchCorteEvaluativo}/></td>
     </tr>

@@ -33,7 +33,7 @@ export default function Page() {
 
   //filtro
   const filteredNivelAcademico = nivelesAcademicos.filter((u) =>
-    u.academicLevel.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.academicLevel ?? "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

@@ -33,7 +33,7 @@ export default function Page() {
 
   //filtro
   const filteredSecciones = secciones.filter((u) =>
-    u.seccion.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.seccion ?? "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

@@ -22,4 +22,5 @@ export interface GrupoConAsignaturasResponse {
   asignatura: Asignatura; // el objeto asignatura completo
   docente: Docente; // el objeto docente completo
   gruposConEstudiantes: GrupoConEstudiante[]
+  cantidadEstudiantes?: number
 }

@@ -1,5 +1,6 @@
 "use client"
 import { saveSemestre, updateSemestre } from "@/actions/catalogos/semestreMethods";
+import { useToast } from "@/hooks/use-toast";
 import { Semestre } from "@/interfaces";
 import React, { useEffect, useState } from "react";
 
@@ -12,6 +13,7 @@ export default function SemestreForm({
   defaultValues,
   onSuccess,
 }: SemestreFormProps) {
+  const { toast } = useToast();
   const [semestre, setSemestre] = useState<string>("");
   const [abreviatura, setAbreviatura] = useState<string>("");
 
@@ -36,13 +38,28 @@ export default function SemestreForm({
       };
       if (isEdit && defaultValues?.id) {
         await updateSemestre(defaultValues.id, dataToSend)
+        toast({
+          title: "Semestre actualizado",
+          description: "El semestre se actualizo correctamente.",
+          variant: "success",
+        });
       } else {
         await saveSemestre(dataToSend)
+        toast({
+          title: "Semestre creado",
+          description: "El semestre se creo correctamente.",
+          variant: "success",
+        });
       }
       onSuccess();
 
     } catch (error) {
       console.error("Error al guardar o actualizar Semestre:", error);
+      toast({
+        title: "Error al guardar",
+        description: "No se pudo guardar el semestre.",
+        variant: "destructive",
+      });
     }
   }
 

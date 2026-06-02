@@ -4,9 +4,16 @@ export { AcademicLevelService } from "./services/academiclevel.service";
 export { AcademicLevelController } from "./controllers/academiclevel.controller";
 
 export { AnioLectivo } from "./entities/anioLectivo.entity";
+export { AnioLectivoCorte } from "./entities/anioLectivoCorte.entity";
+export { AnioLectivoCalendarizacion } from './entities/anioLectivoCalendarizacion.entity';
+export { PeriodoLectivo } from "./entities/periodoLectivo.entity";
+export { PeriodoLectivoCorte } from "./entities/periodoLectivoCorte.entity";
 export { CreateAnioLectivoDTO } from "./dtos/anioLectivo.dto";
+export { UpsertAnioLectivoCalendarizacionDto } from './dtos/anioLectivoCalendarizacion.dto';
 export { AnioLectivoService } from "./services/anioLectivo.service";
+export { AnioLectivoCalendarizacionService } from './services/anioLectivoCalendarizacion.service';
 export { AnioLectivoController } from "./controllers/anioLectivo.controller";
+export { AnioLectivoCalendarizacionController } from './controllers/anioLectivoCalendarizacion.controller';
 
 export { Asignatura } from "./entities/asignatura.entity";
 export { CreateAsignaturaDto } from "./dtos/asignatura.dto"
@@ -17,6 +24,11 @@ export { Cortes } from "./entities/corte.entity";
 export { CreateCortesDto } from "./dtos/create-corte.dto";
 export { CortesService } from "./services/cortes.service";
 export { CortesController } from "./controllers/cortes.controller";
+
+export { NotaCualitativa } from "./entities/notaCualitativa.entity";
+export { NotaCualitativaDto } from "./dtos/notaCualitativa.dto";
+export { NotaCualitativaService } from "./services/notaCualitativa.service";
+export { NotaCualitativaController } from "./controllers/notaCualitativa.controller";
 
 export { Departamento } from "./entities/departamento.entity";
 export { CreateDepartamentoDto } from "./dtos/departamento.dto"
@@ -72,6 +84,11 @@ export { Turno } from "./entities/turnos.entity";
 export { CreateTurnoDto } from "./dtos/turnos.dto";
 export { TurnoService } from "./services/turnos.service";
 export { TurnoController } from "./controllers/turnos.controller";
+
+export { TipoPeriodizacion } from './entities/tipoPeriodizacion.entity';
+export { CreateTipoPeriodizacionDto } from './dtos/tipoPeriodizacion.dto';
+export { TipoPeriodizacionService } from './services/tipoPeriodizacion.service';
+export { TipoPeriodizacionController } from './controllers/tipoPeriodizacion.controller';
 
 
 

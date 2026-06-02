@@ -1,7 +1,10 @@
+"use client"
+
 import BtnOpenAddModal from '@/components/Buttons/btnOpenAddModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase'
 import CorteEvaluativoForm from '@/components/forms/catalogoForms/CorteEvaluativoForm'
+import { useToast } from '@/hooks/use-toast'
 
 interface AddCorteEvaluativoModalProp {
   fetchCortesEvaluativos: () => Promise<void>
@@ -9,6 +12,7 @@ interface AddCorteEvaluativoModalProp {
 
 export default function AddCorteEvaluativoModal({ fetchCortesEvaluativos }: AddCorteEvaluativoModalProp) {
   const [showModal, setShowModal] = useState<boolean>(false);
+  const { toast } = useToast()
   return (
     <div>
       <BtnOpenAddModal onClick={() => setShowModal(true)} />
@@ -19,6 +23,12 @@ export default function AddCorteEvaluativoModal({ fetchCortesEvaluativos }: AddC
           content={
             <CorteEvaluativoForm
               onSuccess={() => {
+                // mostrar notificación bonita
+                toast({
+                  title: "Corte evaluativo guardado",
+                  description: "El corte evaluativo se guardó correctamente.",
+                  variant: "success",
+                })
                 fetchCortesEvaluativos()
                 setShowModal(false)
               }}

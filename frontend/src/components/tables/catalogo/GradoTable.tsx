@@ -3,6 +3,8 @@
 import { Grado } from "@/interfaces";
 import React from "react";
 import GradoRow from "./GradoRow";
+import { usePagination } from "@/components/paginacion/usePaginacion";
+import Pagination from "@/components/paginacion/paginacion";
 
 interface GradoProps {
   grado: Grado[];
@@ -13,6 +15,11 @@ export default function GradoTable({
   grado,
   fetchGrados,
 }: GradoProps) {
+  const {
+    currentPage,
+    setCurrentPage,
+    currentItems,
+  } = usePagination(grado, 5);
   return (
     <div className="bg-white">
       <div className="bg-white shadow-lg h-[calc(100vh-230px)] overflow-y-auto">
@@ -30,24 +37,31 @@ export default function GradoTable({
             </tr>
           </thead>
           <tbody>
-            {grado.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="text-center text-gray-500 py-10">
-                  No hay Grados registrados.
-                </td>
-              </tr>
-            ) : (
-              grado.map((gradoItem) => (
+            {grado.length > 0 ? (
+              currentItems.map((gradoItem) => (
                 <GradoRow
                   key={gradoItem.id}
                   fetchGrados={fetchGrados}
                   grado={gradoItem}
                 />
               ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="text-center text-gray-500 py-10">
+                  No hay Grados registrados.
+                </td>
+              </tr>
+
             )}
           </tbody>
         </table>
       </div>
+      <Pagination
+        currentPage={currentPage}
+        totalItems={grado.length}
+        itemsPerPage={5}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

@@ -17,7 +17,7 @@ export const Database: DynamicModule = TypeOrmModule.forRootAsync({
     database: configService.get('DATA_BASE_NAME'),
     migrationsTableName: configService.get('MIGRATIONS_TABLE_NAME'),
     autoLoadEntities: true,
-    synchronize: true,
+    synchronize: false,
   }),
   // dataSource receives the configured DataSourceOptions
   // and returns a Promise.

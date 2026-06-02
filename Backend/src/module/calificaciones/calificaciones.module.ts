@@ -1,12 +1,17 @@
 import { Module } from '@nestjs/common';
-import { CalificacionesService } from './calificaciones.service';
-import { CalificacionesController } from './calificaciones.controller';
-import { Calificaciones } from './entities/calificacion.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { EsquelaRow } from './esquelas_rows/esquelas_rows.entity';
+import { EsquelaRowController } from './esquelas_rows/esquelas_rows.controller';
+import { EsquelaRowService } from './esquelas_rows/esquelas_rows.service';
+import { EsquelaHeadEntity } from './esquela_head/entities/squela_head.entity';
+import { EsquelaHeadController } from './esquela_head/esquela_head.controller';
+import { EsquelaHeadService } from './esquela_head/squela_head.service';
+import { AnioLectivoCalendarizacion } from '../catalogos/entities/anioLectivoCalendarizacion.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Calificaciones])] ,
-  controllers: [CalificacionesController],
-  providers: [CalificacionesService],
+  imports: [TypeOrmModule.forFeature([EsquelaRow, EsquelaHeadEntity, AnioLectivoCalendarizacion])],
+  controllers: [EsquelaRowController, EsquelaHeadController],
+  providers: [EsquelaRowService, EsquelaHeadService],
+  exports: [TypeOrmModule],
 })
-export class CalificacionesModule {}
+export class CalificacionesModule { }

@@ -9,9 +9,13 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { User } from '../../auth/entities';
+import { User } from '../../auth/entities/user.entity';
 import * as moment from 'moment-timezone';
 import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity';
+import { AnioLectivoCorte } from './anioLectivoCorte.entity';
+import { AnioLectivoCalendarizacion } from './anioLectivoCalendarizacion.entity';
+import { Cortes } from './corte.entity';
+import { PeriodoLectivo } from './periodoLectivo.entity';
 
 @Entity({ name: 'anioLectivo', schema: 'catalogos' })
 export class AnioLectivo {
@@ -33,6 +37,17 @@ export class AnioLectivo {
         cascade: true,
     })
     organizacionEscolar: OrganizacionEscolar[]
+
+    @OneToMany(() => AnioLectivoCorte, (corte) => corte.anioLectivo)
+    cortesAnioLectivo?: AnioLectivoCorte[];
+
+    @OneToMany(() => PeriodoLectivo, (periodoLectivo) => periodoLectivo.anioLectivo)
+    periodosLectivos?: PeriodoLectivo[];
+
+    @OneToMany(() => AnioLectivoCalendarizacion, (calendarizacion) => calendarizacion.anioLectivo)
+    calendarizaciones?: AnioLectivoCalendarizacion[];
+
+    cortes?: Cortes[];
 
 
     //ID del usuario que creó el registro

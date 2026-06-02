@@ -3,7 +3,7 @@
 import { RiDeleteBin6Line } from "react-icons/ri";
 import BtnOpenEditModal from "../Buttons/btnOpenEditModal";
 import { useState } from "react";
-import { User } from "@/interfaces/AuthInterface";
+import { User } from "@/interfaces/authInterface";
 import ModalBase from "../modals/ModalBase";
 import UserForm from "../forms/UserForm";
 

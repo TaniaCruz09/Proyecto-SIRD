@@ -39,23 +39,33 @@ export default function NivelAcademicoForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto px-2">
-      <h2 className="text-xl font-semibold text-gray-700 mb-4">{isEdit ? "Editar Nivel Academico" : "Agregar Nivel Academico"}</h2>
-      <input
-        type="text"
-        placeholder="Nivel Academico"
-        value={nivelAcademico}
-        onChange={(e) => setNivelAcademico(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        required
-      />
+    <form
+      onSubmit={handleSubmit}
+       className="w-full max-w-md mx-auto space-y-6 bg-gradient-to-br from-white/95 to-indigo-50/90 backdrop-blur-xl shadow-[0_8px_40px_rgba(0,0,0,0.1)] rounded-3xl px-8 py-8 border border-indigo-100 animate-fade-in"
+    >
+      <h2 className="text-2xl font-bold text-center text-indigo-800 mb-4">
+        {isEdit ? "✏️ Editar Nivel academico" : "📘 Agregar Nivel Academico"}
+      </h2>
+
+      <div>
+        <input
+          type="text"
+          placeholder="Escriba el nivel academico"
+          value={nivelAcademico}
+          onChange={(e) => setNivelAcademico(e.target.value)}
+          className="w-full p-3 border rounded-2xl border-gray-300 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all duration-300 placeholder-gray-400"
+          required
+        />
+      </div>
 
       <div className="flex justify-center">
         <button
           type="submit"
-          className="px-20 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 mb-6"
+          className="px-12 py-3 bg-indigo-500 text-white font-semibold rounded-xl shadow-md hover:bg-indigo-600 hover:shadow-lg transition-all duration-200"
         >
-          {isEdit ? "Actualizar" : "Guardar"}
+          <span>
+            {isEdit ? "Actualizar" : "Guardar"}
+          </span>
         </button>
       </div>
     </form>

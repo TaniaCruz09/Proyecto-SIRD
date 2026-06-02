@@ -1,6 +1,5 @@
-import { IsNotEmpty, IsNumber, IsObject, IsOptional, ValidateNested } from "class-validator";
-import { Type } from "class-transformer";
-import { StudentEntity } from "src/module/createEstudents";
+import { IsBoolean, IsNotEmpty, IsNumber, IsObject, IsOptional } from "class-validator";
+import { StudentEntity } from "src/module/createEstudents/students.entity";
 import { GrupoAsignaturaDocente } from "../entities/GrupoAsignaturaDocente.entity";
 
 export class AsignarEstudianteAGrupoDto {
@@ -19,4 +18,14 @@ export class AsignarEstudianteAGrupoDto {
   @IsOptional()
   @IsNumber()
   user_create_id?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  activo?: boolean;
+}
+
+export class ActualizarEstadoEstudianteGrupoDto {
+  @IsNotEmpty()
+  @IsBoolean()
+  activo: boolean;
 }

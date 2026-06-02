@@ -33,7 +33,7 @@ export default function Page() {
 
   //filtro
   const filteredSemestres = semestres.filter((u) =>
-    u.semestre.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.semestre ?? "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -50,7 +50,7 @@ export default function Page() {
           value={searchTerm}
           onChange={setSearchTerm}
           onClear={() => setSearchTerm("")}
-          placeholder="Buscar docente"
+          placeholder="Buscar semestre..."
         />
       </div>
       <SemestreTable semestre={filteredSemestres} fetchSemestres={fetchSemestres} />

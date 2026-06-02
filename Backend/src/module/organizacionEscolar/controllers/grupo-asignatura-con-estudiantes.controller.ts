@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Q
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Utilities } from 'src/common/helpers/utilities';
 import { GrupoAsignaturaConEstudiantesService } from '../services/grupo-asignatura-con-estudiantes.service';
-import { AsignarEstudianteAGrupoDto } from '../dtos/grupos-asignatura-con-estudiantes.dto';
+import { ActualizarEstadoEstudianteGrupoDto, AsignarEstudianteAGrupoDto } from '../dtos/grupos-asignatura-con-estudiantes.dto';
 
 @ApiTags('grupo-asignatura-estudiantes')
 @ApiBearerAuth()
@@ -69,6 +69,28 @@ export class GrupoAsignaturaConEstudiantesController {
                 message: 'ok',
             };
             return data;
+        } catch (error) {
+            Utilities.catchError(error)
+        }
+    }
+
+    @Patch('/grupo/:grupoId/estudiante/:estudianteId/estado')
+    async actualizarEstado(
+        @Param('estudianteId', ParseIntPipe) estudianteId: number,
+        @Param('grupoId', ParseIntPipe) grupoId: number,
+        @Body() payload: ActualizarEstadoEstudianteGrupoDto,
+    ) {
+        try {
+            const result = await this.grupoAsignaturaConEstudiantesService.actualizarEstadoEstudianteEnGrupo(
+                estudianteId,
+                grupoId,
+                payload,
+            );
+
+            return {
+                data: result,
+                message: 'ok',
+            };
         } catch (error) {
             Utilities.catchError(error)
         }

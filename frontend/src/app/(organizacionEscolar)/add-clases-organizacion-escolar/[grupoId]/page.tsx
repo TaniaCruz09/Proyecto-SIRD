@@ -17,8 +17,14 @@ import { getDocentes } from "@/actions/docentesMethods/docentesMethods";
 import EditarMateriaForm from "@/components/forms/EditarMateriaForm";
 import ConfirmDialog from "@/components/modals/organizacionEscolar/grupoConAsignatura/ConfirmAccion";
 import { getGruposById } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods";
+import ReusableAlert from "./alertReutilizable";
 
 export default function AddClasesOrganizacionEscolarPage() {
+  // useQuery({
+  //   queryKey: ['grupoId'],
+  //   queryFn: async () => await getGruposById(Number(useParams().grupoId))
+  // });
+
   const [grupoConAsignaturas, setGrupoConAsignaturas] = useState<GrupoConAsignaturasResponse[]>([]);
   const [materiasDisponibles, setMateriasDisponibles] = useState<Asignatura[]>([]);
   const [docentesDisponibles, setDocentesDisponibles] = useState<Docente[]>([]);
@@ -35,8 +41,26 @@ export default function AddClasesOrganizacionEscolarPage() {
     message: "",
     onConfirm: () => { },
   });
+  // Define el tipo al inicio del archivo
+  type AlertType = "error" | "success" | "warning" | "info";
+  const [alert, setAlert] = useState<{
+    open: boolean;
+    message: string;
+    type: AlertType;
+  }>({
+    open: false,
+    message: "",
+    type: "warning",
+  });
+
+  const showAlert = (message: string, type: AlertType = "warning") => {
+    setAlert({ open: true, message, type });
+  };
+
+
 
   const { grupoId } = useParams();
+
 
   const [grupos, setGrupos] = useState<GrupoEscolar>();
 
@@ -54,9 +78,20 @@ export default function AddClasesOrganizacionEscolarPage() {
 
   }, [grupoId]);
   const grupo = grupos?.grado.grades ?? "N/A"
-  const docenteGuia = grupos?.docenteGuia.nombres ?? "N/A"
-  const docenteGuiaApellidos = grupos?.docenteGuia.apellido_materno ?? "N/A"
+  const docenteGuia = grupos?.docenteGuia?.nombres ?? "N/A"
+  const docenteGuiaApellidos = grupos?.docenteGuia?.apellido_materno || grupos?.docenteGuia?.apellido_paterno 
   const seccion = grupos?.seccion.seccion ?? "N/A"
+  const totalMaterias = new Set(
+    (grupos?.grupoAsignaturaDocente || [])
+      .map((rel) => rel?.asignatura?.id)
+      .filter((id) => Number.isFinite(Number(id)))
+  ).size
+  const totalEstudiantes = new Set(
+    (grupos?.grupoAsignaturaDocente || [])
+      .flatMap((rel) => rel?.gruposConEstudiantes || [])
+      .map((relacion) => relacion?.estudiante?.id)
+      .filter((id) => Number.isFinite(Number(id)))
+  ).size
 
   // Función para traer las relaciones del grupo
   const fetchRelaciones = async () => {
@@ -70,11 +105,15 @@ export default function AddClasesOrganizacionEscolarPage() {
     setGrupoConAsignaturas(relacionesUnicas);
   };
 
+  const refreshGroupData = async () => {
+    await Promise.all([fetchGrupoById(), fetchRelaciones()])
+  }
+
   useEffect(() => {
     async function fetchData() {
       if (!grupoId) return;
       try {
-        await fetchRelaciones();
+        await refreshGroupData();
         setMateriasDisponibles(await getAsignaturas());
         setDocentesDisponibles(await getDocentes());
       } catch (error) {
@@ -94,7 +133,7 @@ export default function AddClasesOrganizacionEscolarPage() {
           setLoading(true);
           const res = await eliminarUnaAsignaturaAsignatura(Number(grupoId), asignaturaId);
           console.log(res?.message || "Asignatura eliminada correctamente ✅");
-          await fetchRelaciones();
+          await refreshGroupData();
         } catch (error: any) {
           console.log(error.message || "Error al eliminar asignatura ❌");
         } finally {
@@ -115,7 +154,7 @@ export default function AddClasesOrganizacionEscolarPage() {
           setLoading(true);
           const res = await eliminarGrupoConTodasSusAsignatura(Number(grupoId));
           console.log(res?.message || "Todas las asignaturas eliminadas ✅");
-          await fetchRelaciones();
+          await refreshGroupData();
         } catch (error: any) {
           console.log(error.message || "Error al eliminar todas las asignaturas ❌");
         } finally {
@@ -129,15 +168,14 @@ export default function AddClasesOrganizacionEscolarPage() {
 
   // Función para agregar una asignatura
   const handleAgregar = async () => {
-    if (!selectedAsignatura || !selectedDocente) {
-      alert("Selecciona materia y docente");
-      return;
+    if (!selectedAsignatura && !selectedDocente) {
+      return showAlert("Debes seleccionar una materia y docente", "warning");
+    }else if(!selectedDocente) {
+      return showAlert("Debes seleccionar un docente", "warning");
+    }else if(!selectedAsignatura) {
+      return showAlert("Debes seleccionar una asignatura", "warning");
     }
 
-    if (grupoConAsignaturas.some(r => r.asignatura.id === selectedAsignatura)) {
-      alert("Esta asignatura ya está asignada.");
-      return;
-    }
 
     const payload: GrupoConAsignaturasPayload = {
       grupoId: Number(grupoId),
@@ -146,7 +184,7 @@ export default function AddClasesOrganizacionEscolarPage() {
 
     try {
       await saveGrupoConAsignatura(payload);
-      await fetchRelaciones();
+      await refreshGroupData();
       setSelectedAsignatura(0);
       setSelectedDocente(0);
     } catch (error) {
@@ -166,7 +204,7 @@ export default function AddClasesOrganizacionEscolarPage() {
         <div>
           <strong>Grupo Seleccionado</strong>
           <h2 style={{ color: "#15803d" }}>
-            Docente Guia: {docenteGuia || "N/A"}{docenteGuiaApellidos || "N/A"}
+            Docente Guia: {docenteGuia || "N/A"} {docenteGuiaApellidos || "N/A"}
           </h2>
           <p>
 
@@ -174,7 +212,8 @@ export default function AddClasesOrganizacionEscolarPage() {
           </p>
         </div>
         <div style={{ textAlign: "right" }}>
-          <p>Materias asignadas: {grupoConAsignaturas.length}</p>
+          <p>Estudiantes asignados: {totalEstudiantes}</p>
+          <p>Materias asignadas: {totalMaterias}</p>
         </div>
       </div>
 
@@ -227,7 +266,7 @@ export default function AddClasesOrganizacionEscolarPage() {
 
               {/* Docente */}
               <p className="text-sm text-gray-600">
-                Docente: <span className="font-medium">{r.docente.nombres} {r.docente.apellido_paterno}</span>
+                Docente: <span className="font-medium">{r.docente?.nombres} {r.docente?.apellido_paterno}</span>
               </p>
 
               {/* Acciones */}
@@ -265,7 +304,7 @@ export default function AddClasesOrganizacionEscolarPage() {
             relacion={editando}
             docentesDisponibles={docentesDisponibles}
             onClose={() => setEditando(null)}
-            onSave={fetchRelaciones}
+            onSave={refreshGroupData}
           />
         </div>
       )}
@@ -275,6 +314,13 @@ export default function AddClasesOrganizacionEscolarPage() {
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => setConfirmDialog({ ...confirmDialog, open: false })}
       />
+      <ReusableAlert
+        open={alert.open}
+        message={alert.message}
+        type={alert.type}
+        onClose={() => setAlert({ ...alert, open: false })}
+      />
+
 
     </div>
   );

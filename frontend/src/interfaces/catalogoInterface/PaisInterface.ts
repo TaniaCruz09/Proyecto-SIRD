@@ -1,6 +1,6 @@
 export interface Pais {
   id: number;
-  pais: string;
+  pais?: string;
 }
 
 export interface PaisPayload {

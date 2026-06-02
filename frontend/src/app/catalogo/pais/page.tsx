@@ -33,7 +33,7 @@ export default function Page() {
 
   //filtro
   const filteredPais = paises.filter((u) =>
-    u.pais.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.pais ?? "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

@@ -33,7 +33,7 @@ export default function Page() {
 
   //filtro
   const filteredAsignatura = asignaturas.filter((u) =>
-    u.asignatura.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.asignatura ?? "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

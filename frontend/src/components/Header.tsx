@@ -1,7 +1,4 @@
 import React from 'react'
-import CerrarSecion from '@/components/cerrarSesion'
-import Image from 'next/image'
-
 interface HeaderProps {
     title: string,
     subTitle?: string
@@ -24,8 +21,6 @@ export default function Header({ title, subTitle }: HeaderProps) {
                             <p className="text-muted-foreground text-left">{subTitle}</p>
                         </div>
                     </div>
-
-                    <CerrarSecion />
                 </div>
             </div>
         </header>

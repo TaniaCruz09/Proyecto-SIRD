@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from "react";
-import Role from "@/interfaces/AuthInterface";
+
 import RolRow from "./RolRow";
+import { Role } from "@/interfaces/authInterface";
 
 interface RolTableProps {
   roles: Role[];

@@ -2,11 +2,14 @@ import {
   IsArray,
   IsDate,
   IsNotEmpty,
+  isNumber,
   IsNumber,
   IsObject,
   IsOptional,
   IsString,
   MaxLength,
+  MinLength,
+  ValidateIf,
 } from 'class-validator';
 import {
   AcademicLevelEntity,
@@ -17,6 +20,7 @@ import {
   ProfessionsEntity,
 } from '../catalogos';
 import { Grupos } from '../organizacionEscolar/entities/grupos.entity';
+import { Transform } from 'class-transformer';
 
 export class DocentesDTO {
   @IsOptional()
@@ -28,19 +32,23 @@ export class DocentesDTO {
   @MaxLength(100)
   nombres: string;
 
-  @IsNotEmpty()
+  @IsOptional()
+  @ValidateIf(o => !o.apellido_materno)
   @IsString()
   @MaxLength(50)
-  apellido_paterno: string;
+  apellido_paterno?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
+  @ValidateIf(o => !o.apellido_paterno)
   @IsString()
   @MaxLength(50)
-  apellido_materno: string;
+  apellido_materno?: string;
+
 
   @IsNotEmpty()
   @IsString()
   @MaxLength(16)
+  @MinLength(14)
   cedula_identidad: string;
 
   @IsNotEmpty()
@@ -60,20 +68,23 @@ export class DocentesDTO {
   grupos: Grupos[];
 
   @IsNotEmpty()
-  @IsString()
+  @IsNumber()
+  @MaxLength(8)
+  @MinLength(8)
   telefono: string;
 
   @IsNotEmpty()
   @IsDate()
+  @Transform(({ value }) => value ? new Date(value) : null)
   fecha_nacimiento: Date;
 
   @IsNotEmpty()
   @IsObject()
   pais: Pais;
 
-  // @IsNotEmpty()
-  // @IsObject()
-  // departamento: Departamento;
+  @IsOptional()
+  @IsString()
+  foto_docente?: string;  // foto del docente
 
   @IsNotEmpty()
   @IsObject()
@@ -88,13 +99,19 @@ export class DocentesDTO {
   fechaContratado: Date;
 
   @IsNotEmpty()
-  @IsString()
+  @IsNumber()
   @MaxLength(150)
   nombre_contacto_emergencia: string;
 
   @IsNotEmpty()
   @IsString()
+  @MaxLength(8)
+  @MinLength(8)
   telefono_contacto_emergencia: string;
+
+  @IsOptional()
+  @IsString()
+  correo?: string;
 
   @IsOptional()
   @IsNumber()

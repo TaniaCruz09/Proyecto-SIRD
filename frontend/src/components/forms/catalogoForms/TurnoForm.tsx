@@ -1,7 +1,8 @@
 
 import { getModalidades } from "@/actions/catalogos/modalidadMethods";
 import { saveTurno, updateTurno } from "@/actions/catalogos/turnoMethods";
-import { Modalidad, MunicipioPayload, Turno, TurnoPayload } from "@/interfaces";
+import { useToast } from "@/hooks/use-toast";
+import { Modalidad, Turno, TurnoPayload } from "@/interfaces";
 import React, { useEffect, useState } from "react";
 
 interface TurnoFormProps {
@@ -13,6 +14,7 @@ export default function TurnoForm({
   defaultValues,
   onSuccess,
 }: TurnoFormProps) {
+  const { toast } = useToast();
   const [turno, setTurno] = useState<string>("");
   const [modalidad, setModalidad] = useState<Modalidad |null>(null);
   const [modalidades, setModalidades] = useState<Modalidad[]>([]);
@@ -30,10 +32,21 @@ export default function TurnoForm({
 
   //rellenar los campos si va a editar
   useEffect(() => {
-    if (defaultValues) {
-      setTurno(defaultValues.turno || "");
+    if (!defaultValues) {
+      setTurno("");
+      setModalidad(null);
+      return;
     }
-  }, [defaultValues]);
+
+    setTurno(defaultValues.turno || "");
+
+    if (defaultValues.modalidad) {
+      const selectedModalidad = modalidades.find(
+        (item) => item.id === defaultValues.modalidad?.id
+      );
+      setModalidad(selectedModalidad ?? defaultValues.modalidad);
+    }
+  }, [defaultValues, modalidades]);
 
   //funcion que gaurda o edita
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,8 +65,18 @@ export default function TurnoForm({
     try {
       if (isEdit && defaultValues?.id) {
         await updateTurno(defaultValues.id, turnoData)
+        toast({
+          title: "Registro actualizado",
+          description: "El turno se actualizo correctamente.",
+          variant: "success",
+        });
       } else {
         await saveTurno(turnoData)
+        toast({
+          title: "Registro guardado",
+          description: "El turno se guardo correctamente.",
+          variant: "success",
+        });
       }
       onSuccess();
 

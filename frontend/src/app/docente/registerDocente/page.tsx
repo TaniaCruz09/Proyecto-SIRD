@@ -25,9 +25,14 @@ export default function Page() {
   }, []);
 
   //filtro que busca por el nombre
-  const filteredDocentes = docentes.filter((u) =>
-    u.nombres.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const filteredDocentes = docentes.filter((u) => {
+    if (!normalizedSearch) return true;
+    const fullName = `${u.nombres ?? ""} ${u.apellido_paterno ?? ""} ${u.apellido_materno ?? ""}`
+      .toLowerCase()
+      .trim();
+    return fullName.includes(normalizedSearch);
+  });
 
   return (
     <div className="mx-6">

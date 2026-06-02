@@ -1,18 +1,18 @@
 import * as moment from 'moment';
-import { User } from '../../auth/entities';
+import { User } from '../../auth/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
   JoinColumn,
-  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { GrupoAsignaturaDocente } from 'src/module/organizacionEscolar/entities/GrupoAsignaturaDocente.entity';
+import { GrupoAsignaturaDocente } from '../../organizacionEscolar/entities/GrupoAsignaturaDocente.entity';
+import { EsquelaRow } from '../../calificaciones/esquelas_rows/esquelas_rows.entity';
 @Entity({ schema: 'catalogos', name: 'asignatura' })
 export class Asignatura {
   @PrimaryGeneratedColumn()
@@ -27,6 +27,10 @@ export class Asignatura {
 
   @OneToMany(() => GrupoAsignaturaDocente, gad => gad.asignatura)
   grupoAsignaturaDocente: GrupoAsignaturaDocente[];
+
+  @OneToMany(() => EsquelaRow, (calificaciones) => calificaciones.asignatura)
+  @JoinColumn({ name: 'esquela_row_id' })
+  calificacion: EsquelaRow;
 
   // ID del Usuario que creo el registro
   @Column({ name: 'user_create_id', type: 'int4', nullable: true })

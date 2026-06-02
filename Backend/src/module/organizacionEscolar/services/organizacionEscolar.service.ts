@@ -54,6 +54,10 @@ export class OrganizacionEscolarService {
         .leftJoinAndSelect('grupos.turno', 'grupo_turno')       // alias único
         .leftJoinAndSelect('grupo_turno.modalidad', 'grupo_modalidad')  // alias único
         .leftJoinAndSelect('grupos.docenteGuia', 'docenteGuia')
+        .leftJoinAndSelect('grupos.grupoAsignaturaDocente', 'grupoAsignaturaDocente')
+        .leftJoinAndSelect('grupoAsignaturaDocente.asignatura', 'asignatura')
+        .leftJoinAndSelect('grupoAsignaturaDocente.gruposConEstudiantes', 'gruposConEstudiantes')
+        .leftJoinAndSelect('gruposConEstudiantes.estudiante', 'estudiante')
         .leftJoinAndSelect('organizacionEscolar.turno', 'organizacion_turno')
         .leftJoinAndSelect('organizacion_turno.modalidad', 'organizacion_modalidad')
         .where('organizacionEscolar.id = :id', { id })

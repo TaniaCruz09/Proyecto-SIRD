@@ -4,7 +4,8 @@ import BtnOpenEditModal from '@/components/Buttons/btnOpenEditModal';
 import ModalBase from '../ModalBase';
 import DocenteForm from '@/components/forms/DocenteForm';
 import { Docente } from '@/interfaces';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { getDocenteById } from '@/actions/docentesMethods/docentesMethods';
 
 
 interface EditDocenteModalProps {
@@ -14,6 +15,23 @@ interface EditDocenteModalProps {
 
 export default function EditDocenteModal({ docente, fetchDocentes }: EditDocenteModalProps) {
   const [showModal, setShowModal] = useState(false);
+  const [docenteDetalle, setDocenteDetalle] = useState<Docente | null>(docente);
+
+  useEffect(() => {
+    if (!showModal) return;
+
+    const fetchDetalle = async () => {
+      try {
+        const detalle = await getDocenteById(docente.id);
+        setDocenteDetalle(detalle);
+      } catch (error) {
+        console.error('Error al obtener detalle de docente:', error);
+        setDocenteDetalle(docente);
+      }
+    };
+
+    fetchDetalle();
+  }, [showModal, docente]);
 
   return (
     <div>
@@ -23,9 +41,10 @@ export default function EditDocenteModal({ docente, fetchDocentes }: EditDocente
         <ModalBase
           onshowModal={showModal}
           onCloseModal={() => setShowModal(false)}
+          containerClassName="max-w-2xl p-4 sm:p-5"
           content={
             <DocenteForm
-              defaultValues={docente}
+              defaultValues={docenteDetalle ?? docente}
               onSuccess={() => {
                 fetchDocentes();
                 setShowModal(false);

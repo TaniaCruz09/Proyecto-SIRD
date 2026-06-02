@@ -5,12 +5,14 @@ export async function getOrganizacionEscolar() {
     const endPoint = `/organizacionEscolar`;
 
     const response = await feching(endPoint, "no-cache", "GET");
-
     if (!response.data || response.error) {
         throw new Error(response?.error || "Error al obtener la organizacion escolar");
     }
+    console.log("📦 Esta es la respuesta completa del backend:");
+    console.log(JSON.stringify(response.data, null, 2));
 
     return response.data
+
 }
 
 export async function getOrganizacionEscolarById(id: number) {

@@ -4,11 +4,11 @@ export interface Corte {
     id: number,
     abreviatura: string,
     corte: string,
-    semestre: Semestre
+    semestre?: Semestre,
+    orden?: number,
 }
 
 export interface CortePayload {
     abreviatura: string,
     corte: string,
-    semestre: Semestre
 }

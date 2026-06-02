@@ -7,14 +7,17 @@ import {
 } from "@/actions/authMethods/usersMethods";
 
 import BtnOpenAddModal from "@/components/Buttons/btnOpenAddModal";
-import ConfirmDeletModal from "@/components/modals/ModalConfirmDeletion";
+import ConfirmDeletModal from "@/components/modals/modalConfirmDeletion";
 import SearchBar from "@/components/SearchBar";
 import UserTable from "@/components/tables/UserTable";
 import UserForm from "@/components/forms/UserForm";
 import ModalBase from "@/components/modals/ModalBase";
-import User from "@/interfaces/AuthInterface";
+import { User } from "@/interfaces/authInterface";
+import { useToast } from "@/hooks/use-toast";
+
 
 export default function Users() {
+  const { toast } = useToast();
   const [usuarios, setUsuarios] = useState<User[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
@@ -46,9 +49,19 @@ export default function Users() {
     if (!userToDelete) return;
     try {
       await deleteUser(userToDelete);
+      toast({
+        title: "Usuario eliminado",
+        description: "El usuario se elimino correctamente.",
+        variant: "destructive",
+      })
       fetchUsers();
     } catch (error) {
       console.error("Error al eliminar usuario", error);
+      toast({
+        title: "Error al eliminar",
+        description: "No se pudo eliminar el usuario.",
+        variant: "destructive",
+      })
     } finally {
       setShowConfirm(false);
       setUserToDelete(null);
@@ -68,9 +81,9 @@ export default function Users() {
   );
 
   return (
-    <div>
+    <div className="mx-6">
       <div className="flex items-center justify-between">
-        <h1 className="ml-10 text-2xl font-bold c mb-4 tracking-tight text-gray-600 text-center">
+        <h1 className="ml-10 text-2xl font-bold mb-4 tracking-tight text-gray-600 text-center">
           Usuarios
         </h1>
         <div className="flex justify-end mr-10 mb-6 mt-5">
@@ -97,19 +110,14 @@ export default function Users() {
           )}
         </div>
       </div>
-      <div className="flex items-center justify-between border rounded-t-xl">
-        <h2 className="pl-10 text-xl font-bold text-gray-600">
-          Lista de usuarios
-        </h2>
+      <div className="flex items-center justify-between bg-white border rounded-t-xl">
+        <h2 className="pl-10 text-xl font-bold text-gray-600">Lista de usuarios</h2>
         <SearchBar
           value={searchTerm}
           onChange={setSearchTerm}
           onClear={() => setSearchTerm("")}
           placeholder="Buscar por nombre o correo..."
         />
-      </div>
-      <div>
-
       </div>
       <UserTable
         users={filteredUsers}

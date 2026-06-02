@@ -5,10 +5,12 @@ import { useState } from 'react'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
 import { saveLogin } from '@/actions/authMethods/loginMethods'
 import { useAuth } from '@/hooks/useAuth'
+import Link from 'next/link'
+import AlertCard from '@/components/alertReutilizable/AlertCard'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login } = useAuth() // usar AuthContext
+  const { login, } = useAuth() 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setSowPassword] = useState(false)
@@ -21,23 +23,28 @@ export default function LoginPage() {
     setError(null)
 
     try {
+  
       const res = await saveLogin({ email, password })
       const { user, roles, autoSelectRole } = res
 
       // Guardar datos del usuario
+      localStorage.setItem('userId', String(user.id))
       localStorage.setItem('user', JSON.stringify(user))
+      localStorage.setItem('roles', JSON.stringify(roles))
 
-      if (autoSelectRole && roles.length === 1) {
-        // 🔹 Solo un rol → login automático usando AuthContext
-        await login(roles[0]) // actualiza rol y docente
-        router.push(roles[0] === 'Admin' ? '/admin/home' : '/docente/home')
+      if (autoSelectRole && roles && roles.length === 1) {
+        // ✅ Pasar roles al contexto y seleccionar rol automáticamente
+        const selected = roles[0]
+        localStorage.setItem('rol', selected)
+        await login(selected, roles, user)
+        router.push(selected === 'Admin' ? '/admin/home' : '/docente/home')
       } else {
-        // Varios roles → guardar roles y pasar a seleccionar
-        localStorage.setItem('roles', JSON.stringify(roles))
+        // ✅ Guardar roles en contexto y redirigir a selección
+        await login(undefined, roles, user)
         router.push('/auth/selectRole')
       }
     } catch (err: any) {
-      console.error('Error al iniciar sesión:', err)
+      console.log('Error al iniciar sesión:', err)
       setError(err.response?.data?.message || 'Error desconocido')
     } finally {
       setLoading(false)
@@ -58,9 +65,6 @@ export default function LoginPage() {
           />
           <div className="space-y-5">
             <h1 className="text-2xl font-bold text-center text-blue-900/90">Iniciar Sesión</h1>
-
-            {error && <p className="text-red-500 text-center">{error}</p>}
-
             <input
               type="email"
               value={email}
@@ -89,10 +93,17 @@ export default function LoginPage() {
             </div>
 
             <p className="text-center text-sm text-gray-600">
-              <a href="/recuperar-password" className="text-blue-600 hover:underline">
+              <Link
+                href="/recuperarContrasena"
+                onClick={() => {
+                  if (email) localStorage.setItem('recoveryEmail', email)
+                }}
+                className="text-blue-600 hover:underline"
+              >
                 ¿Olvidó su contraseña?
-              </a>
+              </Link>
             </p>
+
 
             <button
               type="submit"
@@ -104,6 +115,17 @@ export default function LoginPage() {
           </div>
         </form>
       </div>
+      {/* Modal flotante */}
+      {error && (
+        <AlertCard
+          type="error"
+          title="Error al iniciar sesión"
+          message='El usario ingresado no es valido'
+          buttonText="Intentar de nuevo"
+          onAction={() => setError(null)}
+          show={!!error}
+        />
+      )}
     </div>
   )
 }

@@ -33,7 +33,7 @@ export default function Page() {
 
   //filtro
   const filteredMunicipio = municipios.filter((u) =>
-    u.municipio.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.municipio ?? "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

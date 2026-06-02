@@ -24,6 +24,7 @@ import { User } from '../auth/entities';
 import * as moment from 'moment-timezone';
 import { Grupos } from '../organizacionEscolar/entities/grupos.entity';
 import { GrupoAsignaturaDocente } from '../organizacionEscolar/entities/GrupoAsignaturaDocente.entity';
+import e from 'express';
 
 @Entity({ name: 'docentes', schema: 'docentes' })
 export class Docentes {
@@ -63,8 +64,10 @@ export class Docentes {
   @Column({
     name: 'cedula_identidad',
     type: 'varchar',
-    length: 16,
     nullable: true,
+    unique: true,
+    length: 16,
+
   })
   cedula_identidad: string;
 
@@ -72,8 +75,17 @@ export class Docentes {
     name: 'telefono',
     type: 'varchar',
     nullable: true,
+    length: 8
   })
   telefono: string;
+
+  @Column({
+    name: 'foto',
+    type: 'varchar',
+    nullable: true,
+  })
+  foto_docente?: string;  // foto del docente
+
 
   @Column({
     name: 'fecha_nacimiento',
@@ -107,8 +119,16 @@ export class Docentes {
     name: 'telefono_contacto_emergencia',
     type: 'varchar',
     nullable: true,
+    length: 8,
   })
   telefono_contacto_emergencia: string;
+
+  @Column({
+    name: 'correo',
+    type: 'varchar',
+    nullable: true,
+  })
+  correo?: string;
 
   @ManyToOne(() => GenderEntity)
   @JoinColumn({ name: 'sexo' })
@@ -131,7 +151,7 @@ export class Docentes {
   @JoinColumn({ name: 'municipio_id' })
   municipio: Municipio;
 
-  @OneToMany(() => Grupos, (grupo) => grupo.docenteGuia)
+  @OneToMany(() => Grupos, (grupo) => grupo.docenteGuia, { eager: true })
   grupos?: Grupos[];
 
   @OneToMany(() => GrupoAsignaturaDocente, gad => gad.docente)

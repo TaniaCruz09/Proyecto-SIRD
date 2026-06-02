@@ -1,6 +1,8 @@
 import BtnDelete from '@/components/Buttons/BtnDelete'
 import React, { useState } from 'react'
-import ConfirmDeletModal from '../../ModalConfirmDeletion'
+import ConfirmDeletModal from '../../modalConfirmDeletion'
+import { useToast } from '@/hooks/use-toast';
+import { deleteAsignatura } from '@/actions/catalogos/asignaturaMethods';
 
 interface DeleteAsignaturaModalProps {
   idEliminar: number;
@@ -8,6 +10,7 @@ interface DeleteAsignaturaModalProps {
 }
 
 export default function DeleteAsignaturaModal({ idEliminar, fetchAsignaturas }: DeleteAsignaturaModalProps) {
+  const { toast } = useToast();
   const [asignaturaToDelete, setAsignaturaToDelete] = useState<number | null>(null);
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
@@ -19,8 +22,13 @@ export default function DeleteAsignaturaModal({ idEliminar, fetchAsignaturas }: 
   const confirmDelete = async () => {
     if (!asignaturaToDelete) return;
     try {
-      // await deleteAsignatura(asignaturaToDelete);
+      await deleteAsignatura(asignaturaToDelete);
       await fetchAsignaturas();
+      toast({
+        title: "Registro eliminado",
+        description: "La asignatura se eliminó correctamente.",
+        variant: "destructive",
+      });
     } catch (error) {
       console.error("error al eliminar la Asignatura", error)
     } finally {

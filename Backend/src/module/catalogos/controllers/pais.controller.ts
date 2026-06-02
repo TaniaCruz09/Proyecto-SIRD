@@ -72,7 +72,7 @@ export class PaisController {
         @Req() req
     ) {
         try {
-            const userId = req.user.user?.id;
+            const userId = req.user?.id;
 
             if (!userId) {
                 return {

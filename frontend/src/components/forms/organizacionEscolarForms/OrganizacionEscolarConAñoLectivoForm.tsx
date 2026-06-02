@@ -14,7 +14,7 @@ import { getAniosLectivos } from "@/actions/catalogos/anioLectivoMethods";
 
 interface OrganizationEscolarFormProps {
     idAnioLectivo: number;
-    onSuccess: () => void | undefined
+    onSuccess: () => void | Promise<void> | undefined
 }
 
 export function OrganizacionEscolarConAnioLectivoForm({ idAnioLectivo, onSuccess }: OrganizationEscolarFormProps) {
@@ -82,8 +82,7 @@ export function OrganizacionEscolarConAnioLectivoForm({ idAnioLectivo, onSuccess
                 title: "Organización creada",
                 description: "La organización escolar se guardó correctamente"
             });
-            onSuccess?.();
-            window.location.reload();
+            await onSuccess?.();
         } catch (error) {
             console.error(error);
             toast({ title: "Error", description: "No se pudo guardar la organización", variant: "destructive" });

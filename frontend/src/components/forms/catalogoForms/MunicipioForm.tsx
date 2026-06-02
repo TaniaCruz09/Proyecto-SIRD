@@ -1,5 +1,6 @@
 import { saveMunicipio, updateMunicipio } from "@/actions/catalogos/municipioMethods";
 import { updateModalidad } from "@/actions/catalogos/modalidadMethods";
+import { useToast } from "@/hooks/use-toast";
 import { Departamento, Municipio, MunicipioPayload } from "@/interfaces";
 import React, { useEffect, useState } from "react";
 import { getDepartamentos } from "@/actions/catalogos/departamentoMethods";
@@ -13,6 +14,7 @@ export default function MunicipioForm({
   defaultValues,
   onSuccess,
 }: MunicipioFormProps) {
+  const { toast } = useToast();
   const [municipio, setMunicipio] = useState<string>("");
   const [departamento, setDepartamento] = useState<Departamento |null>(null);
   const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
@@ -59,12 +61,27 @@ export default function MunicipioForm({
     try {
       if (isEdit && defaultValues?.id) {
         await updateMunicipio(defaultValues.id, municipioData);
+        toast({
+          title: "Municipio actualizado",
+          description: "El municipio se actualizo correctamente.",
+          variant: "success",
+        });
       } else {
         await saveMunicipio(municipioData);
+        toast({
+          title: "Municipio creado",
+          description: "El municipio se creo correctamente.",
+          variant: "success",
+        });
       }
       onSuccess();
     } catch (error) {
       console.error("Error al guardar o actualizar municipio:", error);
+      toast({
+        title: "Error al guardar",
+        description: "No se pudo guardar el municipio.",
+        variant: "destructive",
+      });
     }
   };
 

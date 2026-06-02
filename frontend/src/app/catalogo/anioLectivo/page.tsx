@@ -38,7 +38,14 @@ export default function Page() {
   }, []);
 
   //filtro
-  const filteredAnioLectivo = anioLectivos.filter((u) => u.anio_lectivo);
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const filteredAnioLectivo = anioLectivos.filter((anio) => {
+    if (!anio.anio_lectivo) return false;
+    if (!normalizedSearch) return true;
+    const anioText = anio.anio_lectivo.toString().toLowerCase();
+    const idText = anio.id?.toString().toLowerCase() ?? "";
+    return anioText.includes(normalizedSearch) || idText.includes(normalizedSearch);
+  });
 
   return (
     <div className="mx-6">
@@ -54,12 +61,14 @@ export default function Page() {
         <h2 className="pl-10 text-xl font-bold text-gray-600">
           Listado de Años Lectivos
         </h2>
-        <SearchBar
-          value={searchTerm}
-          onChange={setSearchTerm}
-          onClear={() => setSearchTerm("")}
-          placeholder="Buscar Año lectivo"
-        />
+        <div className="flex items-center gap-3 pr-4">
+          <SearchBar
+            value={searchTerm}
+            onChange={setSearchTerm}
+            onClear={() => setSearchTerm("")}
+            placeholder="Buscar Año lectivo"
+          />
+        </div>
       </div>
       <AnioLectivoTable anioLectivo={filteredAnioLectivo} fetchAniosLectivos={fetchAniosLectivos} />
     </div>

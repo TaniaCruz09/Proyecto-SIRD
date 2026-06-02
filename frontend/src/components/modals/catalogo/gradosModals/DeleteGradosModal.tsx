@@ -1,7 +1,8 @@
 import BtnDelete from '@/components/Buttons/BtnDelete'
 import React, { useState } from 'react'
-import ConfirmDeletModal from '../../ModalConfirmDeletion'
+import ConfirmDeletModal from '../../modalConfirmDeletion'
 import { deleteGrado } from '@/actions/catalogos/gradoMethods';
+import { useToast } from '@/hooks/use-toast';
 
 interface DeleteGradosModalProps {
   idEliminar: number;
@@ -9,6 +10,7 @@ interface DeleteGradosModalProps {
 }
 
 export default function DeleteGradosModal({ idEliminar, fetchGrados }: DeleteGradosModalProps) {
+  const { toast } = useToast();
   const [gradoToDelete, setGradoToDelete] = useState<number | null>(null);
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
@@ -22,6 +24,11 @@ export default function DeleteGradosModal({ idEliminar, fetchGrados }: DeleteGra
     try {
       await deleteGrado(gradoToDelete);
       await fetchGrados();
+      toast({
+        title: "Registro eliminado",
+        description: "El grado se elimino correctamente.",
+        variant: "destructive",
+      });
     } catch (error) {
       console.error("error al eliminar el grado", error)
     } finally {

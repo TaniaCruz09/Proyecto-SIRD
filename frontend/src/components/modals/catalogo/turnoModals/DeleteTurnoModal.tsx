@@ -1,7 +1,8 @@
 import BtnDelete from '@/components/Buttons/BtnDelete'
 import React, { useState } from 'react'
-import ConfirmDeletModal from '../../ModalConfirmDeletion';
+import ConfirmDeletModal from '../../modalConfirmDeletion';
 import { deleteTurno } from '@/actions/catalogos/turnoMethods';
+import { useToast } from '@/hooks/use-toast';
 
 interface DeleteTurnoModalProps {
   idEliminar: number;
@@ -9,6 +10,7 @@ interface DeleteTurnoModalProps {
 }
 
 export default function DeleteTurnoModal({ idEliminar, fetchTurno }: DeleteTurnoModalProps) {
+  const { toast } = useToast();
   const [turnoToDelete, setTurnoToDelete] = useState<number | null>(null);
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
@@ -22,6 +24,11 @@ export default function DeleteTurnoModal({ idEliminar, fetchTurno }: DeleteTurno
     try {
       await deleteTurno(turnoToDelete);
       await fetchTurno();
+      toast({
+        title: "Registro eliminado",
+        description: "El turno se elimino correctamente.",
+        variant: "destructive",
+      });
     } catch (error) {
       console.error("error al eliminar la turno", error)
     } finally {

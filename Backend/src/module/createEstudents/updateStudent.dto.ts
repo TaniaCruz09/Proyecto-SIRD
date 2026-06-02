@@ -1,6 +1,5 @@
-import { IsDate, IsInt, IsNotEmpty, IsNumber, IsObject, IsOptional, IsString, MaxLength, maxLength } from "class-validator";
+import { IsDate, IsInt, IsNotEmpty, IsNumber, IsObject, IsOptional, IsString, Length, MaxLength, maxLength } from "class-validator";
 import { Unique } from "typeorm";
-import { Departamento, GenderEntity, Municipio, Pais } from "../catalogos";
 import { Transform } from "class-transformer";
 
 
@@ -69,7 +68,8 @@ export class UpdateStudentsDto {
 
     @IsOptional()
     @IsString()
-    @MaxLength(8)
+    @Length(8, 8)
+    @Transform(({ value }) => value === "" ? null : value)
     tutorPhoneNumber?: string;
 
     @IsOptional()

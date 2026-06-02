@@ -1,49 +1,91 @@
 'use client'
 
 import { memo, useEffect, useRef, useState } from 'react'
-import { FaHome, FaUsers, FaUser, FaUserPlus, FaCog, FaChevronDown } from 'react-icons/fa'
-import { VscFileSubmodule } from 'react-icons/vsc'
+import {
+  FaBook,
+  FaBriefcase,
+  FaBuilding,
+  FaCalendar,
+  FaCalendarAlt,
+  FaChalkboardTeacher,
+  FaChartLine,
+  FaChevronDown,
+  FaClock,
+  FaColumns,
+  FaFlag,
+  FaExchangeAlt,
+  FaGraduationCap,
+  FaHome,
+  FaLayerGroup,
+  FaListAlt,
+  FaMapMarkedAlt,
+  FaSchool,
+  FaSitemap,
+  FaUserFriends,
+  FaUserGraduate,
+  FaUserShield,
+  FaUsers,
+  FaVenusMars,
+} from 'react-icons/fa'
+import { Button } from "@/components/ui/button"
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
+import ConfirmModal from "@/app/recuperarContrasena/modal/modalCambioRol"
+import CerrarSecion from '@/components/cerrarSesion'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 // Menús solo para Admin
 const authSubmenu = [
-  { label: 'Usuarios', href: '/auth/users', icon: FaUser },
-  { label: 'Roles', href: '/auth/roles', icon: FaUserPlus },
+  { label: 'Usuarios', href: '/auth/users', icon: FaUserFriends },
+  { label: 'Roles', href: '/auth/roles', icon: FaUserShield },
 ]
 
 const catalogSubmenu = [
-  { label: 'Años Lectivos', href: '/catalogo/anioLectivo', icon: FaUserPlus },
-  { label: 'Asignaturas', href: '/catalogo/asignatura', icon: FaUserPlus },
-  { label: 'Cortes', href: '/catalogo/corteEvaluativo', icon: FaUserPlus },
-  { label: 'Departamentos', href: '/catalogo/departamento', icon: FaUserPlus },
-  { label: 'Etnias', href: '/catalogo/etnia', icon: FaUserPlus },
-  { label: 'Sexos', href: '/catalogo/genero', icon: FaUserPlus },
-  { label: 'Grados', href: '/catalogo/grados', icon: FaUserPlus },
-  { label: 'Modalidades', href: '/catalogo/modalidad', icon: FaUserPlus },
-  { label: 'Municipios', href: '/catalogo/municipio', icon: FaUserPlus },
-  { label: 'Niveles Académicos', href: '/catalogo/nivelAcademico', icon: FaUserPlus },
-  { label: 'Paises', href: '/catalogo/pais', icon: FaUserPlus },
-  { label: 'Profesiones', href: '/catalogo/profesion', icon: FaUserPlus },
-  { label: 'Secciones', href: '/catalogo/seccion', icon: FaUserPlus },
-  { label: 'Semestres', href: '/catalogo/semestre', icon: FaUserPlus },
-  { label: 'Turnos', href: '/catalogo/turno', icon: FaUserPlus },
+  { label: 'Años Lectivos', href: '/catalogo/anioLectivo', icon: FaCalendarAlt },
+  { label: 'Tipos de Periodos', href: '/catalogo/tipoPeriodizacion', icon: FaLayerGroup },
+  { label: 'Asignaturas', href: '/catalogo/asignatura', icon: FaBook },
+  { label: 'Cortes', href: '/catalogo/corteEvaluativo', icon: FaChartLine },
+  { label: 'Departamentos', href: '/catalogo/departamento', icon: FaBuilding },
+  { label: 'Etnias', href: '/catalogo/etnia', icon: FaFlag },
+  { label: 'Sexos', href: '/catalogo/genero', icon: FaVenusMars },
+  { label: 'Grados', href: '/catalogo/grados', icon: FaGraduationCap },
+  { label: 'Modalidades', href: '/catalogo/modalidad', icon: FaLayerGroup },
+  { label: 'Municipios', href: '/catalogo/municipio', icon: FaMapMarkedAlt },
+  { label: 'Niveles Académicos', href: '/catalogo/nivelAcademico', icon: FaChartLine },
+  { label: 'Paises', href: '/catalogo/pais', icon: FaFlag },
+  { label: 'Profesiones', href: '/catalogo/profesion', icon: FaBriefcase },
+  { label: 'Secciones', href: '/catalogo/seccion', icon: FaColumns },
+  { label: 'Semestres', href: '/catalogo/semestre', icon: FaCalendar },
+  { label: 'Turnos', href: '/catalogo/turnos', icon: FaClock },
+  { label: 'Centro Educativo', href: '/catalogo/centro', icon: FaSchool },
 ]
 
 const organizacionEscolarSubmenu = [
-  { label: 'Organizacion Escolar', href: '/organizacion', icon: FaUser },
-  { label: 'Grupos Educativos', href: '/registerGroups', icon: FaUserPlus },
+  // { label: 'Organizacion Escolar', href: '/organizacion', icon: FaUser },
+  { label: 'Grupos Educativos', href: '/registerGroups', icon: FaChalkboardTeacher },
 ]
 
 function NavbarAdmin() {
+  const router = useRouter()
   const pathname = usePathname()
-  const { rol, loading } = useAuth()
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const [openUsers, setOpenUsers] = useState(false)
   const [openCatalogs, setOpenCatalogs] = useState(false)
   const [openOrganizacionEscolar, setOpenOrganizacionEscolar] = useState(false)
+
+  const { rol, login, roles, loading, docente } = useAuth()
+  const [cambiandoRol, setCambiandoRol] = useState(false)
+  const [rolDestino, setRolDestino] = useState<'Admin' | 'Docente' | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [nombreUsuario, setNombreUsuario] = useState('')
+  const [nuevoRol, setNuevoRol] = useState<'Admin' | 'Docente'>(() => {
+    // valor por defecto seguro si rol no está listo aún
+    return rol === 'Docente' ? 'Admin' : 'Docente'
+  })
+  const rolesArray = roles ? (Array.isArray(roles) ? roles : [roles]) : []
+  const tieneMultiplesRoles = rolesArray.length > 1 // 🔹 aquí traemos el rol actual y la función para cambiarlo
 
   useEffect(() => {
     setOpenUsers(false)
@@ -56,18 +98,67 @@ function NavbarAdmin() {
     if (savedScroll && scrollRef.current) scrollRef.current.scrollTop = parseInt(savedScroll)
   }, [])
 
+  useEffect(() => {
+    const userStored = localStorage.getItem('user')
+    if (!userStored) return
+
+    try {
+      const user = JSON.parse(userStored)
+      setNombreUsuario(user?.name ?? '')
+    } catch {
+      setNombreUsuario('')
+    }
+  }, [])
+
+  useEffect(() => {
+    // cuando cambien roles o rol actualiza nuevoRol por si el hook se inicializa después del login
+    if (!rol) return
+    const current = String(rol).toLowerCase()
+    const other = rolesArray.find(r => String(r).toLowerCase() !== current)
+    if (other) setNuevoRol(String(other).toLowerCase() === 'admin' ? 'Admin' : 'Docente')
+    else setNuevoRol(current === 'admin' ? 'Docente' : 'Admin')
+  }, [roles, rol])
+
+  useEffect(() => {
+    if (!cambiandoRol || !rolDestino || loading) return
+
+    const rutaDestino = rolDestino === 'Admin' ? '/admin/home' : '/docente/home'
+    if (rol === rolDestino && pathname === rutaDestino) {
+      setCambiandoRol(false)
+      setRolDestino(null)
+    }
+  }, [cambiandoRol, loading, pathname, rol, rolDestino])
+
   const handleSaveScroll = () => {
     if (scrollRef.current) sessionStorage.setItem('sidebar-scroll', scrollRef.current.scrollTop.toString())
   }
 
-  const isActive = (route: string) =>
-    pathname === route ? 'bg-indigo-600 text-white' : 'text-white hover:bg-white hover:text-gray-900'
+  const getDocenteInitials = () => {
+    if (!docente) return 'DC'
+    const nombre = docente.nombres?.trim()?.[0] ?? ''
+    const apellido = docente.apellido_paterno?.trim()?.[0] ?? ''
+    return `${nombre}${apellido}`.toUpperCase() || 'DC'
+  }
 
-  const rutasSinNavbar = ['/', '/auth/login', '/auth/selectRole']
+  const nombreDocente = docente
+    ? `${docente.nombres} ${docente.apellido_paterno} ${docente.apellido_materno || ''}`.trim()
+    : 'Docente'
+
+  const profesionDocente = docente?.profession?.length
+    ? docente.profession.map((p: any) => p.profession).join(', ')
+    : 'Profesión no registrada'
+
+  const isActive = (route: string) =>
+    pathname === route
+      ? 'text-sky-400 translate-x-1'
+      : 'text-gray-300 hover:text-sky-300 hover:translate-x-2'
+
+  const rutasSinNavbar = ['/', '/auth/login', '/auth/selectRole', '/recuperarContrasena',
+    '/recuperarContrasena/verificarCodigo', '/recuperarContrasena/restablecerContrasena']
   if (rutasSinNavbar.includes(pathname)) return null
 
   // Skeleton mientras carga rol
-  if (loading) {
+  if (loading && !cambiandoRol) {
     return (
       <nav className="w-64 bg-gray-900 text-white h-screen p-4 space-y-2">
         <div className="animate-pulse h-6 bg-gray-700 rounded mb-2 w-3/4"></div>
@@ -79,131 +170,216 @@ function NavbarAdmin() {
 
   if (!rol) return null
 
+  const handleAbrirModal = () => {
+    if (!rol) return
+    const current = String(rol).toLowerCase()
+    const other = rolesArray.find(r => String(r).toLowerCase() !== current)
+    setNuevoRol(other ? (String(other).toLowerCase() === 'admin' ? 'Admin' : 'Docente') : (rol === 'Admin' ? 'Docente' : 'Admin'))
+    setIsModalOpen(true)
+  }
+
+  const handleConfirmarCambio = async () => {
+    setIsModalOpen(false)
+    setRolDestino(nuevoRol)
+    setCambiandoRol(true)
+
+    try {
+      await login(nuevoRol)
+      await new Promise(r => setTimeout(r, 100))
+      router.replace(nuevoRol === 'Admin' ? '/admin/home' : '/docente/home')
+    } catch (error) {
+      console.error('Error cambiando rol:', error)
+      setCambiandoRol(false)
+      setRolDestino(null)
+    }
+  }
+
   return (
-    <nav className="w-70 bg-gray-900 text-white h-screen overflow-hidden shadow-md">
-      <div ref={scrollRef} className="h-full overflow-y-auto p-4 space-y-2">
-        {/* Solo Admin */}
-        {rol === 'Admin' && (
-          <>
+    <>
+      {cambiandoRol && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 backdrop-blur-sm">
+          <div className="rounded-2xl bg-white px-8 py-6 text-center shadow-2xl">
+            <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
+            <p className="text-lg font-semibold text-gray-800">Cambiando de rol...</p>
+            <p className="mt-1 text-sm text-gray-500">
+              {(rolDestino ?? nuevoRol) === 'Admin' ? 'Cargando vista de administrador.' : 'Cargando vista de docente.'}
+            </p>
+          </div>
+        </div>
+      )}
+
+      <nav className="w-70 bg-gray-900 text-white h-screen overflow-hidden shadow-md flex flex-col">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2">
+          {rol === 'Admin' && (
+            <div className="mb-4 border-b border-slate-700 pb-4 text-center">
+              <p className="text-xs uppercase tracking-wide text-slate-400">Administrador</p>
+              <p className="mt-1 text-sm font-semibold text-white">{nombreUsuario || 'Usuario'}</p>
+            </div>
+          )}
+
+          {rol === 'Docente' && (
+            <div className="mb-4 border-b border-slate-700 pb-4 text-center">
+              <Avatar className="mx-auto h-24 w-24 border-2 border-sky-300/70">
+                {docente?.foto_docente ? (
+                  <AvatarImage
+                    src={`${process.env.NEXT_PUBLIC_API_UPLOADS}${docente.foto_docente}`}
+                    alt={nombreDocente}
+                  />
+                ) : null}
+                <AvatarFallback className="bg-sky-100 text-lg font-bold text-sky-700">
+                  {getDocenteInitials()}
+                </AvatarFallback>
+              </Avatar>
+              <p className="mt-3 text-sm font-semibold text-white">{nombreDocente}</p>
+              <p className="mt-1 text-xs text-sky-200">{profesionDocente}</p>
+            </div>
+          )}
+
+          {/* Solo Admin */}
+          {rol === 'Admin' && (
+            <>
+              <Link
+                href="/admin/home"
+                className={`flex items-center gap-3 p-3 rounded-md transition-transform duration-200 ${isActive('/admin/home')}`}
+                onClick={handleSaveScroll}
+              >
+                <FaHome />
+                <span>Home Admin</span>
+              </Link>
+
+              <button
+                onClick={() => setOpenUsers(!openUsers)}
+                className="flex items-center justify-between p-3 w-full rounded-md transition"
+              >
+                <div className="flex items-center gap-3">
+                  <FaUserShield />
+                  <span>Autenticación</span>
+                </div>
+                <FaChevronDown className={`${openUsers ? 'rotate-180' : ''} transition`} />
+              </button>
+              {openUsers && (
+                <div className="ml-6 flex flex-col gap-1">
+                  {authSubmenu.map(({ label, href, icon: Icon }) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      className={`flex items-center gap-2 p-2 rounded-md text-sm transition-transform duration-200 ${isActive(href)}`}
+                      onClick={handleSaveScroll}
+                    >
+                      <Icon className="text-base" />
+                      {label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              <button
+                onClick={() => setOpenCatalogs(!openCatalogs)}
+                className="flex items-center justify-between p-3 w-full rounded-md transition"
+              >
+                <div className="flex items-center gap-3">
+                  <FaListAlt />
+                  <span>Catálogos</span>
+                </div>
+                <FaChevronDown className={`${openCatalogs ? 'rotate-180' : ''} transition`} />
+              </button>
+              {openCatalogs && (
+                <div className="ml-6 flex flex-col gap-1">
+                  {catalogSubmenu.map(({ label, href, icon: Icon }) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      className={`flex items-center gap-2 p-2 rounded-md text-sm transition-transform duration-200 ${isActive(href)}`}
+                      onClick={handleSaveScroll}
+                    >
+                      <Icon className="text-base" />
+                      {label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              <button
+                onClick={() => setOpenOrganizacionEscolar(!openOrganizacionEscolar)}
+                className="flex items-center justify-between p-3 w-full rounded-md transition"
+              >
+                <div className="flex items-center gap-3">
+                  <FaSitemap />
+                  <span>Organización Escolar</span>
+                </div>
+                <FaChevronDown className={`${openOrganizacionEscolar ? 'rotate-180' : ''} transition`} />
+              </button>
+              {openOrganizacionEscolar && (
+                <div className="ml-6 flex flex-col gap-1">
+                  {organizacionEscolarSubmenu.map(({ label, href, icon: Icon }) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      className={`flex items-center gap-2 p-2 rounded-md text-sm transition-transform duration-200 ${isActive(href)}`}
+                      onClick={handleSaveScroll}
+                    >
+                      <Icon className="text-base" />
+                      {label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              <Link
+                href="/docente/registerDocente"
+                className={`flex items-center gap-3 p-3 rounded-md transition-transform duration-200 ${isActive('/esquela-calificaciones')}`}
+              >
+                <FaChalkboardTeacher />
+                <span>Registro Docente</span>
+              </Link>
+
+              <Link
+                href="/registerEstudent"
+                className={`flex items-center gap-3 p-3 rounded-md transition-transform duration-200 ${isActive('/esquela-calificaciones')}`}
+              >
+                <FaUserGraduate />
+                <span>Registro Estudiante</span>
+              </Link>
+            </>
+          )}
+
+          {/* Solo Docentes */}
+          {rol === 'Docente' && (
             <Link
-              href="/admin/home"
-              className={`flex items-center gap-3 p-3 rounded-md transition ${isActive('/admin/home')}`}
+              href="/docente/home"
+              className={`flex items-center gap-3 p-3 rounded-md transition-transform duration-200 ${isActive('/docente/home')}`}
               onClick={handleSaveScroll}
             >
               <FaHome />
-              <span>Home Admin</span>
+              <span>Home Docente</span>
             </Link>
+          )}
+        </div>
 
-            <button
-              onClick={() => setOpenUsers(!openUsers)}
-              className="flex items-center justify-between p-3 w-full rounded-md transition"
-            >
-              <div className="flex items-center gap-3">
-                <FaUsers />
-                <span>Autenticación</span>
-              </div>
-              <FaChevronDown className={`${openUsers ? 'rotate-180' : ''} transition`} />
-            </button>
-            {openUsers && (
-              <div className="ml-6 flex flex-col gap-1">
-                {authSubmenu.map(({ label, href, icon: Icon }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={`flex items-center gap-2 p-2 rounded-md text-sm transition ${isActive(href)}`}
-                    onClick={handleSaveScroll}
-                  >
-                    <Icon className="text-base" />
-                    {label}
-                  </Link>
-                ))}
-              </div>
-            )}
-
-            <button
-              onClick={() => setOpenCatalogs(!openCatalogs)}
-              className="flex items-center justify-between p-3 w-full rounded-md transition"
-            >
-              <div className="flex items-center gap-3">
-                <VscFileSubmodule />
-                <span>Catálogos</span>
-              </div>
-              <FaChevronDown className={`${openCatalogs ? 'rotate-180' : ''} transition`} />
-            </button>
-            {openCatalogs && (
-              <div className="ml-6 flex flex-col gap-1">
-                {catalogSubmenu.map(({ label, href, icon: Icon }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={`flex items-center gap-2 p-2 rounded-md text-sm transition ${isActive(href)}`}
-                    onClick={handleSaveScroll}
-                  >
-                    <Icon className="text-base" />
-                    {label}
-                  </Link>
-                ))}
-              </div>
-            )}
-
-            <button
-              onClick={() => setOpenOrganizacionEscolar(!openOrganizacionEscolar)}
-              className="flex items-center justify-between p-3 w-full rounded-md transition"
-            >
-              <div className="flex items-center gap-3">
-                <VscFileSubmodule />
-                <span>Organización Escolar</span>
-              </div>
-              <FaChevronDown className={`${openOrganizacionEscolar ? 'rotate-180' : ''} transition`} />
-            </button>
-            {openOrganizacionEscolar && (
-              <div className="ml-6 flex flex-col gap-1">
-                {organizacionEscolarSubmenu.map(({ label, href, icon: Icon }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={`flex items-center gap-2 p-2 rounded-md text-sm transition ${isActive(href)}`}
-                    onClick={handleSaveScroll}
-                  >
-                    <Icon className="text-base" />
-                    {label}
-                  </Link>
-                ))}
-              </div>
-            )}
-
-            <Link
-              href="/docente/registerDocente"
-              className={`flex items-center gap-3 p-3 rounded-md transition ${isActive('/esquela-calificaciones')}`}
-            >
-              <FaHome />
-              <span>Registro Docente</span>
-            </Link>
-          </>
-        )}
-
-        {/* Solo Docentes */}
-        {rol === 'Docente' && (
-          <Link
-            href="/docente/home"
-            className={`flex items-center gap-3 p-3 rounded-md transition ${isActive('/docente/home')}`}
-            onClick={handleSaveScroll}
+        <div className="border-t border-slate-700 bg-slate-900/90 p-4 space-y-3">
+          <Button
+            onClick={handleAbrirModal}
+            disabled={cambiandoRol || !tieneMultiplesRoles}
+            className="w-full justify-center gap-2 rounded-lg border border-slate-600 bg-slate-800 py-1.5 text-sm font-semibold text-slate-100 shadow-sm transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <FaHome />
-            <span>Home Docente</span>
-          </Link>
-        )}
+            <FaExchangeAlt className="text-xs" />
+            {tieneMultiplesRoles
+              ? (rol === 'Admin' ? 'Cambiar a rol Docente' : 'Cambiar a rol Admin')
+              : 'No hay otro rol disponible'}
+          </Button>
 
-        {/* Links compartidos */}
-        <Link
-          href="/esquela-calificaciones"
-          className={`flex items-center gap-3 p-3 rounded-md transition ${isActive('/esquela-calificaciones')}`}
-        >
-          <FaCog />
-          <span>Calificaciones</span>
-        </Link>
-      </div>
-    </nav>
+          <CerrarSecion />
+
+          <ConfirmModal
+            isOpen={isModalOpen}
+            title="Cambiar Rol"
+            message={`¿Estás seguro que quieres cambiar tu rol a ${nuevoRol}?`}
+            onConfirm={handleConfirmarCambio}
+            onCancel={() => !cambiandoRol && setIsModalOpen(false)}
+          />
+        </div>
+      </nav>
+    </>
   )
 }
 

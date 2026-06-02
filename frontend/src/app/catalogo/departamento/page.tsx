@@ -33,7 +33,7 @@ export default function Page() {
 
   //filtro
   const filteredDepartamento = departamentos.filter((u) =>
-    u.departamento.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.departamento ?? "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

@@ -1,22 +1,23 @@
-
 import { Grado } from "../catalogoInterface/Grado";
-import { Modalidad } from "../catalogoInterface/ModalidadInterface";
 import { Seccion } from "../catalogoInterface/SeccionInterfase";
 import { Turno } from "../catalogoInterface/TurnoInterface";
 import { Docente } from "../DocenteInterface";
-import { AnioLectivo } from "../catalogoInterface/AnioLectivo";
 import { OrganizacionEscolar } from "./organizacionInterface";
-import { GrupoConEstudiante } from "./asignarEstudianteInterface";
 import { GrupoConAsignaturasResponse } from "./gruposConAsignaturas";
+import { EsquelaHeadInterface } from "../calificaciones/EsquelaHead";
 
 export interface GrupoEscolar {
     id: number,
     grado: Grado,
     seccion: Seccion,
     turno: Turno,
+    numero_estudiantes?: number,
+    numero_estudiantes_inactivos?: number,
+    numero_materias?: number,
     organizacionEscolar: OrganizacionEscolar,
     docenteGuia: Docente,
-    grupoAsignaturaDocente?: GrupoConAsignaturasResponse[]
+    grupoAsignaturaDocente?: GrupoConAsignaturasResponse[];
+    esquelaHead?: EsquelaHeadInterface;
     user_create_id?: number | null;
     created_at?: string;
     update_at?: string;

@@ -3,6 +3,8 @@
 import { Sexo } from "@/interfaces";
 import React from "react";
 import GeneroRow from "./GeneroRow";
+import { usePagination } from "@/components/paginacion/usePaginacion";
+import Pagination from "@/components/paginacion/paginacion";
 
 interface GeneroProp {
   genter: Sexo[];
@@ -13,6 +15,11 @@ export default function GenterTable({
   genter,
   fetchGeneros,
 }: GeneroProp) {
+  const {
+    currentPage,
+    setCurrentPage,
+    currentItems,
+  } = usePagination(genter, 5);
   return (
     <div className="bg-white">
       <div className="bg-white shadow-lg h-[calc(100vh-230px)] overflow-y-auto">
@@ -30,13 +37,7 @@ export default function GenterTable({
             </tr>
           </thead>
           <tbody>
-            {genter.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="text-center text-gray-500 py-10">
-                  No hay sexos registradas.
-                </td>
-              </tr>
-            ) : (
+            {genter.length > 0 ? (
               genter.map((generoItem) => (
                 <GeneroRow
                   key={generoItem.id}
@@ -44,10 +45,23 @@ export default function GenterTable({
                   genero={generoItem}
                 />
               ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="text-center text-gray-500 py-10">
+                  No hay sexos registradas.
+                </td>
+              </tr>
+
             )}
           </tbody>
         </table>
       </div>
+      <Pagination
+        currentPage={currentPage}
+        totalItems={genter.length}
+        itemsPerPage={5}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

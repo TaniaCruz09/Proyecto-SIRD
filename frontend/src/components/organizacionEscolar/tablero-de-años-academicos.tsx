@@ -3,12 +3,13 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Calendar, Settings, Eye, GraduationCap } from "lucide-react"
+import { Calendar, Settings, Eye, GraduationCap, CalendarDays } from "lucide-react"
 import { getAniosLectivos } from "@/actions/catalogos/anioLectivoMethods"
 import { AnioLectivo } from "@/interfaces"
 import { useRouter } from "next/navigation"
 import AddAniosLectivosModal from "../modals/catalogo/anioLectivoModals/AddAnioLectivoModal"
 import SearchBar from "../SearchBar"
+import AddOganizacionEscolarConAnioLectivoModal from "../modals/organizacionEscolar/organizacion/AddOganizacionEscolarConAnioLectivoModal"
 
 export function AcademicYearsDashboard() {
     const [anioLectivos, setAniosLectivos] = useState<AnioLectivo[]>([]);
@@ -16,6 +17,7 @@ export function AcademicYearsDashboard() {
     const [currentPage, setCurrentPage] = useState<number>(1)
     const itemsPerPage = 3
     const router = useRouter();
+
 
     const fetchAniosLectivos = async () => {
         try {
@@ -114,40 +116,66 @@ export function AcademicYearsDashboard() {
                                             Año Lectivo {anioLectivo.anio_lectivo}
                                         </CardTitle>
                                         <CardDescription className="text-slate-500">
-                                            Creado el {new Date(anioLectivo.created_at).toLocaleDateString()}
+                                            Creado el {anioLectivo.created_at ? new Date(anioLectivo.created_at).toLocaleDateString() : 'Sin fecha de creación'}
                                         </CardDescription>
                                     </div>
                                     <Badge className={getStatusColor(anioLectivo.isActive)}>{getStatusText(anioLectivo.isActive)}</Badge>
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-4">
+                                {anioLectivo.periodos?.length ? (
+                                    <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                                        {anioLectivo.periodos
+                                            .slice()
+                                            .sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
+                                            .map((periodo) => {
+                                                const cortes = periodo.cortes.map((corte) => corte.abreviatura || corte.corte).join(", ")
+                                                return `${periodo.nombre}: ${cortes || "Sin cortes"}`
+                                            })
+                                            .join(" | ")}
+                                    </div>
+                                ) : null}
+
                                 {anioLectivo.organizacionEscolar.length > 0 ? (
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         {anioLectivo.organizacionEscolar.map((org) => (
-                                            <Card key={org.id} className="border-2 border-dashed border-slate-200 bg-slate-50/30">
+                                            <Card key={org.id} className="border-2 border-dashed border-gray-300 bg-gray-50 hover:shadow-md transition-shadow">
                                                 <CardHeader className="pb-2">
                                                     <CardTitle className="text-sm font-medium text-slate-700">{org.turno?.turno || "Sin modalidad"}</CardTitle>
                                                     <CardDescription className="text-xs text-slate-500">{org.turno?.modalidad?.modalidad || "Sin modalidad"}</CardDescription>
                                                 </CardHeader>
                                                 <CardContent className="pt-0">
-                                                    <div className="flex gap-1 mt-2">
+                                                    <div className="flex flex-col gap-1 mt-2">
+                                                        <div className="flex gap-1">
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="flex-1 text-xs h-7 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
+                                                                onClick={() => router.push(`/add-groups-to-organization/${org.id}`)}
+                                                            >
+                                                                <Eye className="h-3 w-3 mr-1" />
+                                                                Ver
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="flex-1 text-xs h-7 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
+                                                                onClick={() => router.push(`/organizacion?organizacionId=${org.id}`)}
+                                                            >
+                                                                <Settings className="h-3 w-3 mr-1" />
+                                                                Gestionar
+                                                            </Button>
+                                                        </div>
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            className="flex-1 text-xs h-7 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
-                                                            onClick={() => router.push(`/add-groups-to-organization/${org.id}`)}
+                                                            className="w-full text-xs h-7 border-amber-200 text-amber-700 hover:bg-amber-50 bg-transparent"
+                                                            onClick={() => router.push(
+                                                                `/catalogo/anioLectivo/calendarizacion?idAnioLectivo=${anioLectivo.id}&modalidadId=${org.turno?.modalidad?.id ?? 0}`
+                                                            )}
                                                         >
-                                                            <Eye className="h-3 w-3 mr-1" />
-                                                            Ver
-                                                        </Button>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="flex-1 text-xs h-7 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
-                                                            onClick={() => router.push(`/organizacion/=${org.id}`)}
-                                                        >
-                                                            <Settings className="h-3 w-3 mr-1" />
-                                                            Gestionar
+                                                            <CalendarDays className="h-3 w-3 mr-1" />
+                                                            Calendarización
                                                         </Button>
                                                     </div>
                                                 </CardContent>
@@ -160,25 +188,19 @@ export function AcademicYearsDashboard() {
                                         <h3 className="text-lg font-semibold mb-2 text-slate-700">Sin organizaciones escolares</h3>
                                         <p className="text-slate-500 text-center mb-4">Este año lectivo no tiene organizaciones aún</p>
 
-                                        <Button onClick={() => router.push(`/add-organizations-to-year/${anioLectivo.id}`)} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm">
-                                            <Plus className="h-4 w-4" />
-                                            Agregar Organización Escolar
-
-                                        </Button>
+                                        <AddOganizacionEscolarConAnioLectivoModal
+                                            idAnioLectivo={Number(anioLectivo.id)}
+                                            onSuccess={fetchAniosLectivos}
+                                        />
 
                                     </div>
                                 )}
 
                                 <div className="flex gap-2 pt-4 border-t border-slate-200">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="flex items-center gap-2 border-slate-200 text-slate-600 hover:bg-slate-50 bg-transparent"
-                                        onClick={() => router.push(`/add-organizations-to-year/${anioLectivo.id}`)}
-                                    >
-                                        <Eye className="h-4 w-4" />
-                                        organización del año lectivo
-                                    </Button>
+                                    <AddOganizacionEscolarConAnioLectivoModal
+                                        idAnioLectivo={Number(anioLectivo.id)}
+                                        onSuccess={fetchAniosLectivos}
+                                    />
                                     <Button
                                         onClick={() => router.push(`/catalogo/anioLectivo?idAnioLectivo=${anioLectivo.id}`)}
                                         variant="outline"

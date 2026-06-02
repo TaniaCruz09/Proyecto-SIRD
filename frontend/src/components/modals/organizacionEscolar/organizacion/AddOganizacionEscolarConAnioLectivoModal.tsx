@@ -1,19 +1,27 @@
-import BtnOpenAddModal from '@/components/Buttons/btnOpenAddModal';
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase';
-import OrganizacionEscolarForm from '@/components/forms/organizacionEscolarForms/OrganizacionEscolarForm';
 import { OrganizacionEscolarConAnioLectivoForm } from '@/components/forms/organizacionEscolarForms/OrganizacionEscolarConAñoLectivoForm';
+import { Button } from "@/components/ui/button"
+import { Plus } from 'lucide-react'
 
 interface AddOganizacionEscolarConAnioLectivoModalProp {
-    fetchOrganizacionPorAnioLectivo: () => Promise<void>
     idAnioLectivo: number
+    onSuccess?: () => void | Promise<void>
 }
 
-export default function AddOganizacionEscolarConAnioLectivoModal({ fetchOrganizacionPorAnioLectivo, idAnioLectivo }: AddOganizacionEscolarConAnioLectivoModalProp) {
+export default function AddOganizacionEscolarConAnioLectivoModal({ idAnioLectivo, onSuccess }: AddOganizacionEscolarConAnioLectivoModalProp) {
     const [showModal, setShowModal] = useState<boolean>(false);
     return (
         <div>
-            <BtnOpenAddModal text={"Agregar nueva organizacion"} onClick={() => setShowModal(true)} />
+            <Button
+                size="sm"
+                onClick={() => setShowModal(true)}
+                className="ml-4 bg-emerald-500 hover:bg-emerald-600 text-white border-t border-slate-200"
+            >
+                <Plus className="h-4 w-4" />
+                <span>Agregar nueva organización</span>
+            </Button>
+
             {
                 showModal && (
                     <ModalBase
@@ -22,8 +30,8 @@ export default function AddOganizacionEscolarConAnioLectivoModal({ fetchOrganiza
                         content={
                             <OrganizacionEscolarConAnioLectivoForm
                                 idAnioLectivo={idAnioLectivo}
-                                onSuccess={() => {
-                                    fetchOrganizacionPorAnioLectivo()
+                                onSuccess={async () => {
+                                    await onSuccess?.()
                                     setShowModal(false)
                                 }} />
                         }

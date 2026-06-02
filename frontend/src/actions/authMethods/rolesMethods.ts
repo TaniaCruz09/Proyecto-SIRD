@@ -1,7 +1,6 @@
 "use server";
 
-
-import Role from "@/interfaces/AuthInterface";
+import { Role } from "@/interfaces/authInterface";
 import { feching } from "@/utils/cliente-http";
 
 export async function getRoles(): Promise<Role[]>  {
@@ -27,8 +26,8 @@ export async function getRolesById(id: number) {
   return response.data
 }
 
-export async function saveRoles(rol: string) {
-  const data = {rol};
+export async function saveRoles(rol: string, isActive: boolean) {
+  const data = {rol, isActive};
   const endPoint= `/roles`;
 
   const response = await feching(endPoint, "no-cache", "POST", data)
@@ -40,8 +39,8 @@ export async function saveRoles(rol: string) {
     return response.data;
 }
 
-export async function updateRoles(id:number, rol: string) {
-  const data = {rol};
+export async function updateRoles(id:number, rol: string, isActive: boolean) {
+  const data = {rol, isActive};
   const endPoint = `/roles/${id}`
 
   const response = await feching(endPoint, "no-cache", "PUT", data);
