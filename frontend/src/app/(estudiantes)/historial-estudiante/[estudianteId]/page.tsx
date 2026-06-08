@@ -68,20 +68,31 @@ export default function StudentProfile() {
 
             student.grupoAsignaturaConEstudiantes.forEach((item: any) => {
 
-                const grupo = item.grupoAsignaturaDocente.grupo
+                const grupoAsignaturaDocente = item.grupoAsignaturaDocente
+                if (!grupoAsignaturaDocente) return
 
-                const key = `${grupo.id}-${grupo.organizacionEscolar.anio_lectivo.anio_lectivo}`
+                const grupo = grupoAsignaturaDocente.grupo
+                if (!grupo) return
+
+                const anioLectivo = grupo.organizacionEscolar?.anio_lectivo
+                if (!anioLectivo) return
+
+                const key = `${grupo.id}-${anioLectivo.anio_lectivo}`
 
                 if (!registrosMap.has(key)) {
 
+                    const docenteGuia = grupo.docenteGuia
+                        ? `${grupo.docenteGuia.nombres} ${grupo.docenteGuia.apellido_paterno}`
+                        : "Sin docente guía"
+
                     registrosMap.set(key, {
                         id: grupo.id.toString(),
-                        grado: grupo.grado.grades,
-                        modalidad: grupo.turno.modalidad?.modalidad ?? grupo.modalidad ?? "Sin modalidad",
+                        grado: grupo.grado?.grades ?? "Sin grado",
+                        modalidad: grupo.turno?.modalidad?.modalidad ?? grupo.modalidad ?? "Sin modalidad",
                         grupo: grupo.id,
-                        docenteGuia: `${grupo.docenteGuia.nombres} ${grupo.docenteGuia.apellido_paterno}`,
-                        anioLectivo: grupo.organizacionEscolar.anio_lectivo.anio_lectivo.toString(),
-                        activo: grupo.organizacionEscolar.anio_lectivo.isActive
+                        docenteGuia,
+                        anioLectivo: anioLectivo.anio_lectivo.toString(),
+                        activo: anioLectivo.isActive
                     })
 
                 }
@@ -150,7 +161,7 @@ export default function StudentProfile() {
                                 ) : null}
 
                                 <AvatarFallback className="text-2xl font-bold bg-green-100 text-green-700">
-                                    {`${studentData.name[0]}${studentData.lastName[0]}`}
+                                    {`${studentData.name?.[0] ?? ""}${studentData.lastName?.[0] ?? ""}`}
                                 </AvatarFallback>
 
                             </Avatar>
@@ -173,7 +184,7 @@ export default function StudentProfile() {
 
                                 <div className="flex items-center gap-2">
                                     <User className="w-4 h-4 text-green-600" />
-                                    <span>Sexo: {studentData.gender.gender}</span>
+                                    <span>Sexo: {studentData.gender?.gender ?? "Sin especificar"}</span>
                                 </div>
 
                                 <div className="flex items-center gap-2">
@@ -205,7 +216,7 @@ export default function StudentProfile() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <MapPin className="w-4 h-4 text-green-600" />
-                                    <span>País: {studentData.pais.pais}</span>
+                                    <span>País: {studentData.pais?.pais ?? "Sin país"}</span>
                                 </div>
 
                                 <div className="flex items-center gap-2">
@@ -221,7 +232,7 @@ export default function StudentProfile() {
 
                                 <div className="flex items-center gap-2">
                                     <MapPin className="w-4 h-4 text-green-600" />
-                                    <span>Municipio: {studentData.municipio.municipio}</span>
+                                    <span>Municipio: {studentData.municipio?.municipio ?? "Sin municipio"}</span>
                                 </div>
 
                                 <div className="flex items-start gap-2">
