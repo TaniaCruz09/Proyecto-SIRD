@@ -7,7 +7,6 @@ import React, { useEffect, useState } from "react"
 import { EsquelaHeadInterface } from "@/interfaces/calificaciones/EsquelaHead"
 import { getEsquelaHeadById } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
 import { EsquelaHead } from "./EsquelaHead"
-import { getEsquelaRowByEstudianteAndAnio } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods"
 import { CentroEscolar } from "@/interfaces/centroInterface"
 import { getCentros } from "@/actions/centroMethods/centroEducativoMethods"
 import { getNotasCualitativas } from "@/actions/catalogos/notaCualitativaMethods"
@@ -65,57 +64,40 @@ export function EsquelaTable({ esquelaHeadId, corteFilter = "all" }: EsquelaTabl
     const [centro, setCentro] = useState<CentroEscolar | null>(null)
     const [notasCualitativas, setNotasCualitativas] = useState<NotaCualitativa[]>([])
 
-    const fetchEsquelaHeadById = async () => {
-        try {
-            const response = await getEsquelaHeadById(Number(esquelaHeadId))
-            setEsquelaHead(response)
-
-            const anio = response?.grupo_asignatura?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0
-
-            const estudiantes = getEstudiantesDesdeAsignaturas(
-                response?.grupo_asignatura?.grupoAsignaturaDocente ?? [],
-                true,
-            )
-
-            if (estudiantes.length > 0) {
-                const allRows = await Promise.all(estudiantes.map((est: Estudiante) => getEsquelaRowByEstudianteAndAnio(est.id, anio)))
-                setCalificaciones(allRows.flat())
-            }
-        } catch (error) {
-            console.error(error)
-        }
-    }
-    const fetchCentro = async () => {
-        try {
-            const centros = await getCentros()
-            // Si solo tienes un centro registrado
-            setCentro(centros[0])
-        } catch (error) {
-            console.error("Error cargando centro:", error)
-        }
-    }
-    fetchCentro()
     useEffect(() => {
-        fetchEsquelaHeadById()
-    }, [esquelaHeadId])
-
-    useEffect(() => {
-        const fetchNotas = async () => {
+        const fetchAllData = async () => {
             try {
-                const response = await getNotasCualitativas()
-                if (Array.isArray(response)) {
-                    const ordered = response
+                // Ejecutar todas las llamadas en paralelo
+                const [headResponse, centros, notasResponse] = await Promise.all([
+                    getEsquelaHeadById(Number(esquelaHeadId)),
+                    getCentros(),
+                    getNotasCualitativas(),
+                ])
+
+                setEsquelaHead(headResponse)
+
+                // Las calificaciones ya vienen incluidas en la respuesta (relación esquelaRow)
+                if (headResponse?.esquelaRow) {
+                    setCalificaciones(headResponse.esquelaRow)
+                }
+
+                if (centros?.length) {
+                    setCentro(centros[0])
+                }
+
+                if (Array.isArray(notasResponse)) {
+                    const ordered = notasResponse
                         .slice()
                         .sort((a, b) => (a.id ?? 0) - (b.id ?? 0))
                     setNotasCualitativas(ordered)
                 }
             } catch (error) {
-                console.error("Error cargando notas cualitativas:", error)
+                console.error("Error cargando datos de la esquela:", error)
             }
         }
 
-        fetchNotas()
-    }, [])
+        fetchAllData()
+    }, [esquelaHeadId])
 
     const colegio = centro?.nombreCentro ?? "N/A"
     const grupo = esquelaHead?.grupo_asignatura?.grado.grades ?? "N/A"
@@ -129,25 +111,50 @@ export function EsquelaTable({ esquelaHeadId, corteFilter = "all" }: EsquelaTabl
 
     const estudiantes = getEstudiantesDesdeAsignaturas(asignaturas, corteFilter === "all")
 
-    const getQualitativeGrade = (grade: number): string => {
-        if (!Number.isFinite(grade)) return "AI"
-        const match = notasCualitativas.find(
-            (nota) => grade >= nota.rango_menor && grade <= nota.rango_mayor
-        )
-        return match?.abreviatura ?? "AI"
-    }
+    // Mapa de búsqueda O(1) para calificaciones
+    const calificacionesMap = React.useMemo(() => {
+        const map = new Map<string, { cuant: number; cual: string }>()
+        calificaciones.forEach((r) => {
+            if (r?.estudiante?.id && r?.asignatura?.id && r?.corte?.id) {
+                const key = `${r.estudiante.id}-${r.asignatura.id}-${r.corte.id}`
+                map.set(key, {
+                    cuant: r.notaCuantitativa ?? 0,
+                    cual: r.notaCualitativa ?? "AI",
+                })
+            }
+        })
+        return map
+    }, [calificaciones])
 
     const findNota = (estId: number, asigId: number, corteId: number) => {
-        const row = calificaciones.find(
-            (r) =>
-                Number(r.estudiante.id) === Number(estId) &&
-                Number(r.asignatura.id) === Number(asigId) &&
-                Number(r.corte.id) === Number(corteId)
-        )
-        return {
-            cuant: row?.notaCuantitativa ?? 0,
-            cual: row?.notaCualitativa ?? "AI",
+        const key = `${estId}-${asigId}-${corteId}`
+        return calificacionesMap.get(key) ?? { cuant: 0, cual: "AI" }
+    }
+
+    // Mapa de rangos O(1) para nota cualitativa
+    const notasCualitativasMap = React.useMemo(() => {
+        const map: { abreviatura: string; rango_menor: number; rango_mayor: number }[] = []
+        notasCualitativas.forEach((nota) => {
+            if (nota.rango_menor != null && nota.rango_mayor != null) {
+                map.push({
+                    abreviatura: nota.abreviatura ?? "AI",
+                    rango_menor: nota.rango_menor,
+                    rango_mayor: nota.rango_mayor,
+                })
+            }
+        })
+        return map
+    }, [notasCualitativas])
+
+    const getQualitativeGrade = (grade: number): string => {
+        if (!Number.isFinite(grade)) return "AI"
+        for (let i = 0; i < notasCualitativasMap.length; i++) {
+            const nota = notasCualitativasMap[i]
+            if (grade >= nota.rango_menor && grade <= nota.rango_mayor) {
+                return nota.abreviatura
+            }
         }
+        return "AI"
     }
 
     // Map de cortes según filtro

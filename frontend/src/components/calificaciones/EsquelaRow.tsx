@@ -7,7 +7,6 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "../ui/button"
 import { EsquelaHeadInterface } from "@/interfaces/calificaciones/EsquelaHead"
 import { getEsquelaHeadById } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
-import { getEsquelaRowByEstudianteAndAnio } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods"
 import { getNotasCualitativas } from "@/actions/catalogos/notaCualitativaMethods"
 import { EsquelaHead } from "./EsquelaHead"
 import ExcelJS, { Borders, BorderStyle } from "exceljs"
@@ -133,68 +132,35 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
 
 
   useEffect(() => {
-    const fetchData = async () => {
-      const response = await getEsquelaHeadById(esquelaHeadId)
-      setEsquelaHead(response)
+    const fetchAllData = async () => {
+      // Ejecutar todas las llamadas en paralelo
+      const [headResponse, centros, notasResponse] = await Promise.all([
+        getEsquelaHeadById(esquelaHeadId),
+        getCentros(),
+        getNotasCualitativas(),
+      ])
 
-      const anio =
-        response?.grupo_asignatura?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0
+      setEsquelaHead(headResponse)
 
-      const estudiantes =
-        response?.grupo_asignatura?.grupoAsignaturaDocente
-          ?.flatMap((g: any) =>
-            g.gruposConEstudiantes.map((ge: any) => ({
-              ...ge.estudiante,
-              activoEnGrupo: ge?.activo !== false,
-            }))
-          )
-          .filter((v: any): v is EstudianteConEstadoGrupo => Boolean(v && v.id))
-          .filter(
-            (v: EstudianteConEstadoGrupo, i: number, self: EstudianteConEstadoGrupo[]) =>
-              self.findIndex((s) => s.id === v.id) === i
-          ) ?? []
-
-      if (estudiantes.length) {
-        const rows = await Promise.all(
-          estudiantes.map((e: any) =>
-            getEsquelaRowByEstudianteAndAnio(e.id, anio)
-          )
-        )
-        setCalificaciones(rows.flat())
+      // Las calificaciones ya vienen incluidas en la respuesta (relación esquelaRow)
+      if (headResponse?.esquelaRow) {
+        setCalificaciones(headResponse.esquelaRow)
       }
-    }
 
-
-    const fetchCentro = async () => {
-      try {
-        const centros = await getCentros()
-        // Si solo tienes un centro registrado
+      if (centros?.length) {
         setCentro(centros[0])
-      } catch (error) {
-        console.error("Error cargando centro:", error)
+      }
+
+      if (Array.isArray(notasResponse)) {
+        const ordered = notasResponse
+          .slice()
+          .sort((a, b) => (a.id ?? 0) - (b.id ?? 0))
+        setNotasCualitativas(ordered)
       }
     }
-    fetchData()
-    fetchCentro()
+
+    fetchAllData()
   }, [esquelaHeadId])
-
-  useEffect(() => {
-    const fetchNotas = async () => {
-      try {
-        const response = await getNotasCualitativas()
-        if (Array.isArray(response)) {
-          const ordered = response
-            .slice()
-            .sort((a, b) => (a.id ?? 0) - (b.id ?? 0))
-          setNotasCualitativas(ordered)
-        }
-      } catch (error) {
-        console.error("Error cargando notas cualitativas:", error)
-      }
-    }
-
-    fetchNotas()
-  }, [])
 
   const asignaturas: GADItem[] =
     esquelaHead?.grupo_asignatura?.grupoAsignaturaDocente ?? []
@@ -213,26 +179,50 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
     (est) => vista === "ALL" || est.activoEnGrupo !== false,
   )
 
-  const findNota = (estId: number, asigId: number, corteId: number) => {
-    const row = calificaciones.find(
-      (r) =>
-        r?.estudiante?.id === estId &&
-        r?.asignatura?.id === asigId &&
-        r?.corte?.id === corteId
-    )
+  // Mapa de búsqueda O(1) para calificaciones en lugar de .find() lineal
+  const calificacionesMap = React.useMemo(() => {
+    const map = new Map<string, { cuant: number; cual: string }>()
+    calificaciones.forEach((r) => {
+      if (r?.estudiante?.id && r?.asignatura?.id && r?.corte?.id) {
+        const key = `${r.estudiante.id}-${r.asignatura.id}-${r.corte.id}`
+        map.set(key, {
+          cuant: r.notaCuantitativa ?? 0,
+          cual: r.notaCualitativa ?? "AI",
+        })
+      }
+    })
+    return map
+  }, [calificaciones])
 
-    return {
-      cuant: row?.notaCuantitativa ?? 0,
-      cual: row?.notaCualitativa ?? "AI"
-    }
+  const findNota = (estId: number, asigId: number, corteId: number) => {
+    const key = `${estId}-${asigId}-${corteId}`
+    return calificacionesMap.get(key) ?? { cuant: 0, cual: "AI" }
   }
+
+  // Mapa de rangos O(1) para nota cualitativa
+  const notasCualitativasMap = React.useMemo(() => {
+    const map: { abreviatura: string; rango_menor: number; rango_mayor: number }[] = []
+    notasCualitativas.forEach((nota) => {
+      if (nota.rango_menor != null && nota.rango_mayor != null) {
+        map.push({
+          abreviatura: nota.abreviatura ?? "AI",
+          rango_menor: nota.rango_menor,
+          rango_mayor: nota.rango_mayor,
+        })
+      }
+    })
+    return map
+  }, [notasCualitativas])
 
   const getQualitativeGrade = (grade: number): string => {
     if (!Number.isFinite(grade)) return "AI"
-    const match = notasCualitativas.find(
-      (nota) => grade >= nota.rango_menor && grade <= nota.rango_mayor
-    )
-    return match?.abreviatura ?? "AI"
+    for (let i = 0; i < notasCualitativasMap.length; i++) {
+      const nota = notasCualitativasMap[i]
+      if (grade >= nota.rango_menor && grade <= nota.rango_mayor) {
+        return nota.abreviatura
+      }
+    }
+    return "AI"
   }
 
   const anioLectivoData = esquelaHead?.grupo_asignatura?.organizacionEscolar?.anio_lectivo

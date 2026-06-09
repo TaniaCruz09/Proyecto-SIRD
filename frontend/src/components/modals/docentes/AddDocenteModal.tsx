@@ -19,7 +19,7 @@ export default function AddDocenteModal({ fetchDocentes }: AddDocenteModalProp) 
         <ModalBase
           onshowModal={showModal}
           onCloseModal={() => setShowModal(false)}
-          containerClassName="max-w-2xl p-4 sm:p-5"
+          containerClassName="max-w-5xl p-6 sm:p-8"
           content={
             <DocenteForm
               onSuccess={() => {
