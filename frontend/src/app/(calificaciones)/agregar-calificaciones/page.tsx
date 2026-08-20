@@ -7,7 +7,7 @@ import { getEsquelaHeadById } from "@/actions/calificaciones/esquelasHeadsMethod
 import { EsquelaHeadInterface, EsquelaRowInterface } from "@/interfaces/calificaciones/EsquelaHead"
 import { AnioLectivoCalendarizacionItem, Corte, NotaCualitativa } from "@/interfaces"
 import { EsquelaRowPayload } from "@/interfaces/calificaciones/EsquelaRow"
-import { saveEsquelaRow, updateEsquelaRow } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods"
+import { saveEsquelaRow, updateEsquelaRow, deleteEsquelaRow } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods"
 import { getCortesEvaluativos } from "@/actions/catalogos/corteEvaluativoMethods"
 import { getNotasCualitativas } from "@/actions/catalogos/notaCualitativaMethods"
 import { getAnioLectivoCalendarizacion } from "@/actions/catalogos/anioLectivoCalendarizacionMethods"
@@ -21,6 +21,7 @@ export interface CalificacionesProps {
     esquelaId: number | string
     grupoId: number
     grupoNombre?: string
+    modalidad?: string
     isAnioActivo: boolean
     onVolver?: () => void
 }
@@ -100,6 +101,7 @@ export default function Calificaciones({
     esquelaId,
     grupoId,
     grupoNombre,
+    modalidad,
     isAnioActivo,
     onVolver,
 }: CalificacionesProps) {
@@ -329,7 +331,7 @@ export default function Calificaciones({
                 let calendarizacionMap = new Map<number, AnioLectivoCalendarizacionItem>()
                 if (anioLectivoId) {
                     const modalidadId = Number(
-                        (esquela as any)?.grupo_asignatura?.turno?.modalidad?.id ?? 0
+                        (esquela as any)?.grupo_asignatura?.organizacionEscolar?.turno?.modalidad?.id ?? 0
                     )
                     try {
                         const calendarizacion = modalidadId
@@ -589,12 +591,12 @@ export default function Calificaciones({
         })
     }
 
-    const obtenerNotaCualitativa = (valor: number): string => {
-        if (!Number.isFinite(valor)) return "AI"
+    const obtenerNotaCualitativa = (valor: number): { id: number } | null => {
+        if (!Number.isFinite(valor)) return null
         const match = notasCualitativas.find(
             (nota) => valor >= nota.rango_menor && valor <= nota.rango_mayor
         )
-        return match?.abreviatura ?? "AI"
+        return match ? { id: match.id! } : null
     }
 
     // ---------------- Guardar nota individual (envía a backend y actualiza localStorage) ----------------
@@ -618,8 +620,6 @@ export default function Calificaciones({
         }
 
         const raw = String(nota ?? "").trim();
-
-        // Validaciones
         if (raw === "") {
             toast({
                 title: "Nota requerida",
@@ -628,20 +628,12 @@ export default function Calificaciones({
             })
             return
         }
-        if (!/^\d{1,3}$/.test(raw)) {
+
+        const notaNum = Number(raw);
+        if (!Number.isFinite(notaNum)) {
             toast({
                 title: "Nota inválida",
                 description: "Solo se permiten números enteros.",
-                variant: "destructive",
-            })
-            return
-        }
-
-        const notaNum = Number(raw);
-        if (notaNum < 0 || notaNum > 100) {
-            toast({
-                title: "Rango inválido",
-                description: "La nota debe estar entre 0 y 100.",
                 variant: "destructive",
             })
             return
@@ -657,12 +649,16 @@ export default function Calificaciones({
             return
         }
 
-        const notaCualitativa = obtenerNotaCualitativa(notaNum);
+        const notaCualitativaObj = obtenerNotaCualitativa(notaNum);
+        if (!notaCualitativaObj) {
+            toast({ title: "Rango inválido", description: "No se encontró una nota cualitativa para ese rango.", variant: "destructive" });
+            return
+        }
 
         const payload: EsquelaRowPayload = {
             estudiante: { id: estudiante.id },
             asignatura: { id: asignaturaId },
-            notaCualitativa,
+            notaCualitativa: notaCualitativaObj,
             notaCuantitativa: notaNum,
             corte: { id: corteEncontrado.id },
             esquelaHead: { id: esquela!.id }
@@ -732,14 +728,49 @@ export default function Calificaciones({
                 description: "La nota se guardó correctamente.",
                 variant: "success",
             })
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error al guardar nota:", error);
             setGuardando(false);
+            const mensaje = error?.response?.data?.message?.[0] || error?.response?.data?.message || error?.message || "Ocurrió un error al guardar la nota.";
             toast({
                 title: "Error al guardar",
-                description: "Ocurrió un error al guardar la nota.",
+                description: mensaje,
                 variant: "destructive",
             })
+        }
+    };
+
+    // ---------------- Eliminar nota (soft delete) ----------------
+    const handleEliminarNota = async (estudianteId: number, asignaturaId: number) => {
+        if (!esquela?.id || corteActivo == null) return;
+
+        try {
+            const filasBD: EsquelaRowInterface[] = esquela?.esquelaRow ?? [];
+            const rowBD = filasBD.find(r => {
+                const estId = r?.estudiante?.id;
+                const asigId = r?.asignatura?.id;
+                const corteId = r?.corte?.id;
+                if (estId == null || asigId == null || corteId == null) return false;
+                return Number(estId) === Number(estudianteId)
+                    && Number(asigId) === Number(asignaturaId)
+                    && Number(corteId) === Number(corteActivo);
+            });
+
+            if (!rowBD?.id) {
+                toast({ title: "Error", description: "No se encontró la calificación para eliminar", variant: "destructive" });
+                return;
+            }
+
+            await deleteEsquelaRow(rowBD.id);
+
+            const refreshed = await getEsquelaHeadById(esquela.id);
+            setEsquela(refreshed);
+
+            toast({ title: "Calificación eliminada", description: "La calificación se eliminó correctamente.", variant: "success" });
+        } catch (error: any) {
+            console.error("Error al eliminar nota:", error);
+            const mensaje = error?.response?.data?.message?.[0] || error?.response?.data?.message || error?.message || "Error al eliminar la nota";
+            toast({ title: "Error al eliminar", description: mensaje, variant: "destructive" });
         }
     };
 
@@ -795,6 +826,7 @@ export default function Calificaciones({
             <HeaderAgregarCalificaciones
                 grupoNombre={grupoNombre}
                 anioId={anioLectivo}
+                modalidad={modalidad}
                 onVolver={onVolver}
             />
 
@@ -818,6 +850,7 @@ export default function Calificaciones({
                 getInitials={getInitials}
                 anioLectivo={anioLectivo}
                 handleGuardarIndividual={handleGuardarIndividual}
+                handleEliminarNota={handleEliminarNota}
                 avanzarCorte={avanzarCorte}
                 puedeAvanzarCorte={puedeAvanzarCorte}
                 guardando={guardando}

@@ -1,13 +1,13 @@
 import BtnOpenAddModal from '@/components/Buttons/btnOpenAddModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase'
-import SemestreForm from '@/components/forms/catalogoForms/SemestreForm'
+import NotaCualitativaForm from '@/components/forms/catalogoForms/NotaCualitativaForm'
 
-interface AddSemestreModalProp {
-  fetchSemestres: () => Promise<void>
+interface AddNotaCualitativaModalProp {
+  fetchNotas: () => Promise<void>
 }
 
-export default function AddSemestreModal({ fetchSemestres }: AddSemestreModalProp) {
+export default function AddNotaCualitativaModal({ fetchNotas }: AddNotaCualitativaModalProp) {
   const [showModal, setShowModal] = useState<boolean>(false);
   return (
     <div>
@@ -17,9 +17,9 @@ export default function AddSemestreModal({ fetchSemestres }: AddSemestreModalPro
           onshowModal={showModal}
           onCloseModal={() => setShowModal(false)}
           content={
-            <SemestreForm
+            <NotaCualitativaForm
               onSuccess={() => {
-                fetchSemestres()
+                fetchNotas()
                 setShowModal(false)
               }}
             />

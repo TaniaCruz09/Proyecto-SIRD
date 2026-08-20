@@ -11,7 +11,6 @@ export type { Municipio, MunicipioPayload } from "./catalogoInterface/MunicipioI
 export type { Pais, PaisPayload } from "./catalogoInterface/PaisInterface";
 export type { Profesion, ProfesionPayload } from "./catalogoInterface/ProfesionInterface";
 export type { Seccion, SeccionPayload } from "./catalogoInterface/SeccionInterfase"
-export type { Semestre, SemestrePayload } from "./catalogoInterface/SemestreInterface"
 export type { Turno, TurnoPayload } from "./catalogoInterface/TurnoInterface"
 export type { AnioLectivo, AnioLectivoPayload, PeriodoLectivo, PeriodoLectivoPayload } from "./catalogoInterface/AnioLectivo"
 export type {

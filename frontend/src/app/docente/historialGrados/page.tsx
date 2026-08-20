@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { BookOpen, FileText, Search, ArrowLeft, Users, GraduationCap } from "lucide-react"
+import { BookOpen, FileText, Search, ArrowLeft, Users, GraduationCap, ChevronLeft, ChevronRight } from "lucide-react"
 import { FaClockRotateLeft } from "react-icons/fa6"
 import { useAuth } from "@/hooks/useAuth"
 import { getDocenteById } from "@/actions/docentesMethods/docentesMethods"
@@ -17,6 +17,8 @@ import { motion } from 'framer-motion'
 export default function HistorialGradosPage() {
   const [grupos, setGrupos] = useState<GrupoEscolar[]>([])
   const [searchYear, setSearchYear] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 6
   const router = useRouter()
   const { rol, docente } = useAuth()
 
@@ -49,7 +51,7 @@ export default function HistorialGradosPage() {
               id: g.id,
               grado: g.grado,
               seccion: g.seccion,
-              turno: g.turno,
+              // turno ahora se obtiene desde organizacionEscolar
               numero_estudiantes: estudiantesUnicos.size,
               numero_estudiantes_inactivos: 0,
               numero_materias: materiasUnicas.size,
@@ -89,6 +91,17 @@ export default function HistorialGradosPage() {
         .includes(searchYear)
   )
 
+  // Resetear a página 1 cuando cambia la búsqueda
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchYear])
+
+  const totalPages = Math.ceil(filteredHistoricalClasses.length / ITEMS_PER_PAGE)
+  const paginatedClasses = filteredHistoricalClasses.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  )
+
   return (
     <div className="min-h-screen bg-purple-100/30">
       <Header title='Sistema de Calificaciones SIRD' subTitle='Historial de Grados' />
@@ -98,10 +111,11 @@ export default function HistorialGradosPage() {
           onClick={() => router.push('/docente/home')}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-6 group"
         >
-          <div className="p-1.5 rounded-lg bg-white shadow-sm group-hover:bg-gray-50 transition-colors">
+          <div className="p-1.5 rounded-lg bg-white shadow-sm group-hover:bg-gray-50 transition-colors flex items-center gap-1">
             <ArrowLeft className="w-4 h-4" />
+            <span className="font-medium">Volver al inicio</span>
           </div>
-          <span className="font-medium">Volver al inicio</span>
+          
         </button>
 
         {/* Header */}
@@ -130,8 +144,8 @@ export default function HistorialGradosPage() {
 
         {/* Grid de historial */}
         {filteredHistoricalClasses.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredHistoricalClasses.map((classData, index) => (
+          <><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {paginatedClasses.map((classData, index) => (
               <motion.div
                 key={classData.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -150,9 +164,9 @@ export default function HistorialGradosPage() {
                         </div>
                         <div>
                           <h3 className="font-semibold text-gray-800 text-base">
-                            {classData.grado.grades} - Sección {classData.seccion.seccion} - {classData.turno.turno}
+                            {classData.grado?.grades ?? "Sin grado"} - Sección {classData.seccion.seccion} - {classData.organizacionEscolar?.turno?.turno}
                           </h3>
-                          <p className="text-sm text-gray-500">{classData.turno.modalidad?.modalidad ?? "Sin modalidad"}</p>
+                          <p className="text-sm text-gray-500">{classData.organizacionEscolar?.turno?.modalidad?.modalidad ?? "Sin modalidad"}</p>
                         </div>
                       </div>
                       <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-xs px-3 py-1.5 font-medium shadow-sm">
@@ -186,6 +200,41 @@ export default function HistorialGradosPage() {
               </motion.div>
             ))}
           </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-8">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="bg-white"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <Button
+                  key={page}
+                  variant={currentPage === page ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setCurrentPage(page)}
+                  className={currentPage === page ? "bg-blue-500 text-white" : "bg-white"}
+                >
+                  {page}
+                </Button>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="bg-white"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+          </>
         ) : (
           <Card className="text-center py-16 max-w-lg mx-auto rounded-2xl">
             <CardContent>

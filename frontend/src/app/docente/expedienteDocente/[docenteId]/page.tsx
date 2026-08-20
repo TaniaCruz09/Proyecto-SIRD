@@ -73,8 +73,8 @@ export default function DocenteExpedientePage() {
   const asignaciones: AsignacionDocente[] =
     docenteData.grupos?.map((grupo) => ({
       id: String(grupo.id),
-      grado: `${grupo.grado.grades} ${grupo.seccion.seccion} ${grupo.turno.turno}`,
-      modalidad: grupo?.turno?.modalidad?.modalidad ?? "Sin modalidad",
+      grado: `${grupo.grado?.grades ?? "Sin grado"} ${grupo.seccion.seccion} ${grupo.organizacionEscolar?.turno?.turno}`,
+      modalidad: grupo?.organizacionEscolar?.turno?.modalidad?.modalidad ?? "Sin modalidad",
       // Concatenamos todas las materias en un string
       materia:
         grupo.grupoAsignaturaDocente && grupo.grupoAsignaturaDocente.length > 0

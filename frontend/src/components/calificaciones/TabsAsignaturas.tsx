@@ -15,6 +15,7 @@ export default function TabsAsignaturas({
     getInitials,
     anioLectivo,
     handleGuardarIndividual,
+    handleEliminarNota,
     avanzarCorte,
     puedeAvanzarCorte,
     asignaturaActiva,
@@ -61,6 +62,7 @@ export default function TabsAsignaturas({
                                 getInitials={getInitials}
                                 anioLectivo={anioLectivo}
                                 handleGuardarIndividual={handleGuardarIndividual}
+                                handleEliminarNota={handleEliminarNota}
                                 isAnioActivo={isAnioActivo}
                                 isCorteEditable={isCorteEditable}
                                 corteBloqueadoMensaje={corteBloqueadoMensaje}

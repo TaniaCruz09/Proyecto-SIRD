@@ -7,7 +7,7 @@ import { getEsquelaHeadById } from "@/actions/calificaciones/esquelasHeadsMethod
 import { EsquelaHeadInterface, EsquelaRowInterface } from "@/interfaces/calificaciones/EsquelaHead"
 import { Corte } from "@/interfaces"
 import { EsquelaRowPayload } from "@/interfaces/calificaciones/EsquelaRow"
-import { saveEsquelaRow, updateEsquelaRow } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods"
+import { saveEsquelaRow, updateEsquelaRow, deleteEsquelaRow } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods"
 import { getNotasCualitativas } from "@/actions/catalogos/notaCualitativaMethods"
 import { getAnioLectivoById } from "@/actions/catalogos/anioLectivoMethods"
 import CardCortesEvaluativos from "@/components/calificaciones/CardCortesEvaluativos"
@@ -153,7 +153,6 @@ export default function Calificaciones({
                                     id: Number(corte?.id ?? 0),
                                     abreviatura: corte?.abreviatura ?? "",
                                     corte: corte?.corte ?? `Corte ${item.orden ?? ""}`,
-                                    semestre: corte?.semestre,
                                     orden: item.orden,
                                 }
                             })
@@ -411,12 +410,12 @@ export default function Calificaciones({
         })
     }
 
-    const obtenerNotaCualitativa = (valor: number): string => {
-        if (!Number.isFinite(valor)) return "AI"
+    const obtenerNotaCualitativa = (valor: number): { id: number } | null => {
+        if (!Number.isFinite(valor)) return null
         const match = notasCualitativas.find(
             (nota) => valor >= nota.rango_menor && valor <= nota.rango_mayor
         )
-        return match?.abreviatura ?? "AI"
+        return match ? { id: match.id! } : null
     }
 
     // ---------------- Guardar nota individual (envía a backend y actualiza localStorage) ----------------
@@ -430,23 +429,21 @@ export default function Calificaciones({
         if (!esquela?.id || corteActivo == null) return;
 
         const raw = String(nota ?? "").trim();
-
-        // Validaciones
         if (raw === "") return alert("Debe ingresar una nota");
-        if (!/^\d{1,3}$/.test(raw)) return alert("La nota no es válida (solo números enteros)");
 
         const notaNum = Number(raw);
-        if (notaNum < 0 || notaNum > 100) return alert("La nota debe estar entre 0 y 100");
+        if (!Number.isFinite(notaNum)) return alert("La nota no es válida");
 
         const corteEncontrado = cortes.find(c => c.id === corteActivo);
         if (!corteEncontrado) return alert("No se encontró el corte");
 
-        const notaCualitativa = obtenerNotaCualitativa(notaNum);
+        const notaCualitativaObj = obtenerNotaCualitativa(notaNum);
+        if (!notaCualitativaObj) return alert("No se encontró una nota cualitativa para ese rango");
 
         const payload: EsquelaRowPayload = {
             estudiante: { id: estudiante.id },
             asignatura: { id: asignaturaId },
-            notaCualitativa,
+            notaCualitativa: notaCualitativaObj,
             notaCuantitativa: notaNum,
             corte: { id: corteEncontrado.id },
             esquelaHead: { id: esquela!.id }
@@ -512,10 +509,46 @@ export default function Calificaciones({
             setNotaBD(String(notaReal));
 
             alert(shouldUpdate ? "Nota actualizada correctamente" : "Nota guardada correctamente");
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error al guardar nota:", error);
             setGuardando(false);
-            alert("Error al guardar la nota");
+            const mensaje = error?.response?.data?.message?.[0] || error?.response?.data?.message || error?.message || "Error al guardar la nota";
+            alert(mensaje);
+        }
+    };
+
+    // ---------------- Eliminar nota (soft delete) ----------------
+    const handleEliminarNota = async (estudianteId: number, asignaturaId: number) => {
+        if (!esquela?.id || corteActivo == null) return;
+
+        try {
+            const filasBD: EsquelaRowInterface[] = esquela?.esquelaRow ?? [];
+            const rowBD = filasBD.find(r => {
+                const estId = r?.estudiante?.id;
+                const asigId = r?.asignatura?.id;
+                const corteId = r?.corte?.id;
+                if (estId == null || asigId == null || corteId == null) return false;
+                return Number(estId) === Number(estudianteId)
+                    && Number(asigId) === Number(asignaturaId)
+                    && Number(corteId) === Number(corteActivo);
+            });
+
+            if (!rowBD?.id) {
+                alert("No se encontró la calificación para eliminar");
+                return;
+            }
+
+            await deleteEsquelaRow(rowBD.id);
+
+            // Refrescar esquela
+            const refreshed = await getEsquelaHeadById(esquela.id);
+            setEsquela(refreshed);
+
+            alert("Calificación eliminada correctamente");
+        } catch (error: any) {
+            console.error("Error al eliminar nota:", error);
+            const mensaje = error?.response?.data?.message?.[0] || error?.response?.data?.message || error?.message || "Error al eliminar la nota";
+            alert(mensaje);
         }
     };
 
@@ -567,6 +600,7 @@ export default function Calificaciones({
                 getInitials={getInitials}
                 anioLectivo={anioLectivo}
                 handleGuardarIndividual={handleGuardarIndividual}
+                handleEliminarNota={handleEliminarNota}
                 avanzarCorte={avanzarCorte}
                 puedeAvanzarCorte={puedeAvanzarCorte}
                 guardando={guardando}

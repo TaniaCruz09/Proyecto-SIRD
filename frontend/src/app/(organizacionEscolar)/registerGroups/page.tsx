@@ -35,7 +35,7 @@ export default function RegisterGroupsPage() {
 
     const filteredGrupo = grupos.filter((grupo) => {
         const anioLectivo = String(grupo.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? "")
-        const modalidad = grupo.turno?.modalidad?.modalidad ?? ""
+        const modalidad = grupo.organizacionEscolar?.turno?.modalidad?.modalidad ?? ""
         const grado = grupo.grado?.grades ?? ""
 
         const matchAnio = !selectedAnio || anioLectivo === selectedAnio

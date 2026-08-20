@@ -18,5 +18,5 @@ export interface EsquelaRowInterface {
     asignatura: { id: number };
     corte: { id: number };
     notaCuantitativa: number;
-    notaCualitativa?: string;
+    notaCualitativa?: { id: number; nombre?: string; abreviatura?: string };
 }

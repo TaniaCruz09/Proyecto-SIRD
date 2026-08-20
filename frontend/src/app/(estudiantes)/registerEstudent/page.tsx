@@ -56,8 +56,8 @@ function getStudentAssignments(student: RegisterEstudent): StudentAssignment[] {
             continue;
         }
 
-        const turno = group.turno?.turno ?? organization.turno?.turno ?? "";
-        const modalidad = group.turno?.modalidad?.modalidad ?? organization.turno?.modalidad?.modalidad ?? "";
+        const turno = organization.turno?.turno ?? "";
+        const modalidad = organization.turno?.modalidad?.modalidad ?? "";
         const grado = group.grado?.grades ?? "";
         const seccion = group.seccion?.seccion ?? "";
 

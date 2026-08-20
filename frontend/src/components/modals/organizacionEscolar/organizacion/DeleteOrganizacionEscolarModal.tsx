@@ -2,6 +2,7 @@ import BtnDelete from '@/components/Buttons/BtnDelete'
 import React, { useState } from 'react'
 import ConfirmDeletModal from '../../modalConfirmDeletion';
 import { deleteOrganizacionEscolar } from '@/actions/organizacionEscolarMethods/organizacionMethods';
+import { useToast } from '@/hooks/use-toast'
 
 interface DeleteOrganizacionEscolarModalProps {
     idEliminar: number;
@@ -9,6 +10,7 @@ interface DeleteOrganizacionEscolarModalProps {
 }
 
 export default function DeleteOrganizacionEscolarModal({ idEliminar, fetchOrganizacionEscolar }: DeleteOrganizacionEscolarModalProps) {
+    const { toast } = useToast()
     const [organizacionEscolarToDelete, setOrganizacionEscolarToDelete] = useState<number | null>(null);
     const [showConfirm, setShowConfirm] = useState<boolean>(false);
     const handleDeleteClick = (id: number) => {
@@ -21,8 +23,10 @@ export default function DeleteOrganizacionEscolarModal({ idEliminar, fetchOrgani
         if (!organizacionEscolarToDelete) return;
         try {
             await deleteOrganizacionEscolar(organizacionEscolarToDelete);
+            toast({ title: "Organización eliminada", description: "La organización escolar se eliminó correctamente.", variant: "success" })
             await fetchOrganizacionEscolar();
         } catch (error) {
+            toast({ title: "Error", description: "No se pudo eliminar la organización escolar.", variant: "destructive" })
             console.error("Error al eliminar la organizacion laboral", error);
         } finally {
             setShowConfirm(false);
@@ -36,6 +40,8 @@ export default function DeleteOrganizacionEscolarModal({ idEliminar, fetchOrgani
                 onshow={showConfirm}
                 onCancel={() => setShowConfirm(false)}
                 onConfirm={confirmDelete}
+                title="¿Eliminar organización escolar?"
+                description="Se eliminará toda la información de esta organización: grupos, asignaturas, docentes, estudiantes y calificaciones."
             />
 
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { saveProfesion, updateProfesion } from "@/actions/catalogos/profesionMethods";
+import { useToast } from "@/hooks/use-toast";
 import { Profesion } from "@/interfaces";
 import React, { useEffect, useState } from "react";
 
@@ -13,6 +14,7 @@ export default function ProfesionForm({
   defaultValues,
   onSuccess,
 }: ProfesionFormProps) {
+  const { toast } = useToast();
   const [profesion, setProfesion] = useState<string>("");
 
   const isEdit = Boolean(defaultValues?.id);
@@ -30,13 +32,28 @@ export default function ProfesionForm({
     try {
       if (isEdit && defaultValues?.id) {
         await updateProfesion(defaultValues.id, { profession: profesion })
+        toast({
+          title: "Profesión actualizada",
+          description: "La profesión se actualizó correctamente.",
+          variant: "success",
+        });
       } else {
         await saveProfesion({ profession: profesion })
+        toast({
+          title: "Profesión creada",
+          description: "La profesión se creó correctamente.",
+          variant: "success",
+        });
       }
       onSuccess();
 
     } catch (error) {
       console.error("Error al guardar o actualizar profesion:", error);
+      toast({
+        title: "Error al guardar",
+        description: "No se pudo guardar la profesión.",
+        variant: "destructive",
+      });
     }
   }
 

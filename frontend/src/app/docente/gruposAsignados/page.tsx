@@ -6,17 +6,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Calendar, Users, BookOpen, CheckCircle2, XCircle, FileEdit, Eye, GraduationCap, Search } from "lucide-react"
+import { Calendar, Users, BookOpen, CheckCircle2, XCircle, FileEdit, Eye, GraduationCap, Search, ChevronLeft, ChevronRight } from "lucide-react"
 import Calificaciones from "@/app/(calificaciones)/agregar-calificaciones/page"
 import { useAuth } from "@/hooks/useAuth"
 import { getGradosByDocenteId } from "@/actions/docentesMethods/docentesMethods"
 import { getEsquelaByGrupo } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
+import { useRouter } from "next/navigation"
 
 interface Grupo {
     id: string
     nombre: string
     materia: string
     numeroEstudiantes: number
+    modalidad: string
     esquelaId?: number
 }
 
@@ -42,7 +44,15 @@ export default function GruposAsignados() {
         grupoId: string
         grupoNombre: string
         anioId: string
+        modalidad: string
     } | null>(null)
+    const [currentPage, setCurrentPage] = useState(1)
+    const ITEMS_PER_PAGE = 6
+    const router = useRouter()
+
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [searchQuery])
 
     // 🧩 Cargar datos del backend y asociar esquelaId a cada grupo
     useEffect(() => {
@@ -65,7 +75,7 @@ export default function GruposAsignados() {
                     const grupo = relacion.grupo
                     const anio = grupo?.organizacionEscolar?.anio_lectivo
                     const grupoKey = grupo?.id?.toString()
-                        const estudiantesRelacion = new Set<number>(
+                    const estudiantesRelacion = new Set<number>(
                         (relacion?.gruposConEstudiantes || [])
                             .map((item: any) => item?.estudiante?.id)
                             .filter((id: any) => Number.isFinite(Number(id)))
@@ -112,9 +122,10 @@ export default function GruposAsignados() {
                     } else {
                         gruposArray.push({
                             id: grupo.id.toString(),
-                            nombre: `${grupo.grado.grades} ${grupo.seccion.seccion}`,
+                            nombre: `${grupo.grado?.grades ?? "Sin grado"} ${grupo.seccion.seccion}`,
                             materia: relacion.asignatura.asignatura,
-                            numeroEstudiantes: estudiantesPorGrupo.get(grupo.id.toString())?.size || 0
+                            numeroEstudiantes: estudiantesPorGrupo.get(grupo.id.toString())?.size || 0,
+                            modalidad: grupo?.organizacionEscolar?.turno?.modalidad?.modalidad ?? "N/A"
                         })
                     }
                 })
@@ -163,12 +174,19 @@ export default function GruposAsignados() {
         )
     })
 
+    const totalPages = Math.ceil(aniosFiltrados.length / ITEMS_PER_PAGE)
+    const paginatedAnios = aniosFiltrados.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    )
+
     // 🧭 Control de vistas
     const handleCalificaciones = (grupo: Grupo, anioId: string) => {
         setGrupoSeleccionado({
             grupoId: grupo.id,
             grupoNombre: grupo.nombre,
             anioId,
+            modalidad: grupo.modalidad,
         })
         setVistaActual("agregar")
     }
@@ -178,6 +196,7 @@ export default function GruposAsignados() {
             grupoId: grupo.id,
             grupoNombre: grupo.nombre,
             anioId,
+            modalidad: grupo.modalidad,
         })
         setVistaActual("ver")
     }
@@ -201,6 +220,7 @@ export default function GruposAsignados() {
                 esquelaId={grupo?.esquelaId || 0}
                 grupoId={Number(grupoSeleccionado.grupoId)}
                 grupoNombre={grupoSeleccionado.grupoNombre}
+                modalidad={grupoSeleccionado.modalidad}
                 isAnioActivo={isAnioActivo} // <-- flag para inputs readonly
                 onVolver={handleVolver}
             />
@@ -209,6 +229,24 @@ export default function GruposAsignados() {
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-7xl">
+            <button
+                onClick={() => router.back()}
+                style={{
+                    background: "#fff",
+                    border: "1px solid #e5e7eb",
+                    color: "#000",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    padding: "8px 16px",
+                    borderRadius: "8px",
+                    marginBottom: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                }}
+            >
+                ← Regresar
+            </button>
             {/* Header */}
             <div className="mb-8">
                 <div className="flex items-center gap-3 mb-2">
@@ -265,7 +303,7 @@ export default function GruposAsignados() {
                 </Card>
             ) : (
                 <Accordion type="single" collapsible defaultValue={defaultValue} className="space-y-4">
-                    {aniosFiltrados.map((anio) => (
+                    {paginatedAnios.map((anio) => (
                         <AccordionItem key={anio.id} value={anio.id} className="border rounded-lg bg-card shadow-sm overflow-hidden">
                             <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/50 transition-colors">
                                 <div className="flex items-center justify-between w-full pr-4">
@@ -327,6 +365,9 @@ export default function GruposAsignados() {
                                                         <CardDescription className="text-sm text-gray-500 mt-0.5 truncate">
                                                             {grupo.materia}
                                                         </CardDescription>
+                                                        <span className="inline-block mt-1 text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                                                            {grupo.modalidad}
+                                                        </span>
                                                     </div>
                                                     <div className="p-2.5 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl ml-3 flex-shrink-0">
                                                         <Users className="w-5 h-5 text-blue-600" />
@@ -369,6 +410,40 @@ export default function GruposAsignados() {
                         </AccordionItem>
                     ))}
                 </Accordion>
+            )}
+
+            {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-8">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="bg-white"
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <Button
+                            key={page}
+                            variant={currentPage === page ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(page)}
+                            className={currentPage === page ? "bg-blue-500 text-white" : "bg-white"}
+                        >
+                            {page}
+                        </Button>
+                    ))}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="bg-white"
+                    >
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
+                </div>
             )}
 
             <div className="mt-8 p-6 bg-card border border-border rounded-lg">

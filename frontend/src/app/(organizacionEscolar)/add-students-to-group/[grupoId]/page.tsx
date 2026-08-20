@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { GrupoEscolar } from '@/interfaces';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 interface EstudianteGrupo {
@@ -24,8 +24,10 @@ interface EstudianteGrupo {
 
 export default function AsignarEstudiantesAGrupo() {
     const { grupoId } = useParams();
+    const router = useRouter();
     const [grupos, setGrupos] = useState<GrupoEscolar>();
     const [estudianteActualizandoId, setEstudianteActualizandoId] = useState<number | null>(null);
+    const [estudiantesRefreshKey, setEstudiantesRefreshKey] = useState(0);
     const { toast } = useToast();
 
     const fetchGrupoById = async () => {
@@ -37,6 +39,12 @@ export default function AsignarEstudiantesAGrupo() {
         }
     }
 
+    // Refresca la tabla y la lista de estudiantes disponibles del buscador
+    const refrescarTodo = async () => {
+        await fetchGrupoById();
+        setEstudiantesRefreshKey((key) => key + 1);
+    }
+
     useEffect(() => {
         fetchGrupoById()
 
@@ -45,10 +53,10 @@ export default function AsignarEstudiantesAGrupo() {
     // Sacar info base de la primera organización encontrada
     const idAnioLectivo = grupos?.organizacionEscolar?.anio_lectivo?.id ?? 0
     const anioLectivo = grupos?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0
-    const grupo = grupos?.grado.grades ?? "N/A"
-    const docenteGuia = grupos?.docenteGuia.nombres ?? "N/A"
+    const grupo = grupos?.grado?.grades ?? "N/A"
+    const docenteGuia = grupos?.docenteGuia?.nombres ?? "N/A"
     const asignaturasDelGrupo = grupos?.grupoAsignaturaDocente ?? [];
-    const gradoId = grupos?.grado.id ?? 0
+    const gradoId = grupos?.grado?.id ?? 0
 
     const estudiantesUnicos = Object.values(
         grupos?.grupoAsignaturaDocente
@@ -94,6 +102,24 @@ export default function AsignarEstudiantesAGrupo() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
+            <button
+                onClick={() => router.back()}
+                style={{
+                    background: "#fff",
+                    border: "1px solid #e5e7eb",
+                    color: "#000",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    padding: "8px 16px",
+                    borderRadius: "8px",
+                    marginBottom: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                }}
+            >
+                ← Regresar
+            </button>
             {/* Contenedor de encabezado y buscador en dos columnas */}
             <div className="bg-white rounded-2xl shadow-lg border border-slate-200 px-8 py-4 mb-8">
                 <div className="flex items-center gap-3 pb-4">
@@ -159,7 +185,8 @@ export default function AsignarEstudiantesAGrupo() {
                     <BuscarAsignarEstudianteAutocomplete
                         anioId={idAnioLectivo}
                         asignaturasDelGrupo={asignaturasDelGrupo}
-                        fetchGrupoConEstudiantes={fetchGrupoById}
+                        fetchGrupoConEstudiantes={refrescarTodo}
+                        refreshKey={estudiantesRefreshKey}
                     />
                 </div>
             </div>
@@ -247,11 +274,11 @@ export default function AsignarEstudiantesAGrupo() {
                                     idAnioLectivo={idAnioLectivo}
                                     anioLectivo={anioLectivo}
                                     estudianteId={estudiante.id}
-                                    fetchGrupoConEstudiantes={fetchGrupoById}
+                                    fetchGrupoConEstudiantes={refrescarTodo}
                                 />
                             </td>
                             <td className="px-4 py-2 border border-gray-300 text-center">
-                                <DeleteEstudianteDeGrupoModal grupoId={Number(grupoId)} estudianteId={estudiante.id} fetchGrupoConEstudiantes={fetchGrupoById} />
+                                <DeleteEstudianteDeGrupoModal grupoId={Number(grupoId)} estudianteId={estudiante.id} fetchGrupoConEstudiantes={refrescarTodo} />
                             </td>
                         </tr>
                     ))}

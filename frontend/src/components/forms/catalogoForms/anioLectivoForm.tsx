@@ -307,8 +307,8 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
       if (isEdit && defaultValues?.id) {
         const updatedAnioLectivo = await updateAnioLectivo(defaultValues.id, payload);
         toast({
-          title: "Año lectivo actualizado",
-          description: "El backend regeneró los períodos y distribuyó los cortes automáticamente.",
+          title: "Año lectivo editado correctamente",
+          description: "",
           variant: "success",
         });
         onSuccess(updatedAnioLectivo);

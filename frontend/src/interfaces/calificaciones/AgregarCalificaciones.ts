@@ -1,17 +1,11 @@
 import { Corte } from "../catalogoInterface/corteEvaluativoInterface";
 
-export interface Semestre {
-    id: number;
-    abreviatura: string;
-    semestre: string;
-}
 export interface CorteEvaluativo {
     id: number;
     abreviatura: string;
     corte: string;
     create_at: string;
     update_at: string;
-    semestre: Semestre;
 }
 export interface Estudiante {
     id: number

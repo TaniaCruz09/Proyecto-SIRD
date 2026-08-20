@@ -1,15 +1,15 @@
 import BtnOpenEditModal from '@/components/Buttons/btnOpenEditModal'
 import React, { useState } from 'react'
 import ModalBase from '../../ModalBase';
-import { Semestre } from '@/interfaces';
-import SemestreForm from '@/components/forms/catalogoForms/SemestreForm';
+import { NotaCualitativa } from '@/interfaces';
+import NotaCualitativaForm from '@/components/forms/catalogoForms/NotaCualitativaForm';
 
-interface EditSemestreModalProp {
-    semestre: Semestre;
-    fetchSemestres: () => Promise<void>;
+interface EditNotaCualitativaModalProp {
+    nota: NotaCualitativa;
+    fetchNotas: () => Promise<void>;
 }
 
-export default function EditSemestreModal({ semestre, fetchSemestres }: EditSemestreModalProp) {
+export default function EditNotaCualitativaModal({ nota, fetchNotas }: EditNotaCualitativaModalProp) {
     const [showModal, setShowModal] = useState(false);
     return (
         <div>
@@ -19,10 +19,10 @@ export default function EditSemestreModal({ semestre, fetchSemestres }: EditSeme
                     onshowModal={showModal}
                     onCloseModal={() => setShowModal(false)}
                     content={
-                        <SemestreForm
-                            defaultValues={semestre}
+                        <NotaCualitativaForm
+                            defaultValues={nota}
                             onSuccess={() => {
-                                fetchSemestres();
+                                fetchNotas();
                                 setShowModal(false);
                             }}
                         />

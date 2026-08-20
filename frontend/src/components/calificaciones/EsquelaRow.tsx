@@ -187,7 +187,7 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
         const key = `${r.estudiante.id}-${r.asignatura.id}-${r.corte.id}`
         map.set(key, {
           cuant: r.notaCuantitativa ?? 0,
-          cual: r.notaCualitativa ?? "AI",
+          cual: r.notaCualitativa?.abreviatura ?? "AI",
         })
       }
     })
@@ -309,21 +309,16 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
       return periodosDesdeAnio
     }
 
-    const map = new Map<number, PeriodoAgrupado>()
-    cortesDisponibles.forEach((corte) => {
-      const id = corte.semestre?.id ?? 0
-      const label = corte.semestre?.semestre ?? "Sin semestre"
-      const current = map.get(id)
-      if (current) {
-        current.cortes.push(corte)
-      } else {
-        map.set(id, { id, label, tipo: corte.semestre ? "SEMESTRE" : "PERSONALIZADO", orden: map.size + 1, cortes: [corte] })
-      }
-    })
-    return Array.from(map.values()).map((periodo) => ({
-      ...periodo,
-      cortes: ordenarCortes(periodo.cortes),
-    }))
+    // Fallback: agrupar todos los cortes en un solo período personalizado
+    if (cortesDisponibles.length === 0) return []
+
+    return [{
+      id: 1,
+      label: "Período único",
+      tipo: "PERSONALIZADO",
+      orden: 1,
+      cortes: ordenarCortes(cortesDisponibles),
+    }]
   }, [periodosDesdeAnio, cortesDisponibles])
 
   const getColumnas = React.useCallback((): Columna[] => {
@@ -492,7 +487,7 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
     sheet.getCell("A2").alignment = { horizontal: "center" }
 
     sheet.mergeCells(3, 1, 3, Math.floor(totalColumns / 2))
-    sheet.getCell("A3").value = ` CALIFICACIONES DE ${esquelaHead?.grupo_asignatura?.turno.modalidad?.modalidad}`
+    sheet.getCell("A3").value = ` CALIFICACIONES DE ${esquelaHead?.grupo_asignatura?.organizacionEscolar?.turno?.modalidad?.modalidad}`
     sheet.getCell("A3").font = { bold: true, size: 12 }
     sheet.getCell("A3").alignment = { horizontal: "center" }
     sheet.mergeCells(
@@ -530,7 +525,7 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
 
     // Grupo
     sheet.mergeCells(4, colStart, 4, colStart + colCorte - 1)
-    const grupoLabel = ` Grado: ${esquelaHead?.grupo_asignatura?.grado.grades ?? "GRUPO"}`
+    const grupoLabel = ` Grado: ${esquelaHead?.grupo_asignatura?.grado?.grades ?? "GRUPO"}`
 
     sheet.getCell(4, colStart).value = grupoLabel
     sheet.getCell(4, colStart).font = { bold: true }
@@ -544,7 +539,7 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
     sheet.getCell(4, colStart).alignment = { horizontal: "center" }
 
     sheet.mergeCells(5, 1, 5, Math.floor(totalColumns / 2))
-    sheet.getCell("A5").value = `TURNO: ${esquelaHead?.grupo_asignatura?.turno.turno ?? ""}`
+    sheet.getCell("A5").value = `TURNO: ${esquelaHead?.grupo_asignatura?.organizacionEscolar?.turno?.turno ?? ""}`
     sheet.getCell("A5").font = { bold: true }
     sheet.getCell("A5").alignment = { horizontal: "center" }
     sheet.mergeCells(
@@ -795,12 +790,12 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
 
       <EsquelaHead
         nombreCentro={centro?.nombreCentro ?? ""}
-        grade={esquelaHead?.grupo_asignatura?.grado.grades ?? ""}
+        grade={esquelaHead?.grupo_asignatura?.grado?.grades ?? ""}
         section={esquelaHead?.grupo_asignatura?.seccion.seccion ?? ""}
-        shift={esquelaHead?.grupo_asignatura?.turno.turno ?? ""}
+        shift={esquelaHead?.grupo_asignatura?.organizacionEscolar?.turno?.turno ?? ""}
         year={esquelaHead?.grupo_asignatura?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0}
-        modality={esquelaHead?.grupo_asignatura?.turno.modalidad?.modalidad ?? ""}
-        teacherName={esquelaHead?.grupo_asignatura?.docenteGuia.nombres ?? ""}
+        modality={esquelaHead?.grupo_asignatura?.organizacionEscolar?.turno?.modalidad?.modalidad ?? ""}
+        teacherName={esquelaHead?.grupo_asignatura?.docenteGuia?.nombres ?? ""}
       />
 
       {/* ===== BOTONES ===== */}

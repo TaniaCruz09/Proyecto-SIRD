@@ -40,7 +40,7 @@ export default function MoveStudentToGroupForm({
   }, [idAnioLectivo, gradoId]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // ✅ Evita que recargue la página
+    e.preventDefault();
 
     if (!nuevoGrupoId || nuevoGrupoId === 0) {
       toast({
@@ -51,20 +51,9 @@ export default function MoveStudentToGroupForm({
       return;
     }
 
-    if (Number(nuevoGrupoId) === Number(grupoOrigenId)) {
-      toast({
-        title: "Traslado no válido",
-        description: "El estudiante ya pertenece a ese grupo.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       setIsSubmitting(true);
       const result = await moverEstudianteDeGrupo(estudianteId, grupoOrigenId, nuevoGrupoId as number);
-
-      console.log("Estudiante movido:", result);
 
       onSuccess();
       toast({
@@ -73,10 +62,10 @@ export default function MoveStudentToGroupForm({
         variant: "success",
       });
     } catch (error: any) {
-      console.error("Error al mover estudiante:", error);
+      const mensaje = error?.response?.data?.message || error?.message || "Ocurrió un error al mover al estudiante.";
       toast({
         title: "No se pudo mover al estudiante",
-        description: error?.message || "Ocurrió un error al mover al estudiante.",
+        description: mensaje,
         variant: "destructive",
       });
     } finally {
@@ -103,7 +92,7 @@ export default function MoveStudentToGroupForm({
         <option value="">-- Seleccionar --</option>
         {grupos.map((grupo) => (
           <option key={grupo.id} value={grupo.id}>
-            {`${grupo.grado.grades} - ${grupo.seccion.seccion} - ${grupo.turno.turno} de ${grupo.turno.modalidad?.modalidad}`}
+            {`${grupo.grado?.grades ?? "Sin grado"} - ${grupo.seccion.seccion} - ${grupo.organizacionEscolar?.turno?.turno} de ${grupo.organizacionEscolar?.turno?.modalidad?.modalidad}`}
           </option>
         ))}
       </select>

@@ -12,7 +12,7 @@ import {
 } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/grupoConAsignaturasMethos";
 import { Asignatura, Docente, GrupoEscolar } from "@/interfaces";
 import { getAsignaturas } from "@/actions/catalogos/asignaturaMethods";
-import { useParams, } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { getDocentes } from "@/actions/docentesMethods/docentesMethods";
 import EditarMateriaForm from "@/components/forms/EditarMateriaForm";
 import ConfirmDialog from "@/components/modals/organizacionEscolar/grupoConAsignatura/ConfirmAccion";
@@ -43,6 +43,7 @@ export default function AddClasesOrganizacionEscolarPage() {
   });
   // Define el tipo al inicio del archivo
   type AlertType = "error" | "success" | "warning" | "info";
+  const router = useRouter();
   const [alert, setAlert] = useState<{
     open: boolean;
     message: string;
@@ -77,7 +78,7 @@ export default function AddClasesOrganizacionEscolarPage() {
     fetchGrupoById()
 
   }, [grupoId]);
-  const grupo = grupos?.grado.grades ?? "N/A"
+  const grupo = grupos?.grado?.grades ?? "N/A"
   const docenteGuia = grupos?.docenteGuia?.nombres ?? "N/A"
   const docenteGuiaApellidos = grupos?.docenteGuia?.apellido_materno || grupos?.docenteGuia?.apellido_paterno 
   const seccion = grupos?.seccion.seccion ?? "N/A"
@@ -195,7 +196,25 @@ export default function AddClasesOrganizacionEscolarPage() {
   if (!grupoId) return <p>Cargando...</p>;
 
   return (
-    <div style={{ padding: "20px", maxWidth: "900px", margin: "0 auto" }}>
+    <div style={{ padding: "20px", maxWidth: "1400px", margin: "0 auto" }}>
+      <button
+        onClick={() => router.back()}
+        style={{
+          background: "#fff",
+          border: "1px solid #e5e7eb",
+          color: "#000",
+          cursor: "pointer",
+          fontSize: "14px",
+          padding: "8px 16px",
+          borderRadius: "8px",
+          marginBottom: "10px",
+          display: "flex",
+          alignItems: "center",
+          gap: "4px",
+        }}
+      >
+        ← Regresar
+      </button>
       <h1 style={{ fontWeight: "bold", fontSize: "24px" }}>Asignación de Materias</h1>
       <p style={{ color: "#6b7280" }}>Gestiona las materias para el grupo seleccionado</p>
 

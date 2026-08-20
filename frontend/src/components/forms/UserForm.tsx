@@ -188,20 +188,42 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
         {isEdit ? "Editar Usuario" : "Agregar Usuario"}
       </h2>
 
-      {/* Selector de docente SOLO si corresponde */}
-      {(!isEdit || defaultValues?.docente) && (
-        <select
-          className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-          value={docente}
-          onChange={(e) => setDocente(e.target.value === "" ? "" : Number(e.target.value))}
-        >
-          <option value="">Selecciona un docente (opcional)</option>
-          {docentes?.map((d) => (
-            <option key={d.id} value={d.id}>
-              {d.nombres} {d.apellido_materno && d.apellido_paterno}
-            </option>
-          ))}
-        </select>
+      {/* Selector de docente con búsqueda: visible al crear, al editar si ya tiene docente, o si se seleccionó el rol Docente */}
+      {(!isEdit || defaultValues?.docente || rolesSelected.some((r) => r.label.toLocaleLowerCase() === 'docente')) && (
+        <Select
+          isClearable
+          placeholder="Buscar y seleccionar un docente..."
+          noOptionsMessage={() => "No se encontraron docentes"}
+          options={docentes?.map((d) => ({
+            value: d.id,
+            label: `${d.nombres} ${d.apellido_paterno || ''} ${d.apellido_materno || ''}`.trim(),
+          }))}
+          value={
+            docente
+              ? (() => {
+                  const d = docentes.find((d) => d.id === docente);
+                  return d
+                    ? {
+                        value: d.id,
+                        label: `${d.nombres} ${d.apellido_paterno || ''} ${d.apellido_materno || ''}`.trim(),
+                      }
+                    : null;
+                })()
+              : null
+          }
+          onChange={(selected) => setDocente(selected ? selected.value : "")}
+          className="text-black"
+          styles={{
+            control: (base) => ({
+              ...base,
+              padding: "2px",
+              borderRadius: "0.75rem",
+              borderColor: "#d1d5db",
+              boxShadow: "none",
+              "&:hover": { borderColor: "#a5b4fc" },
+            }),
+          }}
+        />
       )}
 
       {/* Campo de nombre solo si NO seleccionó docente */}

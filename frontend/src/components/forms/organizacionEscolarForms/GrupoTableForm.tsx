@@ -1,7 +1,6 @@
 "use client"
 import { getGrados } from '@/actions/catalogos/gradoMethods';
 import { getSecciones } from '@/actions/catalogos/seccionMethods';
-import { getTurnos } from '@/actions/catalogos/turnoMethods';
 import { getDocentes } from '@/actions/docentesMethods/docentesMethods';
 import { getOrganizacionEscolar } from '@/actions/organizacionEscolarMethods/organizacionMethods';
 import { useToast } from '@/hooks/use-toast';
@@ -16,11 +15,10 @@ import { Button } from "@/components/ui/button"
 
 interface GrupoTableForm {
     idOrganizacion: number;
-    idTurno: number;
     onSuccess: () => void
 }
 
-export default function GrupoTableForm({ idOrganizacion, idTurno, onSuccess }: GrupoTableForm) {
+export default function GrupoTableForm({ idOrganizacion, onSuccess }: GrupoTableForm) {
     const { toast } = useToast()
 
 
@@ -31,7 +29,6 @@ export default function GrupoTableForm({ idOrganizacion, idTurno, onSuccess }: G
     const [formData, setFormData] = useState({
         grado: "",
         seccion: "",
-        turno: "",
         docenteGuia: "",
     });
 
@@ -40,12 +37,11 @@ export default function GrupoTableForm({ idOrganizacion, idTurno, onSuccess }: G
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [organizacionEscolarData, gradoData, seccionData, docenteGuiaData, turnoData] = await Promise.all([
+                const [organizacionEscolarData, gradoData, seccionData, docenteGuiaData] = await Promise.all([
                     getOrganizacionEscolar(),
                     getGrados(),
                     getSecciones(),
                     getDocentes(),
-                    getTurnos(),
                 ])
                 setGrados(gradoData)
                 setSecciones(seccionData)
@@ -87,7 +83,6 @@ export default function GrupoTableForm({ idOrganizacion, idTurno, onSuccess }: G
                 organizacionEscolar: { id: idOrganizacion },
                 grado: { id: parseInt(formData.grado) },
                 seccion: { id: parseInt(formData.seccion) },
-                turno: { id: idTurno },
                 docenteGuia: { id: parseInt(formData.docenteGuia) }
             }
 
@@ -96,7 +91,6 @@ export default function GrupoTableForm({ idOrganizacion, idTurno, onSuccess }: G
             setFormData({
                 grado: "",
                 seccion: "",
-                turno: "",
                 docenteGuia: "",
             });
 

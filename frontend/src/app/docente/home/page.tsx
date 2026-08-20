@@ -196,10 +196,10 @@ export default function HomePage() {
                           </div>
                           <div>
                             <CardTitle className="text-lg font-bold text-gray-800">
-                              {grupo.grado.grades} - Sección {grupo.seccion.seccion} - {grupo.turno.turno}
+                              {grupo.grado?.grades ?? "Sin grado"} - Sección {grupo.seccion.seccion} - {grupo.organizacionEscolar?.turno?.turno}
                             </CardTitle>
                             <CardDescription className="text-sm text-gray-500 mt-0.5">
-                              {grupo.turno?.modalidad?.modalidad ?? "Sin modalidad"}
+                              {grupo.organizacionEscolar?.turno?.modalidad?.modalidad ?? "Sin modalidad"}
                             </CardDescription>
                           </div>
                         </div>

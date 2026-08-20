@@ -12,6 +12,7 @@ export default function ListaEstudiantes({
     getInitials,
     anioLectivo,
     handleGuardarIndividual,
+    handleEliminarNota,
     isAnioActivo,
     isCorteEditable,
     corteBloqueadoMensaje,
@@ -53,8 +54,7 @@ export default function ListaEstudiantes({
                     corteActivo={corteActivo}
                     guardando={guardando}
                     getInitials={getInitials}
-                    onGuardar={handleGuardarIndividual}
-                    notaBD={notasBD[est.id]?.find(
+                    onGuardar={handleGuardarIndividual}                    onEliminar={handleEliminarNota}                    notaBD={notasBD[est.id]?.find(
                         (r: any) =>
                             r?.asignatura?.id === asignatura.id &&
                             r?.corte?.id === corteActivo

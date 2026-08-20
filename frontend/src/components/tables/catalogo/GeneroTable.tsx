@@ -38,7 +38,7 @@ export default function GenterTable({
           </thead>
           <tbody>
             {genter.length > 0 ? (
-              genter.map((generoItem) => (
+              currentItems.map((generoItem) => (
                 <GeneroRow
                   key={generoItem.id}
                   fetchGenero={fetchGeneros}

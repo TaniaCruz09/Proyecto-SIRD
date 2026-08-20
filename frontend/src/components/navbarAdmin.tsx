@@ -21,6 +21,7 @@ import {
   FaMapMarkedAlt,
   FaSchool,
   FaSitemap,
+  FaUser,
   FaUserFriends,
   FaUserGraduate,
   FaUserShield,
@@ -52,17 +53,17 @@ const catalogSubmenu = [
   { label: 'Grados', href: '/catalogo/grados', icon: FaGraduationCap },
   { label: 'Modalidades', href: '/catalogo/modalidad', icon: FaLayerGroup },
   { label: 'Municipios', href: '/catalogo/municipio', icon: FaMapMarkedAlt },
+  { label: 'Notas Cualitativas', href: '/catalogo/notas-cualitativas', icon: FaChartLine },
   { label: 'Niveles Académicos', href: '/catalogo/nivelAcademico', icon: FaChartLine },
   { label: 'Paises', href: '/catalogo/pais', icon: FaFlag },
   { label: 'Profesiones', href: '/catalogo/profesion', icon: FaBriefcase },
   { label: 'Secciones', href: '/catalogo/seccion', icon: FaColumns },
-  { label: 'Semestres', href: '/catalogo/semestre', icon: FaCalendar },
   { label: 'Turnos', href: '/catalogo/turnos', icon: FaClock },
   { label: 'Centro Educativo', href: '/catalogo/centro', icon: FaSchool },
 ]
 
 const organizacionEscolarSubmenu = [
-  // { label: 'Organizacion Escolar', href: '/organizacion', icon: FaUser },
+  { label: 'Organizacion Escolar', href: '/organizacion', icon: FaUser },
   { label: 'Grupos Educativos', href: '/registerGroups', icon: FaChalkboardTeacher },
 ]
 

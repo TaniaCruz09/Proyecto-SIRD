@@ -34,7 +34,7 @@ export default function FiltroGrupos({
   const modalidades = Array.from(
     new Set(
       grupos
-        .map((g) => g.turno?.modalidad?.modalidad)
+        .map((g) => g.organizacionEscolar?.turno?.modalidad?.modalidad)
         .filter((value): value is string => Boolean(value))
     )
   ).sort((a, b) => a.localeCompare(b));

@@ -12,12 +12,15 @@ import {
     MapPin,
     CreditCard,
     User,
+    ChevronDown,
+    ChevronRight,
 } from "lucide-react"
 import RegisterEstudent from "@/interfaces/registerEstudentInterface"
 import EditStudentModal from "@/components/modals/Estudiantes/EditStudentModal"
 import { useParams } from "next/navigation"
 import { TablaRegistrosEstudiante } from "@/components/tables/expedientes/Tabla-registros-estudiante"
-import { getEsquelaByGrupo } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods";
+import { getEsquelaByGrupo } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
+import { getEsquelaRowByEstudianteAndAnio } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods";
 
 export interface RegistroAcademico {
     id: string
@@ -33,6 +36,8 @@ export default function StudentProfile() {
 
     const [studentData, setStudentData] = useState<RegisterEstudent | null>(null)
     const [registros, setRegistros] = useState<RegistroAcademico[]>([])
+    const [notasHistoricas, setNotasHistoricas] = useState<any[]>([])
+    const [notasExpandidas, setNotasExpandidas] = useState(false)
     const [loading, setLoading] = useState(true)
 
     const router = useRouter()
@@ -88,7 +93,7 @@ export default function StudentProfile() {
                     registrosMap.set(key, {
                         id: grupo.id.toString(),
                         grado: grupo.grado?.grades ?? "Sin grado",
-                        modalidad: grupo.turno?.modalidad?.modalidad ?? grupo.modalidad ?? "Sin modalidad",
+                        modalidad: grupo.organizacionEscolar?.turno?.modalidad?.modalidad ?? grupo.modalidad ?? "Sin modalidad",
                         grupo: grupo.id,
                         docenteGuia,
                         anioLectivo: anioLectivo.anio_lectivo.toString(),
@@ -108,7 +113,60 @@ export default function StudentProfile() {
 
             setStudentData(studentWithDate)
             setRegistros(registrosAcademicos)
-            console.log(registrosAcademicos)
+
+            // Construir mapa de materias actuales del estudiante: grupoId → Set<asignaturaId>
+            const materiasActuales = new Map<number, Set<number>>()
+            student.grupoAsignaturaConEstudiantes?.forEach((item: any) => {
+                const gad = item.grupoAsignaturaDocente
+                if (!gad?.grupo?.id || !gad?.asignatura?.id) return
+                const grupoId = Number(gad.grupo.id)
+                const asigId = Number(gad.asignatura.id)
+                if (!materiasActuales.has(grupoId)) {
+                    materiasActuales.set(grupoId, new Set())
+                }
+                materiasActuales.get(grupoId)!.add(asigId)
+            })
+
+            // Cargar notas históricas del estudiante y clasificarlas
+            const aniosUnicos = [...new Set(registrosAcademicos.map(r => r.anioLectivo))]
+            const todasLasNotas: any[] = []
+            for (const anio of aniosUnicos) {
+                try {
+                    const notas = await getEsquelaRowByEstudianteAndAnio(Number(estudianteId), Number(anio))
+                    todasLasNotas.push(...notas)
+                } catch (error) {
+                    console.error(`Error cargando notas del año ${anio}:`, error)
+                }
+            }
+
+            // Clasificar cada nota:
+            // - Se construye un SET con TODAS las asignaturas que el estudiante tiene actualmente (en todos sus grupos)
+            // - Si una nota tiene una asignatura que NO está en ese set → es huérfana (quedó de un grupo anterior)
+            const todasLasAsignaturasActuales = new Set<number>()
+            materiasActuales.forEach((subjects) => {
+                subjects.forEach(id => todasLasAsignaturasActuales.add(id))
+            })
+
+            const notasClasificadas = todasLasNotas.map((nota: any) => {
+                const asigId = nota.asignatura?.id
+                const esHuerfana = !!(asigId && todasLasAsignaturasActuales.size > 0 && !todasLasAsignaturasActuales.has(Number(asigId)))
+                const grupo = nota.esquelaHead?.grupo_asignatura
+                const gradoNombre = grupo?.grado?.grades ?? ""
+                const seccionNombre = grupo?.seccion?.seccion ?? ""
+                return {
+                    ...nota,
+                    esHuerfana,
+                    grupoOrigenNombre: (gradoNombre || seccionNombre)
+                        ? `${gradoNombre} - ${seccionNombre}`.replace(/^ - | - $/g, "").trim()
+                        : grupo?.id
+                            ? `Grupo #${grupo.id}`
+                            : "—"
+                }
+            })
+
+            console.log("🧪 Todas las asignaturas actuales:", [...todasLasAsignaturasActuales])
+
+            setNotasHistoricas(notasClasificadas)
 
         } catch (error) {
             console.error("Error cargando estudiante", error)
@@ -131,6 +189,17 @@ export default function StudentProfile() {
 
     return (
         <div className="container mx-auto p-6 max-w-7xl">
+            <button
+                onClick={() => router.back()}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-4 group"
+            >
+                <div className="p-1.5 rounded-lg bg-white shadow-sm group-hover:bg-gray-50 transition-colors flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7" />
+                    </svg>
+                    <span className="font-medium">Volver</span>
+                </div>
+            </button>
 
             {/* Header del perfil */}
             <Card className="mb-8">
@@ -251,6 +320,89 @@ export default function StudentProfile() {
                 registros={registros}
                 onVerCalificaciones={handleVerCalificaciones}
             />
+
+            {/* Notas históricas (incluye notas huérfanas de traslados) */}
+            {notasHistoricas.length > 0 && (
+                <Card className="mt-6 border-0 shadow-lg">
+                    <CardHeader
+                        className="pb-4 cursor-pointer select-none"
+                        onClick={() => setNotasExpandidas(!notasExpandidas)}
+                    >
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="text-xl font-semibold flex items-center gap-2 text-slate-800">
+                                <GraduationCap className="w-5 h-5 text-amber-600" />
+                                Historial de Calificaciones
+                                <Badge variant="outline" className="ml-2 text-xs">
+                                    {notasHistoricas.length} registros
+                                </Badge>
+                            </CardTitle>
+                            {notasExpandidas ? (
+                                <ChevronDown className="w-5 h-5 text-gray-400" />
+                            ) : (
+                                <ChevronRight className="w-5 h-5 text-gray-400" />
+                            )}
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                            Todas las calificaciones del estudiante. Las notas marcadas en <span className="text-amber-600 font-medium">ámbar</span> son de materias que ya no están en su grupo actual (quedaron registradas de un grupo anterior).
+                        </p>
+                    </CardHeader>
+
+                    {notasExpandidas && (
+                        <CardContent>
+                            <div className="rounded-lg border border-border overflow-hidden">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-muted/50">
+                                        <tr>
+                                            <th className="text-left font-semibold p-3">Año</th>
+                                            <th className="text-left font-semibold p-3">Asignatura</th>
+                                            <th className="text-left font-semibold p-3">Grupo de origen</th>
+                                            <th className="text-center font-semibold p-3">Corte</th>
+                                            <th className="text-center font-semibold p-3">Nota</th>
+                                            <th className="text-center font-semibold p-3">Cualitativa</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {notasHistoricas.map((nota: any, idx: number) => (
+                                            <tr
+                                                key={nota.id ?? idx}
+                                                className={`border-t border-border hover:bg-muted/30 transition-colors ${nota.esHuerfana ? 'bg-amber-50' : ''}`}
+                                            >
+                                                <td className="p-3">
+                                                    {nota.esquelaHead?.grupo_asignatura?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? "—"}
+                                                </td>
+                                                <td className="p-3 font-medium">
+                                                    <span className={nota.esHuerfana ? 'text-amber-700' : ''}>
+                                                        {nota.asignatura?.asignatura ?? "—"}
+                                                    </span>
+                                                    {nota.esHuerfana && (
+                                                        <Badge className="ml-2 bg-amber-100 text-amber-800 border-amber-200 text-xs">
+                                                            Trasladada
+                                                        </Badge>
+                                                    )}
+                                                </td>
+                                                <td className="p-3 text-sm text-gray-500">
+                                                    {nota.grupoOrigenNombre ?? "—"}
+                                                </td>
+                                                <td className="p-3 text-center">
+                                                    {nota.corte?.corte ?? nota.corte?.abreviatura ?? "—"}
+                                                </td>
+                                                <td className="p-3 text-center font-semibold">
+                                                    {nota.notaCuantitativa ?? "—"}
+                                                </td>
+                                                <td className="p-3 text-center">
+                                                    <Badge variant="outline" className="bg-secondary/50">
+                                                        {nota.notaCualitativa?.abreviatura ?? nota.notaCualitativa ?? "—"}
+                                                    </Badge>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </CardContent>
+                    )}
+                </Card>
+            )}
 
         </div>
     )

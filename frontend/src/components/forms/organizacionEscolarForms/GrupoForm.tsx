@@ -1,21 +1,21 @@
 "use client"
 import { getGrados } from '@/actions/catalogos/gradoMethods';
 import { getSecciones } from '@/actions/catalogos/seccionMethods';
-import { getTurnos } from '@/actions/catalogos/turnoMethods';
 import { getDocentes } from '@/actions/docentesMethods/docentesMethods';
 import { saveGrupo, updateGrupo } from '@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods';
 import { getOrganizacionEscolar } from '@/actions/organizacionEscolarMethods/organizacionMethods';
-import { Docente, Grado, GrupoEscolar, GrupoEscolarPayload, OrganizacionEscolar, Seccion, Turno } from '@/interfaces';
+import { Docente, Grado, GrupoEscolar, GrupoEscolarPayload, OrganizacionEscolar, Seccion } from '@/interfaces';
 import { useToast } from '@/hooks/use-toast';
 import React, { useEffect, useState } from 'react'
 
 interface GrupoFormProp {
     defaultValues?: GrupoEscolar | null;
     onSuccess: () => void;
+    organizacionEscolarFija?: OrganizacionEscolar | null;
 }
 
 
-export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
+export default function GrupoForm({ defaultValues, onSuccess, organizacionEscolarFija }: GrupoFormProp) {
     const { toast } = useToast();
     const [grado, setGrado] = useState<string>("")
     const [grados, setGrados] = useState<Grado[]>([])
@@ -23,8 +23,7 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
     const [seccion, setSeccion] = useState<string>("")
     const [secciones, setSecciones] = useState<Seccion[]>([])
 
-    const [turno, setTurno] = useState<string>("")
-    const [turnos, setTurnos] = useState<Turno[]>([])
+
 
     const [docenteGuia, setDocenteGuia] = useState<string>("")
     const [docentes, setDocentes] = useState<Docente[]>([])
@@ -44,19 +43,16 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
                     gradoData,
                     seccionData,
                     docenteGuiaData,
-                    turnoData,
                 ] = await Promise.all([
                     getOrganizacionEscolar(),
                     getGrados(),
                     getSecciones(),
                     getDocentes(),
-                    getTurnos(),
                 ]);
                 setOrgnizacionesEscolares(organizacionEscolarData)
                 setGrados(gradoData);
                 setSecciones(seccionData);
                 setDocentes(docenteGuiaData);
-                setTurnos(turnoData);
             } catch (error) {
                 console.error("Error al cargar los datos del formulario:", error);
             }
@@ -72,15 +68,9 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
             const selectedGrado = grados.find((g) => g.id === parseInt(grado));
             const selectedSeccion = secciones.find((s) => s.id === parseInt(seccion));
             const selectedDocente = docentes.find((m) => m.id === parseInt(docenteGuia));
-            const selectedTurno = turnos.find((t) => t.id === parseInt(turno));
 
-            if (
-                !selectedOrganizacionEScolar ||
-                !selectedGrado ||
-                !selectedSeccion ||
-                !selectedDocente ||
-                !selectedTurno
-            ) {
+            // En creación todos los campos son obligatorios; en edición se puede modificar cualquier campo
+            if (!isEdit && (!selectedOrganizacionEScolar || !selectedGrado || !selectedSeccion || !selectedDocente)) {
                 toast({
                     title: "Campos requeridos",
                     description: "Completa todos los campos para guardar el grupo.",
@@ -90,13 +80,11 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
                 return;
             }
 
-            const grupoData: GrupoEscolarPayload = {
-                organizacionEscolar: selectedOrganizacionEScolar,
-                grado: selectedGrado,
-                seccion: selectedSeccion,
-                docenteGuia: selectedDocente,
-                turno: selectedTurno,
-            }
+            const grupoData: GrupoEscolarPayload = {};
+            if (selectedOrganizacionEScolar) grupoData.organizacionEscolar = selectedOrganizacionEScolar;
+            if (selectedGrado) grupoData.grado = selectedGrado;
+            if (selectedSeccion) grupoData.seccion = selectedSeccion;
+            if (selectedDocente) grupoData.docenteGuia = selectedDocente;
             if (isEdit && defaultValues?.id) {
                 await updateGrupo(defaultValues.id, grupoData);
                 toast({
@@ -127,13 +115,17 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
 
     useEffect(() => {
         if (defaultValues) {
-            setOrganizacionEscolar(defaultValues.organizacionEscolar?.id?.toString() || "");
+            setOrganizacionEscolar(
+                defaultValues.organizacionEscolar?.id?.toString() ||
+                organizacionEscolarFija?.id?.toString() ||
+                ""
+            );
             setGrado(defaultValues.grado?.id?.toString() || "");
             setSeccion(defaultValues.seccion?.id?.toString() || "");
             setDocenteGuia(defaultValues.docenteGuia?.id?.toString() || "");
-            setTurno(defaultValues.turno?.id?.toString() || "");
+
         }
-    }, [defaultValues])
+    }, [defaultValues, organizacionEscolarFija])
     return (
         <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto px-2">
             <h2 className="text-xl font-semibold text-gray-700">
@@ -142,9 +134,10 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
             <select
                 name="organizacionEscolar"
                 id="organizacionEscolar"
-                className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+                className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                 value={organizacionEscolar}
                 onChange={(e) => setOrganizacionEscolar(e.target.value)}
+                disabled={isEdit}
             >
                 <option value="">Organizacion Escolar</option>
                 {organizacionesEscolares?.map((r) => (
@@ -179,20 +172,6 @@ export default function GrupoForm({ defaultValues, onSuccess }: GrupoFormProp) {
                 {secciones?.map((r) => (
                     <option key={r.id} value={r.id}>
                         {r.seccion}
-                    </option>
-                ))}
-            </select>
-            <select
-                name="turno"
-                id="turno"
-                className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-                value={turno}
-                onChange={(e) => setTurno(e.target.value)}
-            >
-                <option value="">Turno</option>
-                {turnos?.map((r) => (
-                    <option key={r.id} value={r.id}>
-                        {r.turno}
                     </option>
                 ))}
             </select>

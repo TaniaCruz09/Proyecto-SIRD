@@ -1,6 +1,5 @@
 import { Grado } from "../catalogoInterface/Grado";
 import { Seccion } from "../catalogoInterface/SeccionInterfase";
-import { Turno } from "../catalogoInterface/TurnoInterface";
 import { Docente } from "../DocenteInterface";
 import { OrganizacionEscolar } from "./organizacionInterface";
 import { GrupoConAsignaturasResponse } from "./gruposConAsignaturas";
@@ -10,7 +9,6 @@ export interface GrupoEscolar {
     id: number,
     grado: Grado,
     seccion: Seccion,
-    turno: Turno,
     numero_estudiantes?: number,
     numero_estudiantes_inactivos?: number,
     numero_materias?: number,
@@ -30,6 +28,5 @@ export interface GrupoEscolarPayload {
     organizacionEscolar?: { id: number };
     grado?: { id: number };
     seccion?: { id: number };
-    turno?: { id: number };
     docenteGuia?: { id: number };
 }

@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { User, UserCircle, Save, Edit } from "lucide-react"
+import { User, UserCircle, Save, Edit, Trash2 } from "lucide-react"
+import ConfirmDeletModal from "@/components/modals/modalConfirmDeletion"
 
 interface Props {
     estudiante: any
@@ -16,7 +17,8 @@ interface Props {
     guardando: boolean
     getInitials: (name: string) => string
     onGuardar: (estudiante: any, asignaturaId: number, nota: string, setNotaBD: (nota: string) => void, isUpdate: boolean) => Promise<void> | void
-    notaBD?: { notaCuantitativa?: number; notaCualitativa?: string }
+    onEliminar?: (estudianteId: number, asignaturaId: number) => Promise<void>
+    notaBD?: { id?: number; notaCuantitativa?: number; notaCualitativa?: { id: number; nombre?: string; abreviatura?: string } }
     isAnioActivo: boolean
     isCorteEditable: boolean
     corteBloqueadoMensaje?: string
@@ -29,6 +31,7 @@ export default function EstudianteRow({
     guardando,
     getInitials,
     onGuardar,
+    onEliminar,
     notaBD,
     isAnioActivo,
     isCorteEditable,
@@ -38,6 +41,7 @@ export default function EstudianteRow({
     const inicial = typeof notaBD?.notaCuantitativa !== "undefined" ? String(notaBD.notaCuantitativa) : ""
     const [notaLocal, setNotaLocal] = useState<string>(inicial)
     const [editando, setEditando] = useState<boolean>(inicial === "")
+    const [showConfirmDelete, setShowConfirmDelete] = useState(false)
 
     // si cambia la nota desde fuera (backend), actualizamos
     useEffect(() => {
@@ -149,6 +153,7 @@ export default function EstudianteRow({
                                 <Save className="h-4 w-4" />
                             </Button>
                         ) : (
+                            <>
                             <Button
                                 size="icon"
                                 variant="outline"
@@ -158,6 +163,33 @@ export default function EstudianteRow({
                             >
                                 <Edit className="h-4 w-4" />
                             </Button>
+                            {notaBD?.id && onEliminar && (
+                                <>
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => setShowConfirmDelete(true)}
+                                    disabled={!isAnioActivo || !isCorteEditable || guardando}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    title="Eliminar calificación"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                                <ConfirmDeletModal
+                                    onshow={showConfirmDelete}
+                                    title="¿Eliminar calificación?"
+                                    description="Esta acción no se puede deshacer. La calificación será eliminada."
+                                    onCancel={() => setShowConfirmDelete(false)}
+                                    onConfirm={async () => {
+                                        await onEliminar(estudiante.id, asignaturaId)
+                                        setShowConfirmDelete(false)
+                                        setNotaLocal("")
+                                        setEditando(true)
+                                    }}
+                                />
+                                </>
+                            )}
+                            </>
                         )}
 
                     </div>

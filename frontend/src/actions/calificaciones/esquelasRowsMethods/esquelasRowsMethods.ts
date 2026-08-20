@@ -60,9 +60,9 @@ export async function deleteEsquelaRow(id: number) {
     const endPoint = `/esquela_row/${id}`;
     const response = await feching(endPoint, "no-cache", "DELETE")
 
-    if (!response.data || response.data.error) {
-        throw new Error(response?.error)
+    if (response.error) {
+        throw new Error(response.error)
     }
 
-    return response.data
+    return response
 }

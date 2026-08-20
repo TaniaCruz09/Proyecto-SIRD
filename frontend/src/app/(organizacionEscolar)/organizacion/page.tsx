@@ -39,9 +39,9 @@ export default function OrganizacionEscolar() {
         fetchOrganizacionEscolar();
     }, []);
 
-    //filtro que busca por el nombre
+    //filtro que busca por año lectivo
     const filteredOrganizacionEscolar = organizacionEscolar.filter((u) =>
-        u.turno.turno.toString().toLowerCase().includes(searchTerm.toLowerCase())
+        String(u.anio_lectivo?.anio_lectivo ?? "").toLowerCase().includes(searchTerm.toLowerCase())
     );
     return (
         <div>

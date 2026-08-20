@@ -100,12 +100,12 @@ export function EsquelaTable({ esquelaHeadId, corteFilter = "all" }: EsquelaTabl
     }, [esquelaHeadId])
 
     const colegio = centro?.nombreCentro ?? "N/A"
-    const grupo = esquelaHead?.grupo_asignatura?.grado.grades ?? "N/A"
+    const grupo = esquelaHead?.grupo_asignatura?.grado?.grades ?? "N/A"
     const docenteGuia = esquelaHead?.grupo_asignatura?.docenteGuia.nombres ?? "N/A"
     const asignaturas = esquelaHead?.grupo_asignatura?.grupoAsignaturaDocente ?? []
     const section = esquelaHead?.grupo_asignatura?.seccion.seccion ?? "N/A"
-    const modalidad = esquelaHead?.grupo_asignatura?.turno.modalidad?.modalidad ?? "N/A"
-    const shift = esquelaHead?.grupo_asignatura?.turno.turno ?? "N/A"
+    const modalidad = esquelaHead?.grupo_asignatura?.organizacionEscolar?.turno?.modalidad?.modalidad ?? "N/A"
+    const shift = esquelaHead?.grupo_asignatura?.organizacionEscolar?.turno?.turno ?? "N/A"
     const anioLectivo = esquelaHead?.grupo_asignatura?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0
 
 
@@ -119,7 +119,7 @@ export function EsquelaTable({ esquelaHeadId, corteFilter = "all" }: EsquelaTabl
                 const key = `${r.estudiante.id}-${r.asignatura.id}-${r.corte.id}`
                 map.set(key, {
                     cuant: r.notaCuantitativa ?? 0,
-                    cual: r.notaCualitativa ?? "AI",
+                    cual: r.notaCualitativa?.abreviatura ?? "AI",
                 })
             }
         })

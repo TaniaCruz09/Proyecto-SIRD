@@ -12,12 +12,14 @@ interface Props {
     anioId: number;
     asignaturasDelGrupo: GrupoConAsignaturasResponse[];
     fetchGrupoConEstudiantes: () => Promise<void>;
+    refreshKey?: number;
 }
 
 export default function BuscarAsignarEstudianteAutocomplete({
     anioId,
     asignaturasDelGrupo,
     fetchGrupoConEstudiantes,
+    refreshKey = 0,
 }: Props) {
     const { toast } = useToast();
 
@@ -26,7 +28,7 @@ export default function BuscarAsignarEstudianteAutocomplete({
     const [filtered, setFiltered] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
-    /* 🔹 Cargar estudiantes una sola vez */
+    /* 🔹 Cargar estudiantes (se recarga al cambiar refreshKey, p. ej. tras eliminar/mover un estudiante) */
     useEffect(() => {
         const loadStudents = async () => {
             setLoading(true);
@@ -40,7 +42,7 @@ export default function BuscarAsignarEstudianteAutocomplete({
             }
         };
         loadStudents();
-    }, [anioId]);
+    }, [anioId, refreshKey]);
 
     /* 🔹 Filtrar mientras escribe */
     useEffect(() => {

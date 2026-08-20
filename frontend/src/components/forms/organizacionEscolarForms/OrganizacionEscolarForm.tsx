@@ -3,6 +3,7 @@ import { getAniosLectivos } from '@/actions/catalogos/anioLectivoMethods';
 import { getTurnos } from '@/actions/catalogos/turnoMethods';
 import { saveOrganizacionEscolar, updateOrganizacionEscolar } from '@/actions/organizacionEscolarMethods/organizacionMethods';
 import { AnioLectivo, OrganizacionEscolar, OrganizacionEscolarPayload, Turno } from '@/interfaces';
+import { useToast } from '@/hooks/use-toast'
 import React, { useEffect, useState } from 'react'
 interface OrganizacionFormProp {
     defaultValues?: OrganizacionEscolar | null;
@@ -11,6 +12,7 @@ interface OrganizacionFormProp {
 
 
 export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: OrganizacionFormProp) {
+    const { toast } = useToast()
     const [anioLectivo, setAnioLectivo] = useState<string>("")
     const [aniosLectivos, setAniosLectivos] = useState<AnioLectivo[]>([])
 
@@ -57,11 +59,14 @@ export default function OrganizacionEscolarForm({ defaultValues, onSuccess }: Or
             }
             if (isEdit && defaultValues?.id) {
                 await updateOrganizacionEscolar(defaultValues.id, organizacionEscolarData);
+                toast({ title: "Organización actualizada", description: "La organización escolar se actualizó correctamente.", variant: "success" })
             } else {
                 await saveOrganizacionEscolar(organizacionEscolarData)
+                toast({ title: "Organización guardada", description: "La organización escolar se agregó correctamente.", variant: "success" })
             }
             onSuccess();
         } catch (error) {
+            toast({ title: "Error", description: "No se pudo guardar la organización escolar.", variant: "destructive" })
             console.error("Error al guardar o actualizar organizacion Escolar:", error);
         }
     }

@@ -13,6 +13,7 @@ import { getOrganizacionEscolarById } from "@/actions/organizacionEscolarMethods
 import { deleteGrupo } from "@/actions/organizacionEscolarMethods/GrupoEscolarMethods/GrupoEscolarMethods"
 import { useToast } from "@/hooks/use-toast"
 import ConfirmDialog from "@/components/modals/organizacionEscolar/grupoConAsignatura/ConfirmAccion"
+import EditGrupoModal from "@/components/modals/organizacionEscolar/gruposEscolares/EditGrupoModal"
 
 export default function OrganizationGroups() {
     const { organizacionId } = useParams();
@@ -64,32 +65,26 @@ export default function OrganizationGroups() {
     }
 
     return (
-        <div className="max-w-6xl mx-auto space-y-6">
+        <div className="max-w-6xl mx-auto space-y-6 mt-8">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Link
-                        href={`/admin/home`}
-                    >
-                        <Button variant="outline" size="sm">
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            Volver
-                        </Button>
-                    </Link>
-                    <div>
-                        <h1 className="text-2xl font-bold flex items-center gap-2">
-                            <Users className="h-6 w-6 text-emerald-600" />
-                            Grupos - {organizacionEscolar?.turno?.modalidad?.modalidad ?? "N/A"}
-                        </h1>
-                        <p className="text-slate-600 font-bold">
-                            Turno: {organizacionEscolar?.turno?.turno ?? "N/A"} • Año Lectivo {organizacionEscolar?.anio_lectivo?.anio_lectivo ?? "N/A"}
-                        </p>
-                    </div>
-                </div>
+            <div className="text-left">
+                <Link href={`/admin/home`}>
+                    <Button variant="outline" size="sm" className="bg-white mb-4">
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Volver
+                    </Button>
+                </Link>
+                <h1 className="text-2xl font-bold flex items-center gap-2">
+                    <Users className="h-6 w-6 text-emerald-600" />
+                    Grupos - {organizacionEscolar?.turno?.modalidad?.modalidad ?? "N/A"}
+                </h1>
+                <p className="text-slate-600 font-bold">
+                    Turno: {organizacionEscolar?.turno?.turno ?? "N/A"} • Año Lectivo {organizacionEscolar?.anio_lectivo?.anio_lectivo ?? "N/A"}
+                </p>
             </div>
 
             {/* Formulario para agregar grupos */}
-            <GrupoTableForm idOrganizacion={Number(organizacionId)} idTurno={Number(organizacionEscolar?.turno?.id ?? null)} onSuccess={fetchOrganizacionEscolarById} />
+            <GrupoTableForm idOrganizacion={Number(organizacionId)} onSuccess={fetchOrganizacionEscolarById} />
 
 
             {/* Lista de grupos */}
@@ -138,17 +133,20 @@ export default function OrganizationGroups() {
                                     <CardContent className="p-4">
                                         <div className="flex items-center justify-between mb-3">
                                             <h4 className="font-semibold text-slate-800">
-                                                {(g.grado?.grades)} - {g.seccion?.seccion ?? "N/A"} - {(g.turno?.turno ?? "N/A")}
+                                                {(g.grado?.grades)} - {g.seccion?.seccion ?? "N/A"} - {(organizacionEscolar?.turno?.turno ?? "N/A")}
                                             </h4>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => confirmDeleteGroup(g.id, `${g.grado?.grades ?? "N/A"} - ${g.seccion?.seccion ?? "N/A"} - ${g.turno?.turno ?? "N/A"}`)}
-                                                disabled={deletingGroupId === g.id}
-                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                            <div className="flex items-center gap-2">
+                                                <EditGrupoModal grupo={g} fetchGrupos={fetchOrganizacionEscolarById} organizacionEscolarFija={organizacionEscolar} />
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => confirmDeleteGroup(g.id, `${g.grado?.grades ?? "N/A"} - ${g.seccion?.seccion ?? "N/A"} - ${organizacionEscolar?.turno?.turno ?? "N/A"}`)}
+                                                    disabled={deletingGroupId === g.id}
+                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         </div>
 
                                         <div className="space-y-2 mb-4">
