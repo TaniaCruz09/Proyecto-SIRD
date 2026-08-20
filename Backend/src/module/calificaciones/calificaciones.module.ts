@@ -7,9 +7,10 @@ import { EsquelaHeadEntity } from './esquela_head/entities/squela_head.entity';
 import { EsquelaHeadController } from './esquela_head/esquela_head.controller';
 import { EsquelaHeadService } from './esquela_head/squela_head.service';
 import { AnioLectivoCalendarizacion } from '../catalogos/entities/anioLectivoCalendarizacion.entity';
+import { NotaCualitativa } from '../catalogos/entities/notaCualitativa.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([EsquelaRow, EsquelaHeadEntity, AnioLectivoCalendarizacion])],
+  imports: [TypeOrmModule.forFeature([EsquelaRow, EsquelaHeadEntity, AnioLectivoCalendarizacion, NotaCualitativa])],
   controllers: [EsquelaRowController, EsquelaHeadController],
   providers: [EsquelaRowService, EsquelaHeadService],
   exports: [TypeOrmModule],

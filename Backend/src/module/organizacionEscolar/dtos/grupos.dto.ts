@@ -5,7 +5,7 @@ import {
   IsObject,
   IsOptional,
 } from 'class-validator';
-import { GradesEntity, Modalidad, Seccion, Turno } from '../../catalogos';
+import { GradesEntity, Modalidad, Seccion } from '../../catalogos';
 import { Docentes } from '../../docentes/docentes.entity';
 import { OrganizacionEscolar } from '../entities/organizacionEscolar.entity';
 
@@ -25,10 +25,6 @@ export class CreateGrupoDto {
   @IsNotEmpty()
   @IsObject()
   docenteGuia: Docentes;
-
-  @IsNotEmpty()
-  @IsObject()
-  turno: Turno;
 
   @IsNotEmpty()
   @IsObject()

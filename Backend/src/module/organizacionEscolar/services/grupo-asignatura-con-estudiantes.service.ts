@@ -116,10 +116,9 @@ export class GrupoAsignaturaConEstudiantesService {
                 .leftJoinAndSelect('grupo.organizacionEscolar', 'organizacionEscolar')
                 .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo')
                 .leftJoinAndSelect('organizacionEscolar.turno', 'turnoOrganizacion')
+                .leftJoinAndSelect('turnoOrganizacion.modalidad', 'modalidad')
                 .leftJoinAndSelect('grupo.grado', 'grado')
                 .leftJoinAndSelect('grupo.seccion', 'seccion')
-                .leftJoinAndSelect('grupo.turno', 'turno')
-                .leftJoinAndSelect('turno.modalidad', 'modalidad')
                 .leftJoinAndSelect('grupo.docenteGuia', 'docenteGuia')
                 .leftJoinAndSelect('gce.estudiante', 'estudiante')
                 .where('gce.deleted_at IS NULL')
@@ -142,10 +141,9 @@ export class GrupoAsignaturaConEstudiantesService {
                 .leftJoinAndSelect('grupo.organizacionEscolar', 'organizacionEscolar')
                 .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo')
                 .leftJoinAndSelect('organizacionEscolar.turno', 'turnoOrganizacion')
+                .leftJoinAndSelect('turnoOrganizacion.modalidad', 'modalidad')
                 .leftJoinAndSelect('grupo.grado', 'grado')
                 .leftJoinAndSelect('grupo.seccion', 'seccion')
-                .leftJoinAndSelect('grupo.turno', 'turno')
-                .leftJoinAndSelect('turno.modalidad', 'modalidad')
                 .leftJoinAndSelect('grupo.docenteGuia', 'docenteGuia')
                 .leftJoinAndSelect('gce.estudiante', 'estudiante')
                 .leftJoinAndSelect('estudiante.gender', 'gender')
@@ -172,6 +170,79 @@ export class GrupoAsignaturaConEstudiantesService {
         try {
             if (grupoOrigenId === grupoDestinoId) {
                 throw new Error('El grupo destino debe ser diferente al grupo origen');
+            }
+
+            // 1. Validar que el grupo origen exista
+            const grupoOrigen = await this.grupoRepo.findOne({ where: { id: grupoOrigenId } });
+            if (!grupoOrigen) {
+                throw new NotFoundException('El grupo de origen no existe');
+            }
+
+            // 2. Validar que el grupo destino exista
+            const grupoDestino = await this.grupoRepo.findOne({ where: { id: grupoDestinoId } });
+            if (!grupoDestino) {
+                throw new NotFoundException('El grupo de destino no existe');
+            }
+
+            // 3. Validar que el estudiante pertenezca al grupo origen
+            const perteneceOrigen = await this.grupoConEstudianteRepo
+                .createQueryBuilder('gce')
+                .innerJoin('gce.grupoAsignaturaDocente', 'gad')
+                .where('gce.estudiante = :estudianteId', { estudianteId })
+                .andWhere('gce.deleted_at IS NULL')
+                .andWhere('gad.grupo = :grupoOrigenId', { grupoOrigenId })
+                .getOne();
+
+            if (!perteneceOrigen) {
+                throw new Error('El estudiante no pertenece al grupo de origen');
+            }
+
+            // 4. Validar que el estudiante NO esté ya en el grupo destino
+            const yaEnDestino = await this.grupoConEstudianteRepo
+                .createQueryBuilder('gce')
+                .innerJoin('gce.grupoAsignaturaDocente', 'gad')
+                .where('gce.estudiante = :estudianteId', { estudianteId })
+                .andWhere('gce.deleted_at IS NULL')
+                .andWhere('gad.grupo = :grupoDestinoId', { grupoDestinoId })
+                .getOne();
+
+            if (yaEnDestino) {
+                throw new Error('El estudiante ya está asignado al grupo de destino');
+            }
+
+            // 5. Validar que ambos grupos sean del mismo año lectivo y grado
+            const [grupoOrigenFull, grupoDestinoFull] = await Promise.all([
+                this.grupoRepo
+                    .createQueryBuilder('grupo')
+                    .leftJoinAndSelect('grupo.organizacionEscolar', 'org')
+                    .leftJoinAndSelect('org.anio_lectivo', 'anio')
+                    .leftJoinAndSelect('grupo.grado', 'grado')
+                    .where('grupo.id = :id', { id: grupoOrigenId })
+                    .getOne(),
+                this.grupoRepo
+                    .createQueryBuilder('grupo')
+                    .leftJoinAndSelect('grupo.organizacionEscolar', 'org')
+                    .leftJoinAndSelect('org.anio_lectivo', 'anio')
+                    .leftJoinAndSelect('grupo.grado', 'grado')
+                    .where('grupo.id = :id', { id: grupoDestinoId })
+                    .getOne(),
+            ]);
+
+            const anioOrigen = grupoOrigenFull?.organizacionEscolar?.anio_lectivo?.id;
+            const anioDestino = grupoDestinoFull?.organizacionEscolar?.anio_lectivo?.id;
+            const gradoOrigen = grupoOrigenFull?.grado?.id;
+            const gradoDestino = grupoDestinoFull?.grado?.id;
+
+            if (!anioOrigen || !anioDestino) {
+                throw new Error('No se pudo determinar el año lectivo de los grupos');
+            }
+
+            if (anioOrigen !== anioDestino) {
+                throw new Error('Los grupos deben pertenecer al mismo año lectivo');
+            }
+
+            if (gradoOrigen !== gradoDestino) {
+                throw new Error('Los grupos deben ser del mismo grado');
             }
 
             const resultado = await this.grupoConEstudianteRepo.manager.transaction(async (manager) => {

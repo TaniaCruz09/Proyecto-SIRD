@@ -1,5 +1,6 @@
 import { Asignatura } from 'src/module/catalogos/entities/asignatura.entity';
 import { Cortes } from 'src/module/catalogos/entities/corte.entity';
+import { NotaCualitativa } from 'src/module/catalogos/entities/notaCualitativa.entity';
 import { StudentEntity } from 'src/module/createEstudents/students.entity';
 import {
     Column,
@@ -7,7 +8,6 @@ import {
     Entity,
     JoinColumn,
     ManyToOne,
-    OneToMany,
     PrimaryGeneratedColumn,
 } from 'typeorm';
 import { EsquelaHeadEntity } from '../esquela_head/entities/squela_head.entity';
@@ -27,11 +27,9 @@ export class EsquelaRow {
     @JoinColumn({ name: 'asignatura_id' })
     asignatura: Asignatura;
 
-    @Column({
-        name: 'nota_cualitativa',
-        type: 'varchar',
-    })
-    notaCualitativa: string;
+    @ManyToOne(() => NotaCualitativa)
+    @JoinColumn({ name: 'nota_cualitativa_id' })
+    notaCualitativa: NotaCualitativa;
 
     @Column({
         name: 'nota_cuantitativa',

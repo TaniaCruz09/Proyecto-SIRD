@@ -1,6 +1,7 @@
-import { IsNotEmpty, IsNumber, IsObject, IsOptional, IsString } from "class-validator";
+import { IsNotEmpty, IsNumber, IsObject, IsOptional, Max, Min } from "class-validator";
 import { Asignatura } from "src/module/catalogos/entities/asignatura.entity";
 import { Cortes } from "src/module/catalogos/entities/corte.entity";
+import { NotaCualitativa } from "src/module/catalogos/entities/notaCualitativa.entity";
 import { StudentEntity } from "src/module/createEstudents/students.entity";
 import { EsquelaHeadEntity } from "../esquela_head/entities/squela_head.entity";
 
@@ -18,11 +19,13 @@ export class CreateEsquelaRowDto {
     asignatura: Asignatura;
 
     @IsNotEmpty()
-    @IsString()
-    notaCualitativa: string;
+    @IsObject()
+    notaCualitativa: NotaCualitativa;
 
     @IsOptional()
     @IsNumber()
+    @Min(0)
+    @Max(100)
     notaCuantitativa: number
 
     @IsNotEmpty()

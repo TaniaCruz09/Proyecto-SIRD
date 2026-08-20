@@ -11,7 +11,6 @@ import {
 } from 'typeorm';
 import * as moment from 'moment-timezone';
 import { User } from '../../auth/entities/user.entity';
-import { SemestreEntity } from './semestres.entity';
 import { EsquelaRow } from '../../calificaciones/esquelas_rows/esquelas_rows.entity';
 import { AnioLectivoCorte } from './anioLectivoCorte.entity';
 import { PeriodoLectivoCorte } from './periodoLectivoCorte.entity';
@@ -34,9 +33,6 @@ export class Cortes {
     name: 'corte',
   })
   corte: string;
-
-  @ManyToOne(() => SemestreEntity, (semestre) => semestre.corte)
-  semestre: SemestreEntity;
 
   @OneToMany(() => EsquelaRow, (calificacion) => calificacion.corte)
   calificacion?: EsquelaRow[];

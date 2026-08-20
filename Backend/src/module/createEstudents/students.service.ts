@@ -32,11 +32,12 @@ export class StudentService {
             .leftJoinAndSelect('student.grupoAsignaturaConEstudiantes', 'grupoAsignaturaConEstudiantes', 'grupoAsignaturaConEstudiantes.deleted_at IS NULL')
             .leftJoinAndSelect('grupoAsignaturaConEstudiantes.grupoAsignaturaDocente', 'grupoAsignaturaDocente')
             .leftJoinAndSelect('grupoAsignaturaDocente.grupo', 'grupo')
+            .leftJoinAndSelect('grupoAsignaturaDocente.asignatura', 'asignaturaGACE')
             .leftJoinAndSelect('grupo.organizacionEscolar', 'organizacionEscolar')
+            .leftJoinAndSelect('organizacionEscolar.turno', 'turno')
             .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo')
             .leftJoinAndSelect('grupo.grado', 'grado')
-            .leftJoinAndSelect('grupo.seccion', 'seccion')
-            .leftJoinAndSelect('grupo.turno', 'turno');
+            .leftJoinAndSelect('grupo.seccion', 'seccion');
     }
 
     // ------------------------------------------------
@@ -191,7 +192,7 @@ export class StudentService {
 
                 const grupoData = grupo?.grupoAsignaturaDocente?.grupo;
                 const grupoAsignado = grupoData
-                    ? `${grupoData.grado?.grades ?? ""} ${grupoData.seccion?.seccion ?? ""} - ${grupoData.turno?.turno ?? ""} - ${grupoData.turno?.modalidad?.modalidad ?? ""}`.replace(/\s+-\s+-\s+$/, "")
+                    ? `${grupoData.grado?.grades ?? ""} ${grupoData.seccion?.seccion ?? ""} - ${grupoData.organizacionEscolar?.turno?.turno ?? ""} - ${grupoData.organizacionEscolar?.turno?.modalidad?.modalidad ?? ""}`.replace(/\s+-\s+-\s+$/, "")
                     : null;
 
                 return { ...student, asignadoGrupo: grupoAsignado };

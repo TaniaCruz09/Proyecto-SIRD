@@ -39,9 +39,6 @@ import { PaisService } from './services/pais.service';
 import { Cortes } from './entities/corte.entity';
 import { CortesController } from './controllers/cortes.controller';
 import { CortesService } from './services/cortes.service';
-import { SemestreEntity } from './entities/semestres.entity';
-import { SemestreController } from './controllers/semestres.controller';
-import { SemestreService } from './services/semestre.service';
 import { AnioLectivo } from './entities/anioLectivo.entity';
 import { AnioLectivoController } from './controllers/anioLectivo.controller';
 import { AnioLectivoService } from './services/anioLectivo.service';
@@ -77,7 +74,6 @@ import { AnioLectivoCalendarizacionService } from './services/anioLectivoCalenda
       Departamento,
       Municipio,
       Pais,
-      SemestreEntity,
       Cortes,
       AnioLectivo,
       AnioLectivoCorte,
@@ -105,7 +101,6 @@ import { AnioLectivoCalendarizacionService } from './services/anioLectivoCalenda
     DepartamentoController,
     MunicipioController,
     PaisController,
-    SemestreController,
     CortesController,
     AnioLectivoController,
     NotaCualitativaController,
@@ -126,7 +121,6 @@ import { AnioLectivoCalendarizacionService } from './services/anioLectivoCalenda
     DepartamentoService,
     MunicipioService,
     PaisService,
-    SemestreService,
     CortesService,
     AnioLectivoService,
     NotaCualitativaService,

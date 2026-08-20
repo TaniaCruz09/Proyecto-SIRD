@@ -67,10 +67,10 @@ export class DocentesService {
         .leftJoinAndSelect('docente.grupos', 'grupos')
         .leftJoinAndSelect('grupos.grado', 'grado')
         .leftJoinAndSelect('grupos.seccion', 'seccion')
-        .leftJoinAndSelect('grupos.turno', 'turno')
-        .leftJoinAndSelect('turno.modalidad', 'modalidad')
 
         .leftJoinAndSelect('grupos.organizacionEscolar', 'organizacionEscolar')
+        .leftJoinAndSelect('organizacionEscolar.turno', 'turno')
+        .leftJoinAndSelect('turno.modalidad', 'modalidad')
         .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo')
 
         .leftJoinAndSelect(
@@ -103,9 +103,9 @@ export class DocentesService {
         .leftJoinAndSelect('grupoAsignaturaDocente.grupo', 'grupo')
         .leftJoinAndSelect('grupo.grado', 'grado')
         .leftJoinAndSelect('grupo.seccion', 'seccion')
-        .leftJoinAndSelect('grupo.turno', 'turno')
-        .leftJoinAndSelect('turno.modalidad', 'modalidad')
         .leftJoinAndSelect('grupo.organizacionEscolar', 'organizacionEscolar')
+        .leftJoinAndSelect('organizacionEscolar.turno', 'turno')
+        .leftJoinAndSelect('turno.modalidad', 'modalidad')
         .leftJoinAndSelect('organizacionEscolar.anio_lectivo', 'anio_lectivo')
         .leftJoinAndSelect('grupoAsignaturaDocente.asignatura', 'asignatura')
         .leftJoinAndSelect(

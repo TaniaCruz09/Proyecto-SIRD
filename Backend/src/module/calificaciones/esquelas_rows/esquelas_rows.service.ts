@@ -7,6 +7,7 @@ import { CreateEsquelaRowDto } from './esquelas_rows.dto';
 import { UpdateCalificacioneDto } from './update_esquelas_rows.dto';
 import { EsquelaHeadEntity } from '../esquela_head/entities/squela_head.entity';
 import { AnioLectivoCalendarizacion } from 'src/module/catalogos/entities/anioLectivoCalendarizacion.entity';
+import { NotaCualitativa } from 'src/module/catalogos/entities/notaCualitativa.entity';
 import * as moment from 'moment-timezone';
 
 @Injectable()
@@ -18,6 +19,8 @@ export class EsquelaRowService {
         private readonly esquelaHeadRepo: Repository<EsquelaHeadEntity>,
         @InjectRepository(AnioLectivoCalendarizacion)
         private readonly anioLectivoCalendarizacionRepo: Repository<AnioLectivoCalendarizacion>,
+        @InjectRepository(NotaCualitativa)
+        private readonly notaCualitativaRepo: Repository<NotaCualitativa>,
     ) { }
 
     private isMissingPeriodoTableError(error: unknown): boolean {
@@ -81,7 +84,7 @@ export class EsquelaRowService {
             .leftJoin('head.grupo_asignatura', 'grupo')
             .leftJoin('grupo.organizacionEscolar', 'org')
             .leftJoin('org.anio_lectivo', 'anio')
-            .leftJoin('grupo.turno', 'turno')
+            .leftJoin('org.turno', 'turno')
             .leftJoin('turno.modalidad', 'modalidad')
             .select('anio.id', 'anioLectivoId')
             .addSelect('anio.is_active', 'anioActivo')
@@ -130,9 +133,19 @@ export class EsquelaRowService {
         try {
             const corteId = payload.corte?.id;
             const esquelaHeadId = payload.esquelaHead?.id;
-            if (!corteId || !esquelaHeadId) {
-                throw new BadRequestException('Corte y esquela head son requeridos');
+            const notaCualitativaId = payload.notaCualitativa?.id;
+            if (!corteId || !esquelaHeadId || !notaCualitativaId) {
+                throw new BadRequestException('Corte, esquela head y nota cualitativa son requeridos');
             }
+
+            // Validar que la nota cualitativa exista en el catálogo
+            const notaValida = await this.notaCualitativaRepo.findOne({
+                where: { id: notaCualitativaId },
+            });
+            if (!notaValida) {
+                throw new BadRequestException('La nota cualitativa no existe en el catálogo');
+            }
+
             await this.validateCorteEditableForEsquelaHead(esquelaHeadId, corteId);
             const calificacion = await this.calificacionRepo.create(payload)
             return await this.calificacionRepo.save(calificacion)
@@ -145,7 +158,7 @@ export class EsquelaRowService {
         try {
             return await this.calificacionRepo.find({
                 where: { deleted_at: IsNull() },
-                relations: ['estudiante', 'asignatura']
+                relations: ['estudiante', 'asignatura', 'notaCualitativa']
             })
         } catch (error) {
             Utilities.catchError(error)
@@ -156,7 +169,7 @@ export class EsquelaRowService {
         try {
             const calificacion = await this.calificacionRepo.findOne({
                 where: { id, deleted_at: IsNull() },
-                relations: ['estudiante', 'asignatura']
+                relations: ['estudiante', 'asignatura', 'notaCualitativa']
             })
             return calificacion;
         } catch (error) {
@@ -173,9 +186,12 @@ export class EsquelaRowService {
                 .createQueryBuilder('row')
                 .leftJoinAndSelect('row.estudiante', 'estudiante')
                 .leftJoinAndSelect('row.asignatura', 'asignatura')
+                .leftJoinAndSelect('row.notaCualitativa', 'notaCualitativa')
                 .leftJoinAndSelect('row.corte', 'corte')
                 .leftJoinAndSelect('row.esquelaHead', 'head')
                 .leftJoinAndSelect('head.grupo_asignatura', 'grupo')
+                .leftJoinAndSelect('grupo.grado', 'grado')
+                .leftJoinAndSelect('grupo.seccion', 'seccion')
                 .leftJoinAndSelect('grupo.organizacionEscolar', 'org')
                 .leftJoinAndSelect('org.anio_lectivo', 'anio')
                 .where('row.deleted_at IS NULL')
@@ -204,6 +220,17 @@ export class EsquelaRowService {
                 throw new BadRequestException('Corte y esquela head son requeridos');
             }
 
+            // Validar nota cualitativa si viene en el payload
+            const notaCualitativaId = payload.notaCualitativa?.id;
+            if (notaCualitativaId) {
+                const notaValida = await this.notaCualitativaRepo.findOne({
+                    where: { id: notaCualitativaId },
+                });
+                if (!notaValida) {
+                    throw new BadRequestException('La nota cualitativa no existe en el catálogo');
+                }
+            }
+
             await this.validateCorteEditableForEsquelaHead(esquelaHeadId, corteId);
 
             const calificaciones = await this.calificacionRepo.preload({ id, ...payload });
@@ -216,9 +243,13 @@ export class EsquelaRowService {
         }
     }
 
-    async remove(id: number): Promise<void> {
+    async remove(id: number): Promise<{ message: string }> {
         try {
-            await this.calificacionRepo.softDelete(id);
+            const result = await this.calificacionRepo.softDelete(id);
+            if (result.affected === 0) {
+                throw new NotFoundException('Calificación no encontrada');
+            }
+            return { message: 'Calificación eliminada correctamente' };
         } catch (error) {
             Utilities.catchError(error)
         }

@@ -75,11 +75,6 @@ export { CreateSeccionDTO } from "./dtos/seccion.dto";
 export { SeccionController } from "./controllers/seccion.controller";
 export { SeccionService } from "./services/seccion.service";
 
-export { SemestreDto } from "./dtos/semestres.dto";
-export { SemestreEntity } from "./entities/semestres.entity";
-export { SemestreService } from "./services/semestre.service";
-export { SemestreController } from "./controllers/semestres.controller";
-
 export { Turno } from "./entities/turnos.entity";
 export { CreateTurnoDto } from "./dtos/turnos.dto";
 export { TurnoService } from "./services/turnos.service";

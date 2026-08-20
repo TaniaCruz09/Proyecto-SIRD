@@ -103,7 +103,6 @@ export class AnioLectivoService {
             .createQueryBuilder('anio_lectivo')
             .leftJoinAndSelect('anio_lectivo.cortesAnioLectivo', 'anioLectivoCorte')
             .leftJoinAndSelect('anioLectivoCorte.corte', 'corte')
-            .leftJoinAndSelect('corte.semestre', 'semestre')
             .leftJoinAndSelect('anio_lectivo.organizacionEscolar', 'organizacionEscolar')
             .leftJoinAndSelect('organizacionEscolar.turno', 'turno')
             .leftJoinAndSelect('turno.modalidad', 'modalidad');
@@ -113,8 +112,7 @@ export class AnioLectivoService {
                 .leftJoinAndSelect('anio_lectivo.periodosLectivos', 'periodoLectivo')
                 .leftJoinAndSelect('periodoLectivo.tipoPeriodizacion', 'tipoPeriodizacion')
                 .leftJoinAndSelect('periodoLectivo.cortesPeriodo', 'periodoLectivoCorte')
-                .leftJoinAndSelect('periodoLectivoCorte.corte', 'cortePeriodo')
-                .leftJoinAndSelect('cortePeriodo.semestre', 'semestreCortePeriodo');
+                .leftJoinAndSelect('periodoLectivoCorte.corte', 'cortePeriodo');
         }
 
         return query;

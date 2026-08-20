@@ -1,5 +1,6 @@
 import {
   IsDate,
+  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
@@ -15,10 +16,12 @@ export class NotaCualitativaDto {
 
   @IsString()
   @MaxLength(100)
+  @IsNotEmpty()
   readonly nombre: string;
 
   @IsString()
   @MaxLength(20)
+  @IsNotEmpty()
   readonly abreviatura: string;
 
   @IsNumber()

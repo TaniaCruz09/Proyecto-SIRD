@@ -12,7 +12,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import * as moment from 'moment-timezone';
-import { Grupos } from 'src/module/organizacionEscolar/entities/grupos.entity';
 import { Modalidad } from './modalidad.entity';
 import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/organizacionEscolar.entity';
 
@@ -86,9 +85,6 @@ export class Turno {
   @ManyToOne(() => User, (user) => user.id)
   @JoinColumn({ name: 'deleted_at_id' }) // Se enlaza con el usuario que eliminó el registro
   user_delete: User;
-
-  @OneToMany(() => Grupos, (grupos) => grupos.turno)
-  grupos?: Grupos[];
 
   @ManyToOne(() => Modalidad, (modalidad) => modalidad.turnos)
   modalidad: Modalidad

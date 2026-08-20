@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req, UseGuards } from "@nestjs/common";
 import { GradesService } from "../services/grades.service";
 import { GradesDto } from "../dtos/grades.dto";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
@@ -72,9 +72,10 @@ export class GradesController{
     }
 
     @Delete('/:id')
-    async deleteGrades(@Param('id',ParseIntPipe) id:number ) {
+    async deleteGrades(@Param('id',ParseIntPipe) id:number, @Req() req) {
         try{
-            const grades = await this.gradesService.deleteGrades(id);
+            const userId = req.user?.id;
+            const grades = await this.gradesService.deleteGrades(id, userId);
             const data = {
                 data: grades,
                 message: 'grade deleted',

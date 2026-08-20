@@ -10,7 +10,7 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { GradesEntity, Modalidad, Seccion, Turno } from '../../catalogos';
+import { GradesEntity, Modalidad, Seccion } from '../../catalogos';
 import { User } from '../../auth/entities/user.entity';
 import * as moment from 'moment-timezone';
 import { Docentes } from 'src/module/docentes/docentes.entity';
@@ -31,9 +31,6 @@ export class Grupos {
 
     @ManyToOne(() => Seccion, (seccion) => seccion.grupos, { onDelete: 'CASCADE' })
     seccion: Seccion;
-
-    @ManyToOne(() => Turno, (turno) => turno.grupos, { onDelete: 'CASCADE' })
-    turno: Turno;
 
     @ManyToOne(() => OrganizacionEscolar, (organizacionEscolar) => organizacionEscolar.grupos, { eager: true })
     organizacionEscolar: OrganizacionEscolar;
