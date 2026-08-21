@@ -15,7 +15,7 @@ services:
       - key: NODE_VERSION
         value: "20"
       - key: DB_SYNC
-        value: "false"
+        value: "true"
       - key: MIGRATIONS_TABLE_NAME
         value: migrations
       - key: CORS_ORIGIN
