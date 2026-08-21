@@ -28,6 +28,15 @@ export class AuthController {
     private readonly userService: UserService,
   ) { }
 
+  // Cookie compartida entre dominios (frontend en Vercel ↔ backend en Render):
+  // en producción se usa sameSite 'none' para que el navegador la envíe cross-site.
+  private readonly cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as 'lax' | 'none',
+    path: '/',
+  };
+
   @Post('login')
   async signIn(
     @Body() payload: AuthDto,
@@ -40,26 +49,18 @@ export class AuthController {
 
       // Caso 1: un solo rol → token definitivo
       if (roles.length === 1) {
-        res.cookie('token', token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-        });
+        res.cookie('token', token, this.cookieOptions);
 
-        return { user, roles, autoSelectRole: true };
+        return { user, roles, autoSelectRole: true, token };
       }
 
       // Caso 2: múltiples roles → token básico
       if (roles.length > 1) {
         const basicToken = await this.authService.createBasicToken(user);
 
-        res.cookie('token', basicToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-        });
+        res.cookie('token', basicToken, this.cookieOptions);
 
-        return { user, roles, autoSelectRole: false };
+        return { user, roles, autoSelectRole: false, token: basicToken };
       }
 
       // Caso 3: sin roles
@@ -116,15 +117,12 @@ export class AuthController {
         docente: user.docente ? { id: user.docente.id, nombre: user.docente.nombres } : null,
       });
 
-      res.cookie('token', newToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-      });
+      res.cookie('token', newToken, this.cookieOptions);
 
       return {
         message: 'Rol seleccionado correctamente',
         role,
+        token: newToken,
         user: {
           id: user.id,
           name: user.name,
@@ -142,12 +140,7 @@ export class AuthController {
   @Post('logout')
   logout(@Res({ passthrough: true }) res: Response) {
     // Limpiar la cookie 'token'
-    res.clearCookie('token', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // solo HTTPS en producción
-      sameSite: 'lax',
-      path: '/',
-    });
+    res.clearCookie('token', this.cookieOptions);
 
     return {
       message: 'Sesión cerrada correctamente',
@@ -170,13 +163,9 @@ export class AuthController {
         docente: payload.docente ?? null,
       });
 
-      res.cookie('token', newToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-      });
+      res.cookie('token', newToken, this.cookieOptions);
 
-      return { message: 'Sesion renovada' };
+      return { message: 'Sesion renovada', token: newToken };
     } catch {
       throw new UnauthorizedException('Token invalido o expirado');
     }

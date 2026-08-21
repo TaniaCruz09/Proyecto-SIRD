@@ -10,6 +10,14 @@ export const feching = async (
   const isFormData = body instanceof FormData;
   const headers = await getHeadersGlobal(body);
 
+  // Enviar token si existe (funciona entre dominios sin depender solo de cookies)
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+  }
+
   const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${endPoint}`;
 
   const options: RequestInit = {

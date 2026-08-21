@@ -3,6 +3,7 @@
 import { createContext, useState, useEffect, ReactNode, useContext, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { SelectRole, logoutUser, refreshSession } from '@/actions/authMethods/loginMethods'
+import { setAuthCookie, clearAuthCookie } from '@/actions/authMethods/authCookie'
 import { Docente } from '@/interfaces'
 import { getUserById } from '@/actions/authMethods/usersMethods'
 import { getDocenteById } from '@/actions/docentesMethods/docentesMethods'
@@ -160,6 +161,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 const response = await SelectRole({ role: newRol })
                 setRol(response.role)
                 localStorage.setItem('rol', response.role)
+
+                // select-role emite un token nuevo: guardarlo y refrescar la cookie del middleware
+                if (response.token) {
+                    localStorage.setItem('token', response.token)
+                    await setAuthCookie(response.token)
+                }
             }
         } catch (err) {
             console.error('Error en login:', err)
@@ -202,6 +209,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             localStorage.removeItem('docente')
             localStorage.removeItem('userId')
             localStorage.removeItem('user')
+            localStorage.removeItem('token')
+            await clearAuthCookie()
 
             setSessionActive(false)
             router.replace('/auth/login')
@@ -233,7 +242,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const now = Date.now()
             if (now - lastRefreshRef.current < refreshThrottleMs) return
             try {
-                await refreshSession()
+                const refreshed = await refreshSession()
+                if (refreshed?.token) {
+                    localStorage.setItem('token', refreshed.token)
+                    await setAuthCookie(refreshed.token)
+                }
                 lastRefreshRef.current = now
             } catch {
                 logout("expired")
