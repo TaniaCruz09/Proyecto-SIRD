@@ -1,0 +1,32 @@
+# Render Blueprint — despliega el backend NestJS (SIRD) en Render.
+# Las variables con "sync: false" se piden al crear el servicio desde el dashboard
+# (así los secretos nunca quedan en el repositorio).
+services:
+  - type: web
+    name: sird-backend
+    runtime: node
+    plan: free
+    rootDir: Backend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:render
+    healthCheckPath: /api/v1
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: DB_SYNC
+        value: "false"
+      - key: MIGRATIONS_TABLE_NAME
+        value: migrations
+      - key: CORS_ORIGIN
+        value: http://localhost:3000
+      - key: DATABASE_URL
+        sync: false
+      - key: API_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_PASS
+        sync: false
