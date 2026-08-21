@@ -192,6 +192,12 @@ export default function OrganizationGroups() {
                                                 variant="outline" size="sm"
                                                 className="w-full justify-between bg-transparent"
                                                 onClick={() => router.push(`/add-students-to-group/${g.id}`)}
+                                                disabled={totalMaterias === 0}
+                                                title={
+                                                    totalMaterias === 0
+                                                        ? "Debes agregar al menos una materia antes de asignar estudiantes"
+                                                        : undefined
+                                                }
                                             >
 
                                                 <span className="flex items-center gap-2">
@@ -200,6 +206,11 @@ export default function OrganizationGroups() {
                                                 </span>
                                                 <ChevronRight className="h-4 w-4" />
                                             </Button>
+                                            {totalMaterias === 0 && (
+                                                <p className="text-xs text-slate-400 text-center -mt-1">
+                                                    Agrega al menos una materia para habilitar estudiantes
+                                                </p>
+                                            )}
                                         </div>
                                     </CardContent>
                                 </Card>

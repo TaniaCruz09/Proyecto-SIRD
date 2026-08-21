@@ -60,13 +60,17 @@ export default function RegisterEstudentForm({ defeaultValues: defaultValues, on
         name: defaultValues.name ?? "",
         lastName: defaultValues.lastName ?? "",
         studentCode: defaultValues.studentCode ?? "",
-        identityCard: defaultValues.identityCard ?? "",
+        identityCard: defaultValues.identityCard
+          ? formatCedula(defaultValues.identityCard)
+          : "",
         dateBirt: defaultValues.dateBirt
           ? new Date(defaultValues.dateBirt).toISOString().split("T")[0]
           : "",
         address: defaultValues.address ?? "",
         tutorName: defaultValues.tutorName ?? "",
-        tutorIdentityCard: defaultValues.tutorIdentityCard ?? "",
+        tutorIdentityCard: defaultValues.tutorIdentityCard
+          ? formatCedula(defaultValues.tutorIdentityCard)
+          : "",
         tutorPhoneNumber: defaultValues.tutorPhoneNumber ?? "",
         gender: defaultValues.gender?.id?.toString() || "",
         observations: defaultValues.observations ?? "",
@@ -83,6 +87,36 @@ export default function RegisterEstudentForm({ defeaultValues: defaultValues, on
     }
   }, [defaultValues]);
 
+  // Formatea la cédula con guiones automáticos: 000-000000-0000A (16 caracteres)
+  // Los primeros 13 caracteres son dígitos y el último es una letra
+  const formatCedula = (value: string): string => {
+    const raw = value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+
+    let digits = "";
+    let last = "";
+    for (const ch of raw) {
+      if (digits.length < 13 && /\d/.test(ch)) {
+        digits += ch;
+      } else if (digits.length === 13 && last.length === 0 && /[A-Z]/.test(ch)) {
+        last = ch;
+      }
+    }
+
+    const limited = (digits + last).slice(0, 14);
+
+    const part1 = limited.slice(0, 3);
+    const part2 = limited.slice(3, 9);
+    const part3 = limited.slice(9, 14);
+
+    let result = part1;
+    if (part2) result += "-" + part2;
+    if (part3) result += "-" + part3;
+    return result;
+  };
+
+  // Quita los guiones antes de enviar al backend (la BD guarda solo 14 caracteres)
+  const stripCedula = (value: string): string => value.replace(/-/g, "");
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     let newValue = value;
@@ -92,9 +126,9 @@ export default function RegisterEstudentForm({ defeaultValues: defaultValues, on
       newValue = value.replace(/\D/g, "").slice(0, 8);
     }
 
-    // Limitar largo de cédulas
+    // Cédulas: formato automático 000-000000-0000A (máximo 16 caracteres)
     if (name === "identityCard" || name === "tutorIdentityCard") {
-      newValue = value.slice(0, 16);
+      newValue = formatCedula(value);
     }
 
     // Limpiar mensajes de validacion nativa al escribir
@@ -123,20 +157,36 @@ export default function RegisterEstudentForm({ defeaultValues: defaultValues, on
     setInputValidity(input ?? null, "");
   };
 
+  // Valida el formato de cédula (solo si el campo tiene contenido, ya que es opcional)
+  const validateCedulaLength = (input: HTMLInputElement | null, value: string) => {
+    const trimmed = value.trim();
+    if (trimmed && trimmed.length !== 16) {
+      setInputValidity(
+        input,
+        "La cédula debe tener el formato 000-000000-0000A (ej: 616-041002-1004S)"
+      );
+      return false;
+    }
+    setInputValidity(input, "");
+    return true;
+  };
+
   // Verificar que no exista otro estudiante con la misma cédula
   const checkCedulaUnique = async (value: string, input?: HTMLInputElement | null) => {
-    if (value == null || String(value).trim() === "") {
+    const normalized = stripCedula(value ?? "");
+    if (!normalized.trim()) {
       setInputValidity(input ?? null, "");
       return true;
     }
-    if (defaultValues?.identityCard && value === defaultValues.identityCard) {
+    if (defaultValues?.identityCard && stripCedula(defaultValues.identityCard) === normalized) {
       setInputValidity(input ?? null, "");
       return true;
     }
     try {
       const students = await getRegisterEstudent();
       const found = students.find((s: any) =>
-        s.identityCard === value || s.tutorIdentityCard === value
+        stripCedula(s.identityCard ?? "") === normalized ||
+        stripCedula(s.tutorIdentityCard ?? "") === normalized
       );
       if (found && Number(found.id) !== Number(defaultValues?.id)) {
         setInputValidity(input ?? null, "La cedula ya pertenece a otro registro");
@@ -208,6 +258,11 @@ export default function RegisterEstudentForm({ defeaultValues: defaultValues, on
             if (isEdit) data.append(key, "");
             return;
           }
+        }
+        // Guardar las cédulas sin guiones (el backend las almacena así)
+        if (key === "identityCard" || key === "tutorIdentityCard") {
+          data.append(key, stripCedula(String(value)));
+          return;
         }
         data.append(key, value);
       });
@@ -368,11 +423,12 @@ export default function RegisterEstudentForm({ defeaultValues: defaultValues, on
             <input
               type="text"
               name="identityCard"
-              placeholder="Cédula de identidad"
+              placeholder="000-000000-0000A"
               value={formValues.identityCard}
               onChange={handleInputChange}
               onBlur={async (e) => {
                 const value = e.currentTarget.value;
+                validateCedulaLength(e.currentTarget, value);
                 await checkCedulaUnique(value, e.currentTarget);
               }}
               ref={identityCardRef}
@@ -477,9 +533,10 @@ export default function RegisterEstudentForm({ defeaultValues: defaultValues, on
             <input
               type="text"
               name="tutorIdentityCard"
-              placeholder="Cédula del tutor"
+              placeholder="000-000000-0000A"
               value={formValues.tutorIdentityCard}
               onChange={handleInputChange}
+              onBlur={(e) => validateCedulaLength(e.currentTarget, e.currentTarget.value)}
               className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
               maxLength={16}
             />

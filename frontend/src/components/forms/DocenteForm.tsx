@@ -105,7 +105,9 @@ export default function DocenteForm({
         nombres: defaultValues.nombres ?? "",
         apellido_paterno: defaultValues.apellido_paterno ?? "",
         apellido_materno: defaultValues.apellido_materno ?? "",
-        cedulaIdentidad: defaultValues.cedula_identidad ?? "",
+        cedulaIdentidad: defaultValues.cedula_identidad
+          ? formatCedula(defaultValues.cedula_identidad)
+          : "",
         sexo: defaultValues.sexo?.id?.toString() || "",
         nivelAcademico: defaultValues.nivel_academico?.[0]?.id?.toString() || "",
         telefono: defaultValues.telefono ?? "",
@@ -130,6 +132,36 @@ export default function DocenteForm({
     }
   }, [defaultValues]);
 
+  // Formatea la cédula con guiones automáticos: 000-000000-0000A (16 caracteres)
+  // Los primeros 13 caracteres son dígitos y el último es una letra
+  const formatCedula = (value: string): string => {
+    const raw = value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+
+    let digits = "";
+    let last = "";
+    for (const ch of raw) {
+      if (digits.length < 13 && /\d/.test(ch)) {
+        digits += ch;
+      } else if (digits.length === 13 && last.length === 0 && /[A-Z]/.test(ch)) {
+        last = ch;
+      }
+    }
+
+    const limited = (digits + last).slice(0, 14);
+
+    const part1 = limited.slice(0, 3);
+    const part2 = limited.slice(3, 9);
+    const part3 = limited.slice(9, 14);
+
+    let result = part1;
+    if (part2) result += "-" + part2;
+    if (part3) result += "-" + part3;
+    return result;
+  };
+
+  // Quita los guiones antes de enviar al backend (la BD guarda solo 14 caracteres)
+  const stripCedula = (value: string): string => value.replace(/-/g, "");
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     let newValue = value;
@@ -144,9 +176,9 @@ export default function DocenteForm({
       newValue = value.replace(/\D/g, "").slice(0, 8);
     }
 
-    // Limitar largo de cédulas
-    if (name === "cedula_identidad" || name === "cedula_identidad") {
-      newValue = value.slice(0, 16);
+    // Cédula: formato automático 000-000000-0000A (máximo 16 caracteres)
+    if (name === "cedulaIdentidad") {
+      newValue = formatCedula(value);
     }
 
     // Limpiar mensajes de validacion nativa al escribir
@@ -175,9 +207,11 @@ export default function DocenteForm({
   };
 
   const validateCedulaLength = (input: HTMLInputElement | null, value: string) => {
-    const len = value.trim().length;
-    if (len < 14 || len > 16) {
-      setInputValidity(input, "La cedula debe tener entre 14 y 16 caracteres");
+    if (value.trim().length !== 16) {
+      setInputValidity(
+        input,
+        "La cédula debe tener el formato 000-000000-0000A (ej: 616-041002-1004S)"
+      );
       return false;
     }
     setInputValidity(input, "");
@@ -200,7 +234,10 @@ export default function DocenteForm({
     }
     try {
       const docentes = await getDocentes();
-      const found = docentes.find((d: any) => d.cedula_identidad === value);
+      const normalized = stripCedula(value);
+      const found = docentes.find(
+        (d: any) => stripCedula(d.cedula_identidad ?? "") === normalized
+      );
       if (found && found.id !== defaultValues?.id) {
         setInputValidity(input ?? null, "La cedula ya pertenece a otro registro");
         return false;
@@ -259,7 +296,7 @@ export default function DocenteForm({
       formData.append("nombres", formValues.nombres);
       formData.append("apellido_paterno", formValues.apellido_paterno);
       formData.append("apellido_materno", formValues.apellido_materno);
-      formData.append("cedula_identidad", formValues.cedulaIdentidad);
+      formData.append("cedula_identidad", stripCedula(formValues.cedulaIdentidad));
       formData.append("telefono", formValues.telefono);
       formData.append("correo", formValues.correo);
       if (formValues.fechaNacimiento) formData.append("fecha_nacimiento", formValues.fechaNacimiento);
@@ -408,7 +445,8 @@ export default function DocenteForm({
             <input
               type="text"
               name="cedulaIdentidad"
-              placeholder="Cédula de Identidad"
+              placeholder="000-000000-0000A"
+              maxLength={16}
               value={formValues.cedulaIdentidad}
               onChange={handleInputChange}
               onBlur={async (e) => {
