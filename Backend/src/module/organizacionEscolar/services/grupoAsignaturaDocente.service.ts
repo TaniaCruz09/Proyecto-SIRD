@@ -2,7 +2,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { GrupoAsignaturaDocente } from "../entities/grupoAsignaturaDocente.entity";
+import { GrupoAsignaturaDocente } from "../entities/GrupoAsignaturaDocente.entity";
 import { Grupos } from "../entities/grupos.entity";
 import { Asignatura } from "src/module/catalogos";
 import { Docentes } from "src/module/docentes/docentes.entity";

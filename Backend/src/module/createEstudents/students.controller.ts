@@ -6,7 +6,7 @@ import { JwtAuthGuard } from "../auth/guards/jwt.guard";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { FiltrarEstudiantesDto } from "./FiltrarEstudiantesDto";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { diskStorage } from 'Multer'
+import { diskStorage } from 'multer'
 import { extname } from "path";
 
 @ApiTags('student')
