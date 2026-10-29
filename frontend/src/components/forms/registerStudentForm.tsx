@@ -10,6 +10,7 @@ import RegisterEstudent from "@/interfaces/registerEstudentInterface";
 import { useEffect, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { User } from "lucide-react";
+import SearchableSelect from "../ui/searchable-select";
 
 interface RegisterEstudentProps {
   defeaultValues?: RegisterEstudent | null;
@@ -235,6 +236,23 @@ export default function RegisterEstudentForm({ defeaultValues: defaultValues, on
     try {
       if (formRef.current && !formRef.current.reportValidity()) {
         return;
+      }
+      // Los SearchableSelect no participan de la validacion nativa; validar manualmente
+      if (!formValues.pais) {
+        toast({
+          title: "País de origen requerido",
+          description: "Selecciona el país de origen.",
+          variant: "destructive",
+        })
+        return
+      }
+      if (!formValues.municipio) {
+        toast({
+          title: "Municipio requerido",
+          description: "Selecciona el municipio.",
+          variant: "destructive",
+        })
+        return
       }
       const cedulaUnique = await checkCedulaUnique(formValues.identityCard, identityCardRef.current)
       if (!cedulaUnique) {
@@ -565,40 +583,32 @@ export default function RegisterEstudentForm({ defeaultValues: defaultValues, on
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-gray-700 font-medium mb-1">País de origen</label>
-          <select
-            name="pais"
+          <SearchableSelect
+            options={paises.map((r) => ({
+              value: r.id.toString(),
+              label: r.pais ?? "",
+            }))}
             value={formValues.pais}
-            onChange={handleInputChange}
-            onBlur={(e) => validateField(formValues.pais, e.currentTarget)}
-            className="w-full p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
-            required
-          >
-            <option value="">Seleccione...</option>
-            {paises?.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.pais}
-              </option>
-            ))}
-          </select>
+            onChange={(value) =>
+              setFormValues((prev) => ({ ...prev, pais: value }))
+            }
+            placeholder="Buscar país..."
+          />
         </div>
 
         <div>
           <label className="block text-gray-700 font-medium mb-1">Municipio</label>
-          <select
-            name="municipio"
+          <SearchableSelect
+            options={municipios.map((r) => ({
+              value: r.id.toString(),
+              label: r.municipio,
+            }))}
             value={formValues.municipio}
-            onChange={handleInputChange}
-            onBlur={(e) => validateField(formValues.municipio, e.currentTarget)}
-            className="w-full p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
-            required
-          >
-            <option value="">Seleccione...</option>
-            {municipios?.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.municipio}
-              </option>
-            ))}
-          </select>
+            onChange={(value) =>
+              setFormValues((prev) => ({ ...prev, municipio: value }))
+            }
+            placeholder="Buscar municipio..."
+          />
         </div>
       </div>
 

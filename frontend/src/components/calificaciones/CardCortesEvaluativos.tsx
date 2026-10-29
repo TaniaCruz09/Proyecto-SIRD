@@ -61,7 +61,7 @@ export default function CardCortesEvaluativos({
                         : "Seleccionar Período de Calificación"}
                 </CardTitle>
                 <CardDescription>
-                    Los cortes se habilitan por secuencia y por las fechas configuradas en el calendario del año lectivo
+                    Los cortes se habilitan por secuencia: puedes avanzar al siguiente aunque aún no inicie su fecha. La captura de notas se habilita según las fechas configuradas en la calendarización del año lectivo
                 </CardDescription>
             </CardHeader>
 

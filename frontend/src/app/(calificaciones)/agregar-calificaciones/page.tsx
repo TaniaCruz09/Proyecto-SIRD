@@ -213,9 +213,11 @@ export default function Calificaciones({
         }
 
         if (hoyInicio < fechaInicio) {
+            // Navegable aunque aun no inicie: se permite avanzar al siguiente corte,
+            // pero la captura de notas queda bloqueada hasta su fecha (editable: false)
             return {
                 estadoFecha: "future" as CorteEstadoFecha,
-                navegable: false,
+                navegable: true,
                 editable: false,
                 mensaje: "Aún no inicia",
                 rango,
