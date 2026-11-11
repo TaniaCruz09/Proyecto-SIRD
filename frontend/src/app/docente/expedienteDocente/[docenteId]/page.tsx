@@ -24,6 +24,7 @@ import {
   Building2,
 } from "lucide-react"
 import { TablaRegistrosDocente } from '@/components/tables/expedientes/Tabla-registros-docente'
+import DocumentsCard from '@/components/documents/DocumentsCard'
 export interface AsignacionDocente {
   id: string
   grado: string
@@ -124,7 +125,7 @@ export default function DocenteExpedientePage() {
                   {`${docenteData.nombres.split(" ")
                     .map((n) => n[0])
                     .join("")
-                    .slice(0, 1)}${docenteData.apellido_paterno.split("")
+                    .slice(0, 1)}${(docenteData.apellido_paterno ?? "").split("")
                       .map((n) => n[0])
                       .join("")
                       .slice(0, 1)}`}
@@ -165,7 +166,7 @@ export default function DocenteExpedientePage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <GraduationCap className="w-4 h-4 text-green-600 mt-1" />
-                  <span>Nivel Academico: {docenteData.nivel_academico.map((e) => e.academicLevel)}</span>
+                  <span>Nivel Academico: {docenteData.nivel_academico?.map((e) => e.academicLevel).join(", ") || "Sin especificar"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4 text-green-600 mt-1" />
@@ -173,19 +174,19 @@ export default function DocenteExpedientePage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Globe className="w-4 h-4 text-green-600 mt-1" />
-                  <span>País: {docenteData.pais.pais}</span>
+                  <span>País: {docenteData.pais?.pais ?? "Sin país"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Briefcase className="w-4 h-4 text-green-600 mt-1" />
-                  <span>Profección: {docenteData.profession.map((e) => e.profession)}</span>
+                  <span>Profección: {docenteData.profession?.map((e) => e.profession).join(", ") || "Sin especificar"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4 text-green-600" />
-                  <span>Sexo: {docenteData.sexo.gender}</span>
+                  <span>Sexo: {docenteData.sexo?.gender ?? "Sin especificar"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Building2 className="w-4 h-4 text-green-600 mt-1" />
-                  <span>Municipio: {docenteData.municipio.municipio}</span>
+                  <span>Municipio: {docenteData.municipio?.municipio ?? "Sin municipio"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-green-600" />
@@ -216,8 +217,14 @@ export default function DocenteExpedientePage() {
           </div>
         </CardContent>
       </Card>
-      <TablaRegistrosDocente asignaciones={asignaciones}
-        onVerGrupo={handleVerGrupo} />
+
+      {/* Documentos del expediente */}
+      <DocumentsCard owner="docente" ownerId={Number(docenteId)} />
+
+      <div className="mt-8">
+        <TablaRegistrosDocente asignaciones={asignaciones}
+          onVerGrupo={handleVerGrupo} />
+      </div>
     </div>
   )
 }

@@ -27,10 +27,15 @@ export default function DeleteAsignaturaModal({ idEliminar, fetchAsignaturas }: 
       toast({
         title: "Registro eliminado",
         description: "La asignatura se eliminó correctamente.",
-        variant: "destructive",
+        variant: "success",
       });
     } catch (error) {
       console.error("error al eliminar la Asignatura", error)
+      toast({
+        title: "Error al eliminar",
+        description: "No se pudo eliminar la asignatura.",
+        variant: "destructive",
+      });
     } finally {
       setShowConfirm(false);
       setAsignaturaToDelete(null)

@@ -60,7 +60,7 @@ export default function DeleteDocenteModal({
       toast({
         title: "Registro eliminado",
         description: "El docente se eliminó correctamente.",
-        variant: "destructive",
+        variant: "success",
       });
     } catch (error) {
       console.error("Error al eliminar docente", error);

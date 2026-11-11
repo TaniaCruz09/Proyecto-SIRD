@@ -27,7 +27,7 @@ export default function DeleteTipoPeriodizacionModal({ idEliminar, fetchTiposPer
       toast({
         title: "Registro eliminado",
         description: "El tipo de periodo se elimino correctamente.",
-        variant: "destructive",
+        variant: "success",
       });
     } catch (error) {
       console.error("error al eliminar tipo de periodo", error)

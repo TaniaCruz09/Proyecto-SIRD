@@ -27,7 +27,7 @@ export default function DeleteSexoModal({ idEliminar, fetchGenero }: DeleteSexoM
       toast({
         title: "Genero eliminado",
         description: "El genero se elimino correctamente.",
-        variant: "destructive",
+        variant: "success",
       });
     } catch (error) {
       console.error("error al eliminar la sexo", error)

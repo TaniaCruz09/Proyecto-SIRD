@@ -59,7 +59,7 @@ export default function DeleteStudentModal({
       toast({
         title: "Registro eliminado",
         description: "El estudiante se elimino correctamente.",
-        variant: "destructive",
+        variant: "success",
       });
     } catch (error) {
       console.error("Error al eliminar usuario", error);

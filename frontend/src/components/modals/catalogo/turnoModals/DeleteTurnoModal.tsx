@@ -27,10 +27,15 @@ export default function DeleteTurnoModal({ idEliminar, fetchTurno }: DeleteTurno
       toast({
         title: "Registro eliminado",
         description: "El turno se elimino correctamente.",
-        variant: "destructive",
+        variant: "success",
       });
     } catch (error) {
       console.error("error al eliminar la turno", error)
+      toast({
+        title: "Error al eliminar",
+        description: "No se pudo eliminar el turno.",
+        variant: "destructive",
+      });
     } finally {
       setShowConfirm(false);
       setTurnoToDelete(null)

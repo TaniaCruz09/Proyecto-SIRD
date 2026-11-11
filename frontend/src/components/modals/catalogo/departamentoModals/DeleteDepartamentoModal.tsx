@@ -27,7 +27,7 @@ export default function DeleteDepartamentoModal({ idEliminar, fetchDepartamento 
       toast({
         title: "Departamento eliminado",
         description: "El departamento se elimino correctamente.",
-        variant: "destructive",
+        variant: "success",
       });
     } catch (error) {
       console.error("error al eliminar el departamento", error)

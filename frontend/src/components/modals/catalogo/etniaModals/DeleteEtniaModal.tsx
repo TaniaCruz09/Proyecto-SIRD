@@ -27,7 +27,7 @@ export default function DeleteEtniaModal({ idEliminar, fetchEtnias }: DeleteEtni
       toast({
         title: "Etnia eliminada",
         description: "La etnia se elimino correctamente.",
-        variant: "destructive",
+        variant: "success",
       });
     } catch (error) {
       console.error("error al eliminar la etnia", error)

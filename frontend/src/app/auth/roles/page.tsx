@@ -58,7 +58,7 @@ export default function Roles() {
       toast({
         title: "Rol eliminado",
         description: "El rol se elimino correctamente.",
-        variant: "destructive",
+        variant: "success",
       })
     } catch (error) {
       console.error("Error al eliminar usuario", error);

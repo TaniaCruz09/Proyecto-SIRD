@@ -32,7 +32,7 @@ export default function DeleteAñoLectivoModal({ idEliminar, fetchAñoLectivo }:
       toast({
         title: "Año lectivo eliminado",
         description: "Se eliminó correctamente.",
-        variant: "destructive",
+        variant: "success",
       });
     } catch (error) {
       console.error("error al eliminar la año lectivo", error)

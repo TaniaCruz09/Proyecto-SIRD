@@ -32,8 +32,6 @@ export default async function proxy(req: NextRequest) {
         // Verificar token
         const { payload } = await jose.jwtVerify(token, secret)
 
-        console.log('Payload del token:', payload)
-
         // Validar roles de forma segura (sin importar mayúsculas/minúsculas)
         const roles = Array.isArray(payload.roles) ? (payload.roles as string[]) : []
 

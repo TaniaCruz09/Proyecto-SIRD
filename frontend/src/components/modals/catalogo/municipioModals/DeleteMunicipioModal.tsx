@@ -27,7 +27,7 @@ export default function DeleteMunicipioModal({ idEliminar, fetchMunicipios }: De
       toast({
         title: "Municipio eliminado",
         description: "El municipio se elimino correctamente.",
-        variant: "destructive",
+        variant: "success",
       });
     } catch (error) {
       console.error("error al eliminar la municipio", error)

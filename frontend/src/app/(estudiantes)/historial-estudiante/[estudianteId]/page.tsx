@@ -21,6 +21,7 @@ import { useParams } from "next/navigation"
 import { TablaRegistrosEstudiante } from "@/components/tables/expedientes/Tabla-registros-estudiante"
 import { getEsquelaByGrupo } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
 import { getEsquelaRowByEstudianteAndAnio } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods";
+import DocumentsCard from "@/components/documents/DocumentsCard"
 
 export interface RegistroAcademico {
     id: string
@@ -315,11 +316,16 @@ export default function StudentProfile() {
                 </CardContent>
             </Card>
 
+            {/* Documentos del expediente */}
+            <DocumentsCard owner="estudiante" ownerId={Number(estudianteId)} />
+
             {/* Tabla de registros académicos */}
-            <TablaRegistrosEstudiante
-                registros={registros}
-                onVerCalificaciones={handleVerCalificaciones}
-            />
+            <div className="mt-8">
+                <TablaRegistrosEstudiante
+                    registros={registros}
+                    onVerCalificaciones={handleVerCalificaciones}
+                />
+            </div>
 
             {/* Notas históricas (incluye notas huérfanas de traslados) */}
             {notasHistoricas.length > 0 && (

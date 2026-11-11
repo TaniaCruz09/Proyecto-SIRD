@@ -27,10 +27,15 @@ export default function DeleteModalidadModal({ idEliminar, fetchModalidades }: D
       toast({
         title: "Registro eliminado",
         description: "La modalidad se elimino correctamente.",
-        variant: "destructive",
+        variant: "success",
       });
     } catch (error) {
       console.error("error al eliminar la modalidad", error)
+      toast({
+        title: "Error al eliminar",
+        description: "No se pudo eliminar la modalidad.",
+        variant: "destructive",
+      });
     } finally {
       setShowConfirm(false);
       setModalidadToDelete(null)

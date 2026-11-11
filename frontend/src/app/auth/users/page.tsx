@@ -52,7 +52,7 @@ export default function Users() {
       toast({
         title: "Usuario eliminado",
         description: "El usuario se elimino correctamente.",
-        variant: "destructive",
+        variant: "success",
       })
       fetchUsers();
     } catch (error) {

@@ -27,10 +27,15 @@ export default function DeleteGradosModal({ idEliminar, fetchGrados }: DeleteGra
       toast({
         title: "Registro eliminado",
         description: "El grado se elimino correctamente.",
-        variant: "destructive",
+        variant: "success",
       });
     } catch (error) {
       console.error("error al eliminar el grado", error)
+      toast({
+        title: "Error al eliminar",
+        description: "No se pudo eliminar el grado.",
+        variant: "destructive",
+      });
     } finally {
       setShowConfirm(false);
       setGradoToDelete(null)

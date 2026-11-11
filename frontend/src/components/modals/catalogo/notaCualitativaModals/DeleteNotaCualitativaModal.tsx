@@ -27,10 +27,15 @@ export default function DeleteNotaCualitativaModal({ idEliminar, fetchNotas }: D
       toast({
         title: "Registro eliminado",
         description: "La nota cualitativa se eliminó correctamente.",
-        variant: "destructive",
+        variant: "success",
       });
     } catch (error) {
       console.error("error al eliminar la nota cualitativa", error)
+      toast({
+        title: "Error al eliminar",
+        description: "No se pudo eliminar la nota cualitativa.",
+        variant: "destructive",
+      });
     } finally {
       setShowConfirm(false);
       setNotaToDelete(null)

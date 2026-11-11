@@ -27,7 +27,7 @@ export default function DeleteCorteEvaluativoModal({ idEliminar, fetchCortesEval
       toast({
         title: "Registro eliminado",
         description: "El corte evaluativo se eliminó correctamente.",
-        variant: "destructive",
+        variant: "success",
       });
     } catch (error) {
       console.error("error al eliminar el Corte Evaluativo", error)

@@ -196,92 +196,122 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
       <div className="flex flex-1 flex-col justify-evenly gap-6">
       {/* Selector de docente con búsqueda: visible al crear, al editar si ya tiene docente, o si se seleccionó el rol Docente */}
       {(!isEdit || defaultValues?.docente || rolesSelected.some((r) => r.label.toLocaleLowerCase() === 'docente')) && (
-        <Select
-          isClearable
-          placeholder="Buscar y seleccionar un docente..."
-          noOptionsMessage={() => "No se encontraron docentes"}
-          options={docentes?.map((d) => ({
-            value: d.id,
-            label: `${d.nombres} ${d.apellido_paterno || ''} ${d.apellido_materno || ''}`.trim(),
-          }))}
-          value={
-            docente
-              ? (() => {
-                  const d = docentes.find((d) => d.id === docente);
-                  return d
-                    ? {
-                        value: d.id,
-                        label: `${d.nombres} ${d.apellido_paterno || ''} ${d.apellido_materno || ''}`.trim(),
-                      }
-                    : null;
-                })()
-              : null
-          }
-          onChange={(selected) => setDocente(selected ? selected.value : "")}
-          className="text-black"
-          styles={{
-            control: (base) => ({
-              ...base,
-              padding: "2px",
-              borderRadius: "0.75rem",
-              borderColor: "#d1d5db",
-              boxShadow: "none",
-              "&:hover": { borderColor: "#a5b4fc" },
-            }),
-          }}
-        />
+        <div>
+          <label htmlFor="user-docente" className="block text-left text-sm font-medium text-gray-700 mb-1">
+            Seleccionar Docente
+          </label>
+          <Select
+            inputId="user-docente"
+            isClearable
+            placeholder="Buscar y seleccionar un docente..."
+            noOptionsMessage={() => "No se encontraron docentes"}
+            options={docentes?.map((d) => ({
+              value: d.id,
+              label: `${d.nombres} ${d.apellido_paterno || ''} ${d.apellido_materno || ''}`.trim(),
+            }))}
+            value={
+              docente
+                ? (() => {
+                    const d = docentes.find((d) => d.id === docente);
+                    return d
+                      ? {
+                          value: d.id,
+                          label: `${d.nombres} ${d.apellido_paterno || ''} ${d.apellido_materno || ''}`.trim(),
+                        }
+                      : null;
+                  })()
+                : null
+            }
+            onChange={(selected) => setDocente(selected ? selected.value : "")}
+            className="text-black"
+            styles={{
+              control: (base) => ({
+                ...base,
+                padding: "2px",
+                borderRadius: "0.75rem",
+                borderColor: "#d1d5db",
+                boxShadow: "none",
+                "&:hover": { borderColor: "#a5b4fc" },
+              }),
+            }}
+          />
+        </div>
       )}
 
       {/* Campo de nombre solo si NO seleccionó docente */}
       {docente === "" && (
+        <div>
+          <label htmlFor="user-name" className="block text-left text-sm font-medium text-gray-700 mb-1">
+            Nombre de usuario
+          </label>
+          <input
+            id="user-name"
+            type="text"
+            placeholder="Nombre"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+            required
+          />
+        </div>
+      )}
+
+      <div>
+        <label htmlFor="user-email" className="block text-left text-sm font-medium text-gray-700 mb-1">
+          Correo
+        </label>
         <input
-          type="text"
-          placeholder="Nombre"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          id="user-email"
+          type="email"
+          placeholder="Correo"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
           required
         />
-      )}
+      </div>
 
-      <input
-        type="email"
-        placeholder="Correo"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="w-full p-3 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-        required
-      />
-
-      <div className="relative">
-        <input
-          type={showPassword ? "text" : "password"}
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 pr-12 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
-          required={!isEdit}
-        />
-        <button
-          type="button"
-          onClick={() => setShowPassword((prev) => !prev)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"
-          aria-label={showPassword ? "Ocultar contrasena" : "Ver contrasena"}
-        >
-          {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-        </button>
+      <div>
+        <label htmlFor="user-password" className="block text-left text-sm font-medium text-gray-700 mb-1">
+          Contraseña{isEdit && <span className="font-normal text-gray-500"> (dejar vacío para no cambiarla)</span>}
+        </label>
+        <div className="relative">
+          <input
+            id="user-password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Contraseña"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-3 pr-12 border rounded-xl border-gray-300 text-black focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+            required={!isEdit}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800"
+            aria-label={showPassword ? "Ocultar contrasena" : "Ver contrasena"}
+          >
+            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Multi-select moderno para todos los roles */}
-      <Select
-        isMulti
-        options={availableRoles}
-        value={rolesSelected}
-        onChange={(selected) => setRolesSelected(selected as OptionType[])}
-        placeholder="Selecciona uno o más roles"
-        className="text-black"
-        required
-      />
+      <div>
+        <label htmlFor="user-roles" className="block text-left text-sm font-medium text-gray-700 mb-1">
+          Roles
+        </label>
+        <Select
+          inputId="user-roles"
+          isMulti
+          options={availableRoles}
+          value={rolesSelected}
+          onChange={(selected) => setRolesSelected(selected as OptionType[])}
+          placeholder="Selecciona uno o más roles"
+          className="text-black"
+          required
+        />
+      </div>
       </div>
 
       <div className="flex justify-center pt-6">

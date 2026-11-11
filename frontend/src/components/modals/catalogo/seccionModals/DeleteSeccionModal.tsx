@@ -27,10 +27,15 @@ export default function DeleteSeccionModal({ idEliminar, fetchSecciones }: Delet
       toast({
         title: "Registro eliminado",
         description: "La seccion se elimino correctamente.",
-        variant: "destructive",
+        variant: "success",
       });
     } catch (error) {
       console.error("error al eliminar la seccion", error)
+      toast({
+        title: "Error al eliminar",
+        description: "No se pudo eliminar la sección.",
+        variant: "destructive",
+      });
     } finally {
       setShowConfirm(false);
       setSeccionToDelete(null)

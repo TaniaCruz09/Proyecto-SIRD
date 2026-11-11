@@ -27,7 +27,7 @@ export default function DeletePaisModal({ idEliminar, fetchPaises }: DeletePaisM
       toast({
         title: "Pais eliminado",
         description: "El pais se elimino correctamente.",
-        variant: "destructive",
+        variant: "success",
       });
     } catch (error) {
       console.error("error al eliminar el Pais", error)
