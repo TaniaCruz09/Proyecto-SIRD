@@ -32,6 +32,37 @@
 $ npm install
 ```
 
+## Base de datos
+
+El proyecto usa PostgreSQL con esquemas separados (`auth`, `catalogos`,
+`calificaciones`, `centro`, `docentes`, `estudiante`, `organizacion_escolar`).
+
+Copia `.env.example` a `.env` y ajusta la conexión. Luego:
+
+```bash
+# Crea esquemas + tablas automáticamente y arranca la API
+# (requiere DB_SYNC=true en el .env)
+$ npm run start:dev
+```
+
+También puedes crear la estructura sin arrancar la API:
+
+```bash
+# Solo crea los esquemas
+$ npm run db:schemas
+
+# Crea esquemas y sincroniza las tablas con las entidades
+$ npm run db:sync
+
+# Alternativa con migraciones (DB_SYNC=false)
+$ npm run migration:run
+```
+
+> `synchronize` de TypeORM crea tablas, pero **no** esquemas de PostgreSQL; por
+> eso el proyecto los crea antes de sincronizar. Si agregas una entidad en un
+> esquema nuevo, se detecta automáticamente desde `@Entity({ schema })` o puedes
+> declararlo en `DB_SCHEMAS` (separado por comas).
+
 ## Running the app
 
 ```bash

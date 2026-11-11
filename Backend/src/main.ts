@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { join } from 'path';
+import { basename, join } from 'path';
 import * as cookieParser from 'cookie-parser';
 import { existsSync, mkdirSync } from 'fs';
 
@@ -35,12 +35,28 @@ async function bootstrap() {
 
   // Asegurar que existan las carpetas de uploads (en producción no están versionadas)
   const uploadsDir = join(__dirname, '..', 'uploads');
-  for (const folder of ['students', 'docentes']) {
+  for (const folder of [
+    'students',
+    'docentes',
+    'documentos/estudiantes',
+    'documentos/docentes',
+  ]) {
     const dir = join(uploadsDir, folder);
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
     }
   }
+
+  // Descarga forzada de un archivo: /uploads/<ruta>?download=1
+  app.use('/uploads', (req, res, next) => {
+    if (req.query?.download !== undefined) {
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${basename(decodeURIComponent(req.path))}"`,
+      );
+    }
+    next();
+  });
 
   //Servir carpeta uploads de forma pública
   app.useStaticAssets(uploadsDir, {

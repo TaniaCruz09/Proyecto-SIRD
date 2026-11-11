@@ -15,6 +15,8 @@
     "start:render": "node dist/main",
     "migration:run": "node -r tsconfig-paths/register ./node_modules/typeorm/cli-ts-node-commonjs.js -d src/data-source.ts migration:run",
     "migration:revert": "node -r tsconfig-paths/register ./node_modules/typeorm/cli-ts-node-commonjs.js -d src/data-source.ts migration:revert",
+    "db:schemas": "node -r tsconfig-paths/register -r ts-node/register src/scripts/db-init.ts",
+    "db:sync": "node -r tsconfig-paths/register -r ts-node/register src/scripts/db-init.ts --sync",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",

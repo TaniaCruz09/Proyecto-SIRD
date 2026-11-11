@@ -2,6 +2,7 @@ import { DynamicModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { ensureSchemas } from './ensure-schemas';
 
 export const Database: DynamicModule = TypeOrmModule.forRootAsync({
   imports: [ConfigModule],
@@ -37,7 +38,18 @@ export const Database: DynamicModule = TypeOrmModule.forRootAsync({
   // dataSource receives the configured DataSourceOptions
   // and returns a Promise.
   dataSourceFactory: async (options) => {
-    const dataSource = await new DataSource(options).initialize();
+    // Se inicializa sin `synchronize` para poder crear los esquemas primero:
+    // TypeORM crea las tablas, pero no los esquemas de PostgreSQL.
+    const dataSource = await new DataSource({
+      ...options,
+      synchronize: false,
+    }).initialize();
+
+    if (options.synchronize) {
+      await ensureSchemas(dataSource);
+      await dataSource.synchronize();
+    }
+
     return dataSource;
   },
 });
