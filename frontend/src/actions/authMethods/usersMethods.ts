@@ -1,7 +1,6 @@
-"use server";
+"use client";
 
-import { Docente } from "@/interfaces";
-import { Role } from "@/interfaces/authInterface";
+import type { Docente } from "@/interfaces";
 import { feching } from "@/utils/cliente-http";
 
 
@@ -85,4 +84,3 @@ export async function deleteUser(id: number) {
 
     return response;
 }
-

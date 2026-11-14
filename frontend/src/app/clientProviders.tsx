@@ -38,7 +38,7 @@ function AppShell({ children }: { children: ReactNode }) {
   return (
     <>
       <NavbarAdmin />
-      <main className="w-screen text-center bg-gray-100 overflow-auto">
+      <main className="min-w-0 flex-1 overflow-auto bg-gray-100 pt-14 text-center lg:pt-0">
         {children}
       </main>
     </>

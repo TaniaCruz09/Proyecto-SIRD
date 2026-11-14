@@ -2,6 +2,7 @@
 
 import { memo, useEffect, useRef, useState } from 'react'
 import {
+  FaBars,
   FaBook,
   FaBriefcase,
   FaBuilding,
@@ -18,6 +19,7 @@ import {
   FaHome,
   FaLayerGroup,
   FaListAlt,
+  FaTimes,
   FaMapMarkedAlt,
   FaSchool,
   FaSitemap,
@@ -65,6 +67,7 @@ const catalogSubmenu = [
 const organizacionEscolarSubmenu = [
   { label: 'Organizacion Escolar', href: '/organizacion', icon: FaUser },
   { label: 'Grupos Educativos', href: '/registerGroups', icon: FaChalkboardTeacher },
+  { label: 'Promoción de estudiantes', href: '/promocion', icon: FaUserGraduate },
 ]
 
 function NavbarAdmin() {
@@ -81,6 +84,11 @@ function NavbarAdmin() {
   const [rolDestino, setRolDestino] = useState<'Admin' | 'Docente' | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [nombreUsuario, setNombreUsuario] = useState('')
+  const [menuAbierto, setMenuAbierto] = useState(false)
+
+  useEffect(() => {
+    setMenuAbierto(false)
+  }, [pathname])
   const [nuevoRol, setNuevoRol] = useState<'Admin' | 'Docente'>(() => {
     // valor por defecto seguro si rol no está listo aún
     return rol === 'Docente' ? 'Admin' : 'Docente'
@@ -198,8 +206,8 @@ function NavbarAdmin() {
   return (
     <>
       {cambiandoRol && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 backdrop-blur-sm">
-          <div className="rounded-2xl bg-white px-8 py-6 text-center shadow-2xl">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#f1f2f4]">
+          <div className="rounded-2xl border border-slate-200 bg-white px-8 py-6 text-center shadow-xl">
             <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
             <p className="text-lg font-semibold text-gray-800">Cambiando de rol...</p>
             <p className="mt-1 text-sm text-gray-500">
@@ -209,7 +217,41 @@ function NavbarAdmin() {
         </div>
       )}
 
-      <nav className="w-70 bg-gray-900 text-white h-screen overflow-hidden shadow-md flex flex-col">
+      <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center gap-3 border-b border-slate-200 bg-white px-4 lg:hidden">
+        <button
+          type="button"
+          onClick={() => setMenuAbierto(true)}
+          aria-label="Abrir menú de navegación"
+          aria-expanded={menuAbierto}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50"
+        >
+          <FaBars className="h-4 w-4" />
+        </button>
+        <span className="truncate text-sm font-semibold text-slate-800">
+          {nombreUsuario || nombreDocente || 'Sistema SIRD'}
+        </span>
+      </header>
+
+      {menuAbierto && (
+        <div
+          onClick={() => setMenuAbierto(false)}
+          aria-hidden="true"
+          className="fixed inset-0 z-40 bg-slate-900/50 lg:hidden"
+        />
+      )}
+
+      <nav
+        className={`fixed inset-y-0 left-0 z-50 flex h-screen w-70 shrink-0 flex-col overflow-hidden bg-gray-900 text-white shadow-md transition-transform duration-300 ${menuAbierto ? 'translate-x-0' : '-translate-x-full'} lg:static lg:translate-x-0`}
+      >
+        <button
+          type="button"
+          onClick={() => setMenuAbierto(false)}
+          aria-label="Cerrar menú de navegación"
+          className="absolute right-3 top-3 z-10 rounded-md p-1 text-slate-400 transition hover:text-white lg:hidden"
+        >
+          <FaTimes className="h-4 w-4" />
+        </button>
+
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2">
           {rol === 'Admin' && (
             <div className="mb-4 border-b border-slate-700 pb-4 text-center">
@@ -245,7 +287,7 @@ function NavbarAdmin() {
                 onClick={handleSaveScroll}
               >
                 <FaHome />
-                <span>Home Admin</span>
+                <span className="whitespace-nowrap">Home Admin</span>
               </Link>
 
               <button
@@ -254,7 +296,7 @@ function NavbarAdmin() {
               >
                 <div className="flex items-center gap-3">
                   <FaUserShield />
-                  <span>Gestión de Acceso</span>
+                  <span className="whitespace-nowrap">Gestión de Acceso</span>
                 </div>
                 <FaChevronDown className={`${openUsers ? 'rotate-180' : ''} transition`} />
               </button>
@@ -280,7 +322,7 @@ function NavbarAdmin() {
               >
                 <div className="flex items-center gap-3">
                   <FaListAlt />
-                  <span>Catálogos</span>
+                  <span className="whitespace-nowrap">Catálogos</span>
                 </div>
                 <FaChevronDown className={`${openCatalogs ? 'rotate-180' : ''} transition`} />
               </button>
@@ -306,7 +348,7 @@ function NavbarAdmin() {
               >
                 <div className="flex items-center gap-3">
                   <FaSitemap />
-                  <span>Organización Escolar</span>
+                  <span className="whitespace-nowrap">Organización Escolar</span>
                 </div>
                 <FaChevronDown className={`${openOrganizacionEscolar ? 'rotate-180' : ''} transition`} />
               </button>
@@ -331,7 +373,7 @@ function NavbarAdmin() {
                 className={`flex items-center gap-3 p-3 rounded-md transition-transform duration-200 ${isActive('/docente/registerDocente')}`}
               >
                 <FaChalkboardTeacher />
-                <span>Registro Docente</span>
+                <span className="whitespace-nowrap">Registro Docente</span>
               </Link>
 
               <Link
@@ -339,7 +381,7 @@ function NavbarAdmin() {
                 className={`flex items-center gap-3 p-3 rounded-md transition-transform duration-200 ${isActive('/registerEstudent')}`}
               >
                 <FaUserGraduate />
-                <span>Registro Estudiante</span>
+                <span className="whitespace-nowrap">Registro Estudiante</span>
               </Link>
             </>
           )}
@@ -352,7 +394,7 @@ function NavbarAdmin() {
               onClick={handleSaveScroll}
             >
               <FaHome />
-              <span>Home Docente</span>
+              <span className="whitespace-nowrap">Home Docente</span>
             </Link>
           )}
         </div>
@@ -385,4 +427,3 @@ function NavbarAdmin() {
 }
 
 export default memo(NavbarAdmin)
-

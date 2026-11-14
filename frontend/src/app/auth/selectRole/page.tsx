@@ -102,7 +102,7 @@ export default function SelectRolePage() {
             <div
               key={role.rol} // 🔹 ahora es único porque role.rol es string
               onClick={() => setSelectedRole(role.rol)}
-              className={`cursor-pointer flex items-center gap-4 p-4 rounded-xl transition-shadow border
+              className={`cursor-pointer flex items-center gap-4 p-4 rounded-xl transition-shadow border text-left
                 ${selectedRole === role.rol ? 'border-blue-500 shadow-lg bg-blue-50' : 'border-gray-200 hover:shadow-md hover:bg-gray-50'}`}
             >
               <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-500">

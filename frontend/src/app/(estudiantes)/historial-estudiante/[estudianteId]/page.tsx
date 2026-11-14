@@ -189,7 +189,7 @@ export default function StudentProfile() {
     }
 
     return (
-        <div className="container mx-auto p-6 max-w-7xl">
+        <div className="container mx-auto max-w-7xl p-4 sm:p-6">
             <button
                 onClick={() => router.back()}
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-4 group"
@@ -204,8 +204,8 @@ export default function StudentProfile() {
 
             {/* Header del perfil */}
             <Card className="mb-8">
-                <CardHeader className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2 text-2xl">
+                <CardHeader className="flex flex-wrap items-center justify-between gap-2">
+                    <CardTitle className="flex min-w-0 items-center gap-2 text-xl sm:text-2xl">
                         <GraduationCap className="w-6 h-6 text-green-600" />
                         Expediente del Estudiante
                     </CardTitle>

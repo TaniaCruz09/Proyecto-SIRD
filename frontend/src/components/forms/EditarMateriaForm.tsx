@@ -18,7 +18,7 @@ export default function EditarMateriaForm({
   onClose,
   onSave,
 }: EditarMateriaFormProps) {
-  const [selectedDocente, setSelectedDocente] = useState<number>(relacion.docente.id);
+  const [selectedDocente, setSelectedDocente] = useState<number>(relacion.docente?.id ?? 0);
   const [grupoConAsignaturas, setGrupoConAsignaturas] = useState<GrupoConAsignaturasResponse[]>([]);
 
   useEffect(() => {
@@ -29,13 +29,22 @@ export default function EditarMateriaForm({
   fetchGrupoConAsignaturas();
 }, [relacion.grupo.id]);
  const handleGuardar = async () => {
+  if (!selectedDocente) {
+    alert("Selecciona un docente para guardar los cambios");
+    return;
+  }
+
   try {
     const payload: GrupoConAsignaturasPayload = {
       grupoId: relacion.grupo.id,
-      asignaturasConDocentes: grupoConAsignaturas.map((r) => ({
-        asignaturaId: r.asignatura.id,
-        docenteId: r.id === relacion.id ? selectedDocente : r.docente.id,
-      })),
+      // Solo se envían las materias que ya tienen docente (o la que se está editando):
+      // el backend rechaza cualquier asignación sin docente.
+      asignaturasConDocentes: grupoConAsignaturas
+        .filter((r) => r.id === relacion.id || r.docente)
+        .map((r) => ({
+          asignaturaId: r.asignatura.id,
+          docenteId: r.id === relacion.id ? selectedDocente : (r.docente?.id ?? 0),
+        })),
     };
 
     const updated = await actualizarGrupoConAsignatura(relacion.grupo.id, payload);
@@ -91,6 +100,7 @@ export default function EditarMateriaForm({
             marginTop: "5px",
           }}
         >
+          <option value={0}>Selecciona un docente</option>
           {docentesDisponibles.map((d) => (
             <option key={d.id} value={d.id}>
               {d.nombres} {d.apellido_paterno}

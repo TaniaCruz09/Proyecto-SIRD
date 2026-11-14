@@ -6,13 +6,18 @@ import { EsquelaRowService } from './esquelas_rows/esquelas_rows.service';
 import { EsquelaHeadEntity } from './esquela_head/entities/squela_head.entity';
 import { EsquelaHeadController } from './esquela_head/esquela_head.controller';
 import { EsquelaHeadService } from './esquela_head/squela_head.service';
+import { EsquelasController } from './esquela_head/esquelas.controller';
+import { EsquelaResumenService } from './esquela_head/esquela-resumen.service';
+import { NotaCualitativaService } from './nota-cualitativa/nota-cualitativa.service';
+import { PromediosService } from './promedios/promedios.service';
+import { CorteEstadoService } from './cortes/corte-estado.service';
 import { AnioLectivoCalendarizacion } from '../catalogos/entities/anioLectivoCalendarizacion.entity';
 import { NotaCualitativa } from '../catalogos/entities/notaCualitativa.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([EsquelaRow, EsquelaHeadEntity, AnioLectivoCalendarizacion, NotaCualitativa])],
-  controllers: [EsquelaRowController, EsquelaHeadController],
-  providers: [EsquelaRowService, EsquelaHeadService],
-  exports: [TypeOrmModule],
+  controllers: [EsquelaRowController, EsquelaHeadController, EsquelasController],
+  providers: [EsquelaRowService, EsquelaHeadService, EsquelaResumenService, NotaCualitativaService, PromediosService, CorteEstadoService],
+  exports: [TypeOrmModule, NotaCualitativaService, PromediosService],
 })
 export class CalificacionesModule { }

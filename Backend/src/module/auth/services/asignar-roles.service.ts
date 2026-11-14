@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { DataSource } from 'typeorm';
 import { Role, User } from '../entities';
@@ -14,6 +14,10 @@ export class AsignarRolesService {
     const user = await this.dataSource
       .getRepository(User)
       .findOne({ where: { id: userId }, relations: { roles: true } });
+
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
 
     const asignar = [...user.roles, ...roles];
 
@@ -35,6 +39,10 @@ return updatedUser;
     const user = await this.dataSource
       .getRepository(User)
       .findOne({ where: { id: userId }, relations: { roles: true } });
+
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
 
     const remover = user.roles.filter((role) => {
       return !roles.find((r) => r.id === role.id);

@@ -147,7 +147,7 @@ export default function DocumentsCard({ owner, ownerId }: DocumentsCardProps) {
 
   return (
     <Card className="mt-6 border-0 shadow-lg">
-      <CardHeader className="flex flex-row items-center justify-between gap-3 pb-4">
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3 px-4 pb-4 sm:px-6">
         <CardTitle className="flex items-center gap-2 text-xl font-semibold text-slate-800">
           <FileText className="w-5 h-5 text-green-600" />
           Documentos
@@ -170,10 +170,10 @@ export default function DocumentsCard({ owner, ownerId }: DocumentsCardProps) {
         </Button>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 px-4 sm:px-6">
         <p className="text-sm text-muted-foreground">
           Adjunta la cédula, partida de nacimiento, título u otro documento del
-          expediente. Formatos: PDF, JPG, PNG, WEBP, Word o Excel (máx. 10 MB).
+          expediente. Formatos: PDF, JPG, PNG, WEBP, Word o Excel (máx. 5 MB).
         </p>
 
         {showForm && (
@@ -269,7 +269,7 @@ export default function DocumentsCard({ owner, ownerId }: DocumentsCardProps) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setPreview(document)}

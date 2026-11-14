@@ -8,16 +8,18 @@ interface SearchFilterProps{
     value: string;
     onChange: (value: string) => void;
     onClear?: () => void;
+    className?: string;
 }
 
 export default function SearchBar({
   placeholder = "Buscar...",
   value,
   onChange,
-  onClear
+  onClear,
+  className
 }: SearchFilterProps) {
   return (
-    <div className="relative w-full max-w-md m-2 flex items-center">
+    <div className={`relative w-full flex items-center ${className ?? "max-w-md m-2"}`}>
           <FaSearch className="absolute left-3 text-gray-400" />
           <input
             type="text"

@@ -98,140 +98,130 @@ export default function HomePage() {
 
 
   return (
-    <div className="min-h-screen bg-purple-100/30">
-      <Header title='Sistema de Calificaciones SIRD' subTitle='Home Docente' />
-      <div className="container mx-auto px-6 py-7">
+    <div className="min-h-screen bg-slate-50">
+      <Header title='Sistema de Calificaciones SIRD' subTitle='Panel Docente' />
+      <div className="container mx-auto px-4 py-6 sm:px-6">
           <div className="mb-5">
-            <h2 className="text-2xl font-bold text-foreground mb-1">{`Bienvenid@ Prof. ${docente?.nombres} ${docente?.apellido_paterno}`}</h2>
-            <p className="text-muted-foreground">{`Docente de ${docente?.profession?.map((p: any) => p.profession).join(', ')} / podrá acceder a sus grados y registrar calificaciones`}</p>
+            <h2 className="mb-1 text-2xl font-bold text-slate-900">{`Bienvenid@ Prof. ${docente?.nombres} ${docente?.apellido_paterno}`}</h2>
+            <p className="text-slate-500">{`Docente de ${docente?.profession?.map((p: any) => p.profession).join(', ')} / podrá acceder a sus grados y registrar calificaciones`}</p>
           </div>
-
-          {/* Accesos Directos */}
-          <section className="mb-10">
-            <div className="flex items-center gap-3 text-gray-700 mb-6">
-              <FaArrowUpRightFromSquare className="text-xl text-black-600" />
-              <p className="text-base font-semibold">Accesos directos</p>
-            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
               {/* Card 1 - Calificaciones */}
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Card className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
-                  <div className="flex items-center justify-between p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-400 rounded-xl flex items-center justify-center shadow-md">
-                        <FaBookOpen className="text-white text-xl" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-800">Calificaciones</h3>
-                        <p className="text-sm text-gray-500">Asignar calificaciones a los estudiantes</p>
-                      </div>
+                <Card className="flex h-full flex-col rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-white to-blue-50/60 p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 ring-1 ring-inset ring-blue-100">
+                      <FaBookOpen className="text-base" />
                     </div>
-                    <Link href={"/docente/gruposAsignados"}>
-                      <Button className="h-11 px-5 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all">
-                        Ir a Calificaciones
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    </Link>
+                    <div className="min-w-0">
+                      <h3 className="text-base font-semibold tracking-tight text-slate-900">Calificaciones</h3>
+                      <p className="text-sm text-slate-500">Asignar calificaciones a los estudiantes</p>
+                    </div>
                   </div>
+                  <Link href={"/docente/gruposAsignados"} className="mt-4 block">
+                    <Button className="h-10 w-full rounded-lg bg-emerald-600 font-medium text-white hover:bg-emerald-700">
+                      Ir a Calificaciones
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
                 </Card>
               </motion.div>
 
               {/* Card 2 - Historial de Grados */}
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Card className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
-                  <div className="flex items-center justify-between p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-amber-400 rounded-xl flex items-center justify-center shadow-md">
-                        <FaClockRotateLeft className="text-white text-xl" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-800">Historial de Grados</h3>
-                        <p className="text-sm text-gray-500">Ver grados guía de años anteriores</p>
-                      </div>
+                <Card className="flex h-full flex-col rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-white to-blue-50/60 p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 ring-1 ring-inset ring-blue-100">
+                      <FaClockRotateLeft className="text-base" />
                     </div>
-                    <Link href={"/docente/historialGrados"}>
-                      <Button className="h-11 px-5 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all">
-                        Ver Historial
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    </Link>
+                    <div className="min-w-0">
+                      <h3 className="text-base font-semibold tracking-tight text-slate-900">Historial de Grados</h3>
+                      <p className="text-sm text-slate-500">Ver grados guía de años anteriores</p>
+                    </div>
                   </div>
+                  <Link href={"/docente/historialGrados"} className="mt-4 block">
+                    <Button
+                      variant="outline"
+                      className="h-10 w-full rounded-lg border-blue-200 font-medium text-blue-700 hover:bg-blue-50"
+                    >
+                      Ver Historial
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
                 </Card>
               </motion.div>
             </div>
-          </section>
+        
 
           {/* Si no hay grupos activos */}
           {gruposActivos.length === 0 ? (
-            <Card className="text-center py-10 mt-6">
+            <Card className="mt-6 py-10 text-center border-slate-200">
               <CardContent>
-                <BookOpen className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-600 font-medium">
+                <BookOpen className="mx-auto mb-3 h-10 w-10 text-slate-300" />
+                <p className="font-medium text-slate-600">
                   Aún no tienes asignado ningún grado en un año activo.
                 </p>
               </CardContent>
             </Card>
           ) : (
-            <section className="mb-5">
+            <section className="mb-5 mt-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg">
-                  <GraduationCap className="w-6 h-6 text-emerald-600" />
+                <div className="rounded-lg bg-blue-50 p-2">
+                  <GraduationCap className="w-6 h-6 text-blue-600" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800">Grado Guía - Semestre Actual</h3>
+                <h3 className="text-lg font-semibold text-slate-900">Grado Guía - Semestre Actual</h3>
               </div>
               <div className={`grid gap-6 ${gruposActivos.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"}`}>
                 {gruposActivos.map((grupo) => (
-                  <Card key={grupo.id} className="relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
-                    {/* Barra superior */}
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-emerald-500" />
+                  <Card key={grupo.id} className="rounded-2xl border border-slate-200 border-t-4 border-t-emerald-300 bg-white shadow-sm transition-all duration-300 hover:shadow-md">
 
                     <CardContent className="p-6">
                       {/* Header con badge */}
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <div className="p-2.5 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl">
-                            <GraduationCap className="w-6 h-6 text-emerald-600" />
+                          <div className="rounded-xl bg-blue-50 p-2.5">
+                            <GraduationCap className="w-6 h-6 text-blue-600" />
                           </div>
                           <div>
-                            <CardTitle className="text-lg font-bold text-gray-800">
+                            <CardTitle className="text-base font-semibold text-slate-900">
                               {grupo.grado?.grades ?? "Sin grado"} - Sección {grupo.seccion.seccion} - {grupo.organizacionEscolar?.turno?.turno}
                             </CardTitle>
-                            <CardDescription className="text-sm text-gray-500 mt-0.5">
+                            <CardDescription className="mt-0.5 text-sm text-slate-500">
                               {grupo.organizacionEscolar?.turno?.modalidad?.modalidad ?? "Sin modalidad"}
                             </CardDescription>
                           </div>
                         </div>
-                        <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-3 py-1.5 font-medium shadow-sm">
+                        <Badge className="shrink-0 border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
                           <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block mr-1.5" />
                           Activo
                         </Badge>
                       </div>
 
                       {/* Stats */}
-                      <div className="grid grid-cols-4 gap-3 mb-5">
-                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 text-center">
-                          <Users className="w-4 h-4 text-blue-500 mx-auto mb-1" />
-                          <div className="text-xl font-bold text-blue-700">{grupo.numero_estudiantes ?? 0}</div>
-                          <div className="text-xs text-blue-500 font-medium">Estudiantes</div>
+                      <div className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                        <div className="rounded-lg bg-slate-50 px-3 py-2 text-center">
+                          <Users className="mx-auto mb-1 h-4 w-4 text-blue-500" />
+                          <div className="text-lg font-semibold text-blue-700">{grupo.numero_estudiantes ?? 0}</div>
+                          <div className="text-xs font-medium text-blue-600">Estudiantes</div>
                         </div>
-                        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-3 text-center">
-                          <BookCheck className="w-4 h-4 text-purple-500 mx-auto mb-1" />
-                          <div className="text-xl font-bold text-purple-700">{grupo.numero_materias ?? 0}</div>
-                          <div className="text-xs text-purple-500 font-medium">Materias</div>
+                        <div className="rounded-lg bg-slate-50 px-3 py-2 text-center">
+                          <BookCheck className="mx-auto mb-1 h-4 w-4 text-violet-500" />
+                          <div className="text-lg font-semibold text-violet-700">{grupo.numero_materias ?? 0}</div>
+                          <div className="text-xs font-medium text-violet-600">Materias</div>
                         </div>
-                        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-3 text-center border border-red-200">
-                          <Users className="w-4 h-4 text-red-500 mx-auto mb-1" />
-                          <div className="text-xl font-bold text-red-700">{grupo.numero_estudiantes_inactivos ?? 0}</div>
-                          <div className="text-xs text-red-500 font-medium">Inactivos</div>
+                        <div className="rounded-lg bg-slate-50 px-3 py-2 text-center">
+                          <Users className="mx-auto mb-1 h-4 w-4 text-rose-500" />
+                          <div className="text-lg font-semibold text-rose-700">{grupo.numero_estudiantes_inactivos ?? 0}</div>
+                          <div className="text-xs font-medium text-rose-600">Inactivos</div>
                         </div>
-                        <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-3 text-center">
-                          <GraduationCap className="w-4 h-4 text-amber-500 mx-auto mb-1" />
-                          <div className="text-lg font-bold text-amber-700">
+                        <div className="rounded-lg bg-slate-50 px-3 py-2 text-center">
+                          <GraduationCap className="mx-auto mb-1 h-4 w-4 text-amber-500" />
+                          <div className="text-lg font-semibold text-amber-700">
                             {grupo.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? "—"}
                           </div>
-                          <div className="text-xs text-amber-500 font-medium">Año</div>
+                          <div className="text-xs font-medium text-amber-600">Año</div>
                         </div>
                       </div>
 

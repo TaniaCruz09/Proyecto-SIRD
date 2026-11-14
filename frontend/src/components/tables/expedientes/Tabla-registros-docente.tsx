@@ -11,8 +11,8 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 import { Users, Briefcase, History } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export interface AsignacionDocente {
     id: string
@@ -41,92 +41,133 @@ export function TablaRegistrosDocente({ asignaciones, onVerGrupo }: TablaRegistr
     return (
         <Card className="border-0 shadow-lg">
             <CardHeader className="pb-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <CardTitle className="text-xl font-semibold flex items-center gap-2">
-                        <Briefcase className="w-5 h-5 text-primary" />
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <CardTitle className="flex items-center gap-3 text-xl font-semibold text-slate-800">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-50 text-green-600">
+                            <Briefcase className="h-5 w-5" />
+                        </span>
                         Historial de grados guiados
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+                            {asignaciones.length}
+                        </span>
                     </CardTitle>
 
                     {/* Tabs de navegación */}
-                    <div className="flex bg-secondary rounded-lg p-1 gap-1">
-                        <Button
-                            variant={activeTab === "actual" ? "default" : "ghost"}
-                            size="sm"
+                    <div className="inline-flex w-fit rounded-lg bg-slate-100 p-1">
+                        <button
+                            type="button"
+                            aria-pressed={activeTab === "actual"}
                             onClick={() => setActiveTab("actual")}
-                            className="gap-2"
+                            className={cn(
+                                "inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition",
+                                activeTab === "actual"
+                                    ? "bg-white text-green-700 shadow-sm"
+                                    : "text-slate-600 hover:text-slate-900",
+                            )}
                         >
-                            <Briefcase className="w-4 h-4" />
-                            <span>Actual</span>
-                        </Button>
-                        <Button
-                            variant={activeTab === "matricula" ? "default" : "ghost"}
-                            size="sm"
+                            <Briefcase className="h-4 w-4" />
+                            Actual
+                            <span className="rounded-full bg-slate-100 px-1.5 text-xs text-slate-500">
+                                {asignacionesActuales.length}
+                            </span>
+                        </button>
+                        <button
+                            type="button"
+                            aria-pressed={activeTab === "matricula"}
                             onClick={() => setActiveTab("matricula")}
-                            className="gap-2"
+                            className={cn(
+                                "inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition",
+                                activeTab === "matricula"
+                                    ? "bg-white text-green-700 shadow-sm"
+                                    : "text-slate-600 hover:text-slate-900",
+                            )}
                         >
-                            <History className="w-4 h-4" />
-                            <span>Matrícula</span>
-                        </Button>
+                            <History className="h-4 w-4" />
+                            Matrícula
+                            <span className="rounded-full bg-slate-100 px-1.5 text-xs text-slate-500">
+                                {asignacionesHistoricas.length}
+                            </span>
+                        </button>
                     </div>
                 </div>
             </CardHeader>
 
             <CardContent>
-                <div className="rounded-lg border border-border overflow-hidden">
-                    <Table>
+                <div className="overflow-hidden rounded-xl border border-slate-200">
+                    <Table className="min-w-[640px]">
                         <TableHeader>
-                            <TableRow className="bg-muted/50 hover:bg-muted/50">
-                                <TableHead className="font-semibold">Grado</TableHead>
-                                <TableHead className="font-semibold">Modalidad</TableHead>
-                                <TableHead className="font-semibold">Grupo</TableHead>
-                                <TableHead className="font-semibold">Materia</TableHead>
-                                <TableHead className="font-semibold">Año Lectivo</TableHead>
-                                <TableHead className="font-semibold text-center">Estudiantes</TableHead>
-                                <TableHead className="text-right font-semibold">Acciones</TableHead>
+                            <TableRow className="border-slate-200 bg-slate-50 hover:bg-slate-50">
+                                <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Grado</TableHead>
+                                <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Modalidad</TableHead>
+                                <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Grupo</TableHead>
+                                <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Materia</TableHead>
+                                <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Año lectivo</TableHead>
+                                <TableHead className="h-11 px-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">Estudiantes</TableHead>
+                                <TableHead className="h-11 px-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Acciones</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {displayedRecords.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                        No hay asignaciones {activeTab === "actual" ? "activas" : "históricas"} disponibles
+                                <TableRow className="hover:bg-transparent">
+                                    <TableCell colSpan={7} className="px-4 py-14 text-center">
+                                        <div className="flex flex-col items-center gap-2 text-slate-500">
+                                            <Users className="h-6 w-6 text-slate-300" />
+                                            <p className="text-sm">
+                                                No hay asignaciones {activeTab === "actual" ? "activas" : "históricas"} disponibles
+                                            </p>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ) : (
                                 displayedRecords.map((asignacion) => (
-                                    <TableRow key={asignacion.id} className="hover:bg-muted/30 transition-colors">
-                                        <TableCell className="font-medium">{asignacion.grado}</TableCell>
-                                        <TableCell>
-                                            <Badge variant="outline" className="bg-secondary/50">
-                                                {asignacion.modalidad}
-                                            </Badge>
+                                    <TableRow
+                                        key={asignacion.id}
+                                        className="border-slate-100 transition-colors hover:bg-green-50/40"
+                                    >
+                                        <TableCell className="whitespace-normal px-3 py-3 font-medium text-slate-800">
+                                            {asignacion.grado}
                                         </TableCell>
-                                        <TableCell>{asignacion.id}</TableCell>
-                                        <TableCell>{asignacion.materia}</TableCell>
-                                        <TableCell>
+                                        <TableCell className="px-3 py-3">
+                                            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                                                {asignacion.modalidad}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell className="px-3 py-3 font-mono text-xs text-slate-500">
+                                            #{asignacion.id}
+                                        </TableCell>
+                                        <TableCell className="whitespace-normal px-3 py-3 text-slate-700">
+                                            {asignacion.materia}
+                                        </TableCell>
+                                        <TableCell className="px-3 py-3">
                                             <div className="flex items-center gap-2">
-                                                {asignacion.anioLectivo}
+                                                <span className="tabular-nums text-slate-700">{asignacion.anioLectivo}</span>
                                                 {asignacion.activo && (
-                                                    <Badge className="bg-accent text-accent-foreground text-xs">
+                                                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-green-700">
                                                         Activo
-                                                    </Badge>
+                                                    </span>
                                                 )}
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-center">
-                                            <Badge variant="secondary" className="bg-primary/10 text-primary">
+                                        <TableCell className="px-3 py-3 text-center">
+                                            <span className="inline-block min-w-8 rounded-md bg-slate-100 px-2 py-0.5 text-sm font-semibold tabular-nums text-slate-700">
                                                 {asignacion.cantidadEstudiantes}
-                                            </Badge>
+                                            </span>
                                         </TableCell>
-                                        <TableCell className="text-right">
+                                        <TableCell className="px-3 py-3 text-right">
                                             <Button
                                                 variant="outline"
                                                 size="sm"
                                                 disabled={!asignacion?.esquela}
                                                 onClick={() => onVerGrupo(asignacion.esquela)}
-                                                className="gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
+                                                title={asignacion?.esquela ? undefined : "Este grupo todavía no tiene esquela creada"}
+                                                className={cn(
+                                                    "gap-2",
+                                                    asignacion?.esquela
+                                                        ? "border-green-200 text-green-700 hover:bg-green-600 hover:text-white"
+                                                        : "border-slate-200 text-slate-400",
+                                                )}
                                             >
-                                                <Users className="w-4 h-4" />
+                                                <Users className="h-4 w-4" />
                                                 {asignacion?.esquela ? "Ver Esquela" : "Esquela no creada"}
                                             </Button>
                                         </TableCell>
@@ -138,13 +179,17 @@ export function TablaRegistrosDocente({ asignaciones, onVerGrupo }: TablaRegistr
                 </div>
 
                 {/* Resumen */}
-                <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
+                <div className="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-3 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
                     <span>
-                        Mostrando {displayedRecords.length} asignaci{displayedRecords.length !== 1 ? "ones" : "ón"}
+                        Mostrando{" "}
+                        <span className="font-medium text-slate-700">{displayedRecords.length}</span>{" "}
+                        asignaci{displayedRecords.length !== 1 ? "ones" : "ón"}
                     </span>
                     {activeTab === "actual" && asignacionesActuales.length > 0 && (
-                        <span className="text-primary font-medium">
-                            Total de estudiantes: {asignacionesActuales.reduce((sum, a) => sum + a.cantidadEstudiantes, 0)}
+                        <span className="inline-flex items-center gap-1.5 font-medium text-green-700">
+                            <Users className="h-4 w-4" />
+                            Total de estudiantes:{" "}
+                            {asignacionesActuales.reduce((sum, a) => sum + a.cantidadEstudiantes, 0)}
                         </span>
                     )}
                 </div>

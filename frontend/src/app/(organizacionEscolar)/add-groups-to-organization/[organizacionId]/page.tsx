@@ -1,8 +1,10 @@
 "use client"
 import { useEffect, useState } from "react"
+import { AvisoSoloLectura } from "@/components/common/AvisoSoloLectura"
+import { anioEstaActivo } from "@/utils/anio-lectivo"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Trash2, Users, GraduationCap, BookOpen, UserCheck, ChevronRight } from "lucide-react"
+import { ArrowLeft, BookOpen, ChevronRight, GraduationCap, Lock, Trash2, UserCheck, Users } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import type {
@@ -64,6 +66,9 @@ export default function OrganizationGroups() {
         }
     }
 
+    const anio = organizacionEscolar?.anio_lectivo
+    const editable = anioEstaActivo(anio?.isActive)
+
     return (
         <div className="max-w-6xl mx-auto space-y-6 mt-8">
             {/* Header */}
@@ -83,8 +88,12 @@ export default function OrganizationGroups() {
                 </p>
             </div>
 
+            {!editable && <AvisoSoloLectura anio={anio?.anio_lectivo} className="text-left" />}
+
             {/* Formulario para agregar grupos */}
-            <GrupoTableForm idOrganizacion={Number(organizacionId)} onSuccess={fetchOrganizacionEscolarById} />
+            {editable && (
+                <GrupoTableForm idOrganizacion={Number(organizacionId)} onSuccess={fetchOrganizacionEscolarById} />
+            )}
 
 
             {/* Lista de grupos */}
@@ -136,16 +145,24 @@ export default function OrganizationGroups() {
                                                 {(g.grado?.grades)} - {g.seccion?.seccion ?? "N/A"} - {(organizacionEscolar?.turno?.turno ?? "N/A")}
                                             </h4>
                                             <div className="flex items-center gap-2">
-                                                <EditGrupoModal grupo={g} fetchGrupos={fetchOrganizacionEscolarById} organizacionEscolarFija={organizacionEscolar} />
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => confirmDeleteGroup(g.id, `${g.grado?.grades ?? "N/A"} - ${g.seccion?.seccion ?? "N/A"} - ${organizacionEscolar?.turno?.turno ?? "N/A"}`)}
-                                                    disabled={deletingGroupId === g.id}
-                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
+                                                {editable ? (
+                                                    <>
+                                                        <EditGrupoModal grupo={g} fetchGrupos={fetchOrganizacionEscolarById} organizacionEscolarFija={organizacionEscolar} />
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => confirmDeleteGroup(g.id, `${g.grado?.grades ?? "N/A"} - ${g.seccion?.seccion ?? "N/A"} - ${organizacionEscolar?.turno?.turno ?? "N/A"}`)}
+                                                            disabled={deletingGroupId === g.id}
+                                                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </>
+                                                ) : (
+                                                    <span title="Año lectivo inactivo: solo lectura" className="inline-flex">
+                                                        <Lock className="h-4 w-4 text-slate-300" />
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
 

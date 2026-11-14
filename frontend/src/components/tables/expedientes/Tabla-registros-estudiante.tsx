@@ -11,8 +11,8 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Eye, BookOpen, History } from "lucide-react"
+import { Eye, BookOpen, History, CalendarDays } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 
 
@@ -42,85 +42,120 @@ export function TablaRegistrosEstudiante({ registros, onVerCalificaciones }: Tab
     return (
         <Card className="border-0 shadow-lg">
             <CardHeader className="pb-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <CardTitle className="text-xl font-semibold flex items-center gap-2 text-slate-800">
-                        <BookOpen className="w-5 h-5 text-green-600" />
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <CardTitle className="flex items-center gap-3 text-xl font-semibold text-slate-800">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-50 text-green-600">
+                            <BookOpen className="h-5 w-5" />
+                        </span>
                         Historial Académico
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+                            {registros.length}
+                        </span>
                     </CardTitle>
 
                     {/* Tabs de navegación */}
-                    <div className="flex bg-secondary rounded-lg p-1 gap-1">
-                        <Button
-                            variant={activeTab === "actual" ? "default" : "ghost"}
-                            size="sm"
+                    <div className="inline-flex w-fit rounded-lg bg-slate-100 p-1">
+                        <button
+                            type="button"
+                            aria-pressed={activeTab === "actual"}
                             onClick={() => setActiveTab("actual")}
-                            className="gap-2"
+                            className={cn(
+                                "inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition",
+                                activeTab === "actual"
+                                    ? "bg-white text-green-700 shadow-sm"
+                                    : "text-slate-600 hover:text-slate-900",
+                            )}
                         >
-                            <BookOpen className="w-4 h-4" />
-                            <span>Actual</span>
-                        </Button>
-                        <Button
-                            variant={activeTab === "matricula" ? "default" : "ghost"}
-                            size="sm"
+                            <BookOpen className="h-4 w-4" />
+                            Actual
+                            <span className="rounded-full bg-slate-100 px-1.5 text-xs text-slate-500">
+                                {registrosActuales.length}
+                            </span>
+                        </button>
+                        <button
+                            type="button"
+                            aria-pressed={activeTab === "matricula"}
                             onClick={() => setActiveTab("matricula")}
-                            className="gap-2"
+                            className={cn(
+                                "inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition",
+                                activeTab === "matricula"
+                                    ? "bg-white text-green-700 shadow-sm"
+                                    : "text-slate-600 hover:text-slate-900",
+                            )}
                         >
-                            <History className="w-4 h-4" />
-                            <span>Matrícula</span>
-                        </Button>
+                            <History className="h-4 w-4" />
+                            Matrícula
+                            <span className="rounded-full bg-slate-100 px-1.5 text-xs text-slate-500">
+                                {registrosHistoricos.length}
+                            </span>
+                        </button>
                     </div>
                 </div>
             </CardHeader>
 
             <CardContent>
-                <div className="rounded-lg border border-border overflow-hidden">
-                    <Table>
+                <div className="overflow-hidden rounded-xl border border-slate-200">
+                    <Table className="min-w-[560px]">
                         <TableHeader>
-                            <TableRow className="bg-muted/50 hover:bg-muted/50">
-                                <TableHead className="font-semibold">Grado</TableHead>
-                                <TableHead className="font-semibold">Modalidad</TableHead>
-                                <TableHead className="font-semibold">Grupo</TableHead>
-                                <TableHead className="font-semibold">Docente Guía</TableHead>
-                                <TableHead className="font-semibold">Año Lectivo</TableHead>
-                                <TableHead className="text-right font-semibold">Acciones</TableHead>
+                            <TableRow className="border-slate-200 bg-slate-50 hover:bg-slate-50">
+                                <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Grado</TableHead>
+                                <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Modalidad</TableHead>
+                                <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Grupo</TableHead>
+                                <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Docente guía</TableHead>
+                                <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Año lectivo</TableHead>
+                                <TableHead className="h-11 px-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Acciones</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {displayedRecords.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                                        No hay registros {activeTab === "actual" ? "activos" : "históricos"} disponibles
+                                <TableRow className="hover:bg-transparent">
+                                    <TableCell colSpan={6} className="px-3 py-14 text-center">
+                                        <div className="flex flex-col items-center gap-2 text-slate-500">
+                                            <BookOpen className="h-6 w-6 text-slate-300" />
+                                            <p className="text-sm">
+                                                No hay registros {activeTab === "actual" ? "activos" : "históricos"} disponibles
+                                            </p>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ) : (
                                 displayedRecords.map((registro) => (
-                                    <TableRow key={registro.id} className="hover:bg-muted/30 transition-colors">
-                                        <TableCell className="font-medium">{registro.grado}</TableCell>
-                                        <TableCell>
-                                            <Badge variant="outline" className="bg-secondary/50">
-                                                {registro.modalidad}
-                                            </Badge>
+                                    <TableRow
+                                        key={registro.id}
+                                        className="border-slate-100 transition-colors hover:bg-green-50/40"
+                                    >
+                                        <TableCell className="whitespace-normal px-3 py-3 font-medium text-slate-800">
+                                            {registro.grado}
                                         </TableCell>
-                                        <TableCell>{registro.grupo}</TableCell>
-                                        <TableCell>{registro.docenteGuia}</TableCell>
-                                        <TableCell>
+                                        <TableCell className="px-3 py-3">
+                                            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                                                {registro.modalidad}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell className="px-3 py-3 font-mono text-xs text-slate-500">
+                                            {registro.grupo}
+                                        </TableCell>
+                                        <TableCell className="whitespace-normal px-3 py-3 text-slate-700">
+                                            {registro.docenteGuia}
+                                        </TableCell>
+                                        <TableCell className="px-3 py-3">
                                             <div className="flex items-center gap-2">
-                                                {registro.anioLectivo}
+                                                <span className="tabular-nums text-slate-700">{registro.anioLectivo}</span>
                                                 {registro.activo && (
-                                                    <Badge className="bg-accent text-accent-foreground text-xs">
+                                                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-green-700">
                                                         Activo
-                                                    </Badge>
+                                                    </span>
                                                 )}
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-right">
+                                        <TableCell className="px-3 py-3 text-right">
                                             <Button
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() => onVerCalificaciones(registro.id)}
-                                                className="gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
+                                                className="gap-2 border-green-200 text-green-700 hover:bg-green-600 hover:text-white"
                                             >
-                                                <Eye className="w-4 h-4" />
+                                                <Eye className="h-4 w-4" />
                                                 Ver Calificaciones
                                             </Button>
                                         </TableCell>
@@ -132,12 +167,15 @@ export function TablaRegistrosEstudiante({ registros, onVerCalificaciones }: Tab
                 </div>
 
                 {/* Resumen */}
-                <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
+                <div className="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-3 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
                     <span>
-                        Mostrando {displayedRecords.length} registro{displayedRecords.length !== 1 ? "s" : ""}
+                        Mostrando{" "}
+                        <span className="font-medium text-slate-700">{displayedRecords.length}</span>{" "}
+                        registro{displayedRecords.length !== 1 ? "s" : ""}
                     </span>
                     {activeTab === "actual" && registrosActuales.length > 0 && (
-                        <span className="text-primary font-medium">
+                        <span className="inline-flex items-center gap-1.5 font-medium text-green-700">
+                            <CalendarDays className="h-4 w-4" />
                             Año lectivo actual: {registrosActuales[0].anioLectivo}
                         </span>
                     )}

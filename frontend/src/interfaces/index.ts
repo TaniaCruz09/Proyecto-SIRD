@@ -12,7 +12,7 @@ export type { Pais, PaisPayload } from "./catalogoInterface/PaisInterface";
 export type { Profesion, ProfesionPayload } from "./catalogoInterface/ProfesionInterface";
 export type { Seccion, SeccionPayload } from "./catalogoInterface/SeccionInterfase"
 export type { Turno, TurnoPayload } from "./catalogoInterface/TurnoInterface"
-export type { AnioLectivo, AnioLectivoPayload, PeriodoLectivo, PeriodoLectivoPayload } from "./catalogoInterface/AnioLectivo"
+export type { AnioLectivo, AnioLectivoPayload, PeriodoLectivo, PeriodoLectivoPayload, PlanPeriodos, PeriodoPlan } from "./catalogoInterface/AnioLectivo"
 export type {
 	AnioLectivoCalendarizacionItem,
 	UpsertAnioLectivoCalendarizacionItemPayload,

@@ -1,5 +1,5 @@
 "use client";
-import { GrLogout } from "react-icons/gr";
+import { X } from "lucide-react";
 interface ModalBaseProps {
   onshowModal: boolean;
   onCloseModal: () => void;
@@ -21,9 +21,10 @@ const ModalBase = ({ onshowModal, content, onCloseModal, containerClassName }: M
           >
         <button
           onClick={onCloseModal}
-          className="absolute right-3 top-3 z-20 text-2xl font-bold text-gray-400 transition-colors hover:text-red-600/80"
+          aria-label="Cerrar"
+          className="absolute right-3 top-3 z-20 rounded-full p-1 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
         >
-          <GrLogout />
+          <X className="h-5 w-5" />
         </button>
             <div className="w-full">{content}</div>
           </div>

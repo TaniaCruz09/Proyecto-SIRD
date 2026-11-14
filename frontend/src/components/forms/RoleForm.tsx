@@ -75,8 +75,8 @@ const RoleForm = ({defaultValues, onSuccess }: RoleFormProps) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <h2 className="text-xl font-semibold text-gray-700 mb-4">
+    <form onSubmit={handleSubmit} className="space-y-4 text-left">
+      <h2 className="text-xl font-semibold text-center text-gray-700 mb-4">
         {isEdit ? "Editar Rol" : "Agregar Rol"}
       </h2>
       <input 

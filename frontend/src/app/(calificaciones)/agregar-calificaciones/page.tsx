@@ -5,11 +5,10 @@ import { useAuth } from "@/hooks/useAuth"
 import { getGradosByDocenteId } from "@/actions/docentesMethods/docentesMethods"
 import { getEsquelaHeadById } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
 import { EsquelaHeadInterface, EsquelaRowInterface } from "@/interfaces/calificaciones/EsquelaHead"
-import { AnioLectivoCalendarizacionItem, Corte, NotaCualitativa } from "@/interfaces"
+import { AnioLectivoCalendarizacionItem, Corte } from "@/interfaces"
 import { EsquelaRowPayload } from "@/interfaces/calificaciones/EsquelaRow"
 import { saveEsquelaRow, updateEsquelaRow, deleteEsquelaRow } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods"
 import { getCortesEvaluativos } from "@/actions/catalogos/corteEvaluativoMethods"
-import { getNotasCualitativas } from "@/actions/catalogos/notaCualitativaMethods"
 import { getAnioLectivoCalendarizacion } from "@/actions/catalogos/anioLectivoCalendarizacionMethods"
 import CardCortesEvaluativos from "@/components/calificaciones/CardCortesEvaluativos"
 import { Asignatura, CorteUI, Estudiante } from "@/interfaces/calificaciones/AgregarCalificaciones"
@@ -120,7 +119,6 @@ export default function Calificaciones({
     const [corteActivo, setCorteActivo] = useState<number | null>(null)
 
     const [cortesUI, setCortesUI] = useState<CorteUI[]>([])
-    const [notasCualitativas, setNotasCualitativas] = useState<NotaCualitativa[]>([])
 
     const storageKey = `calificaciones_${esquelaId}_${grupoId}`
 
@@ -184,6 +182,23 @@ export default function Calificaciones({
                 editable: false,
                 mensaje: "Solo consulta",
                 rango,
+            }
+        }
+
+        // Estado calculado por el backend (zona horaria America/Managua y mismas reglas que el guardado)
+        const estadoBackend = esquela?.cortesEstado?.cortes?.find(
+            (item) => Number(item.corteId) === Number(corte.id),
+        )
+        if (estadoBackend) {
+            const navegable =
+                estadoBackend.estado === "open" || estadoBackend.estado === "future"
+
+            return {
+                estadoFecha: estadoBackend.estado as CorteEstadoFecha,
+                navegable,
+                editable: estadoBackend.editablePorFecha,
+                mensaje: estadoBackend.mensajeFecha,
+                rango: estadoBackend.rango || rango,
             }
         }
 
@@ -395,23 +410,6 @@ export default function Calificaciones({
         }
     }, [asignaturaActiva, corteActivo, cortesUI, estudiantes, isAnioActivo])
 
-    useEffect(() => {
-        const fetchNotas = async () => {
-            try {
-                const response = await getNotasCualitativas()
-                if (Array.isArray(response)) {
-                    const ordered = response
-                        .slice()
-                        .sort((a, b) => (a.id ?? 0) - (b.id ?? 0))
-                    setNotasCualitativas(ordered)
-                }
-            } catch (error) {
-                console.error("Error al cargar notas cualitativas", error)
-            }
-        }
-
-        fetchNotas()
-    }, [])
 
     // ---------- Cargar estudiantes y asignaturas (y restaurar notas) ----------
     const fetchGruposById = async () => {
@@ -593,13 +591,6 @@ export default function Calificaciones({
         })
     }
 
-    const obtenerNotaCualitativa = (valor: number): { id: number } | null => {
-        if (!Number.isFinite(valor)) return null
-        const match = notasCualitativas.find(
-            (nota) => valor >= nota.rango_menor && valor <= nota.rango_mayor
-        )
-        return match ? { id: match.id! } : null
-    }
 
     // ---------------- Guardar nota individual (envía a backend y actualiza localStorage) ----------------
     const handleGuardarIndividual = async (
@@ -651,16 +642,9 @@ export default function Calificaciones({
             return
         }
 
-        const notaCualitativaObj = obtenerNotaCualitativa(notaNum);
-        if (!notaCualitativaObj) {
-            toast({ title: "Rango inválido", description: "No se encontró una nota cualitativa para ese rango.", variant: "destructive" });
-            return
-        }
-
         const payload: EsquelaRowPayload = {
             estudiante: { id: estudiante.id },
             asignatura: { id: asignaturaId },
-            notaCualitativa: notaCualitativaObj,
             notaCuantitativa: notaNum,
             corte: { id: corteEncontrado.id },
             esquelaHead: { id: esquela!.id }
@@ -776,52 +760,11 @@ export default function Calificaciones({
         }
     };
 
-    // --------- Avanzar al siguiente corte (solo cambia corteActivo localmente) ----------
-    const avanzarCorte = () => {
-        if (corteActivo == null || cortes.length === 0) return
-
-        const index = cortes.findIndex(c => c.id === corteActivo)
-        if (index < cortes.length - 1) {
-            const siguienteCorte = cortes[index + 1]
-            const estadoSiguienteCorte = obtenerEstadoCorte(siguienteCorte.id)
-            if (!estadoSiguienteCorte.habilitado) {
-                toast({
-                    title: "Corte bloqueado",
-                    description: estadoSiguienteCorte.mensaje,
-                    variant: "destructive",
-                })
-                return
-            }
-
-            cambiarCorte(siguienteCorte.id)
-            toast({
-                title: "Corte cambiado",
-                description: `Corte actual: ${siguienteCorte.corte}`,
-                variant: "default",
-            })
-        } else {
-            toast({
-                title: "Último corte",
-                description: "Ya estás en el último corte.",
-                variant: "default",
-            })
-        }
-    }
-
     const anioLectivo = esquela?.grupo_asignatura.organizacionEscolar.anio_lectivo.anio_lectivo
     const tipoPeriodizacion =
         (esquela?.grupo_asignatura?.organizacionEscolar?.anio_lectivo as any)?.tipo_periodizacion ??
         (esquela?.grupo_asignatura?.organizacionEscolar?.anio_lectivo as any)?.periodos?.[0]?.tipo ??
         (esquela?.grupo_asignatura?.organizacionEscolar?.anio_lectivo as any)?.periodosLectivos?.[0]?.tipo
-
-    const puedeAvanzarCorte = (() => {
-        if (!isAnioActivo || corteActivo == null || cortes.length === 0) return false
-
-        const index = cortes.findIndex((c) => c.id === corteActivo)
-        if (index === -1 || index >= cortes.length - 1) return false
-
-        return obtenerEstadoCorte(cortes[index + 1].id).habilitado
-    })()
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -853,8 +796,6 @@ export default function Calificaciones({
                 anioLectivo={anioLectivo}
                 handleGuardarIndividual={handleGuardarIndividual}
                 handleEliminarNota={handleEliminarNota}
-                avanzarCorte={avanzarCorte}
-                puedeAvanzarCorte={puedeAvanzarCorte}
                 guardando={guardando}
                 isAnioActivo={isAnioActivo}
                 isCorteEditable={Boolean(estadoCorteActivo?.editable)}

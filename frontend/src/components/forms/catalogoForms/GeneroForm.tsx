@@ -59,7 +59,7 @@ export default function SexoForm({
   return (
     <form
       onSubmit={handleSubmit}
-       className="w-full max-w-md mx-auto space-y-6 bg-gradient-to-br from-white/95 to-indigo-50/90 backdrop-blur-xl shadow-[0_8px_40px_rgba(0,0,0,0.1)] rounded-3xl px-8 py-8 border border-indigo-100 animate-fade-in"
+       className="w-full max-w-md mx-auto space-y-6 px-2 py-2 text-left animate-fade-in"
     >
       <h2 className="text-2xl font-bold text-center text-indigo-800 mb-4">
         {isEdit ? "✏️ Editar Genero" : "📘 Agregar Genero"}

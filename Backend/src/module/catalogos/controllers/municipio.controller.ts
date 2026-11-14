@@ -2,69 +2,58 @@ import { Controller, Get, Post, Put, Delete, Body, Param, Query, ParseIntPipe, U
 import { MunicipioService } from '../services/municipio.service';
 import { CreateMunicipioDto } from '../dtos/municipio.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { Utilities } from '../../../common/helpers/utilities';
 import { JwtAuthGuard } from '../../auth/guards/jwt.guard';
+import { AdminWrite } from '../../../common/decorators/admin-write.decorator';
 
 @ApiTags('municipio')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@AdminWrite()
 @Controller('municipio')
 export class MunicipioController {
     constructor(private readonly municipioService: MunicipioService) { }
 
     @Get('/')
     async findAll() {
-        try {
-            const municipio = await this.municipioService.findAll();
-            const data = {
-                data: municipio,
-                message: 'ok',
-            };
-            return data;
-        } catch (error) {
-            Utilities.catchError(error)
-        }
+        const municipio = await this.municipioService.findAll();
+        const data = {
+            data: municipio,
+            message: 'ok',
+        };
+        return data;
     }
 
     @Get(':id')
     async findOne(@Param('id', ParseIntPipe) id: number) {
-        try {
-            const municipio = await this.municipioService.findOne(id);
-            const data = {
-                data: municipio,
-                message: 'ok',
-            };
-            return data;
-        } catch (error) {
-            Utilities.catchError(error)
-        }
+        const municipio = await this.municipioService.findOne(id);
+        const data = {
+            data: municipio,
+            message: 'ok',
+        };
+        return data;
     }
 
     //aqui
     @Post('/')
     async create(@Body() payload: CreateMunicipioDto, @Req() req) {
-        try {
 
-            const userId = req.user?.id;
+        const userId = req.user?.id;
 
-            if (!userId) {
-                return {
-                    message: "Usuario no encontrado",
-                    statusCode: 401
-                };
-            }
-
-            payload.user_create_id = userId;
-
-            const newMunicipio = await this.municipioService.create(payload);
-            const data = {
-                data: newMunicipio,
-                message: 'Municipio creado correctamente',
+        if (!userId) {
+            return {
+                message: "Usuario no encontrado",
+                statusCode: 401
             };
-            return data;
-        } catch (error) {
-            Utilities.catchError(error)
         }
+
+        payload.user_create_id = userId;
+
+        const newMunicipio = await this.municipioService.create(payload);
+        const data = {
+            data: newMunicipio,
+            message: 'Municipio creado correctamente',
+        };
+        return data;
     }
 
     @Put('/:id')
@@ -73,25 +62,21 @@ export class MunicipioController {
         @Body() payload: CreateMunicipioDto,
         @Req() req
     ) {
-        try {
-            const userId = req.user?.id;
-            if (!userId) { 
-                return {
-                    message: "Usuario no encontrado",
-                    statusCode: 401
-                };
-            }
-
-            payload.user_create_id = userId;
-
-            const municipio = await this.municipioService.update(id, payload);
+        const userId = req.user?.id;
+        if (!userId) {
             return {
-                data: municipio,
-                message: 'Municipio actualizado correctamente',
+                message: "Usuario no encontrado",
+                statusCode: 401
             };
-        } catch (error) {
-            Utilities.catchError(error);
         }
+
+        payload.user_create_id = userId;
+
+        const municipio = await this.municipioService.update(id, payload);
+        return {
+            data: municipio,
+            message: 'Municipio actualizado correctamente',
+        };
     }
 
     @Delete('/:id')
@@ -99,21 +84,17 @@ export class MunicipioController {
         @Param('id', ParseIntPipe) id: number,
         @Req() req
     ) {
-        try {
-            const userId = req.user?.id;
-            if (!userId) {
-                return {
-                    message: "Usuario no autenticado",
-                    statusCode: 401
-                };
-            }
-            const municipio = await this.municipioService.delete(id, userId);
+        const userId = req.user?.id;
+        if (!userId) {
             return {
-                data: municipio,
-                message: 'Municipio eliminado correctamente',
-            }
-        } catch (error) {
-            Utilities.catchError(error)
+                message: "Usuario no autenticado",
+                statusCode: 401
+            };
+        }
+        const municipio = await this.municipioService.delete(id, userId);
+        return {
+            data: municipio,
+            message: 'Municipio eliminado correctamente',
         }
     }
 

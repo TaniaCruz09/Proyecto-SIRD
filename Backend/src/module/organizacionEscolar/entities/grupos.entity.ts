@@ -39,7 +39,7 @@ export class Grupos {
         onDelete: 'CASCADE',
     })
     @JoinColumn({ name: 'docente_guia_id', referencedColumnName: 'id' })
-    docenteGuia: Docentes;
+    docenteGuia?: Docentes | null;
 
 
     @OneToMany(() => GrupoAsignaturaDocente, gad => gad.grupo)

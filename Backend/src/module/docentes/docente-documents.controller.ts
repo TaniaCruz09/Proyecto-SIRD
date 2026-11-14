@@ -20,6 +20,8 @@ import {
   documentFileFilter,
   documentStorage,
 } from '../../common/uploads/document-upload';
+import { UploadCleanupInterceptor } from '../../common/uploads/upload-cleanup.interceptor';
+import { assertDocumentContent } from '../../common/uploads/upload-validation';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { DocenteDocumentsService } from './docente-documents.service';
 
@@ -44,8 +46,9 @@ export class DocenteDocumentsController {
       limits: { fileSize: DOCUMENT_MAX_SIZE },
       fileFilter: documentFileFilter,
     }),
+    UploadCleanupInterceptor,
   )
-  upload(
+  async upload(
     @Body('docenteId', ParseIntPipe) docenteId: number,
     @Body('nombre') nombre: string,
     @UploadedFile() file: Express.Multer.File,
@@ -54,6 +57,7 @@ export class DocenteDocumentsController {
     if (!file) {
       throw new BadRequestException('Debes adjuntar un archivo');
     }
+    await assertDocumentContent(file);
     if (!nombre?.trim()) {
       throw new BadRequestException('El nombre del documento es obligatorio');
     }

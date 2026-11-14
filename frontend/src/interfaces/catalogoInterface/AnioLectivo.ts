@@ -46,3 +46,15 @@ export interface AnioLectivoPayload {
     cantidad_periodos?: number,
     cantidad_cortes?: number,
 }
+export interface PeriodoPlan {
+    orden: number,
+    nombre: string,
+    abreviatura: string,
+    cortes: { id: number, orden: number }[],
+}
+
+export interface PlanPeriodos {
+    totalPeriodos: number,
+    totalCortes: number,
+    periodos: PeriodoPlan[],
+}

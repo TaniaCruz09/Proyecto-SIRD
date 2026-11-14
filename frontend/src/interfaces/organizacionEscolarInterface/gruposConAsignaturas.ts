@@ -20,7 +20,7 @@ export interface GrupoConAsignaturasResponse {
   id: number; // id de la relación pivote
   grupo: GrupoEscolar; // el objeto grupo completo
   asignatura: Asignatura; // el objeto asignatura completo
-  docente: Docente; // el objeto docente completo
+  docente: Docente | null; // puede no tener docente asignado
   gruposConEstudiantes: GrupoConEstudiante[]
   cantidadEstudiantes?: number
 }

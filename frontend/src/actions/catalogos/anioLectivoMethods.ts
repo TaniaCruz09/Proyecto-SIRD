@@ -1,4 +1,4 @@
-import { AnioLectivoPayload } from "@/interfaces";
+import { AnioLectivoPayload, PlanPeriodos } from "@/interfaces";
 import { feching } from "@/utils/cliente-http"
 
 export async function getAniosLectivos() {
@@ -54,4 +54,19 @@ export async function deleteAnioLectivo(id: number) {
         throw new Error(response?.error || "Error al eliminar");
 
     } return response.data
+}
+/**
+ * Pide al backend la distribución de cortes por período sin guardar nada.
+ * Devuelve los mismos errores de validación que el guardado.
+ */
+export async function previewAnioLectivo(payload: AnioLectivoPayload): Promise<PlanPeriodos> {
+    const endpoint = `/anioLectivo/preview`;
+
+    const response = await feching(endpoint, "no-cache", "POST", payload);
+
+    if (!response?.data || response.error) {
+        throw new Error(response?.error || "Error al calcular la vista previa");
+    }
+
+    return response.data as PlanPeriodos;
 }

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { unlink } from 'fs/promises';
-import { join } from 'path';
+import { uploadPathFromUrl } from '../../common/uploads/uploads-root';
 import { StudentDocument } from './student-document.entity';
 
 @Injectable()
@@ -54,8 +54,7 @@ export class StudentDocumentsService {
     if (!archivo) return;
 
     try {
-      const relative = archivo.replace(/^\/uploads\//, '');
-      await unlink(join(process.cwd(), 'uploads', relative));
+      await unlink(uploadPathFromUrl(archivo));
     } catch {
       // El archivo ya no existe en disco: no hay nada que borrar.
     }

@@ -72,26 +72,31 @@ export function AcademicYearsDashboard() {
     return (
         <div className="space-y-6 ">
             {/* Encabezado y buscador */}
-            <div className="flex justify-between items-center text-left">
-                <div>
+            <div className="flex flex-col gap-4 text-left lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
                     <h2 className="text-2xl font-bold text-slate-800">Años Lectivos</h2>
-                    <p className="text-slate-600 mt-1 text-sm">
-                        Agrega un nuevo año lectivo, crea la organizacion escolar, forma los grupos <br />correspondientes, asigna materias y agrega los estudiantes.
+                    <p className="mt-1 max-w-2xl text-sm text-slate-600">
+                        Agrega un nuevo año lectivo, crea la organizacion escolar, forma los grupos correspondientes, asigna materias y agrega los estudiantes.
                     </p>
                 </div>
-                <SearchBar
-                    value={searchTerm}
-                    onChange={(val) => {
-                        setSearchTerm(val)
-                        setCurrentPage(1) // reset página al buscar
-                    }}
-                    onClear={() => {
-                        setSearchTerm("")
-                        setCurrentPage(1)
-                    }}
-                    placeholder="Buscar año lectivo"
-                />
-                <AddAniosLectivosModal fetchAniosLectivos={fetchAniosLectivos} />
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <SearchBar
+                        value={searchTerm}
+                        onChange={(val) => {
+                            setSearchTerm(val)
+                            setCurrentPage(1) // reset página al buscar
+                        }}
+                        onClear={() => {
+                            setSearchTerm("")
+                            setCurrentPage(1)
+                        }}
+                        placeholder="Buscar año lectivo"
+                        className="m-0 w-full min-w-0 sm:w-64"
+                    />
+                    <div className="-ml-4 sm:ml-0">
+                        <AddAniosLectivosModal fetchAniosLectivos={fetchAniosLectivos} />
+                    </div>
+                </div>
             </div>
 
             {/* Lista de años lectivos */}
@@ -146,7 +151,7 @@ export function AcademicYearsDashboard() {
                                                 </CardHeader>
                                                 <CardContent className="pt-0">
                                                     <div className="flex flex-col gap-1 mt-2">
-                                                        <div className="flex gap-1">
+                                                        <div className="flex flex-wrap gap-1">
                                                             <Button
                                                                 variant="outline"
                                                                 size="sm"
@@ -196,7 +201,7 @@ export function AcademicYearsDashboard() {
                                     </div>
                                 )}
 
-                                <div className="flex gap-2 pt-4 border-t border-slate-200">
+                                <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-200">
                                     <AddOganizacionEscolarConAnioLectivoModal
                                         idAnioLectivo={Number(anioLectivo.id)}
                                         onSuccess={fetchAniosLectivos}

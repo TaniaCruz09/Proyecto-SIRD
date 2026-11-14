@@ -11,6 +11,8 @@ import { GrupoEscolar } from '@/interfaces';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { AvisoSoloLectura } from '@/components/common/AvisoSoloLectura';
+import { anioEstaActivo } from '@/utils/anio-lectivo';
 
 interface EstudianteGrupo {
     id: number;
@@ -53,6 +55,7 @@ export default function AsignarEstudiantesAGrupo() {
     // Sacar info base de la primera organización encontrada
     const idAnioLectivo = grupos?.organizacionEscolar?.anio_lectivo?.id ?? 0
     const anioLectivo = grupos?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0
+    const editable = anioEstaActivo(grupos?.organizacionEscolar?.anio_lectivo?.isActive)
     const grupo = grupos?.grado?.grades ?? "N/A"
     const docenteGuia = grupos?.docenteGuia?.nombres ?? "N/A"
     const asignaturasDelGrupo = grupos?.grupoAsignaturaDocente ?? [];
@@ -101,7 +104,7 @@ export default function AsignarEstudiantesAGrupo() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 sm:p-6">
             <button
                 onClick={() => router.back()}
                 style={{
@@ -120,8 +123,10 @@ export default function AsignarEstudiantesAGrupo() {
             >
                 ← Regresar
             </button>
+            {!editable && <AvisoSoloLectura anio={anioLectivo} className="mb-4 text-left" />}
+
             {/* Contenedor de encabezado y buscador en dos columnas */}
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 px-8 py-4 mb-8">
+            <div className="mb-8 rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-lg sm:px-8">
                 <div className="flex items-center gap-3 pb-4">
                     <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
                         <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,7 +140,7 @@ export default function AsignarEstudiantesAGrupo() {
                     </div>
                     <h2 className="text-xl font-bold text-slate-700">Listado de Estudiantes</h2>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start pb-10">
+                <div className="grid grid-cols-1 items-start gap-8 pb-10 lg:grid-cols-2">
                     {/* Columna 1: Información del grupo */}
                     <div className="space-y-4">
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -182,22 +187,25 @@ export default function AsignarEstudiantesAGrupo() {
                     </div>
 
                     {/* Columna 2: buscador */}
-                    <BuscarAsignarEstudianteAutocomplete
-                        anioId={idAnioLectivo}
-                        asignaturasDelGrupo={asignaturasDelGrupo}
-                        fetchGrupoConEstudiantes={refrescarTodo}
-                        refreshKey={estudiantesRefreshKey}
-                    />
+                    {editable && (
+                        <BuscarAsignarEstudianteAutocomplete
+                            anioId={idAnioLectivo}
+                            asignaturasDelGrupo={asignaturasDelGrupo}
+                            fetchGrupoConEstudiantes={refrescarTodo}
+                            refreshKey={estudiantesRefreshKey}
+                        />
+                    )}
                 </div>
             </div>
 
             {/* Título listado */}
-            <div className="flex items-center bg-white border rounded-t-xl h-15">
+            <div className="flex flex-wrap items-center rounded-t-xl border bg-white py-3">
                 <h2 className="pl-6 text-xl font-bold text-gray-600">Listado de estudiantes</h2>
             </div>
 
             {/* Tabla */}
-            <table className="w-full text-black border border-gray-300 border-collapse bg-white">
+            <div className="overflow-x-auto rounded-b-xl border border-gray-300">
+            <table className="w-full min-w-[720px] text-black border-collapse bg-white">
                 <thead className="bg-gray-200">
                     <tr>
                         <th className="text-left px-4 py-2 font-semibold text-gray-700 border border-gray-300">Nº</th>
@@ -248,7 +256,7 @@ export default function AsignarEstudiantesAGrupo() {
                                 <button
                                     type="button"
                                     onClick={() => handleCambiarEstado(estudiante)}
-                                    disabled={estudianteActualizandoId === estudiante.id}
+                                    disabled={!editable || estudianteActualizandoId === estudiante.id}
                                     className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${estudiante.activoEnGrupo
                                         ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
                                         : 'bg-red-100 text-red-700 hover:bg-red-200'
@@ -268,22 +276,31 @@ export default function AsignarEstudiantesAGrupo() {
                                     .join(", ") || "N/A"}
                             </td>
                             <td className="px-4 py-2 border border-gray-300 text-center">
-                                <MoveStudentToGroupModal
-                                    gradoId={gradoId}
-                                    grupoOrigenId={Number(grupoId)}
-                                    idAnioLectivo={idAnioLectivo}
-                                    anioLectivo={anioLectivo}
-                                    estudianteId={estudiante.id}
-                                    fetchGrupoConEstudiantes={refrescarTodo}
-                                />
+                                {editable ? (
+                                    <MoveStudentToGroupModal
+                                        gradoId={gradoId}
+                                        grupoOrigenId={Number(grupoId)}
+                                        idAnioLectivo={idAnioLectivo}
+                                        anioLectivo={anioLectivo}
+                                        estudianteId={estudiante.id}
+                                        fetchGrupoConEstudiantes={refrescarTodo}
+                                    />
+                                ) : (
+                                    <span className="text-xs text-slate-400">Solo lectura</span>
+                                )}
                             </td>
                             <td className="px-4 py-2 border border-gray-300 text-center">
-                                <DeleteEstudianteDeGrupoModal grupoId={Number(grupoId)} estudianteId={estudiante.id} fetchGrupoConEstudiantes={refrescarTodo} />
+                                {editable ? (
+                                    <DeleteEstudianteDeGrupoModal grupoId={Number(grupoId)} estudianteId={estudiante.id} fetchGrupoConEstudiantes={refrescarTodo} />
+                                ) : (
+                                    <span className="text-xs text-slate-400">Solo lectura</span>
+                                )}
                             </td>
                         </tr>
                     ))}
                 </tbody>
             </table>
+            </div>
         </div>
     );
 

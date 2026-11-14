@@ -2,7 +2,6 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, U
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UpdateGrupoDto } from '../../organizacionEscolar/dtos/Update-grupo.dto';
 import { CreateGrupoDto } from '../../organizacionEscolar/dtos/grupos.dto';
-import { Utilities } from '../../../common/helpers/utilities';
 import { JwtAuthGuard } from 'src/module/auth/guards/jwt.guard';
 import { GruposService } from '../services/grupos.service';
 
@@ -15,78 +14,58 @@ export class GruposController {
 
     @Post()
     async createGrupo(@Body() createGrupoDto: CreateGrupoDto) {
-        try {
-            const grupos = await this.grupoService.createGrupo(createGrupoDto);
-            const data = {
-                data: grupos,
-                message: 'Grupo agregado correctamente ',
-            };
+        const grupos = await this.grupoService.createGrupo(createGrupoDto);
+        const data = {
+            data: grupos,
+            message: 'Grupo agregado correctamente ',
+        };
 
-            return data;
-        } catch (error) {
-            Utilities.catchError(error)
-        }
+        return data;
     }
 
     @Get('/')
     async getgrupos() {
-        try {
-            const grupos = await this.grupoService.getGrupo();
-            const data = {
-                data: grupos,
-                message: 'ok',
-            };
+        const grupos = await this.grupoService.getGrupo();
+        const data = {
+            data: grupos,
+            message: 'ok',
+        };
 
-            return data;
-        } catch (error) {
-            Utilities.catchError(error)
-        }
+        return data;
     }
 
     @Get('/:id')
     async getGruposById(@Param('id', ParseIntPipe) id: number) {
-        try {
-            const grupo = await this.grupoService.getGrupoById(id);
-            const data = {
-                data: grupo,
-                message: 'ok',
-            };
+        const grupo = await this.grupoService.getGrupoById(id);
+        const data = {
+            data: grupo,
+            message: 'ok',
+        };
 
-            return data;
-        } catch (error) {
-            Utilities.catchError(error)
-        }
+        return data;
     }
 
     @Get('/por-anio-y-grado/:anioId')
     async getGruposPorAnioYGrado(
         @Param('anioId', ParseIntPipe) anioId: number,
         @Query('gradoId', ParseIntPipe) gradoId: number) {
-        try {
-            const grupos = await this.grupoService.getGruposPorAnioYGrado(anioId, gradoId);
-            const data = {
-                data: grupos,
-                message: 'ok',
-            };
-            return data;
-        } catch (error) {
-            Utilities.catchError(error)
-        }
+        const grupos = await this.grupoService.getGruposPorAnioYGrado(anioId, gradoId);
+        const data = {
+            data: grupos,
+            message: 'ok',
+        };
+        return data;
     }
 
     @Delete('/:id')
     async deleteGrupo(@Param('id', ParseIntPipe) id: number) {
-        try {
-            const grupo = await this.grupoService.deleteGrupos(id);
-            const data = {
-                data: grupo,
-                message: 'ok',
-            };
+        const grupo = await this.grupoService.deleteGrupos(id);
+        const data = {
+            data: grupo,
+            message: 'ok',
+        };
 
-            return data;
-        } catch (error) {
-            Utilities.catchError(error)
-        }
+        return data;
     }
 
     @Put('/:id')

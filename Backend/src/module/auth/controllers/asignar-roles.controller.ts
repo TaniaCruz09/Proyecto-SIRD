@@ -2,16 +2,18 @@ import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common
 import { AsignarRolesService } from '../services';
 import { UserHasRolesDto } from '../dtos/user-has-roles';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Auth, Role } from '../decorators';
 
 @ApiTags('Asignar Roles')
 @ApiBearerAuth()
+@Role('Admin')
 @Controller('asignar-roles')
 //@Auth()
 export class AsignarRolesController {
   constructor(private readonly asignarRolesRepo: AsignarRolesService) {}
 
   @Post('/:userId')
-  //@Auth('Admin')
+  @Auth('Admin')
   async asignarRol(
     @Param('userId', ParseIntPipe) userId: number,
     @Body() payload: UserHasRolesDto,

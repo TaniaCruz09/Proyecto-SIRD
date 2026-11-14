@@ -1,0 +1,6 @@
+{
+  // Usa el TypeScript instalado en el proyecto, no el que trae VS Code.
+  // Sin esto el editor marca errores que el build real (tsc 5.x) no tiene.
+  "typescript.tsdk": "./frontend/node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true
+}

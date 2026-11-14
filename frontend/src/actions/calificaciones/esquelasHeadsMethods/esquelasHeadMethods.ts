@@ -1,4 +1,5 @@
 import { EsquelaHeadPayload } from "@/interfaces/calificaciones/EsquelaHead";
+import { EsquelaResumen } from "@/interfaces/calificaciones/EsquelaResumen";
 import { feching } from "@/utils/cliente-http"
 
 export async function getEsquelaHead() {
@@ -66,4 +67,15 @@ export async function deleteEsquelaHead(id: number) {
     }
 
     return response.data
+}
+
+export async function getEsquelaResumen(id: number): Promise<EsquelaResumen> {
+    const endPoint = `/esquelas/${id}/resumen`;
+    const response = await feching(endPoint, "no-cache", "GET");
+
+    if (!response?.data || response.error) {
+        throw new Error(response?.error || "Error al obtener el resumen de la esquela");
+    }
+
+    return response.data as EsquelaResumen;
 }

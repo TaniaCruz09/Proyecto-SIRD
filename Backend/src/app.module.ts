@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { CacheModule } from '@nestjs/cache-manager';
-import { APP_INTERCEPTOR } from '@nestjs/core';
-import { CacheInterceptor } from '@nestjs/cache-manager';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -15,17 +13,18 @@ import { StudetnModule } from './module/createEstudents/students.module';
 import { CalificacionesModule } from './module/calificaciones/calificaciones.module';
 import { CentroModule } from './module/centroEducativo/centro.module';
 import { OrganizacionEscolarModule } from './module/organizacionEscolar/organizacionEscolar.module';
+import { PromocionModule } from './module/promocion/promocion.module';
+import { JwtAuthGuard } from './module/auth/guards/jwt.guard';
+import { UserRoleGuard } from './module/auth/guards/user-role.guard';
+import { validateEnv } from './common/config/env.validation';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
-    }),
-
-    CacheModule.register({
-      ttl: 10,
-      max: 100,
+      validate: validateEnv,
     }),
 
     DatabaseModule,
@@ -36,16 +35,29 @@ import { OrganizacionEscolarModule } from './module/organizacionEscolar/organiza
     CalificacionesModule,
     CentroModule,
     OrganizacionEscolarModule,
+    PromocionModule,
   ],
 
   controllers: [AppController],
   providers: [
     AppService,
 
-    // 🔥 Interceptor global correctamente inyectado
+    // Formato único de error ({statusCode, message, path, timestamp}) sin filtrar SQL.
     {
-      provide: APP_INTERCEPTOR,
-      useClass: CacheInterceptor,
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
+    },
+
+    // Todo endpoint exige JWT salvo los marcados con @Public().
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+
+    // Aplica @Role('Admin') / @Auth('Admin') cuando el endpoint lo declara.
+    {
+      provide: APP_GUARD,
+      useClass: UserRoleGuard,
     },
   ],
 })

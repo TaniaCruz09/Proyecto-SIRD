@@ -1,3 +1,5 @@
+import { Lock } from 'lucide-react';
+import { anioEstaActivo } from '@/utils/anio-lectivo';
 import DeleteGruposModal from '@/components/modals/organizacionEscolar/gruposEscolares/DeleteGruposModal';
 import EditGrupoModal from '@/components/modals/organizacionEscolar/gruposEscolares/EditGrupoModal';
 import { GrupoEscolar } from '@/interfaces';
@@ -23,8 +25,24 @@ export default function GrupoRow({ fetchGrupos, grupo, onShowDetail }: GrupoRowP
             <td className="p-3 border-b border-gray-200">{grupo.seccion?.seccion ?? "Sin sección"}</td>
             <td className="p-3 border-b border-gray-200">{grupo.organizacionEscolar?.turno?.turno ?? "Sin turno"}</td>
             <td className="p-3 border-b border-gray-200">{grupo.docenteGuia ? `${grupo.docenteGuia.nombres} ${grupo.docenteGuia.apellido_paterno} ${grupo.docenteGuia.apellido_materno}` : "Sin docente guía"}</td>
-            <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><EditGrupoModal grupo={grupo} fetchGrupos={fetchGrupos} /></td>
-            <td className="p-3 px-2 py-3 border-b border-gray-200 text-center"><DeleteGruposModal idEliminar={grupo.id} fetchGrupos={fetchGrupos} /></td>
+            <td className="p-3 px-2 py-2 border-b border-gray-200 text-center">
+                {anioEstaActivo(grupo.organizacionEscolar?.anio_lectivo?.isActive) ? (
+                    <EditGrupoModal grupo={grupo} fetchGrupos={fetchGrupos} />
+                ) : (
+                    <span title="Año lectivo inactivo: solo lectura" className="inline-flex justify-center">
+                        <Lock className="h-4 w-4 text-slate-300" />
+                    </span>
+                )}
+            </td>
+            <td className="p-3 px-2 py-3 border-b border-gray-200 text-center">
+                {anioEstaActivo(grupo.organizacionEscolar?.anio_lectivo?.isActive) ? (
+                    <DeleteGruposModal idEliminar={grupo.id} fetchGrupos={fetchGrupos} />
+                ) : (
+                    <span title="Año lectivo inactivo: solo lectura" className="inline-flex justify-center">
+                        <Lock className="h-4 w-4 text-slate-300" />
+                    </span>
+                )}
+            </td>
         </tr>
     )
 }

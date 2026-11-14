@@ -4,8 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import ListaEstudiantes from "./ListaEstudiantes"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { CheckCircle } from "lucide-react"
 
 export default function TabsAsignaturas({
     asignaturas,
@@ -16,8 +14,6 @@ export default function TabsAsignaturas({
     anioLectivo,
     handleGuardarIndividual,
     handleEliminarNota,
-    avanzarCorte,
-    puedeAvanzarCorte,
     asignaturaActiva,
     setAsignaturaActiva,
     guardando,
@@ -69,18 +65,6 @@ export default function TabsAsignaturas({
                             />
                         </CardContent>
                     </Card>
-
-                    <div className="flex justify-end mb-4">
-                        <Button
-                            onClick={avanzarCorte}
-                            disabled={!puedeAvanzarCorte || !isAnioActivo}
-                            title={corteBloqueadoMensaje}
-                            className="flex items-center gap-2"
-                        >
-                            <CheckCircle className="h-4 w-4" />
-                            Aceptar y avanzar al siguiente corte
-                        </Button>
-                    </div>
                 </TabsContent>
             ))}
         </Tabs>

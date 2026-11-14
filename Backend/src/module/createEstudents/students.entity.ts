@@ -4,6 +4,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -19,6 +20,16 @@ import { GrupoAsignaturaConEstudiantes } from '../organizacionEscolar/entities/g
 @Check(`"cedula_identidad" IS NULL
   OR "tutor_cedula_identidad" IS NULL
   OR "cedula_identidad" <> "tutor_cedula_identidad"`)
+// Índices únicos parciales: la cédula y el código se liberan al borrar
+// (borrado lógico) y solo se comparan entre registros activos.
+@Index('uq_student_cedula_activa', ['identityCard'], {
+  unique: true,
+  where: '"cedula_identidad" IS NOT NULL AND "deleted_at" IS NULL',
+})
+@Index('uq_student_codigo_activo', ['studentCode'], {
+  unique: true,
+  where: '"codigo_estudiante" IS NOT NULL AND "deleted_at" IS NULL',
+})
 export class StudentEntity {
   @PrimaryGeneratedColumn({
     name: 'id',
@@ -46,7 +57,6 @@ export class StudentEntity {
     name: 'codigo_estudiante',
     type: 'varchar',
     nullable: true,
-    unique: true,
   })
   studentCode: string;
 
@@ -55,7 +65,6 @@ export class StudentEntity {
     type: 'varchar',
     length: 16,
     nullable: true,
-    unique: true,
   })
   identityCard: string;
 

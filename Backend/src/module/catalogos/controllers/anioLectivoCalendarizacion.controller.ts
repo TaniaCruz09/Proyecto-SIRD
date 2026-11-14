@@ -10,13 +10,14 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt.guard';
-import { Utilities } from '../../../common/helpers/utilities';
 import { AnioLectivoCalendarizacionService } from '../services/anioLectivoCalendarizacion.service';
 import { UpsertAnioLectivoCalendarizacionDto } from '../dtos/anioLectivoCalendarizacion.dto';
+import { AdminWrite } from '../../../common/decorators/admin-write.decorator';
 
 @ApiTags('Anio Lectivo Calendarizacion')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@AdminWrite()
 @Controller('anio-lectivo-calendarizacion')
 export class AnioLectivoCalendarizacionController {
   constructor(
@@ -28,18 +29,14 @@ export class AnioLectivoCalendarizacionController {
     @Param('anioLectivoId', ParseIntPipe) anioLectivoId: number,
     @Param('modalidadId', ParseIntPipe) modalidadId: number,
   ) {
-    try {
-      const data = await this.anioLectivoCalendarizacionService.getByAnioLectivoAndModalidad(
-        anioLectivoId,
-        modalidadId,
-      );
-      return {
-        data,
-        message: 'Calendarizacion encontrada',
-      };
-    } catch (error) {
-      Utilities.catchError(error);
-    }
+    const data = await this.anioLectivoCalendarizacionService.getByAnioLectivoAndModalidad(
+      anioLectivoId,
+      modalidadId,
+    );
+    return {
+      data,
+      message: 'Calendarizacion encontrada',
+    };
   }
 
   @Put('/anio-lectivo/:anioLectivoId/modalidad/:modalidadId')
@@ -49,25 +46,21 @@ export class AnioLectivoCalendarizacionController {
     @Body() payload: UpsertAnioLectivoCalendarizacionDto,
     @Req() req,
   ) {
-    try {
-      const userId = req.user?.id;
-      if (!userId) {
-        return { message: 'Usuario no autenticado', statusCode: 401 };
-      }
-
-      const data = await this.anioLectivoCalendarizacionService.upsertByAnioLectivoAndModalidad(
-        anioLectivoId,
-        modalidadId,
-        payload,
-        userId,
-      );
-
-      return {
-        data,
-        message: 'Calendarizacion actualizada correctamente',
-      };
-    } catch (error) {
-      Utilities.catchError(error);
+    const userId = req.user?.id;
+    if (!userId) {
+      return { message: 'Usuario no autenticado', statusCode: 401 };
     }
+
+    const data = await this.anioLectivoCalendarizacionService.upsertByAnioLectivoAndModalidad(
+      anioLectivoId,
+      modalidadId,
+      payload,
+      userId,
+    );
+
+    return {
+      data,
+      message: 'Calendarizacion actualizada correctamente',
+    };
   }
 }

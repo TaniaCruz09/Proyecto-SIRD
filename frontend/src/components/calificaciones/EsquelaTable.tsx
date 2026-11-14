@@ -5,12 +5,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent } from "@/components/ui/card"
 import React, { useEffect, useState } from "react"
 import { EsquelaHeadInterface } from "@/interfaces/calificaciones/EsquelaHead"
-import { getEsquelaHeadById } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
+import { getEsquelaHeadById, getEsquelaResumen } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
 import { EsquelaHead } from "./EsquelaHead"
 import { CentroEscolar } from "@/interfaces/centroInterface"
 import { getCentros } from "@/actions/centroMethods/centroEducativoMethods"
-import { getNotasCualitativas } from "@/actions/catalogos/notaCualitativaMethods"
-import { NotaCualitativa } from "@/interfaces"
+import type {
+    AsignaturaCalificada,
+    CorteCalificado,
+    EsquelaResumen,
+    EstudianteCalificado,
+    NotaCalculada,
+} from "@/interfaces/calificaciones/EsquelaResumen"
 
 function getInitials(fullName: string): string {
     return fullName
@@ -21,78 +26,37 @@ function getInitials(fullName: string): string {
         .toUpperCase()
 }
 
-interface Estudiante {
-    id: number
-    name: string
-    studentCode: string
-    gender: { gender: string }
-    profileImage?: string
-    activoEnGrupo?: boolean
-}
-
-const getEstudiantesDesdeAsignaturas = (asignaturas: any[] = [], incluirInactivos = true): Estudiante[] => {
-    const estudiantesMap = new Map<number, Estudiante>()
-
-    asignaturas.forEach((gad) => {
-        gad?.gruposConEstudiantes?.forEach((ge: any) => {
-            const estudiante = ge?.estudiante
-            if (!estudiante?.id) return
-
-            const activoEnGrupo = ge?.activo !== false
-            if (!incluirInactivos && !activoEnGrupo) return
-
-            if (!estudiantesMap.has(estudiante.id)) {
-                estudiantesMap.set(estudiante.id, {
-                    ...estudiante,
-                    activoEnGrupo,
-                })
-            }
-        })
-    })
-
-    return Array.from(estudiantesMap.values())
-}
-
 interface EsquelaTableProps {
     esquelaHeadId: number
     corteFilter?: "all" | "1" | "2" | "1S" | "3" | "4" | "2S" | "F"
 }
 
+const NOTA_VACIA: NotaCalculada = { cuant: 0, cual: "AI", cualitativaId: null }
+
 export function EsquelaTable({ esquelaHeadId, corteFilter = "all" }: EsquelaTableProps) {
     const [esquelaHead, setEsquelaHead] = useState<EsquelaHeadInterface>()
-    const [calificaciones, setCalificaciones] = useState<any[]>([])
+    const [resumen, setResumen] = useState<EsquelaResumen | null>(null)
+    const [error, setError] = useState<string | null>(null)
     const [centro, setCentro] = useState<CentroEscolar | null>(null)
-    const [notasCualitativas, setNotasCualitativas] = useState<NotaCualitativa[]>([])
 
     useEffect(() => {
         const fetchAllData = async () => {
             try {
-                // Ejecutar todas las llamadas en paralelo
-                const [headResponse, centros, notasResponse] = await Promise.all([
+                const [headResponse, centros, resumenResponse] = await Promise.all([
                     getEsquelaHeadById(Number(esquelaHeadId)),
                     getCentros(),
-                    getNotasCualitativas(),
+                    getEsquelaResumen(Number(esquelaHeadId)),
                 ])
 
                 setEsquelaHead(headResponse)
-
-                // Las calificaciones ya vienen incluidas en la respuesta (relación esquelaRow)
-                if (headResponse?.esquelaRow) {
-                    setCalificaciones(headResponse.esquelaRow)
-                }
+                setResumen(resumenResponse)
 
                 if (centros?.length) {
                     setCentro(centros[0])
                 }
-
-                if (Array.isArray(notasResponse)) {
-                    const ordered = notasResponse
-                        .slice()
-                        .sort((a, b) => (a.id ?? 0) - (b.id ?? 0))
-                    setNotasCualitativas(ordered)
-                }
             } catch (error) {
                 console.error("Error cargando datos de la esquela:", error)
+                setError("No se pudieron cargar las calificaciones de la esquela.")
             }
         }
 
@@ -109,66 +73,72 @@ export function EsquelaTable({ esquelaHeadId, corteFilter = "all" }: EsquelaTabl
     const anioLectivo = esquelaHead?.grupo_asignatura?.organizacionEscolar?.anio_lectivo?.anio_lectivo ?? 0
 
 
-    const estudiantes = getEstudiantesDesdeAsignaturas(asignaturas, corteFilter === "all")
+    const estudiantes: EstudianteCalificado[] = React.useMemo(() => {
+        const todos = resumen?.estudiantes ?? []
+        return corteFilter === "all" ? todos : todos.filter((est) => est.activoEnGrupo !== false)
+    }, [resumen, corteFilter])
 
-    // Mapa de búsqueda O(1) para calificaciones
-    const calificacionesMap = React.useMemo(() => {
-        const map = new Map<string, { cuant: number; cual: string }>()
-        calificaciones.forEach((r) => {
-            if (r?.estudiante?.id && r?.asignatura?.id && r?.corte?.id) {
-                const key = `${r.estudiante.id}-${r.asignatura.id}-${r.corte.id}`
-                map.set(key, {
-                    cuant: r.notaCuantitativa ?? 0,
-                    cual: r.notaCualitativa?.abreviatura ?? "AI",
-                })
-            }
+    const notasMap = React.useMemo(() => {
+        const map = new Map<string, AsignaturaCalificada>()
+        resumen?.estudiantes.forEach((est) => {
+            est.asignaturas.forEach((asig) => {
+                map.set(`${est.id}-${asig.asignaturaId}`, asig)
+            })
         })
         return map
-    }, [calificaciones])
+    }, [resumen])
 
-    const findNota = (estId: number, asigId: number, corteId: number) => {
-        const key = `${estId}-${asigId}-${corteId}`
-        return calificacionesMap.get(key) ?? { cuant: 0, cual: "AI" }
-    }
+    const notaDeCorte = (estId: number, asigId: number, corteId: number): CorteCalificado | undefined =>
+        notasMap.get(`${estId}-${asigId}`)?.cortes.find((corte) => corte.corteId === corteId)
 
-    // Mapa de rangos O(1) para nota cualitativa
-    const notasCualitativasMap = React.useMemo(() => {
-        const map: { abreviatura: string; rango_menor: number; rango_mayor: number }[] = []
-        notasCualitativas.forEach((nota) => {
-            if (nota.rango_menor != null && nota.rango_mayor != null) {
-                map.push({
-                    abreviatura: nota.abreviatura ?? "AI",
-                    rango_menor: nota.rango_menor,
-                    rango_mayor: nota.rango_mayor,
-                })
+    // Período seleccionado cuando el filtro es un semestre
+    const periodoVisible = React.useMemo(() => {
+        const periodos = resumen?.periodos ?? []
+        if (periodos.length < 2) return null
+        if (corteFilter === "1S") return periodos[0]
+        if (corteFilter === "2S") return periodos[1]
+        return null
+    }, [resumen, corteFilter])
+
+    const cortesVisibles = React.useMemo(() => {
+        const cortes = resumen?.cortes ?? []
+        if (corteFilter === "all" || corteFilter === "F") return cortes
+
+        if (corteFilter === "1S" || corteFilter === "2S") {
+            if (periodoVisible) {
+                return cortes.filter((corte) => periodoVisible.cortes.includes(corte.id))
             }
-        })
-        return map
-    }, [notasCualitativas])
-
-    const getQualitativeGrade = (grade: number): string => {
-        if (!Number.isFinite(grade)) return "AI"
-        for (let i = 0; i < notasCualitativasMap.length; i++) {
-            const nota = notasCualitativasMap[i]
-            if (grade >= nota.rango_menor && grade <= nota.rango_mayor) {
-                return nota.abreviatura
-            }
+            // Sin períodos configurados: mitad y mitad
+            const mitad = Math.ceil(cortes.length / 2)
+            return corteFilter === "1S" ? cortes.slice(0, mitad) : cortes.slice(mitad)
         }
-        return "AI"
-    }
 
-    // Map de cortes según filtro
-    const cortesMap = {
-        "all": [1, 2, 1, 3, 4, 3, 4], // todos
-        "1": [1],
-        "2": [2],
-        "1S": [1, 2],
-        "3": [3],
-        "4": [4],
-        "2S": [3, 4],
-        "F": [1, 2, 3, 4],
+        const corte = cortes[Number(corteFilter) - 1] ?? cortes.find((item) => item.id === Number(corteFilter))
+        return corte ? [corte] : []
+    }, [resumen, corteFilter, periodoVisible])
+
+    const notaPromedio = (estId: number, asigId: number): NotaCalculada => {
+        const asignatura = notasMap.get(`${estId}-${asigId}`)
+        if (!asignatura) return NOTA_VACIA
+
+        if (periodoVisible) {
+            const periodo = asignatura.periodos.find((item) => item.periodoId === periodoVisible.id)
+            if (periodo) return periodo
+        }
+
+        if (corteFilter === "all" || corteFilter === "F" || cortesVisibles.length === 0) {
+            return asignatura.final
+        }
+
+        const corte = notaDeCorte(estId, asigId, cortesVisibles[0].id)
+        if (!corte) return NOTA_VACIA
+
+        return {
+            cuant: corte.cuant,
+            cual: corte.registrado ? corte.cual : "AI",
+            cualitativaId: corte.cualitativaId,
+        }
     }
-    const cortesToRender = cortesMap[corteFilter]
 
     return (
         <div className="w-full space-y-6 bg-gradient-to-br from-rose-50 via-pink-50 to-white min-h-screen p-4">
@@ -182,27 +152,51 @@ export function EsquelaTable({ esquelaHeadId, corteFilter = "all" }: EsquelaTabl
                 teacherName={docenteGuia}
             />
 
+            {error && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                    {error}
+                </div>
+            )}
+
             <Card className="w-full shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
                 <CardContent className="p-0">
                     <div className="overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-gradient-to-r from-rose-100 to-pink-100 border-b-2 border-rose-200">
-                                    <TableHead className="font-bold text-rose-900 border-r border-rose-200 text-center min-w-[80px]">Nº</TableHead>
-                                    <TableHead className="font-bold text-rose-900 border-r border-rose-200 text-center min-w-[80px]">Foto</TableHead>
-                                    <TableHead className="font-bold text-rose-900 border-r border-rose-200 text-center min-w-[200px]">Estudiante</TableHead>
-                                    <TableHead className="font-bold text-rose-900 border-r border-rose-200 text-center min-w-[120px]">Código</TableHead>
-                                    <TableHead className="font-bold text-rose-900 border-r border-rose-200 text-center min-w-[80px]">Sexo</TableHead>
+                                    <TableHead rowSpan={2} className="font-bold text-rose-900 border-r border-rose-200 text-center min-w-[80px]">Nº</TableHead>
+                                    <TableHead rowSpan={2} className="font-bold text-rose-900 border-r border-rose-200 text-center min-w-[80px]">Foto</TableHead>
+                                    <TableHead rowSpan={2} className="font-bold text-rose-900 border-r border-rose-200 text-center min-w-[200px]">Estudiante</TableHead>
+                                    <TableHead rowSpan={2} className="font-bold text-rose-900 border-r border-rose-200 text-center min-w-[120px]">Código</TableHead>
+                                    <TableHead rowSpan={2} className="font-bold text-rose-900 border-r border-rose-200 text-center min-w-[80px]">Sexo</TableHead>
                                     {asignaturas.map((asig, idx) => (
-                                        <TableHead key={idx} className={`font-bold border-r border-rose-200 text-center ${idx % 3 === 0 ? "text-emerald-900 bg-emerald-100" : idx % 3 === 1 ? "text-amber-900 bg-amber-100" : "text-violet-900 bg-violet-100"}`}>
+                                        <TableHead key={idx} colSpan={cortesVisibles.length * 2 + 1} className={`font-bold border-r border-rose-200 text-center ${idx % 3 === 0 ? "text-emerald-900 bg-emerald-100" : idx % 3 === 1 ? "text-amber-900 bg-amber-100" : "text-violet-900 bg-violet-100"}`}>
                                             {asig.asignatura?.asignatura ?? "Asignatura"}
                                         </TableHead>
                                     ))}
-                                    <TableHead className="font-bold border-r border-rose-200 text-center bg-gray-200">Promedio</TableHead>
+                                </TableRow>
+                                <TableRow className="bg-rose-50 border-b border-rose-200">
+                                    {asignaturas.map((_, idx) => (
+                                        <React.Fragment key={`sub-${idx}`}>
+                                            {cortesVisibles.map((_, i) => (
+                                                <React.Fragment key={`sub-${idx}-${i}`}>
+                                                    <TableHead className={`text-xs font-semibold text-center border-r border-rose-100 ${idx % 3 === 0 ? "bg-emerald-50 text-emerald-800" : idx % 3 === 1 ? "bg-amber-50 text-amber-800" : "bg-violet-50 text-violet-800"}`}>
+                                                        Cual.
+                                                    </TableHead>
+                                                    <TableHead className={`text-xs font-semibold text-center border-r border-rose-200 ${idx % 3 === 0 ? "bg-emerald-50 text-emerald-800" : idx % 3 === 1 ? "bg-amber-50 text-amber-800" : "bg-violet-50 text-violet-800"}`}>
+                                                        Cuant.
+                                                    </TableHead>
+                                                </React.Fragment>
+                                            ))}
+                                            <TableHead className="text-xs font-semibold text-center bg-gray-100 text-gray-700 border-r border-rose-200">
+                                                Promedio
+                                            </TableHead>
+                                        </React.Fragment>
+                                    ))}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {estudiantes.map((est: Estudiante, index: number) => (
+                                {estudiantes.map((est: EstudianteCalificado, index: number) => (
                                     <TableRow
                                         key={est.id}
                                         className={`${est.activoEnGrupo === false ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-rose-50'} border-b border-rose-200`}
@@ -211,20 +205,28 @@ export function EsquelaTable({ esquelaHeadId, corteFilter = "all" }: EsquelaTabl
                                         <TableCell className="border-r border-rose-200">
                                             <Avatar className={`h-12 w-12 ring-2 ${est.activoEnGrupo === false ? 'ring-red-200' : 'ring-rose-200'}`}>
                                                 {est.profileImage && (
-                                                    <AvatarImage src={`${process.env.NEXT_PUBLIC_API_UPLOADS}${est.profileImage}`} alt={est.name} />
+                                                    <AvatarImage src={`${process.env.NEXT_PUBLIC_API_UPLOADS}${est.profileImage}`} alt={[est.name, est.lastName].filter(Boolean).join(" ")} />
                                                 )}
                                                 <AvatarFallback className={`${est.activoEnGrupo === false ? 'bg-red-100 text-red-700' : 'bg-rose-100 text-rose-700'} font-bold text-sm`}>
-                                                    {getInitials(est.name)}
+                                                    {getInitials([est.name, est.lastName].filter(Boolean).join(" "))}
                                                 </AvatarFallback>
                                             </Avatar>
                                         </TableCell>
-                                        <TableCell className={`font-bold text-center ${est.activoEnGrupo === false ? 'text-red-700' : ''}`}>{est.name}</TableCell>
+                                        <TableCell className={`font-bold text-center ${est.activoEnGrupo === false ? 'text-red-700' : ''}`}>
+                                            {[est.name, est.lastName].filter(Boolean).join(" ")}
+                                        </TableCell>
                                         <TableCell className={`font-semibold text-center ${est.activoEnGrupo === false ? 'text-red-700' : ''}`}>{est.studentCode}</TableCell>
-                                        <TableCell className={`text-center font-bold ${est.activoEnGrupo === false ? 'text-red-700' : ''}`}>{est.gender.gender}</TableCell>
+                                        <TableCell className={`text-center font-bold ${est.activoEnGrupo === false ? 'text-red-700' : ''}`}>{est.gender ?? "—"}</TableCell>
 
                                         {asignaturas.map((asig, idx) => {
-                                            const notas = cortesToRender.map(corte => findNota(est.id, asig.asignatura.id, corte))
-                                            const promedio = Math.round(notas.reduce((sum, n) => sum + n.cuant, 0) / notas.length)
+                                            const notas = cortesVisibles.map((corte) => {
+                                                const nota = notaDeCorte(est.id, asig.asignatura.id, corte.id)
+                                                return {
+                                                    cuant: nota?.cuant ?? 0,
+                                                    cual: nota?.registrado ? (nota?.cual ?? "AI") : "AI",
+                                                }
+                                            })
+                                            const promedio = notaPromedio(est.id, asig.asignatura.id)
 
                                             return notas.map((n, i) => (
                                                 <React.Fragment key={`${idx}-${i}`}>
@@ -236,8 +238,8 @@ export function EsquelaTable({ esquelaHeadId, corteFilter = "all" }: EsquelaTabl
                                                     </TableCell>
                                                 </React.Fragment>
                                             )).concat(
-                                                <TableCell key={`prom-${idx}`} className="text-center font-bold bg-gray-100 border-r border-rose-200">
-                                                    {promedio}
+                                                <TableCell key={`prom-${idx}`} className={`text-center font-bold bg-gray-100 border-r border-rose-200 ${promedio.cual === 'AI' ? 'text-red-600' : ''}`}>
+                                                    {promedio.cuant}
                                                 </TableCell>
                                             )
                                         })}

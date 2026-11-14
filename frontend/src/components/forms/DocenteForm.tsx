@@ -5,9 +5,7 @@ import { getPaises } from "@/actions/catalogos/paisMethods";
 import { getMunicipios } from "@/actions/catalogos/municipioMethods";
 import { getProfesiones } from "@/actions/catalogos/profesionMethods";
 import { getSexos } from "@/actions/catalogos/sexoMethods";
-import {
-  getDocentes,
-} from "@/actions/docentesMethods/docentesMethods";
+import { existeDocente } from "@/actions/docentesMethods/docentesMethods";
 import {
   Docente,
   Municipio,
@@ -228,18 +226,26 @@ export default function DocenteForm({
     return true;
   };
 
+  // El contacto de emergencia es opcional: si está vacío no se valida.
+  const validateTelefonoOpcional = (input: HTMLInputElement | null, value: string) => {
+    if (!value.trim()) {
+      setInputValidity(input, "");
+      return true;
+    }
+    return validateTelefono(input, value);
+  };
+
   const checkCedulaUnique = async (value: string, input?: HTMLInputElement | null) => {
     if (!value) {
       setInputValidity(input ?? null, "Completa este campo");
       return false;
     }
     try {
-      const docentes = await getDocentes();
-      const normalized = stripCedula(value);
-      const found = docentes.find(
-        (d: any) => stripCedula(d.cedula_identidad ?? "") === normalized
-      );
-      if (found && found.id !== defaultValues?.id) {
+      const { existe } = await existeDocente({
+        cedula: stripCedula(value),
+        excluirId: defaultValues?.id ? Number(defaultValues.id) : undefined,
+      })
+      if (existe) {
         setInputValidity(input ?? null, "La cedula ya pertenece a otro registro");
         return false;
       }
@@ -261,11 +267,11 @@ export default function DocenteForm({
       const cedulaOk = validateCedulaLength(cedulaRef.current, formValues.cedulaIdentidad)
       const telefonoOk = validateTelefono(telefonoRef.current, formValues.telefono)
       const cedulaUnique = await checkCedulaUnique(formValues.cedulaIdentidad, cedulaRef.current)
-      const telEmergenciaOk = validateTelefono(telefonoEmergenciaRef.current, formValues.telefonoContactoEmergencia)
-      if (!cedulaOk || !telefonoOk || !cedulaUnique) {
-        return;
-      }
-      if (!telEmergenciaOk) {
+      const telEmergenciaOk = validateTelefonoOpcional(
+        telefonoEmergenciaRef.current,
+        formValues.telefonoContactoEmergencia
+      )
+      if (!cedulaOk || !telefonoOk || !cedulaUnique || !telEmergenciaOk) {
         return;
       }
       // --- Obtener objetos completos ---
@@ -355,53 +361,63 @@ export default function DocenteForm({
       }
 
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error al guardar docente:", error);
-      alert("Ocurrió un error al guardar el docente.");
+      const mensaje =
+        error?.response?.data?.message?.[0] ||
+        error?.response?.data?.message ||
+        error?.message ||
+        "Ocurrió un error al guardar el docente.";
+
+      if (/c[eé]dula/i.test(String(mensaje))) {
+        setInputValidity(cedulaRef.current, String(mensaje));
+        return;
+      }
+
+      alert(String(mensaje));
     }
   };
 
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="w-full space-y-6 overflow-y-auto px-2 py-4 sm:px-4">
+    <form ref={formRef} onSubmit={handleSubmit} className="w-full space-y-6 overflow-y-auto px-2 py-4 text-left sm:px-4">
       <h2 className="text-2xl font-semibold text-center text-indigo-700 border-b pb-2">
         {isEdit ? "✏️ Editar Docente" : "👤 Agregar Docente"}
       </h2>
+
+      {/* Foto del docente */}
+      <div className="flex flex-col items-center space-y-3 mt-4">
+        <Avatar
+          className="w-24 h-24 border-4 border-green-200 shadow-md cursor-pointer transition-transform duration-200 hover:scale-105"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {preview ? (
+            <AvatarImage src={preview} alt="Foto del docente" />
+          ) : (
+            <AvatarFallback className="text-lg font-semibold bg-green-100 text-green-700">
+              {formValues.nombres && formValues.apellido_paterno
+                ? `${formValues.nombres[0] ?? ""}${formValues.apellido_paterno[0] ?? ""}`
+                : <User className="w-10 h-10" />}
+            </AvatarFallback>
+          )}
+        </Avatar>
+        <p className="text-sm text-gray-500">Haz clic aquí para agregar foto</p>
+
+        <input
+          type="file"
+          accept="image/*"
+          name="foto_docente"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          className="hidden"
+        />
+      </div>
 
       {/* 🪪 Datos personales */}
       <section>
         <h3 className="text-lg font-semibold text-indigo-600 mb-3 border-l-4 border-indigo-400 pl-2">
           🪪 Datos personales
         </h3>
-        <div className="flex justify-center pt-4">
-          <div className="flex flex-col items-center">
-            <Avatar className="w-22 h-22 border-4 border-green-200 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-              {preview ? (
-                <AvatarImage
-                  src={preview}
-                  alt="Foto del Docente"
-                />
-              ) : (
-                <AvatarFallback className="text-md font-bold bg-green-100 text-green-700">
-                  {formValues.nombres && formValues.apellido_paterno
-                    ? `${formValues.nombres[0] ?? ""}${formValues.apellido_paterno ?? ""}`
-                    : <User className="w-10 h-10" />
-                  }
-                </AvatarFallback>
-              )}
-            </Avatar>
-          </div>
-
-          {/* Input oculto */}
-          <input
-            type="file"
-            accept="image/*"
-            name="foto_docente"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            className="hidden"
-          />
-        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-gray-700 font-medium mb-1">Nombres</label>
@@ -615,7 +631,7 @@ export default function DocenteForm({
       {/* ☎️ Emergencia */}
       <section>
         <h3 className="text-lg font-semibold text-indigo-600 mb-3 border-l-4 border-indigo-400 pl-2">
-          ☎️ Contacto de emergencia
+          ☎️ Contacto de emergencia <span className="text-sm font-normal text-gray-500">(opcional)</span>
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -627,7 +643,6 @@ export default function DocenteForm({
               value={formValues.nombreContactoEmergencia}
               onChange={handleInputChange}
               className="input-style"
-              required
             />
           </div>
 
@@ -639,10 +654,9 @@ export default function DocenteForm({
               placeholder="Teléfono del contacto"
               value={formValues.telefonoContactoEmergencia}
               onChange={handleInputChange}
-              onBlur={(e) => validateTelefono(e.currentTarget, e.currentTarget.value)}
+              onBlur={(e) => validateTelefonoOpcional(e.currentTarget, e.currentTarget.value)}
               ref={telefonoEmergenciaRef}
               className="input-style"
-              required
             />
           </div>
         </div>

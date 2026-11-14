@@ -18,17 +18,17 @@ export class User {
   @Column({ name: 'email', type: 'varchar', length: 100, nullable: false, unique: true })
   email: string;
 
-  @Column({ name: 'password', type: 'varchar', length: 100, nullable: false, select: true, })
+  @Column({ name: 'password', type: 'varchar', length: 100, nullable: false, select: false })
   password: string;
 
-  @Column({ name: 'token', type: 'varchar', length: 500, nullable: true })
+  @Column({ name: 'token', type: 'varchar', length: 500, nullable: true, select: false })
   token: string;
 
   //CAMPOS PARA RECUPERAR CONTRASEÑA
-  @Column({name: 'reset_code', type: 'varchar', length: 100, nullable: true})
+  @Column({name: 'reset_code', type: 'varchar', length: 100, nullable: true, select: false})
   resetCode?: string;
 
-  @Column({name: 'reset_code_expiration', type: 'timestamp', nullable: true})
+  @Column({name: 'reset_code_expiration', type: 'timestamp', nullable: true, select: false})
   resetCodeExpire?: Date;
 //--------------------------------------------------------------
   @ManyToMany(() => Role, (role) => role.users)

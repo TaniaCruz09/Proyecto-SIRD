@@ -10,6 +10,8 @@ import {
   Req,
   UnauthorizedException,
   BadRequestException,
+  NotFoundException,
+  Header,
 } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -19,6 +21,7 @@ import { Response, Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../services';
 import { normalizeRoleName, roleMatches } from '../enums';
+import { Public } from '../../../common/decorators/public.decorator';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -38,6 +41,8 @@ export class AuthController {
     path: '/',
   };
 
+  @Public()
+  @Header('Cache-Control', 'no-store')
   @Post('login')
   async signIn(
     @Body() payload: AuthDto,
@@ -77,6 +82,8 @@ export class AuthController {
     }
   }
 
+  @Public()
+  @Header('Cache-Control', 'no-store')
   @Post('select-role')
   async selectRole(
     @Req() req: Request,
@@ -141,6 +148,7 @@ export class AuthController {
   }
 
 
+  @Public()
   @Post('logout')
   logout(@Res({ passthrough: true }) res: Response) {
     // Limpiar la cookie 'token'
@@ -151,6 +159,8 @@ export class AuthController {
     };
   }
 
+  @Public()
+  @Header('Cache-Control', 'no-store')
   @Post('refresh')
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const token = req.cookies?.token;
@@ -159,11 +169,21 @@ export class AuthController {
     try {
       const payload = this.jwtService.verify(token) as any;
 
+      // Verificar que el usuario siga existiendo y activo antes de renovar.
+      const user = await this.authService.findUserById(payload.sub);
+      if (!user || !user.isActive) {
+        throw new UnauthorizedException('Token invalido o expirado');
+      }
+
+      const roles = user.roles?.length
+        ? user.roles.map((role) => normalizeRoleName(role.rol))
+        : (payload.roles ?? []).map((r: string) => normalizeRoleName(r));
+
       const newToken = this.jwtService.sign({
-        sub: payload.sub,
-        name: payload.name,
-        email: payload.email,
-        roles: (payload.roles ?? []).map((r: string) => normalizeRoleName(r)),
+        sub: user.id,
+        name: user.name,
+        email: user.email,
+        roles,
         docente: payload.docente ?? null,
       });
 
@@ -175,6 +195,8 @@ export class AuthController {
     }
   }
 
+  @Public()
+  @Header('Cache-Control', 'no-store')
   @Get('me')
   async getMe(@Req() req: Request) {
     const token = req.cookies['token'];
@@ -196,21 +218,48 @@ export class AuthController {
   }
     //--------------------------------------------------------------
 //----------------- RUTAS PARA RECUPERAR CONTRASEÑA -----------------
+ @Public()
  @Post('request-reset')
 async requestReset(@Body('email') email: string) {
-  return await this.userService.generateResetCode(email);
+  if (!email || typeof email !== 'string') {
+    throw new BadRequestException('El correo es obligatorio');
+  }
+
+  try {
+    await this.userService.generateResetCode(email.trim());
+  } catch (error) {
+    // Solo se oculta el caso "correo no registrado" (evita enumerar usuarios).
+    // Otros fallos (por ejemplo SMTP) sí se informan.
+    if (!(error instanceof NotFoundException)) throw error;
+  }
+
+  return {
+    message: 'Si el correo está registrado, recibirás un código de verificación',
+  };
 }
 
 
+@Public()
 @Post('verify-code')
 async verifyCode(@Body() body: { email: string; code: string }) {
-  const result = await this.userService.verifyResetCode(body.email, body.code);
+  if (!body?.email || !body?.code) {
+    throw new BadRequestException('Correo y código son obligatorios');
+  }
+
+  const result = await this.userService.verifyResetCode(
+    body.email.trim(),
+    String(body.code).trim(),
+  );
 
   // Devuelve solo lo necesario
   return { token: result.token }; // ✅ objeto plano sin referencias circulares
 }
+@Public()
 @Post('reset-password')
 async resetPassword(@Body() body: { token: string; newPassword: string }) {
+  if (!body?.token || !body?.newPassword) {
+    throw new BadRequestException('Token y contraseña son obligatorios');
+  }
   return await this.userService.resetPassword(body.token, body.newPassword);
 }
 

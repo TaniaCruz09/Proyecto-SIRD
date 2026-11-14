@@ -1,14 +1,18 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { Utilities } from "../../../common/helpers/utilities";
 import { EsquelaHeadEntity } from "./entities/squela_head.entity";
 import { EsquelaHeadDto } from "./dto/esquela_head.dto";
+import { CorteEstadoService, CortesEstado } from "../cortes/corte-estado.service";
+
+export type EsquelaHeadConEstado = EsquelaHeadEntity & { cortesEstado?: CortesEstado };
+
 @Injectable()
 export class EsquelaHeadService {
     constructor(
         @InjectRepository(EsquelaHeadEntity)
         private esquelaHeadRepository: Repository<EsquelaHeadEntity>,
+        private readonly corteEstadoService: CorteEstadoService,
     ) { }
 
     private isMissingPeriodoTableError(error: unknown): boolean {
@@ -56,87 +60,72 @@ export class EsquelaHeadService {
     }
 
     async create(Payload: EsquelaHeadDto): Promise<EsquelaHeadEntity> {
-        try {
-            const esquelaHead = await this.esquelaHeadRepository.create(Payload)
-            return await this.esquelaHeadRepository.save(esquelaHead);
-        } catch (error) {
-            Utilities.catchError(error)
-        }
+        const esquelaHead = await this.esquelaHeadRepository.create(Payload)
+        return await this.esquelaHeadRepository.save(esquelaHead);
     }
 
-    async findOne(id: number): Promise<EsquelaHeadEntity> {
+    async findOne(id: number): Promise<EsquelaHeadConEstado> {
+        let esquelaHead: EsquelaHeadEntity;
         try {
-            let esquelaHead: EsquelaHeadEntity;
-            try {
-                esquelaHead = await this.buildFindOneQuery(id, true).getOne();
-            } catch (error) {
-                if (!this.isMissingPeriodoTableError(error)) {
-                    throw error;
-                }
-
-                esquelaHead = await this.buildFindOneQuery(id, false).getOne();
+            esquelaHead = await this.buildFindOneQuery(id, true).getOne();
+        } catch (error) {
+            if (!this.isMissingPeriodoTableError(error)) {
+                throw error;
             }
 
-            // .findOne({ where: { id }, relations: ["grupo_asignatura", 'grupo_asignatura.grupoAsignaturaDocente.asignatura'] });
-            return esquelaHead;
-        } catch (error) {
-            Utilities.catchError(error)
+            esquelaHead = await this.buildFindOneQuery(id, false).getOne();
         }
+
+        if (!esquelaHead) {
+            throw new NotFoundException('Esquela no encontrada');
+        }
+
+        // Estado de cada corte calculado con las reglas y la zona horaria del backend
+        const cortesEstado = await this.corteEstadoService.estadoDeEsquela(esquelaHead);
+        return Object.assign(esquelaHead, { cortesEstado });
     }
 
     async findAll(): Promise<EsquelaHeadEntity[]> {
-        try {
-            const esquelaHead = await this.esquelaHeadRepository.find({ relations: ["grupo_asignatura", 'grupo_asignatura.grupoAsignaturaDocente.asignatura', "esquelaRow"] });
-            return esquelaHead;
-        } catch (error) {
-            Utilities.catchError(error)
-        }
+        const esquelaHead = await this.esquelaHeadRepository.find({ relations: ["grupo_asignatura", 'grupo_asignatura.grupoAsignaturaDocente.asignatura', "esquelaRow"] });
+        return esquelaHead;
     }
 
     async findByGrupo(grupoId: number) {
-        try {
-            const esquelaHead = await this.esquelaHeadRepository.findOne({
-                where: {
-                    grupo_asignatura: { id: grupoId },
-                },
-                relations: ['grupo_asignatura'], // opcional si necesitas traer la relación
-            })
+        const esquelaHead = await this.esquelaHeadRepository.findOne({
+            where: {
+                grupo_asignatura: { id: grupoId },
+            },
+            relations: ['grupo_asignatura'], // opcional si necesitas traer la relación
+        })
 
-            return esquelaHead
-        } catch (error) {
-            Utilities.catchError(error)
-        }
+        return esquelaHead
     }
 
     async update(id: number, payload: Partial<EsquelaHeadEntity>): Promise<EsquelaHeadEntity> {
-        try {
-            const esquelaHead = await this.esquelaHeadRepository.findOne({
-                where: { id }, relations: ["grupo_asignatura"]
-            });
+        const esquelaHead = await this.esquelaHeadRepository.findOne({
+            where: { id }, relations: ["grupo_asignatura"]
+        });
 
-            Object.assign(esquelaHead, payload);
+        Object.assign(esquelaHead, payload);
 
-            esquelaHead.update_at = new Date();
-            esquelaHead.user_create_id;
+        esquelaHead.update_at = new Date();
+        esquelaHead.user_create_id;
 
-            return await this.esquelaHeadRepository.save(esquelaHead);
-        } catch (error) {
-            Utilities.catchError(error)
-        }
+        return await this.esquelaHeadRepository.save(esquelaHead);
     }
 
     async delete(id: number, userId: number): Promise<EsquelaHeadEntity> {
-        try {
-            const esquelaHead = await this.esquelaHeadRepository.findOne({
-                where: { id }, relations: ["grupo_asignatura"]
-            });
+        const esquelaHead = await this.esquelaHeadRepository.findOne({
+            where: { id }, relations: ["grupo_asignatura"]
+        });
 
-            esquelaHead.deleted_at = new Date()
-            esquelaHead.deleted_at_id = userId;
-
-            return await this.esquelaHeadRepository.save(esquelaHead)
-        } catch (error) {
-            Utilities.catchError(error)
+        if (!esquelaHead) {
+            throw new NotFoundException('Esquela no encontrada');
         }
+
+        esquelaHead.deleted_at = new Date()
+        esquelaHead.deleted_at_id = userId;
+
+        return await this.esquelaHeadRepository.save(esquelaHead)
     }
 }

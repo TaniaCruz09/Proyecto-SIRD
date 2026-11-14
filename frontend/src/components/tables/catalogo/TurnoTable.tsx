@@ -22,7 +22,7 @@ export default function TurnoTable({
   } = usePagination(turno, 5);
   return (
     <div className="bg-white">
-      <div className="bg-white shadow-lg h-[calc(100vh-230px)] overflow-y-auto">
+      <div className="bg-white shadow-lg h-[calc(100vh-230px)] overflow-auto">
         <table className="w-full space-y-2 text-left bg-white text-gray-800">
           <thead className="bg-gray-200 uppercase text-xs font-semibold sticky top-0 z-10">
             <tr>

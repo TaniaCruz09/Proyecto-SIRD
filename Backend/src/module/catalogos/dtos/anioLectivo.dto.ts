@@ -62,6 +62,54 @@ class PeriodoLectivoDto {
     cortes?: PeriodoCorteRefDto[];
 }
 
+
+class PreviewPeriodoDto {
+    @IsOptional()
+    @IsNumber()
+    orden?: number;
+
+    @IsOptional()
+    @IsString()
+    nombre?: string;
+
+    @IsOptional()
+    @IsString()
+    abreviatura?: string;
+
+    @IsArray()
+    @IsOptional()
+    @ValidateNested({ each: true })
+    @Type(() => PeriodoCorteRefDto)
+    cortes?: PeriodoCorteRefDto[];
+}
+
+/** Payload del preview de períodos: valida pero no guarda nada. */
+export class PreviewAnioLectivoDTO {
+    @IsOptional()
+    @IsNumber()
+    tipo_periodizacion_id?: number;
+
+    @IsOptional()
+    @IsString()
+    tipo_periodizacion?: string;
+
+    @IsOptional()
+    @IsNumber()
+    cantidad_periodos?: number;
+
+    @IsArray()
+    @IsOptional()
+    @ValidateNested({ each: true })
+    @Type(() => CorteRefDto)
+    cortes?: CorteRefDto[];
+
+    @IsArray()
+    @IsOptional()
+    @ValidateNested({ each: true })
+    @Type(() => PreviewPeriodoDto)
+    periodos?: PreviewPeriodoDto[];
+}
+
 export class CreateAnioLectivoDTO {
     @IsOptional()
     @IsNumber()

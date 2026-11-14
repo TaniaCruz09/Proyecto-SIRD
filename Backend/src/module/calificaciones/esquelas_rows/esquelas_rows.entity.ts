@@ -37,6 +37,22 @@ export class EsquelaRow {
     })
     notaCuantitativa?: number;
 
+    // Promedio del período al que pertenece el corte (persistido)
+    @Column({
+        name: 'promedio_semestral',
+        type: 'int4',
+        nullable: true,
+    })
+    promedio_semestral?: number | null;
+
+    // Nota final de la asignatura en el año lectivo (persistida)
+    @Column({
+        name: 'nota_final',
+        type: 'int4',
+        nullable: true,
+    })
+    nota_final?: number | null;
+
     @ManyToOne(() => Cortes, (corte) => corte.calificacion, { cascade: true })
     @JoinColumn({ name: 'corte_id' })
     corte: Cortes;

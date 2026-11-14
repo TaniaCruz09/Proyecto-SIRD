@@ -1,6 +1,7 @@
 // src/module/organizacionEscolar/services/grupoAsignaturaDocente.service.ts
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { asegurarAnioActivoDelGrupo } from "src/common/anio-lectivo/anio-lectivo-activo";
 import { Repository } from "typeorm";
 import { GrupoAsignaturaDocente } from "../entities/GrupoAsignaturaDocente.entity";
 import { Grupos } from "../entities/grupos.entity";
@@ -8,7 +9,6 @@ import { Asignatura } from "src/module/catalogos";
 import { Docentes } from "src/module/docentes/docentes.entity";
 import { CrearGrupoAsignaturaDocenteDto } from "../dtos/grupoAsignaturaDocente";
 import { ActualizarGrupoAsignaturaDocenteDto } from "../dtos/grupoAsignaturaDocenteUpdate";
-import { Utilities } from "src/common/helpers/utilities";
 
 @Injectable()
 export class GrupoAsignaturaDocenteService {
@@ -28,6 +28,8 @@ export class GrupoAsignaturaDocenteService {
 
   // Crear asignaciones
   async asignarAsignaturasAGrupo(dto: CrearGrupoAsignaturaDocenteDto) {
+    await asegurarAnioActivoDelGrupo(this.grupoRepository, dto.grupoId);
+
     const grupo = await this.grupoRepository.findOneBy({ id: dto.grupoId });
     if (!grupo) throw new Error("Grupo no encontrado");
 
@@ -67,46 +69,37 @@ export class GrupoAsignaturaDocenteService {
     return this.gadRepository.save(nuevasAsignaciones);
   }
 
-
   // Obtener todas las asignaciones (con joins explícitos)
   async obtenerTodasAsignaciones() {
-    try {
-      return this.gadRepository
-        .createQueryBuilder("gad")
-        .leftJoinAndSelect("gad.grupo", "grupo")
-        .leftJoinAndSelect("grupo.organizacionEscolar", "org")
-        .leftJoinAndSelect("org.anio_lectivo", "anio")
-        .leftJoinAndSelect("org.turno", "turnoOrganizacion")
-        .leftJoinAndSelect("turnoOrganizacion.modalidad", "modalidad")
-        .leftJoinAndSelect("grupo.grado", "grado")
-        .leftJoinAndSelect("grupo.seccion", "seccion")
-        .leftJoinAndSelect("grupo.docenteGuia", "docenteGuia")
-        .leftJoinAndSelect("gad.asignatura", "asignatura")
-        .leftJoinAndSelect("gad.docente", "docente")
-        .getMany();
-    } catch (error) {
-      Utilities.catchError(error);
-    }
+    return this.gadRepository
+      .createQueryBuilder("gad")
+      .leftJoinAndSelect("gad.grupo", "grupo")
+      .leftJoinAndSelect("grupo.organizacionEscolar", "org")
+      .leftJoinAndSelect("org.anio_lectivo", "anio")
+      .leftJoinAndSelect("org.turno", "turnoOrganizacion")
+      .leftJoinAndSelect("turnoOrganizacion.modalidad", "modalidad")
+      .leftJoinAndSelect("grupo.grado", "grado")
+      .leftJoinAndSelect("grupo.seccion", "seccion")
+      .leftJoinAndSelect("grupo.docenteGuia", "docenteGuia")
+      .leftJoinAndSelect("gad.asignatura", "asignatura")
+      .leftJoinAndSelect("gad.docente", "docente")
+      .getMany();
   }
 
   // Obtener asignaciones de un grupo específico
   async obtenerAsignacionesPorGrupo(grupoId: number) {
-    try {
-      return this.gadRepository
-        .createQueryBuilder("gad")
-        .leftJoinAndSelect("gad.grupo", "grupo")
-        .leftJoinAndSelect("grupo.organizacionEscolar", "org")
-        .leftJoinAndSelect("org.anio_lectivo", "anio")
-        .leftJoinAndSelect("grupo.grado", "grado")
-        .leftJoinAndSelect("grupo.seccion", "seccion")
-        .leftJoinAndSelect("grupo.docenteGuia", "docenteGuia")
-        .leftJoinAndSelect("gad.asignatura", "asignatura")
-        .leftJoinAndSelect("gad.docente", "docente")
-        .where("grupo.id = :grupoId", { grupoId })
-        .getMany();
-    } catch (error) {
-      Utilities.catchError(error);
-    }
+    return this.gadRepository
+      .createQueryBuilder("gad")
+      .leftJoinAndSelect("gad.grupo", "grupo")
+      .leftJoinAndSelect("grupo.organizacionEscolar", "org")
+      .leftJoinAndSelect("org.anio_lectivo", "anio")
+      .leftJoinAndSelect("grupo.grado", "grado")
+      .leftJoinAndSelect("grupo.seccion", "seccion")
+      .leftJoinAndSelect("grupo.docenteGuia", "docenteGuia")
+      .leftJoinAndSelect("gad.asignatura", "asignatura")
+      .leftJoinAndSelect("gad.docente", "docente")
+      .where("grupo.id = :grupoId", { grupoId })
+      .getMany();
   }
 
   // Obtener asignación por su ID
@@ -123,6 +116,8 @@ export class GrupoAsignaturaDocenteService {
     grupoId: number,
     data: ActualizarGrupoAsignaturaDocenteDto
   ) {
+    await asegurarAnioActivoDelGrupo(this.grupoRepository, grupoId);
+
     if (!data.asignaturasConDocentes || data.asignaturasConDocentes.length === 0) {
       throw new Error("No hay asignaciones para actualizar");
     }
@@ -135,7 +130,7 @@ export class GrupoAsignaturaDocenteService {
     }
 
     const grupo = await this.grupoRepository.findOneBy({ id: grupoId });
-    if (!grupo) throw new Error(`Grupo con id ${grupoId} no encontrado`);
+    if (!grupo) throw new NotFoundException(`Grupo con id ${grupoId} no encontrado`);
 
     const resultados: GrupoAsignaturaDocente[] = [];
 
@@ -171,17 +166,17 @@ export class GrupoAsignaturaDocenteService {
     return this.gadRepository.save(resultados);
   }
 
-
-
   // src/module/organizacionEscolar/services/grupoAsignaturaDocente.service.ts
   async eliminarAsignacionPorGrupoYAsignatura(grupoId: number, asignaturaId: number) {
+    await asegurarAnioActivoDelGrupo(this.grupoRepository, grupoId);
+
     const resultado = await this.gadRepository.delete({
       grupo: { id: grupoId },
       asignatura: { id: asignaturaId },
     });
 
     if (resultado.affected === 0) {
-      throw new Error(`No se encontró la asignación del grupo ${grupoId} con la asignatura ${asignaturaId}`);
+      throw new NotFoundException(`No se encontró la asignación del grupo ${grupoId} con la asignatura ${asignaturaId}`);
     }
 
     return resultado;
@@ -189,9 +184,11 @@ export class GrupoAsignaturaDocenteService {
 
   // Eliminar todas las asignaciones de un grupo
   async eliminarAsignacionesPorGrupo(grupoId: number) {
+    await asegurarAnioActivoDelGrupo(this.grupoRepository, grupoId);
+
     // Verificar que exista el grupo antes de borrar
     const grupo = await this.grupoRepository.findOneBy({ id: grupoId });
-    if (!grupo) throw new Error(`Grupo con id ${grupoId} no encontrado`);
+    if (!grupo) throw new NotFoundException(`Grupo con id ${grupoId} no encontrado`);
 
     return this.gadRepository.delete({ grupo: { id: grupoId } });
   }

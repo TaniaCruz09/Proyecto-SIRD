@@ -74,8 +74,8 @@ export default function MoveStudentToGroupForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto px-2">
-      <h2 className="text-xl font-semibold text-gray-700 mb-5">Mover estudiante a otra sección</h2>
+    <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto px-2 text-left">
+      <h2 className="text-xl font-semibold text-center text-gray-700 mb-5">Mover estudiante a otra sección</h2>
       <p className="text-center text-gray-600 mb-6">
         Año lectivo: <span className="font-semibold text-blue-900">{anioLectivo}</span>
       </p>

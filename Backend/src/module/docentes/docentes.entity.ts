@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   JoinTable,
   ManyToMany,
@@ -27,6 +28,11 @@ import { GrupoAsignaturaDocente } from '../organizacionEscolar/entities/GrupoAsi
 import e from 'express';
 
 @Entity({ name: 'docentes', schema: 'docentes' })
+// Índice único parcial: la cédula se libera cuando el docente está eliminado.
+@Index('uq_docente_cedula_activa', ['cedula_identidad'], {
+  unique: true,
+  where: '"cedula_identidad" IS NOT NULL AND "deleted_at" IS NULL',
+})
 export class Docentes {
   @PrimaryGeneratedColumn({
     name: 'id',
@@ -65,9 +71,7 @@ export class Docentes {
     name: 'cedula_identidad',
     type: 'varchar',
     nullable: true,
-    unique: true,
     length: 16,
-
   })
   cedula_identidad: string;
 

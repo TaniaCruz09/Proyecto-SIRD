@@ -187,9 +187,9 @@ export default function CalendarizacionAnioLectivoPage() {
           <span className="font-semibold">Año lectivo inactivo.</span> No se puede editar la calendarización. Los campos están deshabilitados.
         </div>
       )}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-slate-950">Calendarización</h1>
+          <h1 className="text-2xl font-semibold text-slate-950 sm:text-3xl">Calendarización</h1>
           <p className="text-sm text-slate-500">
             {modalidadNombre
               ? `Define las fechas de cada corte para la modalidad ${modalidadNombre}`
@@ -197,12 +197,16 @@ export default function CalendarizacionAnioLectivoPage() {
           </p>
         </div>
 
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => router.push('/admin/home')}>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+          <Button variant="outline" className="w-full whitespace-normal sm:w-auto" onClick={() => router.push('/admin/home')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver a años lectivos
           </Button>
-          <Button onClick={handleSave} disabled={isSaving || isLoading || !anioLectivoId || !modalidadId || isAnioInactivo}>
+          <Button
+            className="w-full whitespace-normal sm:w-auto"
+            onClick={handleSave}
+            disabled={isSaving || isLoading || !anioLectivoId || !modalidadId || isAnioInactivo}
+          >
             <Save className="mr-2 h-4 w-4" />
             {isSaving ? 'Guardando...' : 'Guardar calendarización'}
           </Button>
@@ -276,7 +280,7 @@ export default function CalendarizacionAnioLectivoPage() {
                         </Badge>
                       </div>
 
-                      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,180px)_minmax(0,180px)_minmax(0,1fr)]">
+                      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-[minmax(0,180px)_minmax(0,180px)_minmax(0,1fr)]">
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-slate-700">Fecha inicio</label>
                           <Input
@@ -295,7 +299,7 @@ export default function CalendarizacionAnioLectivoPage() {
                             className="opacity-60"
                           />
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-2 sm:col-span-2 xl:col-span-1">
                           <label className="text-sm font-medium text-slate-700">Observación</label>
                           <textarea
                             value={item.observacion || ''}
@@ -328,7 +332,7 @@ export default function CalendarizacionAnioLectivoPage() {
                         </Badge>
                       </div>
 
-                      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,180px)_minmax(0,180px)_minmax(0,1fr)]">
+                      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-[minmax(0,180px)_minmax(0,180px)_minmax(0,1fr)]">
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-slate-700">Fecha inicio</label>
                           <Input
@@ -345,7 +349,7 @@ export default function CalendarizacionAnioLectivoPage() {
                             onChange={(event) => handleChange(item.corte_id, 'fecha_fin', event.target.value)}
                           />
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-2 sm:col-span-2 xl:col-span-1">
                           <label className="text-sm font-medium text-slate-700">Observación</label>
                           <textarea
                             value={item.observacion || ''}

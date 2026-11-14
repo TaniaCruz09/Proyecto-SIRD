@@ -17,7 +17,7 @@ export const ParcialButtons = ({ esquelaId }: { esquelaId: number }) => {
     ]
 
     return (
-        <div className="flex flex-wrap gap-2 my-4">
+        <div className="flex flex-wrap gap-2 my-4 px-4">
             {botones.map((b) => (
                 <Button
                     key={b.filter}

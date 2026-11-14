@@ -13,7 +13,6 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt.guard';
 import { CreateOrganizacionEscolarDTO } from '../../organizacionEscolar/dtos/organizacionEscolar.dto';
-import { Utilities } from '../../../common/helpers/utilities';
 import { OrganizacionEscolarService } from '../services/organizacionEscolar.service';
 import { OrganizacionEscolar } from '../entities/organizacionEscolar.entity';
 
@@ -31,60 +30,48 @@ export class OrganizacionEscolarController {
     @Body() createOrganizacionDTO: CreateOrganizacionEscolarDTO,
     @Req() req,
   ) {
-    try {
-      const userId = req.user?.id; // Obtener el ID del usuario autenticado
+    const userId = req.user?.id; // Obtener el ID del usuario autenticado
 
-      if (!userId) {
-        return {
-          message: 'Usuario no autenticado',
-          statusCode: 401,
-        };
-      }
-
-      // Agregar el user_update_id al payload
-      createOrganizacionDTO.user_create_id = userId;
-
-      const organizacion = await this.organizacionService.createOrganizacion(
-        createOrganizacionDTO,
-      );
-      const data = {
-        data: organizacion,
-        message: 'Organizacion Agregada Correctamente',
+    if (!userId) {
+      return {
+        message: 'Usuario no autenticado',
+        statusCode: 401,
       };
-      return data;
-    } catch (error) {
-      Utilities.catchError(error);
     }
+
+    // Agregar el user_update_id al payload
+    createOrganizacionDTO.user_create_id = userId;
+
+    const organizacion = await this.organizacionService.createOrganizacion(
+      createOrganizacionDTO,
+    );
+    const data = {
+      data: organizacion,
+      message: 'Organizacion Agregada Correctamente',
+    };
+    return data;
   }
 
   @Get('/')
   async getOrganizacion() {
-    try {
-      const organizacion = await this.organizacionService.getOrganizacion();
-      const data = {
-        data: organizacion,
-        message: 'Ok',
-      };
-      return data;
-    } catch (error) {
-      Utilities.catchError(error);
-    }
+    const organizacion = await this.organizacionService.getOrganizacion();
+    const data = {
+      data: organizacion,
+      message: 'Ok',
+    };
+    return data;
   }
 
   @Get('/:id')
   async getOrganizacionById(@Param('id', ParseIntPipe) id: number) {
-    try {
-      const organizacion = await this.organizacionService.getOrganizacionById(
-        id,
-      );
-      const data = {
-        data: organizacion,
-        message: 'ok',
-      };
-      return data;
-    } catch (error) {
-      Utilities.catchError(error);
-    }
+    const organizacion = await this.organizacionService.getOrganizacionById(
+      id,
+    );
+    const data = {
+      data: organizacion,
+      message: 'ok',
+    };
+    return data;
   }
 
   @Put('/:id')
@@ -93,55 +80,47 @@ export class OrganizacionEscolarController {
     @Body() payload: CreateOrganizacionEscolarDTO,
     @Req() req, // Capturar el usuario autenticado
   ) {
-    try {
-      const userId = req.user?.id; // Obtener el ID del usuario autenticado
+    const userId = req.user?.id; // Obtener el ID del usuario autenticado
 
-      if (!userId) {
-        return {
-          message: 'Usuario no autenticado',
-          statusCode: 401,
-        };
-      }
-
-      // Agregar el user_update_id al payload
-      payload.user_update_id = userId;
-
-      const organizacion = await this.organizacionService.editOrganizacion(
-        id,
-        payload,
-      );
-      const data = {
-        data: organizacion,
-        message: 'Organizacion actualizada correctamente',
+    if (!userId) {
+      return {
+        message: 'Usuario no autenticado',
+        statusCode: 401,
       };
-      return data;
-    } catch (error) {
-      Utilities.catchError(error);
     }
+
+    // Agregar el user_update_id al payload
+    payload.user_update_id = userId;
+
+    const organizacion = await this.organizacionService.editOrganizacion(
+      id,
+      payload,
+    );
+    const data = {
+      data: organizacion,
+      message: 'Organizacion actualizada correctamente',
+    };
+    return data;
   }
 
   @Delete('/:id')
   async deleteOrganizacion(@Param('id', ParseIntPipe) id: number, @Req() req) {
-    try {
-      const userId = req.user?.id; // Obtener el ID del usuario autenticado
+    const userId = req.user?.id; // Obtener el ID del usuario autenticado
 
-      if (!userId) {
-        return {
-          message: 'Usuario no autenticado',
-          statusCode: 401,
-        };
-      }
-      const organizacion = await this.organizacionService.deleteOrganizacion(
-        id,
-        userId,
-      );
-      const data = {
-        data: organizacion,
-        message: 'Organizacion escolar eliminada correctamente',
+    if (!userId) {
+      return {
+        message: 'Usuario no autenticado',
+        statusCode: 401,
       };
-      return data;
-    } catch (error) {
-      Utilities.catchError(error);
     }
+    const organizacion = await this.organizacionService.deleteOrganizacion(
+      id,
+      userId,
+    );
+    const data = {
+      data: organizacion,
+      message: 'Organizacion escolar eliminada correctamente',
+    };
+    return data;
   }
 }

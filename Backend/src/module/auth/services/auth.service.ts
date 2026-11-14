@@ -34,6 +34,11 @@ export class AuthService {
         throw new UnauthorizedException('Credenciales inválidas');
       }
 
+      // Un usuario desactivado no puede iniciar sesión.
+      if (!user.isActive) {
+        throw new UnauthorizedException('Credenciales inválidas');
+      }
+
       // Generar el token (roles con nombre canónico: 'docente' -> 'Docente')
       const payloadJwt = {
         sub: user.id,
@@ -43,14 +48,20 @@ export class AuthService {
       };
       const token = await this.jwtService.signAsync(payloadJwt);
 
-      // Limpiar el objeto user (remover token antes de devolverlo)
-      const { token: __, ...cleanUser } = user;
+      // Limpiar el objeto user: nunca devolver datos sensibles al cliente
+      const {
+        token: __token,
+        password: __password,
+        resetCode: __resetCode,
+        resetCodeExpire: __resetCodeExpire,
+        ...cleanUser
+      } = user;
 
       return { user: cleanUser, token };
     } catch (error: any) {
       // Si el usuario no existe, atrapamos el NotFound y lo convertimos en 401
       if (error?.getStatus?.() === 404) {
-        throw new UnauthorizedException('Usuario no encontrado');
+        throw new UnauthorizedException('Credenciales inválidas');
       }
 
       // Si ya era un Unauthorized, lo dejamos pasar

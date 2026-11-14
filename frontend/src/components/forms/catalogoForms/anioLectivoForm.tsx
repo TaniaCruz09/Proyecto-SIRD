@@ -1,8 +1,9 @@
 import { saveAnioLectivo, updateAnioLectivo } from "@/actions/catalogos/anioLectivoMethods";
 import { getCortesEvaluativos } from "@/actions/catalogos/corteEvaluativoMethods";
+import { previewAnioLectivo } from "@/actions/catalogos/anioLectivoMethods";
 import { getTiposPeriodizacion } from "@/actions/catalogos/tipoPeriodizacionMethods";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -95,6 +96,8 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
   const [selectedPeriodoId, setSelectedPeriodoId] = useState("");
   const [tiposPeriodizacion, setTiposPeriodizacion] = useState<TipoPeriodizacion[]>([]);
   const [cortesDisponibles, setCortesDisponibles] = useState<Corte[]>([]);
+  const [previewRemoto, setPreviewRemoto] = useState<PreviewPeriodo[] | null>(null);
+  const [errorPreview, setErrorPreview] = useState<string | null>(null);
   const [selectedCorteIds, setSelectedCorteIds] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -248,7 +251,56 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
     });
   }, [periodoSeleccionado, selectedCortes, totalPeriodos]);
 
-  const previewPeriodos = autoPreviewPeriodos.length > 0 ? autoPreviewPeriodos : savedPreviewPeriodos;
+  // La vista previa la calcula el backend para que coincida exactamente
+  // con lo que se guardará (y para mostrar sus mismos errores de validación).
+  useEffect(() => {
+    if (!periodoSeleccionado || selectedCortes.length === 0) {
+      setPreviewRemoto(null);
+      setErrorPreview(null);
+      return;
+    }
+
+    let cancelado = false;
+    const temporizador = setTimeout(async () => {
+      try {
+        const plan = await previewAnioLectivo({
+          tipo_periodizacion_id: periodoSeleccionado.id,
+          cantidad_periodos: periodoSeleccionado.cantidad_periodos,
+          cortes: selectedCortes.map((corte) => ({ id: corte.id })),
+        });
+
+        if (cancelado) return;
+
+        setErrorPreview(null);
+        setPreviewRemoto(
+          plan.periodos.map((periodo) => ({
+            orden: periodo.orden,
+            nombre: periodo.nombre,
+            abreviatura: periodo.abreviatura,
+            cortes: periodo.cortes
+              .map((corte) => cortesDisponibles.find((item) => item.id === corte.id))
+              .filter((corte): corte is Corte => Boolean(corte)),
+          })),
+        );
+      } catch (error: any) {
+        if (cancelado) return;
+        setPreviewRemoto(null);
+        setErrorPreview(error?.message || "No se pudo calcular la vista previa.");
+      }
+    }, 400);
+
+    return () => {
+      cancelado = true;
+      clearTimeout(temporizador);
+    };
+  }, [periodoSeleccionado, selectedCortes, cortesDisponibles]);
+
+  const previewPeriodos =
+    previewRemoto && previewRemoto.length > 0
+      ? previewRemoto
+      : autoPreviewPeriodos.length > 0
+        ? autoPreviewPeriodos
+        : savedPreviewPeriodos;
 
   const tieneCortesSuficientes = !periodoSeleccionado || selectedCortes.length >= totalPeriodos;
   const configuracionValida = Boolean(periodoSeleccionado) && selectedCortes.length > 0 && tieneCortesSuficientes;
@@ -335,8 +387,8 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
   };
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-2 py-2 sm:px-4 sm:py-4">
-      <Card className="overflow-hidden rounded-[30px] border border-stone-200 bg-white shadow-[0_28px_80px_-34px_rgba(15,23,42,0.35)]">
+    <div className="w-full text-left">
+      <div className="w-full overflow-hidden">
         <CardHeader className="border-b border-stone-200 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.18),_transparent_28%),linear-gradient(180deg,#fffaf0_0%,#ffffff_58%,#fcfcfd_100%)] px-4 py-5 sm:px-6 sm:py-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0 space-y-4">
@@ -516,7 +568,11 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
               </div>
 
               <div className="mt-5 grid gap-4 lg:grid-cols-2">
-                {previewPeriodos.length > 0 ? (
+                {errorPreview ? (
+                  <div className="rounded-[24px] border border-red-200 bg-red-50 p-5 text-sm font-medium text-red-700 lg:col-span-2">
+                    {errorPreview}
+                  </div>
+                ) : previewPeriodos.length > 0 ? (
                   previewPeriodos.map((periodo) => (
                     <div
                       key={periodo.orden}
@@ -575,7 +631,7 @@ export function AnioLectivoForm({ defaultValues, onSuccess }: AnioLectivoFormPro
             </div>
           </form>
         </CardContent>
-      </Card>
+      </div>
     </div>
   );
 }

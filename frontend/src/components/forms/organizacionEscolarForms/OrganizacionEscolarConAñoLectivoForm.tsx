@@ -96,7 +96,7 @@ export function OrganizacionEscolarConAnioLectivoForm({ idAnioLectivo, onSuccess
 
     return (
         <div className="w-full mx-auto space-y-6 overflow-y-auto">
-            <Card className="border-slate-200 shadow-sm">
+            <div className="w-full">
                 <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-t-lg">
                     <CardTitle className="flex items-center justify-center gap-2 text-slate-900">
                         <GraduationCap className="h-5 w-5 text-emerald-500" />
@@ -180,7 +180,7 @@ export function OrganizacionEscolarConAnioLectivoForm({ idAnioLectivo, onSuccess
                         </Button>
                     </form>
                 </CardContent>
-            </Card>
+            </div>
         </div>
     );
 }

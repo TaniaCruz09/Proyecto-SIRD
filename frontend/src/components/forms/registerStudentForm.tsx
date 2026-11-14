@@ -2,9 +2,8 @@
 import { getMunicipios } from "@/actions/catalogos/municipioMethods";
 import { getPaises } from "@/actions/catalogos/paisMethods";
 import { getSexos } from "@/actions/catalogos/sexoMethods";
-import { ActualizarStudent, saveStudent } from "@/actions/resgisterEstudentMethods/regiterEstudentMethods";
+import { ActualizarStudent, existeEstudiante, saveStudent } from "@/actions/resgisterEstudentMethods/regiterEstudentMethods";
 import { Municipio, Pais, Sexo } from "@/interfaces";
-import { getRegisterEstudent, getFiltarStudent } from '@/actions/resgisterEstudentMethods/regiterEstudentMethods'
 import { useToast } from '@/hooks/use-toast'
 import RegisterEstudent from "@/interfaces/registerEstudentInterface";
 import { useEffect, useRef, useState } from "react";
@@ -184,12 +183,11 @@ export default function RegisterEstudentForm({ defeaultValues: defaultValues, on
       return true;
     }
     try {
-      const students = await getRegisterEstudent();
-      const found = students.find((s: any) =>
-        stripCedula(s.identityCard ?? "") === normalized ||
-        stripCedula(s.tutorIdentityCard ?? "") === normalized
-      );
-      if (found && Number(found.id) !== Number(defaultValues?.id)) {
+      const { existe } = await existeEstudiante({
+        cedula: normalized,
+        excluirId: defaultValues?.id ? Number(defaultValues.id) : undefined,
+      })
+      if (existe) {
         setInputValidity(input ?? null, "La cedula ya pertenece a otro registro");
         return false;
       }
@@ -208,11 +206,11 @@ export default function RegisterEstudentForm({ defeaultValues: defaultValues, on
       return false;
     }
     try {
-      // `getFiltarStudent` espera params string y anioId. Pasamos anioId = 0 que filtra por código.
-      const res: any = await getFiltarStudent(`studentCode=${encodeURIComponent(value)}`, 0 as any);
-      const list = res?.data ?? res;
-      const found = Array.isArray(list) ? list.find((s: any) => s.studentCode === value) : null;
-      if (found && found.id !== defaultValues?.id) {
+      const { existe } = await existeEstudiante({
+        codigo: value,
+        excluirId: defaultValues?.id ? Number(defaultValues.id) : undefined,
+      })
+      if (existe) {
         setInputValidity(input ?? null, "Ya existe un estudiante con este codigo");
         return false;
       }
@@ -351,7 +349,7 @@ export default function RegisterEstudentForm({ defeaultValues: defaultValues, on
     <form
       ref={formRef}
       onSubmit={handleSubmit}
-      className="w-full space-y-6 overflow-y-auto rounded-2xl px-2 py-4 sm:px-4"
+      className="w-full space-y-6 overflow-y-auto rounded-2xl px-2 py-4 text-left sm:px-4"
     >
       {/* Título */}
       <h2 className="text-2xl font-semibold text-center text-indigo-700 border-b pb-2">

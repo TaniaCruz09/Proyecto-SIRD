@@ -6,8 +6,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "../ui/button"
 import { EsquelaHeadInterface } from "@/interfaces/calificaciones/EsquelaHead"
-import { getEsquelaHeadById } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
+import { getEsquelaHeadById, getEsquelaResumen } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
 import { getNotasCualitativas } from "@/actions/catalogos/notaCualitativaMethods"
+import type { AsignaturaCalificada, EsquelaResumen } from "@/interfaces/calificaciones/EsquelaResumen"
 import { EsquelaHead } from "./EsquelaHead"
 import ExcelJS, { Borders, BorderStyle } from "exceljs"
 import { saveAs } from "file-saver"
@@ -51,7 +52,7 @@ function getDocenteNombreCompleto(docente?: {
   nombres?: string
   apellido_paterno?: string
   apellido_materno?: string
-}): string {
+} | null): string {
   return [docente?.nombres, docente?.apellido_paterno, docente?.apellido_materno]
     .filter(Boolean)
     .join(" ")
@@ -85,7 +86,7 @@ interface GADItem {
     nombres?: string
     apellido_paterno?: string
     apellido_materno?: string
-  }
+  } | null
   gruposConEstudiantes: GEItem[]
 }
 
@@ -129,18 +130,21 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
   const [vista, setVista] = useState<VistaType>("ALL")
   const [centro, setCentro] = useState<CentroEscolar | null>(null)
   const [notasCualitativas, setNotasCualitativas] = useState<NotaCualitativa[]>([])
+  const [resumen, setResumen] = useState<EsquelaResumen | null>(null)
 
 
   useEffect(() => {
     const fetchAllData = async () => {
       // Ejecutar todas las llamadas en paralelo
-      const [headResponse, centros, notasResponse] = await Promise.all([
+      const [headResponse, centros, notasResponse, resumenResponse] = await Promise.all([
         getEsquelaHeadById(esquelaHeadId),
         getCentros(),
         getNotasCualitativas(),
+        getEsquelaResumen(esquelaHeadId).catch(() => null),
       ])
 
       setEsquelaHead(headResponse)
+      setResumen(resumenResponse)
 
       // Las calificaciones ya vienen incluidas en la respuesta (relación esquelaRow)
       if (headResponse?.esquelaRow) {
@@ -447,6 +451,53 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
 
     return Math.round(promedios.reduce((sum, nota) => sum + nota, 0) / promedios.length)
   }
+
+  /* ==========================
+    NOTAS CALCULADAS EN EL BACKEND
+  ========================== */
+  const resumenMap = React.useMemo(() => {
+    const map = new Map<string, AsignaturaCalificada>()
+    resumen?.estudiantes.forEach((est) => {
+      est.asignaturas.forEach((asig) => {
+        map.set(`${est.id}-${asig.asignaturaId}`, asig)
+      })
+    })
+    return map
+  }, [resumen])
+
+  // Respaldo local mientras el backend responde (mismas reglas: 0 si no hay nota)
+  const notaLocal = (estId: number, asigId: number, col: Columna) => {
+    if (col.type === "CORTE") {
+      const nota = findNota(estId, asigId, col.corteIds[0])
+      return { cuant: nota.cuant, cual: nota.cual }
+    }
+
+    const cuant =
+      col.type === "FINAL"
+        ? notaFinalPeriodos(estId, asigId)
+        : promedioCortes(estId, asigId, col.corteIds)
+
+    return { cuant, cual: getQualitativeGrade(cuant) }
+  }
+
+  const notaColumna = (estId: number, asigId: number, col: Columna) => {
+    const asignatura = resumenMap.get(`${estId}-${asigId}`)
+    if (!asignatura) return notaLocal(estId, asigId, col)
+
+    if (col.type === "CORTE") {
+      const corte = asignatura.cortes.find((item) => item.corteId === col.corteIds[0])
+      if (!corte) return { cuant: 0, cual: "AI" }
+      return { cuant: corte.cuant, cual: corte.registrado ? corte.cual : "AI" }
+    }
+
+    if (col.type === "PERIODO") {
+      const periodoId = Number(col.key.replace("periodo-", ""))
+      const periodo = asignatura.periodos.find((item) => item.periodoId === periodoId)
+      if (periodo) return { cuant: periodo.cuant, cual: periodo.cual }
+    }
+
+    return { cuant: asignatura.final.cuant, cual: asignatura.final.cual }
+  }
   /* ==========================
     cOLORES ESTILOS DE LA TABLA
  ========================== */
@@ -716,15 +767,8 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
 
       asignaturas.forEach(a => {
         columnasExport.forEach((col) => {
-          const cuant = col.type === "CORTE"
-            ? findNota(est.id, a.asignatura.id, col.corteIds[0]).cuant
-            : col.type === "FINAL"
-              // <<<<<<< HEAD
-              //               ? notaFinalSemestres(est.id, a.asignatura.id)
-              // =======
-              ? notaFinalPeriodos(est.id, a.asignatura.id)
-              : promedioCortes(est.id, a.asignatura.id, col.corteIds)
-          rowData.push(getQualitativeGrade(cuant))
+          const { cuant, cual } = notaColumna(est.id, a.asignatura.id, col)
+          rowData.push(cual)
           rowData.push(cuant)
         })
       })
@@ -929,22 +973,15 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
                     </Avatar>
                   </TableCell>
 
-                  <TableCell className={`font-bold text-center ${est.activoEnGrupo === false ? 'text-red-700' : ''}`}>{est.name}</TableCell>
+                  <TableCell className={`font-bold text-center ${est.activoEnGrupo === false ? 'text-red-700' : ''}`}>
+                    {[est.name, est.lastName].filter(Boolean).join(" ")}
+                  </TableCell>
                   <TableCell className={`text-center ${est.activoEnGrupo === false ? 'text-red-700' : ''}`}>{est.studentCode}</TableCell>
                   <TableCell className={`text-center ${est.activoEnGrupo === false ? 'text-red-700' : ''}`}>{est.gender?.gender ?? "—"}</TableCell>
 
                   {asignaturas.map((a, aIdx) =>
                     columnas.map((col) => {
-                      const cuant = col.type === "CORTE"
-                        ? findNota(est.id, a.asignatura.id, col.corteIds[0]).cuant
-                        : col.type === "FINAL"
-                          // <<<<<<< HEAD
-                          //                           ? notaFinalSemestres(est.id, a.asignatura.id)
-                          // =======
-                          ? notaFinalPeriodos(est.id, a.asignatura.id)
-                          : promedioCortes(est.id, a.asignatura.id, col.corteIds)
-
-                      const cual = getQualitativeGrade(cuant)
+                      const { cuant, cual } = notaColumna(est.id, a.asignatura.id, col)
 
                       const bgColor =
                         aIdx % 3 === 0

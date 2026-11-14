@@ -188,8 +188,8 @@ const UserForm = ({ defaultValues, onSuccess }: UserFormProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col min-h-[520px] py-6">
-      <h2 className="text-xl font-semibold text-gray-700 mb-6">
+    <form onSubmit={handleSubmit} className="flex flex-col min-h-[520px] py-6 text-left">
+      <h2 className="text-xl font-semibold text-center text-gray-700 mb-6">
         {isEdit ? "Editar Usuario" : "Agregar Usuario"}
       </h2>
 

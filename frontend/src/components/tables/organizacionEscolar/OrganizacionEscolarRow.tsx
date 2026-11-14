@@ -2,7 +2,8 @@
 import DeleteOrganizacionEscolarModal from '@/components/modals/organizacionEscolar/organizacion/DeleteOrganizacionEscolarModal';
 import EditOrganizacionEscolarModal from '@/components/modals/organizacionEscolar/organizacion/EditOrganizacionEscolarModal';
 import { OrganizacionEscolar } from '@/interfaces';
-import { Users } from 'lucide-react';
+import { Lock, Users } from 'lucide-react';
+import { anioEstaActivo } from '@/utils/anio-lectivo';
 import Link from "next/link"
 import { useRouter } from 'next/navigation';
 import React from 'react'
@@ -16,6 +17,7 @@ interface OrganizacionEscolarRowProps {
 
 export default function OrganizacionEscolarRow({ fetchOrganizacionEscolar, organizacionEscolar }: OrganizacionEscolarRowProps) {
     const router = useRouter();
+    const editable = anioEstaActivo(organizacionEscolar.anio_lectivo?.isActive);
 
     return (
         <tr className="hover:bg-gray-100 cursor-pointer">
@@ -35,8 +37,24 @@ export default function OrganizacionEscolarRow({ fetchOrganizacionEscolar, organ
                 </Button>
             </td>
 
-            <td className="p-3 px-2 py-2 border-b border-gray-200 text-center"><EditOrganizacionEscolarModal organizacionEscolar={organizacionEscolar} fetchOrganizacionEscolar={fetchOrganizacionEscolar} /></td>
-            <td className="p-3 px-2 py-3 border-b border-gray-200 text-center"><DeleteOrganizacionEscolarModal idEliminar={organizacionEscolar.id} fetchOrganizacionEscolar={fetchOrganizacionEscolar} /></td>
+            <td className="p-3 px-2 py-2 border-b border-gray-200 text-center">
+                {editable ? (
+                    <EditOrganizacionEscolarModal organizacionEscolar={organizacionEscolar} fetchOrganizacionEscolar={fetchOrganizacionEscolar} />
+                ) : (
+                    <span title="Año lectivo inactivo: solo lectura" className="inline-flex justify-center">
+                        <Lock className="h-4 w-4 text-slate-300" />
+                    </span>
+                )}
+            </td>
+            <td className="p-3 px-2 py-3 border-b border-gray-200 text-center">
+                {editable ? (
+                    <DeleteOrganizacionEscolarModal idEliminar={organizacionEscolar.id} fetchOrganizacionEscolar={fetchOrganizacionEscolar} />
+                ) : (
+                    <span title="Año lectivo inactivo: solo lectura" className="inline-flex justify-center">
+                        <Lock className="h-4 w-4 text-slate-300" />
+                    </span>
+                )}
+            </td>
         </tr>
     )
 }

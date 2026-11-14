@@ -42,18 +42,18 @@ export default function Page() {
   });
 
   return (
-    <div className="mx-6">
-      <div className="flex items-center justify-between">
-        <h1 className="ml-10 text-2xl font-bold mb-4 tracking-tight text-gray-600 text-center">
+    <div className="mx-4 sm:mx-6">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-2xl sm:ml-10 font-bold mb-4 tracking-tight text-gray-600 text-center">
           Tipos de Periodo
         </h1>
-        <div className="flex justify-end mr-10 mb-6 mt-5">
+        <div className="flex justify-end sm:mr-10 mb-6 mt-5">
           <AddTipoPeriodizacionModal fetchTiposPeriodizacion={fetchTiposPeriodizacion} />
         </div>
       </div>
 
-      <div className="flex items-center justify-between bg-white border rounded-t-xl">
-        <h2 className="pl-10 text-xl font-bold text-gray-600">Listado de Tipos de Periodos</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-t-xl border bg-white">
+        <h2 className="pl-4 text-xl sm:pl-10 font-bold text-gray-600">Listado de Tipos de Periodos</h2>
         <SearchBar
           value={searchTerm}
           onChange={setSearchTerm}

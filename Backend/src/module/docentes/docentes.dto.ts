@@ -98,16 +98,18 @@ export class DocentesDTO {
   @IsDate()
   fechaContratado: Date;
 
-  @IsNotEmpty()
-  @IsNumber()
+  @IsOptional()
+  @IsString()
   @MaxLength(150)
-  nombre_contacto_emergencia: string;
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  nombre_contacto_emergencia?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @MaxLength(8)
   @MinLength(8)
-  telefono_contacto_emergencia: string;
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  telefono_contacto_emergencia?: string;
 
   @IsOptional()
   @IsString()

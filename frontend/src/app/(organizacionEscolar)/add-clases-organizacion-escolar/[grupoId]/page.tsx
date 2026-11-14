@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
+import { AvisoSoloLectura } from "@/components/common/AvisoSoloLectura";
+import { anioEstaActivo } from "@/utils/anio-lectivo";
 import {
   GrupoConAsignaturasPayload,
   GrupoConAsignaturasResponse,
@@ -78,6 +80,8 @@ export default function AddClasesOrganizacionEscolarPage() {
     fetchGrupoById()
 
   }, [grupoId]);
+  const anio = grupos?.organizacionEscolar?.anio_lectivo
+  const editable = anioEstaActivo(anio?.isActive)
   const grupo = grupos?.grado?.grades ?? "N/A"
   const docenteGuia = grupos?.docenteGuia?.nombres ?? "N/A"
   const docenteGuiaApellidos = grupos?.docenteGuia?.apellido_materno || grupos?.docenteGuia?.apellido_paterno 
@@ -196,7 +200,7 @@ export default function AddClasesOrganizacionEscolarPage() {
   if (!grupoId) return <p>Cargando...</p>;
 
   return (
-    <div style={{ padding: "20px", maxWidth: "1400px", margin: "0 auto" }}>
+    <div className="mx-auto max-w-[1400px] p-4 sm:p-5">
       <button
         onClick={() => router.back()}
         style={{
@@ -215,11 +219,12 @@ export default function AddClasesOrganizacionEscolarPage() {
       >
         ← Regresar
       </button>
+      {!editable && <AvisoSoloLectura anio={anio?.anio_lectivo} className="mb-4 text-left" />}
       <h1 style={{ fontWeight: "bold", fontSize: "24px" }}>Asignación de Materias</h1>
       <p style={{ color: "#6b7280" }}>Gestiona las materias para el grupo seleccionado</p>
 
       {/* Info del grupo */}
-      <div style={{ backgroundColor: "#f0fdf4", borderRadius: "10px", padding: "15px", marginBottom: "20px", display: "flex", justifyContent: "space-between" }}>
+      <div style={{ backgroundColor: "#f0fdf4", borderRadius: "10px", padding: "15px", marginBottom: "20px", display: "flex", flexWrap: "wrap", gap: "12px", justifyContent: "space-between" }}>
         <div>
           <strong>Grupo Seleccionado</strong>
           <h2 style={{ color: "#15803d" }}>
@@ -237,16 +242,17 @@ export default function AddClasesOrganizacionEscolarPage() {
       </div>
 
       {/* Asignar nuevas materias */}
+      {editable && (
       <div style={{ backgroundColor: "#f9fafb", borderRadius: "10px", padding: "15px", marginBottom: "20px" }}>
         <h3 style={{ fontWeight: "bold" }}>+ Asignar Nuevas Materias</h3>
-        <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
-          <select style={{ flex: 1, padding: "8px", borderRadius: "5px" }} value={selectedAsignatura} onChange={(e) => setSelectedAsignatura(Number(e.target.value))}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "10px" }}>
+          <select style={{ flex: "1 1 180px", minWidth: 0, padding: "8px", borderRadius: "5px" }} value={selectedAsignatura} onChange={(e) => setSelectedAsignatura(Number(e.target.value))}>
             <option value={0}>Elige una materia</option>
             {materiasDisponibles.filter(m => !grupoConAsignaturas.some(r => r.asignatura.id === m.id))
               .map(m => <option key={m.id} value={m.id}>{m.asignatura}</option>)}
           </select>
 
-          <select style={{ flex: 1, padding: "8px", borderRadius: "5px" }} value={selectedDocente} onChange={(e) => setSelectedDocente(Number(e.target.value))}>
+          <select style={{ flex: "1 1 180px", minWidth: 0, padding: "8px", borderRadius: "5px" }} value={selectedDocente} onChange={(e) => setSelectedDocente(Number(e.target.value))}>
             <option value={0}>Elige un docente</option>
             {docentesDisponibles.map(d => <option key={d.id} value={d.id}>{d.nombres} {d.apellido_paterno}</option>)}
           </select>
@@ -256,15 +262,16 @@ export default function AddClasesOrganizacionEscolarPage() {
           </button>
         </div>
       </div>
+      )}
 
       {/* Materias asignadas */}
       <div className="bg-gray-50 rounded-xl p-6 shadow-sm">
         {/* Header */}
-        <div className="flex justify-between items-center mb-4">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-lg font-semibold text-gray-800">Materias Asignadas</h3>
           <button
             onClick={handleEliminarTodasAsignaturas}
-            disabled={loading || grupoConAsignaturas.length === 0}
+            disabled={!editable || loading || grupoConAsignaturas.length === 0}
             className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Eliminar todas
@@ -289,6 +296,7 @@ export default function AddClasesOrganizacionEscolarPage() {
               </p>
 
               {/* Acciones */}
+              {editable && (
               <div className="absolute top-2 right-2 flex space-x-2">
                 <button
                   onClick={() => setEditando(r)}
@@ -303,6 +311,7 @@ export default function AddClasesOrganizacionEscolarPage() {
                   🗑️
                 </button>
               </div>
+              )}
             </div>
           ))}
 

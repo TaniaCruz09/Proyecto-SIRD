@@ -14,12 +14,25 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "20"
+      - key: NODE_ENV
+        value: production
+      # IMPORTANTE: DB_SYNC=true permite que TypeORM modifique el esquema en cada
+      # arranque. Cámbialo a "false" (y ejecuta `npm run migration:run`) cuando
+      # exista una migración base completa; hoy las migraciones son incrementales.
       - key: DB_SYNC
         value: "true"
       - key: MIGRATIONS_TABLE_NAME
         value: migrations
+      # Cambiar por el dominio real del frontend (varios separados por coma).
       - key: CORS_ORIGIN
         value: http://localhost:3000
+      # Con NODE_ENV=production Swagger queda apagado salvo que esto sea "true".
+      - key: SWAGGER_ENABLED
+        value: "false"
+      # Los archivos de /uploads siguen siendo públicos (comportamiento actual).
+      # Ponlo en "true" para exigir sesión al descargar expedientes.
+      - key: PROTECT_UPLOADS
+        value: "false"
       - key: DATABASE_URL
         sync: false
       - key: API_KEY

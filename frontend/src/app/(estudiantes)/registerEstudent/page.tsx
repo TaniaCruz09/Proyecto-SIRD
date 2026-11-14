@@ -5,6 +5,7 @@ import SearchBar from "@/components/SearchBar";
 import RegisterEstudentTable from "@/components/tables/RegisterEstudentTable";
 import RegisterEstudent from "@/interfaces/registerEstudentInterface";
 import { useEffect, useState } from "react";
+import { FilterX } from "lucide-react";
 
 interface StudentFilters {
     search: string;
@@ -245,7 +246,7 @@ export default function RegistroEstudiantes() {
             </div>
 
             <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <div className="flex flex-col gap-2 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-emerald-50 px-6 py-4 md:flex-row md:items-end md:justify-between">
+                <div className="flex flex-col gap-2 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-emerald-50 px-6 py-4 text-left md:flex-row md:items-end md:justify-between">
                     <div>
                         <h2 className="text-xl font-semibold text-slate-800">
                             Listado de estudiantes
@@ -265,70 +266,101 @@ export default function RegistroEstudiantes() {
                         onChange={(value) => setDraftFilters((current) => ({ ...current, search: value }))}
                         onClear={() => setDraftFilters((current) => ({ ...current, search: "" }))}
                         placeholder="Buscar por nombres, apellidos o codigo del estudiante"
+                        className="m-0 max-w-none"
                     />
 
-                    <div className="flex flex-wrap items-center gap-3">
-                        <input
-                            type="text"
-                            value={draftFilters.anioId}
-                            onChange={(event) =>
-                                setDraftFilters((current) => ({
-                                    ...current,
-                                    anioId: event.target.value,
-                                    organizacionId: "",
-                                    grado: "",
-                                }))
-                            }
-                            placeholder="Anio lectivo"
-                            inputMode="numeric"
-                            className="min-w-[170px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                        />
+                    <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-left sm:p-4">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:items-end">
+                            <div className="space-y-1">
+                                <label
+                                    htmlFor="filtro-anio"
+                                    className="block text-xs font-semibold uppercase tracking-wide text-slate-500"
+                                >
+                                    Año lectivo
+                                </label>
+                                <input
+                                    id="filtro-anio"
+                                    type="text"
+                                    value={draftFilters.anioId}
+                                    onChange={(event) =>
+                                        setDraftFilters((current) => ({
+                                            ...current,
+                                            anioId: event.target.value,
+                                            organizacionId: "",
+                                            grado: "",
+                                        }))
+                                    }
+                                    placeholder="Ej: 2026"
+                                    inputMode="numeric"
+                                    className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                                />
+                            </div>
 
-                        <select
-                            value={draftFilters.organizacionId}
-                            onChange={(event) =>
-                                setDraftFilters((current) => ({
-                                    ...current,
-                                    organizacionId: event.target.value,
-                                    grado: "",
-                                }))
-                            }
-                            className="min-w-[220px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                        >
-                            <option value="">Organizacion escolar</option>
-                            {availableOrganizations.map((organization) => (
-                                <option key={organization.id} value={organization.id}>
-                                    {organization.label}
-                                </option>
-                            ))}
-                        </select>
+                            <div className="space-y-1">
+                                <label
+                                    htmlFor="filtro-organizacion"
+                                    className="block text-xs font-semibold uppercase tracking-wide text-slate-500"
+                                >
+                                    Organización escolar
+                                </label>
+                                <select
+                                    id="filtro-organizacion"
+                                    value={draftFilters.organizacionId}
+                                    onChange={(event) =>
+                                        setDraftFilters((current) => ({
+                                            ...current,
+                                            organizacionId: event.target.value,
+                                            grado: "",
+                                        }))
+                                    }
+                                    className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                                >
+                                    <option value="">Todas las organizaciones</option>
+                                    {availableOrganizations.map((organization) => (
+                                        <option key={organization.id} value={organization.id}>
+                                            {organization.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
 
-                        <select
-                            value={draftFilters.grado}
-                            onChange={(event) =>
-                                setDraftFilters((current) => ({
-                                    ...current,
-                                    grado: event.target.value,
-                                }))
-                            }
-                            className="min-w-[170px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                        >
-                            <option value="">Grado</option>
-                            {availableGrades.map((grade) => (
-                                <option key={grade} value={grade}>
-                                    {grade}
-                                </option>
-                            ))}
-                        </select>
+                            <div className="space-y-1">
+                                <label
+                                    htmlFor="filtro-grado"
+                                    className="block text-xs font-semibold uppercase tracking-wide text-slate-500"
+                                >
+                                    Grado
+                                </label>
+                                <select
+                                    id="filtro-grado"
+                                    value={draftFilters.grado}
+                                    onChange={(event) =>
+                                        setDraftFilters((current) => ({
+                                            ...current,
+                                            grado: event.target.value,
+                                        }))
+                                    }
+                                    className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                                >
+                                    <option value="">Todos los grados</option>
+                                    {availableGrades.map((grade) => (
+                                        <option key={grade} value={grade}>
+                                            {grade}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
 
-                        <button
-                            type="button"
-                            onClick={handleClearFilters}
-                            disabled={!hasAppliedFilters && !draftFilters.search && !draftFilters.anioId && !draftFilters.organizacionId && !draftFilters.grado}
-                            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            Limpiar filtros
-                        </button>
+                            <button
+                                type="button"
+                                onClick={handleClearFilters}
+                                disabled={!hasAppliedFilters && !draftFilters.search && !draftFilters.anioId && !draftFilters.organizacionId && !draftFilters.grado}
+                                className="inline-flex h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 lg:w-auto lg:justify-self-end"
+                            >
+                                <FilterX className="h-4 w-4" />
+                                Limpiar filtros
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Utilities } from '../../../common/helpers/utilities';
 import { Cortes } from '../entities/corte.entity';
 import { CreateCortesDto } from '../dtos/create-corte.dto';
 import { EsquelaRow } from '../../calificaciones/esquelas_rows/esquelas_rows.entity';
@@ -19,87 +18,67 @@ export class CortesService {
   ) { }
 
   async createcorte(payload: CreateCortesDto): Promise<Cortes> {
-    try {
-      const corte = await this.corteRepository.create(payload);
-      return await this.corteRepository.save(corte);
-    } catch (error) {
-      Utilities.catchError(error);
-    }
+    const corte = await this.corteRepository.create(payload);
+    return await this.corteRepository.save(corte);
   }
 
   async findOne(id: number): Promise<Cortes> {
-    try {
-      const corte = await this.corteRepository.findOne({ where: { id } });
-      return corte;
-    } catch (error) {
-      Utilities.catchError(error);
-    }
+    const corte = await this.corteRepository.findOne({ where: { id } });
+    return corte;
   }
 
   async findAll(): Promise<Cortes[]> {
-    try {
-      const corte = await this.corteRepository.find();
-      return corte;
-    } catch (error) {
-      Utilities.catchError(error);
-    }
+    const corte = await this.corteRepository.find();
+    return corte;
   }
 
   async update(id: number, payload: Partial<Cortes>): Promise<Cortes> {
-    try {
-      const corte = await this.corteRepository.findOne({
-        where: { id }
-      });
+    const corte = await this.corteRepository.findOne({
+      where: { id }
+    });
 
-      Object.assign(corte, payload);
+    Object.assign(corte, payload);
 
-      corte.update_at = new Date();
-      corte.user_updated_id;
+    corte.update_at = new Date();
+    corte.user_updated_id;
 
-      return await this.corteRepository.save(corte);
-    } catch (error) {
-      Utilities.catchError(error);
-    }
+    return await this.corteRepository.save(corte);
   }
 
   async delete(id: number, userId: number): Promise<Cortes> {
-    try {
-      return await this.corteRepository.manager.transaction(async (manager) => {
-        const corte = await manager.getRepository(Cortes).findOne({
-          where: { id },
-        });
-
-        if (!corte) {
-          throw new NotFoundException('Corte no encontrado');
-        }
-
-        // Elimina las filas de calificaciones asociadas para evitar bloqueos por FK.
-        await manager
-          .getRepository(EsquelaRow)
-          .createQueryBuilder()
-          .delete()
-          .from(EsquelaRow)
-          .where('corte_id = :id', { id })
-          .execute();
-
-        // Elimina la relacion con anio lectivo.
-        await manager.getRepository(AnioLectivoCorte).delete({ corteId: id });
-
-        // Elimina la relacion con periodos lectivos.
-        await manager.getRepository(PeriodoLectivoCorte).delete({ corteId: id });
-
-        await manager.getRepository(AnioLectivoCalendarizacion).update(
-          { corteId: id, delete_at: null },
-          { isActive: false, delete_at: new Date(), deleted_at_id: userId },
-        );
-
-        corte.delete_at = new Date();
-        corte.delete_at_id = userId;
-
-        return await manager.getRepository(Cortes).save(corte);
+    return await this.corteRepository.manager.transaction(async (manager) => {
+      const corte = await manager.getRepository(Cortes).findOne({
+        where: { id },
       });
-    } catch (error) {
-      Utilities.catchError(error);
-    }
+
+      if (!corte) {
+        throw new NotFoundException('Corte no encontrado');
+      }
+
+      // Elimina las filas de calificaciones asociadas para evitar bloqueos por FK.
+      await manager
+        .getRepository(EsquelaRow)
+        .createQueryBuilder()
+        .delete()
+        .from(EsquelaRow)
+        .where('corte_id = :id', { id })
+        .execute();
+
+      // Elimina la relacion con anio lectivo.
+      await manager.getRepository(AnioLectivoCorte).delete({ corteId: id });
+
+      // Elimina la relacion con periodos lectivos.
+      await manager.getRepository(PeriodoLectivoCorte).delete({ corteId: id });
+
+      await manager.getRepository(AnioLectivoCalendarizacion).update(
+        { corteId: id, delete_at: null },
+        { isActive: false, delete_at: new Date(), deleted_at_id: userId },
+      );
+
+      corte.delete_at = new Date();
+      corte.delete_at_id = userId;
+
+      return await manager.getRepository(Cortes).save(corte);
+    });
   }
 }

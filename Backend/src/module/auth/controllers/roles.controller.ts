@@ -8,19 +8,18 @@ import {
   Post,
   Put,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import { RolesService } from '../services';
-import { AuthGuard } from '@nestjs/passport';
 
 import { QueryParamsRolesDto } from '../dtos/query-params-roles.dto';
 import { RoleDto } from '../dtos/roles.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Role } from '../decorators/role.decorator';
 
 @ApiTags('roles')
 @ApiBearerAuth()
+@Role('Admin')
 @Controller('roles')
-// @UseGuards(AuthGuard())
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 

@@ -13,16 +13,17 @@ import {
 import { UsersDto, UserPartialTypeDto } from '../dtos/users-dto';
 import { UserService } from '../services';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { Utilities } from 'src/common/helpers/utilities';
+import { Role } from '../decorators/role.decorator';
+import { UserSelfOrAdminGuard } from '../guards/user-self-or-admin.guard';
 
 @ApiTags('Users')
 @ApiBearerAuth()
 @Controller('users')
-// @UseGuards(AuthGuard())
 export class UsersController {
   constructor(private readonly usersServices: UserService) {}
 
   @Get('/')
+  @Role('Admin')
   async getUsers() {
     const users = await this.usersServices.getUsers();
     const data = {
@@ -33,20 +34,19 @@ export class UsersController {
   }
 
   @Post('/')
+  @Role('Admin')
   async createUser(@Body() payload: UsersDto) {
     return await this.usersServices.created(payload);
   }
 
   @Get('/:id')
+  @UseGuards(UserSelfOrAdminGuard)
   async getUserById(@Param('id', ParseIntPipe) id: number) {
-    try{
-      return await this.usersServices.getUserById(id);
-    } catch(error){
-      Utilities.catchError(error)
-    }
+    return await this.usersServices.getUserById(id);
   }
 
   @Put('/:id')
+  @Role('Admin')
   async updatedUser(
     @Param('id', ParseIntPipe) id: number,
     @Body() payload: UserPartialTypeDto,
@@ -55,6 +55,7 @@ export class UsersController {
   }
 
   @Delete('/:id')
+  @Role('Admin')
   async deleteUser(@Param('id', ParseIntPipe) id: number) {
     return await this.usersServices.deleted(id);
   }

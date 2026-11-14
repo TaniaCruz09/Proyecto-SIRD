@@ -84,3 +84,23 @@ export async function deleteDocentes(id: number) {
 
   return response.data
 }
+export interface ExistenciaDocente {
+  existe: boolean
+  campo: "cedula" | null
+  valor: string | null
+}
+
+/** Consulta en el backend si la cédula ya pertenece a otro docente. */
+export async function existeDocente(params: {
+  cedula?: string
+  excluirId?: number
+}): Promise<ExistenciaDocente> {
+  const searchParams = new URLSearchParams()
+  if (params.cedula?.trim()) searchParams.set("cedula", params.cedula.trim())
+  if (params.excluirId) searchParams.set("excluirId", String(params.excluirId))
+
+  const endPoint = `/docentes/existe?${searchParams.toString()}`
+  const response = await feching(endPoint, "no-cache", "GET")
+
+  return response?.data ?? { existe: false, campo: null, valor: null }
+}

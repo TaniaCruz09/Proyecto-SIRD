@@ -18,6 +18,10 @@ export class GradesEntity {
   })
   grades: string;
 
+  /** Posición del grado en la secuencia académica (Séptimo=1, Octavo=2, ...). */
+  @Column({ name: 'orden', type: 'int4', nullable: true })
+  orden?: number | null;
+
   @OneToMany(() => Grupos, (grupo) => grupo.grado)
   grupos?: Grupos[];
 

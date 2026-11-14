@@ -68,3 +68,34 @@ export async function EliminarStudent(id: number) {
 
     return response.data
 }
+export interface ExistenciaEstudiante {
+    existe: boolean
+    campo: "cedula" | "codigo" | null
+    valor: string | null
+}
+
+/**
+ * Consulta en el backend si la cédula o el código ya pertenecen a otro estudiante
+ * (ignora guiones y mayúsculas). No descarga el listado completo.
+ */
+export async function existeEstudiante(params: {
+    cedula?: string
+    codigo?: string
+    excluirId?: number
+}): Promise<ExistenciaEstudiante> {
+    const searchParams = new URLSearchParams()
+    if (params.cedula?.trim()) searchParams.set("cedula", params.cedula.trim())
+    if (params.codigo?.trim()) searchParams.set("codigo", params.codigo.trim())
+    if (params.excluirId) searchParams.set("excluirId", String(params.excluirId))
+
+    const endPoint = `/student/existe?${searchParams.toString()}`
+    const response = await feching(endPoint, "no-cache", "GET")
+
+    return (
+        response?.data ?? {
+            existe: false,
+            campo: null,
+            valor: null,
+        }
+    )
+}

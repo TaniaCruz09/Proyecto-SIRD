@@ -1,4 +1,4 @@
-"use server";
+"use client";
 
 import { Role } from "@/interfaces/authInterface";
 import { feching } from "@/utils/cliente-http";

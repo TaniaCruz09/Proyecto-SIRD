@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { In, IsNull, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Utilities } from 'src/common/helpers/utilities';
 import { AnioLectivo } from '../entities/anioLectivo.entity';
 import { CreateAnioLectivoDTO } from '../dtos/anioLectivo.dto';
 import { Cortes } from '../entities/corte.entity';
@@ -14,6 +13,12 @@ import { OrganizacionEscolar } from 'src/module/organizacionEscolar/entities/org
 import { Grupos } from 'src/module/organizacionEscolar/entities/grupos.entity';
 import { GrupoAsignaturaDocente } from 'src/module/organizacionEscolar/entities/GrupoAsignaturaDocente.entity';
 import { GrupoAsignaturaConEstudiantes } from 'src/module/organizacionEscolar/entities/grupo-asignatura-con-estudiantes.entity';
+import {
+    construirPlanDesdeCortes,
+    normalizarCorteIds,
+    PlanPeriodos,
+    validarPlanExplicito,
+} from './anioLectivo-periodos.helper';
 
 @Injectable()
 export class AnioLectivoService {
@@ -248,97 +253,79 @@ export class AnioLectivoService {
         };
     }
 
-    private async generatePeriodosFromCortes(
-        anioLectivoId: number,
+    /** Resuelve el tipo de periodización y valida los cortes antes de escribir. */
+    private async planDesdeCortes(
         tipoPeriodizacionId: number | undefined,
         tipoPeriodizacion: string | undefined,
         cortes: { id: number }[],
         cantidadPeriodos?: number,
-    ): Promise<void> {
+    ) {
         const tipoConfig = await this.resolveTipoPeriodizacionConfig(
             tipoPeriodizacionId,
             tipoPeriodizacion,
             cantidadPeriodos,
         );
-        const tipo = tipoConfig.tipo;
-        const normalizedCortes = (cortes ?? [])
-            .map((corte) => Number(corte?.id))
-            .filter((id) => Number.isFinite(id));
-        const uniqueCorteIds = Array.from(new Set(normalizedCortes));
-        const totalCortes = uniqueCorteIds.length;
-        const totalPeriodos = tipoConfig.totalPeriodos;
 
-        if (!Number.isFinite(totalCortes) || totalCortes <= 0) {
-            throw new BadRequestException('Debes seleccionar al menos un corte existente');
+        const plan = construirPlanDesdeCortes(tipoConfig, cortes);
+        await this.assertCortesExisten(
+            plan.periodos.flatMap((periodo) => periodo.cortes.map((corte) => corte.id)),
+        );
+
+        return { tipoConfig, plan };
+    }
+
+    private async assertCortesExisten(corteIds: number[]): Promise<void> {
+        const ids = normalizarCorteIds(corteIds);
+        if (ids.length === 0) {
+            throw new BadRequestException('Debes seleccionar al menos un corte');
         }
-
-        if (totalPeriodos <= 0) {
-            throw new BadRequestException('La cantidad de periodos debe ser mayor que cero');
-        }
-
-        if (totalCortes < totalPeriodos) {
-            throw new BadRequestException('La cantidad de cortes no puede ser menor que la cantidad de periodos');
-        }
-
-        await this.anioLectivoCorteRepo.delete({ anioLectivoId });
-        await this.periodoLectivoRepo.delete({ anioLectivoId });
 
         const validCortes = await this.corteRepo.find({
-            where: { id: In(uniqueCorteIds), delete_at: null },
+            where: { id: In(ids), delete_at: null },
             select: ['id'],
         });
         const validIds = new Set(validCortes.map((corte) => corte.id));
-        if (validIds.size !== uniqueCorteIds.length) {
+        if (validIds.size !== ids.length) {
             throw new BadRequestException('Uno o mas cortes no existen o estan eliminados');
         }
+    }
 
-        const baseCortes = Math.floor(totalCortes / totalPeriodos);
-        const remainder = totalCortes % totalPeriodos;
+    private async persistirPlanPeriodos(
+        anioLectivoId: number,
+        tipoConfig: {
+            tipo: string;
+            tipoPeriodizacionId?: number;
+        },
+        plan: PlanPeriodos,
+    ): Promise<void> {
+        await this.periodoLectivoRepo.delete({ anioLectivoId });
 
         const periodoRows = await this.periodoLectivoRepo.save(
-            Array.from({ length: totalPeriodos }, (_, index) => {
-                const orden = index + 1;
-                const naming = this.buildPeriodoNombre(
-                    tipoConfig.etiquetaPeriodo,
-                    tipoConfig.prefijoAbreviatura,
-                    orden,
-                );
-
-                return this.periodoLectivoRepo.create({
+            plan.periodos.map((periodo) =>
+                this.periodoLectivoRepo.create({
                     anioLectivo: { id: anioLectivoId } as AnioLectivo,
-                    nombre: naming.nombre,
-                    abreviatura: naming.abreviatura,
-                    tipo,
+                    nombre: periodo.nombre,
+                    abreviatura: periodo.abreviatura,
+                    tipo: tipoConfig.tipo,
                     tipoPeriodizacion: tipoConfig.tipoPeriodizacionId
                         ? ({ id: tipoConfig.tipoPeriodizacionId } as TipoPeriodizacion)
                         : undefined,
-                    orden,
-                });
-            }),
+                    orden: periodo.orden,
+                }),
+            ),
         );
 
         const relationRows: PeriodoLectivoCorte[] = [];
-        let currentIndex = 0;
-
         for (let i = 0; i < periodoRows.length; i++) {
             const periodo = periodoRows[i];
-            const cortesEnPeriodo = baseCortes + (i < remainder ? 1 : 0);
-
-            for (let j = 0; j < cortesEnPeriodo; j++) {
-                const corteId = uniqueCorteIds[currentIndex];
-                if (!Number.isFinite(corteId)) {
-                    break;
-                }
-
+            for (const corte of plan.periodos[i].cortes) {
                 relationRows.push(
                     this.periodoLectivoCorteRepo.create({
                         periodoLectivo: { id: periodo.id } as PeriodoLectivo,
-                        corte: { id: corteId } as Cortes,
-                        orden: j + 1,
+                        corte: { id: corte.id } as Cortes,
+                        orden: corte.orden,
                     }),
                 );
-
-                currentIndex += 1;
             }
         }
 
@@ -347,103 +334,184 @@ export class AnioLectivoService {
         }
     }
 
+    private async generatePeriodosFromCortes(
+        anioLectivoId: number,
+        tipoPeriodizacionId: number | undefined,
+        tipoPeriodizacion: string | undefined,
+        cortes: { id: number }[],
+        cantidadPeriodos?: number,
+    ): Promise<void> {
+        const { tipoConfig, plan } = await this.planDesdeCortes(
+            tipoPeriodizacionId,
+            tipoPeriodizacion,
+            cortes,
+            cantidadPeriodos,
+        );
+
+        await this.persistirPlanPeriodos(anioLectivoId, tipoConfig, plan);
+    }
+
+    /**
+     * Preview sin escribir: devuelve la distribución que se guardaría y valida
+     * el payload del cliente (cortes o periodos explícitos).
+     */
+    async previewPeriodos(payload: {
+        tipo_periodizacion_id?: number;
+        tipo_periodizacion?: string;
+        cantidad_periodos?: number;
+        cortes?: { id: number }[];
+        periodos?: {
+            orden?: number;
+            nombre?: string;
+            abreviatura?: string;
+            cortes?: { id: number; orden?: number }[];
+        }[];
+    }): Promise<PlanPeriodos> {
+        const tipoConfig = await this.resolveTipoPeriodizacionConfig(
+            payload.tipo_periodizacion_id,
+            payload.tipo_periodizacion,
+            payload.cantidad_periodos,
+        );
+
+        const plan = Array.isArray(payload.periodos) && payload.periodos.length > 0
+            ? validarPlanExplicito(tipoConfig, payload.periodos, payload.cortes)
+            : construirPlanDesdeCortes(tipoConfig, payload.cortes);
+
+        await this.assertCortesExisten(
+            plan.periodos.flatMap((periodo) => periodo.cortes.map((corte) => corte.id)),
+        );
+
+        return plan;
+    }
+
+    /** Si el cliente envía periodos y cortes, ambos deben describir el mismo conjunto. */
+    private assertPeriodosCoincidenConCortes(
+        periodos?: { cortes?: { id: number }[] }[],
+        cortes?: { id: number }[],
+    ): void {
+        if (!Array.isArray(periodos) || periodos.length === 0) return;
+        if (!Array.isArray(cortes)) return;
+
+        const enPeriodos = normalizarCorteIds(
+            periodos.flatMap((periodo) => periodo?.cortes ?? []),
+        );
+        const enCortes = normalizarCorteIds(cortes);
+
+        const faltantes = enCortes.filter((id) => !enPeriodos.includes(id));
+        const sobrantes = enPeriodos.filter((id) => !enCortes.includes(id));
+
+        if (faltantes.length > 0) {
+            throw new BadRequestException(
+                `Los cortes ${faltantes.join(', ')} no estan asignados a ningun periodo`,
+            );
+        }
+
+        if (sobrantes.length > 0) {
+            throw new BadRequestException(
+                `Los cortes ${sobrantes.join(', ')} no pertenecen a la lista de cortes del anio lectivo`,
+            );
+        }
+    }
+
     async createAnioLectivo(
         createAnioLectivoDto: CreateAnioLectivoDTO,
     ): Promise<AnioLectivo> {
-        try {
-            const {
-                cortes,
-                periodos,
-                tipo_periodizacion,
+        const {
+            cortes,
+            periodos,
+            tipo_periodizacion,
+            tipo_periodizacion_id,
+            cantidad_periodos,
+            cantidad_cortes,
+            ...anioData
+        } = createAnioLectivoDto;
+
+        this.assertPeriodosCoincidenConCortes(periodos, cortes);
+
+        if (Array.isArray(periodos) && periodos.length > 0) {
+            const corteIds = normalizarCorteIds(periodos.flatMap((periodo) => periodo?.cortes ?? []));
+            await this.assertCortesExisten(corteIds);
+        } else if (Array.isArray(cortes)) {
+            // Valida cortes y distribución antes de crear el año lectivo
+            await this.planDesdeCortes(
                 tipo_periodizacion_id,
+                tipo_periodizacion,
+                cortes,
                 cantidad_periodos,
-                cantidad_cortes,
-                ...anioData
-            } = createAnioLectivoDto;
-
-            const existingAnioLectivo = await this.anioLectivoRepo.findOne({
-                where: { anio_lectivo: anioData.anio_lectivo },
-            });
-
-            if (existingAnioLectivo) {
-                throw new BadRequestException(`El año lectivo ${anioData.anio_lectivo} ya existe`);
-            }
-
-            const nuevoAnioLectivo = await this.anioLectivoRepo.create(anioData);
-            const saved = await this.anioLectivoRepo.save(nuevoAnioLectivo);
-
-            if (Array.isArray(periodos) && periodos.length > 0) {
-                await this.replacePeriodos(saved.id, periodos);
-            } else if (Array.isArray(cortes)) {
-                await this.generatePeriodosFromCortes(
-                    saved.id,
-                    tipo_periodizacion_id,
-                    tipo_periodizacion,
-                    cortes,
-                    cantidad_periodos,
-                );
-            }
-
-            if (Array.isArray(cortes)) {
-                await this.replaceCortes(saved.id, cortes, createAnioLectivoDto.user_create_id);
-            }
-
-            await this.syncOnlyHighestAnioLectivoActive(createAnioLectivoDto.user_create_id);
-
-            return await this.getAnioLectivoById(saved.id);
-        } catch (error) {
-            Utilities.catchError(error);
+            );
         }
+
+        const existingAnioLectivo = await this.anioLectivoRepo.findOne({
+            where: { anio_lectivo: anioData.anio_lectivo },
+        });
+
+        if (existingAnioLectivo) {
+            throw new BadRequestException(`El año lectivo ${anioData.anio_lectivo} ya existe`);
+        }
+
+        const nuevoAnioLectivo = await this.anioLectivoRepo.create(anioData);
+        const saved = await this.anioLectivoRepo.save(nuevoAnioLectivo);
+
+        if (Array.isArray(periodos) && periodos.length > 0) {
+            await this.replacePeriodos(saved.id, periodos);
+        } else if (Array.isArray(cortes)) {
+            await this.generatePeriodosFromCortes(
+                saved.id,
+                tipo_periodizacion_id,
+                tipo_periodizacion,
+                cortes,
+                cantidad_periodos,
+            );
+        }
+
+        if (Array.isArray(cortes)) {
+            await this.replaceCortes(saved.id, cortes, createAnioLectivoDto.user_create_id);
+        }
+
+        await this.syncOnlyHighestAnioLectivoActive(createAnioLectivoDto.user_create_id);
+
+        return await this.getAnioLectivoById(saved.id);
     }
 
     async getAnioLectivo(): Promise<AnioLectivo[]> {
         try {
-            try {
-                const anioLectivo = await this.buildAnioLectivoQuery(true)
-                    .orderBy('anio_lectivo.anio_lectivo', 'DESC')
-                    .getMany();
-                return this.attachCortesList(anioLectivo);
-            } catch (error) {
-                if (!this.isMissingPeriodoTableError(error)) {
-                    throw error;
-                }
-
-                const anioLectivo = await this.buildAnioLectivoQuery(false)
-                    .orderBy('anio_lectivo.anio_lectivo', 'DESC')
-                    .getMany();
-                return this.attachCortesList(anioLectivo);
-            }
+            const anioLectivo = await this.buildAnioLectivoQuery(true)
+                .orderBy('anio_lectivo.anio_lectivo', 'DESC')
+                .getMany();
+            return this.attachCortesList(anioLectivo);
         } catch (error) {
-            Utilities.catchError(error);
+            if (!this.isMissingPeriodoTableError(error)) {
+                throw error;
+            }
+
+            const anioLectivo = await this.buildAnioLectivoQuery(false)
+                .orderBy('anio_lectivo.anio_lectivo', 'DESC')
+                .getMany();
+            return this.attachCortesList(anioLectivo);
         }
     }
 
     async getAnioLectivoById(id: number): Promise<AnioLectivo> {
         try {
-            try {
-                const anioLectivo = await this.buildAnioLectivoQuery(true)
-                    .leftJoinAndSelect('organizacionEscolar.grupos', 'grupos')
-                    .where('anio_lectivo.id = :id', { id })
-                    .orderBy('anio_lectivo.anio_lectivo', 'DESC')
-                    .getOne();
+            const anioLectivo = await this.buildAnioLectivoQuery(true)
+                .leftJoinAndSelect('organizacionEscolar.grupos', 'grupos')
+                .where('anio_lectivo.id = :id', { id })
+                .orderBy('anio_lectivo.anio_lectivo', 'DESC')
+                .getOne();
 
-                return this.attachCortes(anioLectivo)
-            } catch (error) {
-                if (!this.isMissingPeriodoTableError(error)) {
-                    throw error;
-                }
-
-                const anioLectivo = await this.buildAnioLectivoQuery(false)
-                    .leftJoinAndSelect('organizacionEscolar.grupos', 'grupos')
-                    .where('anio_lectivo.id = :id', { id })
-                    .orderBy('anio_lectivo.anio_lectivo', 'DESC')
-                    .getOne();
-
-                return this.attachCortes(anioLectivo)
-            }
+            return this.attachCortes(anioLectivo)
         } catch (error) {
-            Utilities.catchError(error);
-            return null;
+            if (!this.isMissingPeriodoTableError(error)) {
+                throw error;
+            }
+
+            const anioLectivo = await this.buildAnioLectivoQuery(false)
+                .leftJoinAndSelect('organizacionEscolar.grupos', 'grupos')
+                .where('anio_lectivo.id = :id', { id })
+                .orderBy('anio_lectivo.anio_lectivo', 'DESC')
+                .getOne();
+
+            return this.attachCortes(anioLectivo)
         }
     }
 
@@ -451,84 +519,90 @@ export class AnioLectivoService {
         id: number,
         payload: CreateAnioLectivoDTO,
     ): Promise<AnioLectivo> {
-        try {
-            const {
-                cortes,
-                periodos,
-                tipo_periodizacion,
-                tipo_periodizacion_id,
-                cantidad_periodos,
-                cantidad_cortes,
-                ...anioData
-            } = payload;
-            const anioLectivo = await this.anioLectivoRepo.findOne({ where: { id } });
-            if (!anioLectivo) {
-                throw new NotFoundException('Año Lectivo no editado');
-            }
-
-            const requestedAnioLectivo = anioData.anio_lectivo;
-            if (
-                Number.isFinite(requestedAnioLectivo) &&
-                requestedAnioLectivo !== anioLectivo.anio_lectivo
-            ) {
-                const existingAnioLectivo = await this.anioLectivoRepo.findOne({
-                    where: { anio_lectivo: requestedAnioLectivo },
-                });
-
-                if (existingAnioLectivo && existingAnioLectivo.id !== id) {
-                    throw new BadRequestException(`El año lectivo ${requestedAnioLectivo} ya existe`);
-                }
-            }
-
-            // Actualizar solo los campos enviados, conservando los valores previos
-            Object.assign(anioLectivo, anioData);
-
-            // Asignar la fecha de actualización y el usuario que modifica
-            anioLectivo.update_at = new Date();
-            anioLectivo.user_update_id;
-
-            const saved = await this.anioLectivoRepo.save(anioLectivo);
-
-            if (Array.isArray(periodos) && periodos.length > 0) {
-                await this.replacePeriodos(saved.id, periodos);
-            } else if (Array.isArray(cortes)) {
-                await this.generatePeriodosFromCortes(
-                    saved.id,
-                    tipo_periodizacion_id,
-                    tipo_periodizacion,
-                    cortes,
-                    cantidad_periodos,
-                );
-            }
-
-            if (Array.isArray(cortes)) {
-                await this.replaceCortes(saved.id, cortes, payload.user_update_id);
-            }
-
-            await this.syncOnlyHighestAnioLectivoActive(payload.user_update_id);
-
-            return await this.getAnioLectivoById(saved.id);
-        } catch (error) {
-            Utilities.catchError(error);
+        const {
+            cortes,
+            periodos,
+            tipo_periodizacion,
+            tipo_periodizacion_id,
+            cantidad_periodos,
+            cantidad_cortes,
+            ...anioData
+        } = payload;
+        const anioLectivo = await this.anioLectivoRepo.findOne({ where: { id } });
+        if (!anioLectivo) {
+            throw new NotFoundException('Año Lectivo no editado');
         }
+
+        this.assertPeriodosCoincidenConCortes(periodos, cortes);
+
+        if (Array.isArray(periodos) && periodos.length > 0) {
+            const corteIds = normalizarCorteIds(periodos.flatMap((periodo) => periodo?.cortes ?? []));
+            await this.assertCortesExisten(corteIds);
+        } else if (Array.isArray(cortes)) {
+            await this.planDesdeCortes(
+                tipo_periodizacion_id,
+                tipo_periodizacion,
+                cortes,
+                cantidad_periodos,
+            );
+        }
+
+        const requestedAnioLectivo = anioData.anio_lectivo;
+        if (
+            Number.isFinite(requestedAnioLectivo) &&
+            requestedAnioLectivo !== anioLectivo.anio_lectivo
+        ) {
+            const existingAnioLectivo = await this.anioLectivoRepo.findOne({
+                where: { anio_lectivo: requestedAnioLectivo },
+            });
+
+            if (existingAnioLectivo && existingAnioLectivo.id !== id) {
+                throw new BadRequestException(`El año lectivo ${requestedAnioLectivo} ya existe`);
+            }
+        }
+
+        // Actualizar solo los campos enviados, conservando los valores previos
+        Object.assign(anioLectivo, anioData);
+
+        // Asignar la fecha de actualización y el usuario que modifica
+        anioLectivo.update_at = new Date();
+        anioLectivo.user_update_id;
+
+        const saved = await this.anioLectivoRepo.save(anioLectivo);
+
+        if (Array.isArray(periodos) && periodos.length > 0) {
+            await this.replacePeriodos(saved.id, periodos);
+        } else if (Array.isArray(cortes)) {
+            await this.generatePeriodosFromCortes(
+                saved.id,
+                tipo_periodizacion_id,
+                tipo_periodizacion,
+                cortes,
+                cantidad_periodos,
+            );
+        }
+
+        if (Array.isArray(cortes)) {
+            await this.replaceCortes(saved.id, cortes, payload.user_update_id);
+        }
+
+        await this.syncOnlyHighestAnioLectivoActive(payload.user_update_id);
+
+        return await this.getAnioLectivoById(saved.id);
     }
 
     async assignCortes(
         id: number,
         cortes: { id: number }[],
     ): Promise<AnioLectivo> {
-        try {
-            const anioLectivo = await this.anioLectivoRepo.findOne({ where: { id } });
-            if (!anioLectivo) {
-                throw new NotFoundException('Año Lectivo no encontrado');
-            }
-
-            await this.replaceCortes(anioLectivo.id, cortes);
-
-            return await this.getAnioLectivoById(id);
-        } catch (error) {
-            Utilities.catchError(error);
+        const anioLectivo = await this.anioLectivoRepo.findOne({ where: { id } });
+        if (!anioLectivo) {
+            throw new NotFoundException('Año Lectivo no encontrado');
         }
+
+        await this.replaceCortes(anioLectivo.id, cortes);
+
+        return await this.getAnioLectivoById(id);
     }
 
     private async replaceCortes(anioLectivoId: number, cortes: { id: number }[], userId?: number): Promise<void> {
@@ -573,8 +647,6 @@ export class AnioLectivoService {
             cortes?: { id: number; orden?: number }[];
         }[],
     ): Promise<void> {
-        await this.periodoLectivoRepo.delete({ anioLectivoId });
-
         const tipoIds = Array.from(
             new Set(
                 (periodos ?? [])
@@ -592,6 +664,33 @@ export class AnioLectivoService {
         if (tiposMap.size !== tipoIds.length) {
             throw new BadRequestException('Uno o mas periodos no existen o estan inactivos');
         }
+
+        // Validar la estructura antes de borrar los periodos existentes.
+        const tipoConfig = tipoIds.length === 1
+            ? await this.resolveTipoPeriodizacionConfig(tipoIds[0])
+            : undefined;
+
+        const plan = tipoConfig
+            ? validarPlanExplicito(tipoConfig, periodos)
+            : undefined;
+
+        if (plan) {
+            await this.assertCortesExisten(
+                plan.periodos.flatMap((periodo) => periodo.cortes.map((corte) => corte.id)),
+            );
+        } else {
+            const corteIds = normalizarCorteIds(
+                (periodos ?? []).flatMap((periodo) => periodo?.cortes ?? []),
+            );
+            if (corteIds.length === 0) {
+                throw new BadRequestException(
+                    'Cada periodo debe tener al menos un corte asignado',
+                );
+            }
+            await this.assertCortesExisten(corteIds);
+        }
+
+        await this.periodoLectivoRepo.delete({ anioLectivoId });
 
         const normalized = (periodos ?? [])
             .map((periodo, index) => {
@@ -684,79 +783,75 @@ export class AnioLectivoService {
         id: number,
         userId: number,
     ): Promise<AnioLectivo> {
-        try {
-            return await this.anioLectivoRepo.manager.transaction(async (manager) => {
-                const anioLectivo = await manager.getRepository(AnioLectivo).findOne({
-                    where: { id },
-                    relations: ['organizacionEscolar', 'organizacionEscolar.grupos'],
-                });
-                if (!anioLectivo) {
-                    throw new NotFoundException('Año lectivo no eliminado');
-                }
+        return await this.anioLectivoRepo.manager.transaction(async (manager) => {
+            const anioLectivo = await manager.getRepository(AnioLectivo).findOne({
+                where: { id },
+                relations: ['organizacionEscolar', 'organizacionEscolar.grupos'],
+            });
+            if (!anioLectivo) {
+                throw new NotFoundException('Año lectivo no eliminado');
+            }
 
-                const organizacionIds = (anioLectivo.organizacionEscolar ?? [])
-                    .map((org) => org.id)
-                    .filter((orgId) => Number.isFinite(orgId));
+            const organizacionIds = (anioLectivo.organizacionEscolar ?? [])
+                .map((org) => org.id)
+                .filter((orgId) => Number.isFinite(orgId));
 
-                const grupoIds = (anioLectivo.organizacionEscolar ?? [])
-                    .flatMap((org) => org.grupos?.map((grupo) => grupo.id) ?? [])
-                    .filter((grupoId) => Number.isFinite(grupoId));
+            const grupoIds = (anioLectivo.organizacionEscolar ?? [])
+                .flatMap((org) => org.grupos?.map((grupo) => grupo.id) ?? [])
+                .filter((grupoId) => Number.isFinite(grupoId));
 
-                if (grupoIds.length > 0) {
-                    const gadRows = await manager
-                        .getRepository(GrupoAsignaturaDocente)
-                        .createQueryBuilder('gad')
-                        .select('gad.id', 'id')
-                        .where('gad.grupo_id IN (:...grupoIds)', { grupoIds })
-                        .getRawMany();
+            if (grupoIds.length > 0) {
+                const gadRows = await manager
+                    .getRepository(GrupoAsignaturaDocente)
+                    .createQueryBuilder('gad')
+                    .select('gad.id', 'id')
+                    .where('gad.grupo_id IN (:...grupoIds)', { grupoIds })
+                    .getRawMany();
 
-                    const gadIds = gadRows.map((row) => row.id).filter((gadId) => Number.isFinite(gadId));
+                const gadIds = gadRows.map((row) => row.id).filter((gadId) => Number.isFinite(gadId));
 
-                    if (gadIds.length > 0) {
-                        await manager
-                            .getRepository(GrupoAsignaturaConEstudiantes)
-                            .createQueryBuilder()
-                            .delete()
-                            .from(GrupoAsignaturaConEstudiantes)
-                            .where('grupoAsignaturaDocenteId IN (:...gadIds)', { gadIds })
-                            .execute();
-                    }
-
+                if (gadIds.length > 0) {
                     await manager
-                        .getRepository(GrupoAsignaturaDocente)
+                        .getRepository(GrupoAsignaturaConEstudiantes)
                         .createQueryBuilder()
                         .delete()
-                        .from(GrupoAsignaturaDocente)
-                        .where('grupo_id IN (:...grupoIds)', { grupoIds })
+                        .from(GrupoAsignaturaConEstudiantes)
+                        .where('grupoAsignaturaDocenteId IN (:...gadIds)', { gadIds })
                         .execute();
-
-                    await manager.getRepository(Grupos).update(
-                        { id: In(grupoIds) },
-                        { deleted_at: new Date(), deleted_at_id: userId },
-                    );
                 }
 
-                if (organizacionIds.length > 0) {
-                    await manager.getRepository(OrganizacionEscolar).update(
-                        { id: In(organizacionIds) },
-                        { deleted_at: new Date(), deleted_at_id: userId },
-                    );
-                }
+                await manager
+                    .getRepository(GrupoAsignaturaDocente)
+                    .createQueryBuilder()
+                    .delete()
+                    .from(GrupoAsignaturaDocente)
+                    .where('grupo_id IN (:...grupoIds)', { grupoIds })
+                    .execute();
 
-                await manager.getRepository(AnioLectivoCorte).delete({ anioLectivoId: id });
-                await manager.getRepository(AnioLectivoCalendarizacion).update(
-                    { anioLectivoId: id, delete_at: null },
-                    { isActive: false, delete_at: new Date(), deleted_at_id: userId },
+                await manager.getRepository(Grupos).update(
+                    { id: In(grupoIds) },
+                    { deleted_at: new Date(), deleted_at_id: userId },
                 );
+            }
 
-                // Registrar el usuario que eliminó y la fecha de eliminación
-                anioLectivo.deleted_at = new Date();
-                anioLectivo.deleted_at_id = userId;
+            if (organizacionIds.length > 0) {
+                await manager.getRepository(OrganizacionEscolar).update(
+                    { id: In(organizacionIds) },
+                    { deleted_at: new Date(), deleted_at_id: userId },
+                );
+            }
 
-                return await manager.getRepository(AnioLectivo).save(anioLectivo);
-            });
-        } catch (error) {
-            Utilities.catchError(error);
-        }
+            await manager.getRepository(AnioLectivoCorte).delete({ anioLectivoId: id });
+            await manager.getRepository(AnioLectivoCalendarizacion).update(
+                { anioLectivoId: id, delete_at: null },
+                { isActive: false, delete_at: new Date(), deleted_at_id: userId },
+            );
+
+            // Registrar el usuario que eliminó y la fecha de eliminación
+            anioLectivo.deleted_at = new Date();
+            anioLectivo.deleted_at_id = userId;
+
+            return await manager.getRepository(AnioLectivo).save(anioLectivo);
+        });
     }
 }

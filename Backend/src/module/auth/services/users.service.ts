@@ -6,7 +6,6 @@ import { UserPartialTypeDto, UsersDto } from "../dtos/users-dto";
 import { SetupEnum } from "../enums";
 import * as bcrypt from 'bcrypt';
 import { JwtService } from "@nestjs/jwt";
-import { Utilities } from "src/common/helpers/utilities";
 import { Docentes } from "src/module/docentes/docentes.entity";
 import { Role } from "../entities/roles.entity";
 import { MailerService } from "@nestjs-modules/mailer";
@@ -97,14 +96,20 @@ async resetPassword(tempToken: string, newPassword: string) {
 }
 //--------------------------------------------------------------
 
-
-
   async findByEmail(email: string) {
-    
-    const user = await this.userRepository.findOne({
-      where: { email },
-      relations: ['roles'],
-    });
+    // password / resetCode están con `select: false` en la entidad:
+    // se piden explícitamente solo aquí (login y recuperación de contraseña).
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .addSelect([
+        'user.password',
+        'user.resetCode',
+        'user.resetCodeExpire',
+        'user.token',
+      ])
+      .leftJoinAndSelect('user.roles', 'roles')
+      .where('user.email = :email', { email })
+      .getOne();
 
     if (!user) {
       throw new NotFoundException('No se encotro el usuario');
@@ -160,12 +165,8 @@ async resetPassword(tempToken: string, newPassword: string) {
   }
 
   async getUserById(id: number): Promise<User> {
-    try {
-      const user = await this.userRepository.findOne({ where: { id }, relations: ['roles', 'docente','docente.profession'] });
-      return user;
-    } catch (error) {
-      Utilities.catchError(error);
-    }
+    const user = await this.userRepository.findOne({ where: { id }, relations: ['roles', 'docente','docente.profession'] });
+    return user;
   }
 
   async updated(id: number, payload: UserPartialTypeDto) {
@@ -201,8 +202,6 @@ async resetPassword(tempToken: string, newPassword: string) {
     return await this.userRepository.save(oldUser);
   }
 
-
-
   // deleted(id: number) {
   //   const index = this.users.findIndex((user) => user.id === id);
   //   this.users.splice(index, 1);
@@ -211,6 +210,9 @@ async resetPassword(tempToken: string, newPassword: string) {
 
   async deleted(id: number): Promise<User> {
     const index = await this.userRepository.findOne({ where: { id }, relations: ['roles', 'docente'] });
+    if (!index) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
     return await this.userRepository.remove(index)
   }
 }

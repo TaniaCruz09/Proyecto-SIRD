@@ -29,7 +29,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-purple-100/30">
       <Header title="Sistema de Calificaciones SIRD" subTitle="Panel de Administración" />
-      <main className="container mx-auto px-6">
+      <main className="container mx-auto px-4 sm:px-6">
         <div className="m-5">
           <h2 className="text-2xl font-bold text-foreground mb-1">
             {rol === 'Admin'
@@ -41,21 +41,13 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="flex items-center justify-between bg-purple-100/30 rounded-xl p-4 font-semibold text-black">
-          {/* Accesos directos */}
-          <div className="flex items-center gap-2 text-gray-700">
-            <FaArrowUpRightFromSquare className="text-lg" />
-            <p>Accesos directos</p>
-          </div>
-        </div>
-
         {/* Tarjetas de acceso directo */}
-         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
           {/* Card 1: Usuarios y Roles */}
           <Link href="/auth/users">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-full">
               <Card className="bg-gradient-to-br from-blue-200 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
-                <CardContent className="text-center">
+                <CardContent className="px-4 text-center sm:px-6">
                   <CardHeader className="flex flex-col items-center">
                     <FaUserShield className="text-blue-900 text-2xl" />
                   </CardHeader>
@@ -70,7 +62,7 @@ export default function HomePage() {
           <Link href="/registerGroups">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-full">
               <Card className="bg-gradient-to-br from-emerald-200 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
-                <CardContent className="text-center">
+                <CardContent className="px-4 text-center sm:px-6">
                   <CardHeader className="flex flex-col items-center">
                     <FaBook className="text-emerald-900 text-2xl" />
                   </CardHeader>
@@ -85,7 +77,7 @@ export default function HomePage() {
           <Link href="/docente/registerDocente">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-full">
               <Card className="bg-gradient-to-br from-purple-200 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
-                <CardContent className="text-center">
+                <CardContent className="px-4 text-center sm:px-6">
                   <CardHeader className="flex flex-col items-center">
                     <FaUsers className="text-purple-800 text-2xl" />
                   </CardHeader>
@@ -100,7 +92,7 @@ export default function HomePage() {
           <Link href="/registerEstudent">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-full">
               <Card className="bg-gradient-to-br from-amber-200 to-amber-100 hover:from-amber-100 hover:to-amber-200 rounded-2xl shadow-lg flex flex-col items-center justify-center transition-all hover:shadow-2xl cursor-pointer">
-                <CardContent className="text-center">
+                <CardContent className="px-4 text-center sm:px-6">
                   <CardHeader className="flex flex-col items-center">
                     <FaGraduationCap className="text-yellow-700 text-2xl" />
                   </CardHeader>

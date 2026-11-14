@@ -23,7 +23,7 @@ export default function DocenteTable({
 
   return (
     <div className="bg-white">
-      <div className="bg-white shadow-lg h-[calc(100vh-230px)] overflow-y-auto">
+      <div className="bg-white shadow-lg h-[calc(100vh-230px)] overflow-auto">
         <table className="w-full space-y-2 text-left bg-white text-gray-800">
           <thead className="bg-gray-200 uppercase text-xs font-semibold sticky top-0 z-10">
             <tr>
@@ -58,7 +58,7 @@ export default function DocenteTable({
       </div>
 
       {/* Paginación */}
-      <div className="flex justify-between items-center px-6 py-4 text-sm text-gray-600">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-4 text-sm text-gray-600 sm:px-6">
         <p>
           Página {currentPage} de {Math.ceil(docentes.length / DocentesPerPage)}
         </p>

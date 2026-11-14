@@ -17,7 +17,8 @@ export interface EsquelaRow {
 export interface EsquelaRowPayload {
     estudiante: { id: number };
     asignatura: { id: number };
-    notaCualitativa: { id: number };
+    /** La deriva el backend a partir de `notaCuantitativa`; solo se envía como verificación. */
+    notaCualitativa?: { id: number };
     notaCuantitativa?: number;
     corte: { id: number };
     esquelaHead: { id: number };

@@ -18,11 +18,14 @@ export class CreateEsquelaRowDto {
     @IsObject()
     asignatura: Asignatura;
 
-    @IsNotEmpty()
-    @IsObject()
-    notaCualitativa: NotaCualitativa;
-
+    /**
+     * Opcional: el backend deriva la nota cualitativa desde `notaCuantitativa`.
+     * Si se envía, solo se acepta cuando coincide con el rango del catálogo.
+     */
     @IsOptional()
+    @IsObject()
+    notaCualitativa?: NotaCualitativa;
+
     @IsNumber()
     @Min(0)
     @Max(100)

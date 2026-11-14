@@ -2,67 +2,56 @@ import { Controller, Get, Post, Put, Delete, Body, Param, Query, ParseIntPipe, U
 import { PaisService } from '../services/pais.service';
 import { CreatePaisDto } from '../dtos/pais.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { Utilities } from '../../../common/helpers/utilities';
 import { JwtAuthGuard } from '../../auth/guards/jwt.guard';
+import { AdminWrite } from '../../../common/decorators/admin-write.decorator';
 
 @ApiTags('Pais')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@AdminWrite()
 @Controller('pais')
 export class PaisController {
     constructor(private readonly paisService: PaisService) { }
 
     @Post('/')
     async createPais(@Body() payload: CreatePaisDto, @Req() req) {
-        try {
-            const userId = req.user?.id;
+        const userId = req.user?.id;
 
-            if (!userId) {
-                return {
-                    message: "Usuario no autenticado",
-                    statusCode: 401
-                };
-            }
-
-            payload.user_create_id = userId;
-
-            const newPais = await this.paisService.createPais(payload);
-            const data = {
-                data: newPais,
-                message: 'Pais agregado correctamente',
+        if (!userId) {
+            return {
+                message: "Usuario no autenticado",
+                statusCode: 401
             };
-            return data;
-        } catch (error) {
-            Utilities.catchError(error)
         }
+
+        payload.user_create_id = userId;
+
+        const newPais = await this.paisService.createPais(payload);
+        const data = {
+            data: newPais,
+            message: 'Pais agregado correctamente',
+        };
+        return data;
     }
 
     @Get('/')
     async findAll() {
-        try {
-            const pais = await this.paisService.findAll();
-            const data = {
-                data: pais,
-                message: 'ok',
-            };
-            return data;
-        } catch (error) {
-            Utilities.catchError(error)
-        }
+        const pais = await this.paisService.findAll();
+        const data = {
+            data: pais,
+            message: 'ok',
+        };
+        return data;
     }
 
     @Get(':id')
     async findOne(@Param('id', ParseIntPipe) id: number) {
-        try {
-            const pais = await this.paisService.findOne(id);
-            const data = {
-                data: pais,
-                message: 'ok',
-            };
-            return data;
-        } catch (error) {
-            Utilities.catchError(error)
-        }
+        const pais = await this.paisService.findOne(id);
+        const data = {
+            data: pais,
+            message: 'ok',
+        };
+        return data;
     }
 
     @Put('/:id')
@@ -71,47 +60,39 @@ export class PaisController {
         @Body() payload: CreatePaisDto,
         @Req() req
     ) {
-        try {
-            const userId = req.user?.id;
+        const userId = req.user?.id;
 
-            if (!userId) {
-                return {
-                    message: "Usuario no autenticado",
-                    statusCode: 401
-                };
-            }
-
-            payload.user_update_id = userId;
-
-            const pais = await this.paisService.update(id, payload);
+        if (!userId) {
             return {
-                data: pais,
-                message: 'Pais actualizado correctamente',
-            }
-        } catch (error) {
-            Utilities.catchError(error)
+                message: "Usuario no autenticado",
+                statusCode: 401
+            };
+        }
+
+        payload.user_update_id = userId;
+
+        const pais = await this.paisService.update(id, payload);
+        return {
+            data: pais,
+            message: 'Pais actualizado correctamente',
         }
     }
 
     @Delete('/:id')
     async delete(@Param('id', ParseIntPipe) id: number, @Req() req) {
-        try {
-            const userId = req.user?.id;
-            if (!userId) {
-                return {
-                    message: "Usuario no autenticado",
-                    statusCode: 401
-                };
-
-            }
-            const pais = await this.paisService.delete(id, userId);
-
+        const userId = req.user?.id;
+        if (!userId) {
             return {
-                data: pais,
-                message: 'Pais eliminado correctamente',
+                message: "Usuario no autenticado",
+                statusCode: 401
             };
-        } catch (error) {
-            Utilities.catchError(error)
+
         }
+        const pais = await this.paisService.delete(id, userId);
+
+        return {
+            data: pais,
+            message: 'Pais eliminado correctamente',
+        };
     }
 }
