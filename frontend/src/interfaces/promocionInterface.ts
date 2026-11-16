@@ -21,6 +21,12 @@ export interface GrupoConEstudiantes extends GrupoResumen {
   estudiantes: number
 }
 
+/** Grupo con el año lectivo al que pertenece, usado en la pantalla de promoción. */
+export interface GrupoConAnio extends GrupoConEstudiantes {
+  anio: number
+  anioId: number
+}
+
 export interface EstudianteSugerido {
   id: number
   nombre: string

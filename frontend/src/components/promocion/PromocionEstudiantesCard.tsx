@@ -12,14 +12,21 @@ import {
 import {
   AnioLectivoResumen,
   DecisionPromocion,
-  GrupoConEstudiantes,
+  GrupoConAnio,
   ResultadoPromocion,
   SugerenciasPromocion,
 } from "@/interfaces/promocionInterface"
+import {
+  FiltrosGrupoOrigen,
+  filtrarGruposOrigen,
+  opcionesAnio,
+  opcionesGrado,
+  opcionesOrganizacion,
+} from "@/components/promocion/filtrosOrigen"
 
 interface PromocionEstudiantesCardProps {
   anios: AnioLectivoResumen[]
-  grupos: (GrupoConEstudiantes & { anio: number })[]
+  grupos: GrupoConAnio[]
   onAplicado: () => void
 }
 
@@ -36,6 +43,11 @@ export function PromocionEstudiantesCard({
 }: PromocionEstudiantesCardProps) {
   const [grupoOrigenId, setGrupoOrigenId] = useState<number | null>(null)
   const [anioDestinoId, setAnioDestinoId] = useState<number | null>(null)
+  const [filtroAnioId, setFiltroAnioId] = useState<number | null>(null)
+  const [filtroGradoId, setFiltroGradoId] = useState<number | null>(null)
+  const [filtroOrganizacion, setFiltroOrganizacion] = useState<string | null>(
+    null,
+  )
   const [sugerencias, setSugerencias] = useState<SugerenciasPromocion | null>(
     null,
   )
@@ -49,6 +61,96 @@ export function PromocionEstudiantesCard({
     () => grupos.filter((grupo) => grupo.estudiantes > 0),
     [grupos],
   )
+
+  // Cada filtro se alimenta de los grupos que cumplen los demás filtros activos,
+  // así las opciones se reducen a medida que se elige año, grado u organización.
+  const filtros = useMemo<FiltrosGrupoOrigen>(
+    () => ({
+      anioId: filtroAnioId,
+      gradoId: filtroGradoId,
+      organizacion: filtroOrganizacion,
+    }),
+    [filtroAnioId, filtroGradoId, filtroOrganizacion],
+  )
+
+  const aniosFiltro = useMemo(
+    () => opcionesAnio(gruposConEstudiantes, filtros),
+    [gruposConEstudiantes, filtros],
+  )
+
+  const gradosFiltro = useMemo(
+    () => opcionesGrado(gruposConEstudiantes, filtros),
+    [gruposConEstudiantes, filtros],
+  )
+
+  const organizacionesFiltro = useMemo(
+    () => opcionesOrganizacion(gruposConEstudiantes, filtros),
+    [gruposConEstudiantes, filtros],
+  )
+
+  const gruposFiltrados = useMemo(
+    () => filtrarGruposOrigen(gruposConEstudiantes, filtros),
+    [gruposConEstudiantes, filtros],
+  )
+
+  const hayFiltros = Boolean(
+    filtroAnioId !== null || filtroGradoId !== null || filtroOrganizacion,
+  )
+
+  const cambiarAnio = (valor: string) => {
+    setFiltroAnioId(valor ? Number(valor) : null)
+    setFiltroGradoId(null)
+    setFiltroOrganizacion(null)
+  }
+
+  const cambiarGrado = (valor: string) => {
+    setFiltroGradoId(valor ? Number(valor) : null)
+    setFiltroOrganizacion(null)
+  }
+
+  const limpiarFiltros = () => {
+    setFiltroAnioId(null)
+    setFiltroGradoId(null)
+    setFiltroOrganizacion(null)
+  }
+
+  // Si la opción elegida deja de existir con los datos actuales (por ejemplo al
+  // terminar de promover ese grado), se limpia junto con los filtros que dependen
+  // de ella para no dejar una selección que ya no tiene grupos.
+  useEffect(() => {
+    if (
+      filtroAnioId !== null &&
+      !aniosFiltro.some((anio) => anio.id === filtroAnioId)
+    ) {
+      setFiltroAnioId(null)
+      setFiltroGradoId(null)
+      setFiltroOrganizacion(null)
+      return
+    }
+
+    if (
+      filtroGradoId !== null &&
+      !gradosFiltro.some((grado) => grado.id === filtroGradoId)
+    ) {
+      setFiltroGradoId(null)
+      setFiltroOrganizacion(null)
+      return
+    }
+
+    if (
+      filtroOrganizacion !== null &&
+      !organizacionesFiltro.includes(filtroOrganizacion)
+    ) {
+      setFiltroOrganizacion(null)
+    }
+  }, [
+    aniosFiltro,
+    gradosFiltro,
+    organizacionesFiltro,
+    filtroAnioId,
+    filtroGradoId,
+    filtroOrganizacion,
+  ])
 
   const destinos = useMemo(
     () =>
@@ -107,6 +209,14 @@ export function PromocionEstudiantesCard({
     }
     void cargarSugerencias()
   }, [grupoOrigenId, anioDestinoId, cargarSugerencias])
+
+  // Si el grupo elegido deja de estar disponible (por un filtro o tras promoverlo),
+  // se limpia la selección para no mostrar un grupo que ya no está en la lista.
+  useEffect(() => {
+    if (grupoOrigenId === null) return
+    if (gruposFiltrados.some((grupo) => grupo.id === grupoOrigenId)) return
+    setGrupoOrigenId(null)
+  }, [grupoOrigenId, gruposFiltrados])
 
   const resumen = useMemo(() => {
     if (!sugerencias) return []
@@ -187,6 +297,96 @@ export function PromocionEstudiantesCard({
       </CardHeader>
 
       <CardContent className="space-y-4">
+        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="text-sm font-medium text-slate-700">
+                Filtrar grupos de origen
+              </p>
+              <p className="text-xs text-slate-500">
+                Usa los filtros que necesites: las opciones se ajustan a lo que
+                ya elegiste.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={limpiarFiltros}
+              disabled={!hayFiltros}
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Limpiar filtros
+            </button>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div>
+              <label
+                htmlFor="filtro-anio"
+                className="mb-1 block text-sm font-medium text-slate-700"
+              >
+                Año lectivo
+              </label>
+              <select
+                id="filtro-anio"
+                className={claseSelect}
+                value={filtroAnioId ?? ""}
+                onChange={(e) => cambiarAnio(e.target.value)}
+              >
+                <option value="">Todos los años</option>
+                {aniosFiltro.map((anio) => (
+                  <option key={anio.id} value={anio.id}>
+                    {anio.anio}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="filtro-grado"
+                className="mb-1 block text-sm font-medium text-slate-700"
+              >
+                Grado
+              </label>
+              <select
+                id="filtro-grado"
+                className={claseSelect}
+                value={filtroGradoId ?? ""}
+                onChange={(e) => cambiarGrado(e.target.value)}
+              >
+                <option value="">Todos los grados</option>
+                {gradosFiltro.map((grado) => (
+                  <option key={grado.id} value={grado.id}>
+                    {grado.grado}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="filtro-organizacion"
+                className="mb-1 block text-sm font-medium text-slate-700"
+              >
+                Organización escolar
+              </label>
+              <select
+                id="filtro-organizacion"
+                className={claseSelect}
+                value={filtroOrganizacion ?? ""}
+                onChange={(e) => setFiltroOrganizacion(e.target.value || null)}
+              >
+                <option value="">Todas las organizaciones</option>
+                {organizacionesFiltro.map((organizacion) => (
+                  <option key={organizacion} value={organizacion}>
+                    {organizacion}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label
@@ -203,13 +403,24 @@ export function PromocionEstudiantesCard({
                 setGrupoOrigenId(e.target.value ? Number(e.target.value) : null)
               }
             >
-              <option value="">Selecciona un grupo</option>
-              {gruposConEstudiantes.map((grupo) => (
+              <option value="">
+                {gruposFiltrados.length > 0
+                  ? "Selecciona un grupo"
+                  : "Sin grupos con estos filtros"}
+              </option>
+              {gruposFiltrados.map((grupo) => (
                 <option key={grupo.id} value={grupo.id}>
-                  {grupo.label} · {grupo.anio} ({grupo.estudiantes} estudiantes)
+                  {filtroAnioId === null
+                    ? `${grupo.label} · ${grupo.anio}`
+                    : grupo.label}{" "}
+                  ({grupo.estudiantes} estudiantes)
                 </option>
               ))}
             </select>
+            <p className="mt-1 text-xs text-slate-500">
+              {gruposFiltrados.length} grupo(s) con estudiantes pendientes
+              {hayFiltros ? " con los filtros aplicados" : ""}.
+            </p>
           </div>
 
           <div>

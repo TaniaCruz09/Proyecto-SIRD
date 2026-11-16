@@ -22,6 +22,7 @@ import { TablaRegistrosEstudiante } from "@/components/tables/expedientes/Tabla-
 import { getEsquelaByGrupo } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
 import { getEsquelaRowByEstudianteAndAnio } from "@/actions/calificaciones/esquelasRowsMethods/esquelasRowsMethods";
 import DocumentsCard from "@/components/documents/DocumentsCard"
+import { useToast } from "@/hooks/use-toast"
 
 export interface RegistroAcademico {
     id: string
@@ -42,6 +43,7 @@ export default function StudentProfile() {
     const [loading, setLoading] = useState(true)
 
     const router = useRouter()
+    const { toast } = useToast()
 
     const { estudianteId } = useParams()
 
@@ -52,6 +54,11 @@ export default function StudentProfile() {
 
             if (!esquela?.id) {
                 console.error("No existe esquela para este grupo")
+                toast({
+                    title: "Sin esquela de calificaciones",
+                    description: "No existe una esquela para este grupo. Contacta al docente o al administrador.",
+                    variant: "warning",
+                })
                 return
             }
 

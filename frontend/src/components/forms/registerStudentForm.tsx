@@ -486,6 +486,35 @@ export default function RegisterEstudentForm({ defeaultValues: defaultValues, on
               ))}
             </select>
           </div>
+        <div>
+          <label className="block text-gray-700 font-medium mb-1">País de origen</label>
+          <SearchableSelect
+            options={paises.map((r) => ({
+              value: r.id.toString(),
+              label: r.pais ?? "",
+            }))}
+            value={formValues.pais}
+            onChange={(value) =>
+              setFormValues((prev) => ({ ...prev, pais: value }))
+            }
+            placeholder="Buscar país..."
+          />
+        </div>
+
+        <div>
+          <label className="block text-gray-700 font-medium mb-1">Municipio</label>
+          <SearchableSelect
+            options={municipios.map((r) => ({
+              value: r.id.toString(),
+              label: r.municipio,
+            }))}
+            value={formValues.municipio}
+            onChange={(value) =>
+              setFormValues((prev) => ({ ...prev, municipio: value }))
+            }
+            placeholder="Buscar municipio..."
+          />
+        </div>
         </div>
       </div>
 
@@ -577,42 +606,9 @@ export default function RegisterEstudentForm({ defeaultValues: defaultValues, on
         </div>
       </div>
 
-      {/* Sección de país y municipio */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-gray-700 font-medium mb-1">País de origen</label>
-          <SearchableSelect
-            options={paises.map((r) => ({
-              value: r.id.toString(),
-              label: r.pais ?? "",
-            }))}
-            value={formValues.pais}
-            onChange={(value) =>
-              setFormValues((prev) => ({ ...prev, pais: value }))
-            }
-            placeholder="Buscar país..."
-          />
-        </div>
-
-        <div>
-          <label className="block text-gray-700 font-medium mb-1">Municipio</label>
-          <SearchableSelect
-            options={municipios.map((r) => ({
-              value: r.id.toString(),
-              label: r.municipio,
-            }))}
-            value={formValues.municipio}
-            onChange={(value) =>
-              setFormValues((prev) => ({ ...prev, municipio: value }))
-            }
-            placeholder="Buscar municipio..."
-          />
-        </div>
-      </div>
-
       {/* Observación */}
       <div>
-        <label className="block text-gray-700 font-medium mb-1">Observaciones</label>
+        <label className="block text-gray-700 font-medium mb-1">Observaciones respecto al estudiante</label>
         <input
           name="observations"
           placeholder="Comentarios u observaciones del estudiante"

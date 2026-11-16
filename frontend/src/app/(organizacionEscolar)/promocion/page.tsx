@@ -11,10 +11,8 @@ import { ClonarEstructuraCard } from "@/components/promocion/ClonarEstructuraCar
 import { PromocionEstudiantesCard } from "@/components/promocion/PromocionEstudiantesCard"
 import {
   AnioLectivoResumen,
-  GrupoConEstudiantes,
+  GrupoConAnio,
 } from "@/interfaces/promocionInterface"
-
-type GrupoConAnio = GrupoConEstudiantes & { anio: number }
 
 export default function PromocionPage() {
   const [anios, setAnios] = useState<AnioLectivoResumen[]>([])
@@ -34,6 +32,7 @@ export default function PromocionPage() {
           return gruposDelAnio.map((grupo) => ({
             ...grupo,
             anio: anio.anioLectivo,
+            anioId: anio.id,
           }))
         }),
       )
