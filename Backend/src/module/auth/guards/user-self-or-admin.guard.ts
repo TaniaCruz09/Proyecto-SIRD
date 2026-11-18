@@ -4,23 +4,21 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import { User } from '../entities/user.entity';
+import type { AuthenticatedUser } from '../strategies/jwt.strategy';
 import { roleMatches, UserRole } from '../enums';
 
 @Injectable()
 export class UserSelfOrAdminGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
-    const user = request.user as User | undefined;
+    const user = request.user as AuthenticatedUser | undefined;
     const requestedUserId = Number(request.params?.id);
 
     if (!user) {
       throw new ForbiddenException('Usuario no autorizado');
     }
 
-    const isAdmin = (user.roles ?? []).some((role) =>
-      roleMatches(role.rol, UserRole.ADMIN),
-    );
+    const isAdmin = roleMatches(user.activeRole, UserRole.ADMIN);
 
     if (isAdmin || user.id === requestedUserId) {
       return true;

@@ -54,7 +54,10 @@ $ npm run db:schemas
 # Crea esquemas y sincroniza las tablas con las entidades
 $ npm run db:sync
 
-# Alternativa con migraciones (DB_SYNC=false)
+# Prepara una base VACÍA para trabajar con migraciones (ver abajo)
+$ npm run db:bootstrap
+
+# Aplica solo las migraciones pendientes (no crea esquemas)
 $ npm run migration:run
 ```
 
@@ -63,19 +66,115 @@ $ npm run migration:run
 > esquema nuevo, se detecta automáticamente desde `@Entity({ schema })` o puedes
 > declararlo en `DB_SCHEMAS` (separado por comas).
 
+### Base de datos nueva
+
+Las migraciones de este proyecto son **incrementales**: la primera asume que las
+tablas base (`catalogos."anioLectivo"`, `catalogos.cortes`, …) ya existen porque
+las creó `synchronize`. Por eso **`migration:run` no puede recrear una base
+vacía**; para una instalación nueva:
+
+```bash
+# 1) Crea la base vacía, por ejemplo:
+#    createdb sird
+#    (o CREATE DATABASE sird; desde psql)
+
+# 2) Ajusta la conexión en .env (HOST / DATA_BASE_* o DATABASE_URL)
+#    y deja DB_SYNC=false
+
+# 3) Crea esquemas + tablas desde las entidades y registra el historial
+$ npm run db:bootstrap
+
+# 4) Confirma que no queda nada pendiente
+$ npm run migration:show
+```
+
+`db:bootstrap` hace tres cosas: crea los esquemas, crea las tablas a partir de
+las entidades (`synchronize`) y marca las migraciones existentes como aplicadas.
+Se niega a ejecutarse si la base ya tiene tablas, así que no puede pisar datos.
+
+A partir de ahí, cada migración nueva se aplica con `npm run migration:run`; no
+vuelvas a ejecutar `db:bootstrap` ni `db:sync` sobre una base con datos.
+
+> En una base nueva las tablas de catálogo quedan **vacías** (las migraciones no
+> incluyen datos semilla). Carga la información de catálogos desde la interfaz o
+> restaura un respaldo si migras desde otra instalación.
+
+### Migraciones sobre una base ya creada con `synchronize`
+
+Si la base se creó con `DB_SYNC=true` (lo normal en desarrollo), la tabla
+`public.migrations` está vacía y `npm run migration:run` intenta repetir todo el
+historial. Al toparse con una migración vieja falla, por ejemplo:
+
+```
+column "codigo" of relation "tipo_periodizacion" does not exist
+```
+
+En ese caso, registra una sola vez el historial ya existente y luego aplica solo
+lo nuevo:
+
+```bash
+# 1) Revisa qué se marcaría (no escribe nada)
+$ npm run migration:baseline -- --upto 20261113000100 --dry-run
+
+# 2) Marca el historial anterior como aplicado
+$ npm run migration:baseline -- --upto 20261113000100
+
+# 3) Aplica las migraciones nuevas
+$ npm run migration:run
+
+# 4) Confirma que no queda nada pendiente
+$ npm run migration:show
+```
+
+El baseline solo se ejecuta sobre una base **nunca migrada** (con filas en
+`migrations` se niega, salvo `--force`) y verifica que existan las tablas base,
+así que no puede dejar vacía una base nueva por error. Sin `--upto` marca todas
+las migraciones del repositorio.
+
+> Con `DB_SYNC=true` no hace falta migrar: al arrancar la API, `synchronize` crea
+> las tablas nuevas. Con `DB_SYNC=false`, ejecuta `npm run migration:run` antes
+> de iniciar la API para aplicar las migraciones pendientes.
+
 ## Seguridad
 
 - **Autenticación global**: todas las rutas exigen JWT salvo las marcadas con
-  `@Public()` (login, refresh, recuperación de contraseña y healthcheck).
-  El token se acepta por cookie `token` o por `Authorization: Bearer`.
+  `@Public()`. El frontend guarda el JWT en una cookie `HttpOnly` y lo envía por
+  el proxy `/api/backend`; la API también acepta `Authorization: Bearer`.
+- **Sesiones**: las sesiones persistidas en PostgreSQL permiten invalidar tokens
+  al cerrar sesión, cambiar el rol activo o modificar la contraseña/roles del
+  usuario. Los JWT de acceso duran 2 horas, con un máximo absoluto de sesión de
+  8 horas; el token previo a la selección de rol dura 10 minutos.
+- **CSRF y origen**: las solicitudes mutables autenticadas por cookie deben
+  incluir un `Origin` de `CORS_ORIGIN`. El proxy del frontend también rechaza
+  solicitudes mutables cuyo origen no sea el de la propia aplicación.
 - **Roles**: `@Role('Admin')` exige un rol concreto y `@AdminWrite()` exige
-  Admin solo en POST/PUT/PATCH/DELETE (las lecturas siguen abiertas a cualquier
-  usuario autenticado). Los catálogos y el centro educativo usan `@AdminWrite()`.
+  Admin en POST/PUT/PATCH/DELETE. Una ruta sin política explícita permite los
+  roles conocidos `Admin` y `Docente`; esta regla general no sustituye permisos
+  específicos por funcionalidad.
 - **Datos sensibles**: `password`, `token`, `resetCode` y `resetCodeExpire` usan
   `select: false`; solo se cargan explícitamente en el login y en la
   recuperación de contraseña.
-- **Rate limiting**: `/auth/*` limita intentos por IP (login 60/min,
-  recuperación 15–20 cada 15 min). Requiere confiar en el proxy (`trust proxy`).
+- **Rate limiting**: `/auth/*` usa contadores atómicos compartidos en PostgreSQL.
+  Login limita a 120 intentos por IP y 5 por cuenta cada 15 minutos; recuperación
+  aplica límites por IP y cuenta. Si la base de datos no está disponible, las
+  rutas limitadas responden `503` (fail closed). Requiere confiar en el proxy
+  (`trust proxy`).
+- **Recuperación de contraseña**: el código tiene 6 dígitos y 10 minutos de
+  vigencia; el token que lo canjea dura 15 minutos y **solo sirve una vez**
+  (se invalida al borrarse el código). La nueva contraseña exige mínimo 8
+  caracteres. El envío usa Gmail (`GMAIL_USER` / `GMAIL_PASS`), por lo que
+  `GMAIL_PASS` debe ser una **contraseña de aplicación** de 16 caracteres con
+  verificación en 2 pasos activa; si el proveedor rechaza las credenciales, la
+  API responde `503` con un mensaje de reintento y el detalle queda solo en el
+  log del servidor. Al arrancar se advierte si las credenciales siguen siendo
+  los valores de ejemplo.
+  - `MAIL_TRANSPORT=console` (solo desarrollo) no envía correo: imprime el
+    código en el log (`[PasswordReset] ...`) para poder completar el flujo sin
+    proveedor. Se ignora con `NODE_ENV=production`.
+  - `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE` y `MAIL_FROM` permiten usar otro
+    proveedor SMTP sin tocar código; por defecto se usa `smtp.gmail.com:587`.
+  - `npm run mail:check` valida las credenciales contra el servidor SMTP sin
+    enviar correo y muestra el error exacto (por ejemplo `EAUTH` / `535`).
 - **Uploads**: las fotos aceptan solo JPG/PNG/WEBP hasta 5 MB y los documentos
   del expediente hasta 5 MB. Los archivos de `/uploads` siguen siendo públicos
   por defecto; con `PROTECT_UPLOADS=true` se exige sesión válida.

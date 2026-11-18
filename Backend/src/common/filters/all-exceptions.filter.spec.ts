@@ -4,6 +4,7 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { AllExceptionsFilter } from './all-exceptions.filter';
 
@@ -106,6 +107,40 @@ describe('AllExceptionsFilter', () => {
     expect(json.mock.calls[0][0]).toMatchObject({
       statusCode: 400,
       message: ['anio_lectivo must be a number'],
+    });
+  });
+
+  it('conserva el mensaje operativo de un 503', () => {
+    const { host, status, json } = createHost();
+
+    filter.catch(
+      new ServiceUnavailableException(
+        'No se pudo enviar el correo de recuperación. Intenta de nuevo más tarde.',
+      ),
+      host,
+    );
+
+    expect(status).toHaveBeenCalledWith(503);
+    expect(json.mock.calls[0][0]).toMatchObject({
+      statusCode: 503,
+      message:
+        'No se pudo enviar el correo de recuperación. Intenta de nuevo más tarde.',
+    });
+  });
+
+  it('oculta detalles de SQL también en un 503', () => {
+    const { host, json } = createHost();
+
+    filter.catch(
+      new ServiceUnavailableException(
+        'syntax error at or near "WHERE": SELECT * FROM "users"',
+      ),
+      host,
+    );
+
+    expect(json.mock.calls[0][0]).toMatchObject({
+      statusCode: 503,
+      message: 'Error interno del servidor',
     });
   });
 

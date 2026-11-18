@@ -1,7 +1,7 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { User } from "../entities";
-import { Repository } from "typeorm";
+import { IsNull, Repository } from "typeorm";
+import { AuthSession, User } from "../entities";
 import { UserPartialTypeDto, UsersDto } from "../dtos/users-dto";
 import { SetupEnum } from "../enums";
 import * as bcrypt from 'bcrypt';
@@ -9,7 +9,7 @@ import { JwtService } from "@nestjs/jwt";
 import { Docentes } from "src/module/docentes/docentes.entity";
 import { Role } from "../entities/roles.entity";
 import { MailerService } from "@nestjs-modules/mailer";
-import { randomInt } from "crypto";
+import { createHash, randomInt, timingSafeEqual } from "crypto";
 
 @Injectable()
 export class UserService {
@@ -19,12 +19,40 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(AuthSession)
+    private readonly sessionRepository: Repository<AuthSession>,
     private readonly jwtService: JwtService,  // <-- INYECTAR JwtService
     private readonly mailerService: MailerService, // <-- INYECTAR MailerService
   ) { }
 
   countItems() {
     return this.users.length;
+  }
+
+  private hashResetCode(code: string): string {
+    return createHash('sha256').update(code).digest('hex');
+  }
+
+  private matchesResetCodeHash(
+    storedCode: string | null | undefined,
+    expectedHash?: string,
+  ): boolean {
+    if (!storedCode || !expectedHash) return false;
+
+    const storedHash = Buffer.from(this.hashResetCode(storedCode));
+    const expected = Buffer.from(expectedHash);
+    return (
+      storedHash.length === expected.length &&
+      timingSafeEqual(storedHash, expected)
+    );
+  }
+
+  /** En desarrollo, permite completar el flujo sin proveedor de correo. */
+  private usesConsoleMail(): boolean {
+    return (
+      process.env.NODE_ENV !== 'production' &&
+      process.env.MAIL_TRANSPORT?.trim().toLowerCase() === 'console'
+    );
   }
 
   //----------------- MÉTODOS PARA RECUPERAR CONTRASEÑA -----------------
@@ -38,6 +66,14 @@ export class UserService {
     user.resetCode = code;
     user.resetCodeExpire = expire;
     await this.userRepository.save(user);
+
+    if (this.usesConsoleMail()) {
+      Logger.log(
+        `Código de recuperación para ${user.email}: ${code} (válido 10 minutos)`,
+        'PasswordReset',
+      );
+      return;
+    }
 
     // Enviar correo
     await this.mailerService.sendMail({
@@ -67,9 +103,14 @@ export class UserService {
   if (user.resetCode !== code) throw new BadRequestException('Código incorrecto');
   if (user.resetCodeExpire < new Date()) throw new BadRequestException('Código expirado');
 
-  // Generar token temporal para cambiar contraseña
+  // Generar token temporal para cambiar contraseña.
+  // Incluye el hash del código para que el token muera cuando el código se borra.
   const tempToken = this.jwtService.sign(
-    { sub: user.id, action: 'reset' },
+    {
+      sub: user.id,
+      action: 'reset',
+      resetCodeHash: this.hashResetCode(String(user.resetCode)),
+    },
     { expiresIn: '15m' },
   );
 
@@ -77,22 +118,46 @@ export class UserService {
 }
 //cambiar contraseña usando token temporal
 async resetPassword(tempToken: string, newPassword: string) {
+  let payload: { sub?: number; action?: string; resetCodeHash?: string };
   try {
-    const payload = this.jwtService.verify(tempToken);
-    if (payload.action !== 'reset') throw new BadRequestException('Token inválido');
-
-    const user = await this.getUserById(payload.sub);
-    if (!user) throw new NotFoundException('Usuario no encontrado');
-
-    user.password = await bcrypt.hash(newPassword, SetupEnum.SALTORROUND);
-    user.resetCode = null;
-    user.resetCodeExpire = null;
-
-    await this.userRepository.save(user);
-    return { message: 'Contraseña actualizada correctamente' };
-  } catch (err) {
+    payload = this.jwtService.verify(tempToken);
+  } catch {
     throw new BadRequestException('Token inválido o expirado');
   }
+  if (
+    payload.action !== 'reset' ||
+    !Number.isInteger(payload.sub) ||
+    typeof payload.resetCodeHash !== 'string'
+  ) {
+    throw new BadRequestException('Token inválido o expirado');
+  }
+
+  // getUserById no selecciona resetCode (select: false): se carga aquí para
+  // exigir que el código siga vigente y que el token no se reutilice.
+  const user = await this.userRepository
+    .createQueryBuilder('user')
+    .addSelect(['user.resetCode', 'user.resetCodeExpire'])
+    .where('user.id = :id', { id: payload.sub })
+    .getOne();
+
+  if (!user) throw new NotFoundException('Usuario no encontrado');
+  if (!this.matchesResetCodeHash(user.resetCode, payload.resetCodeHash)) {
+    throw new BadRequestException('Token inválido o expirado');
+  }
+
+  user.password = await bcrypt.hash(newPassword, SetupEnum.SALTORROUND);
+  user.resetCode = null;
+  user.resetCodeExpire = null;
+
+  await this.userRepository.manager.transaction(async (manager) => {
+    await manager.save(User, user);
+    await manager.update(
+      AuthSession,
+      { userId: user.id, revokedAt: IsNull() },
+      { revokedAt: new Date() },
+    );
+  });
+  return { message: 'Contraseña actualizada correctamente' };
 }
 //--------------------------------------------------------------
 
@@ -108,7 +173,7 @@ async resetPassword(tempToken: string, newPassword: string) {
         'user.token',
       ])
       .leftJoinAndSelect('user.roles', 'roles')
-      .where('user.email = :email', { email })
+      .where('lower(user.email) = lower(:email)', { email })
       .getOne();
 
     if (!user) {
@@ -180,6 +245,8 @@ async resetPassword(tempToken: string, newPassword: string) {
     // Actualizar campos básicos
     oldUser.name = payload.name ?? oldUser.name;
     oldUser.email = payload.email ?? oldUser.email;
+    const passwordChanged = Boolean(payload.password);
+    const rolesChanged = payload.roles !== undefined;
     if (payload.password) {
       oldUser.password = await bcrypt.hash(payload.password, SetupEnum.SALTORROUND);
     }
@@ -199,7 +266,19 @@ async resetPassword(tempToken: string, newPassword: string) {
       );
     }
 
-    return await this.userRepository.save(oldUser);
+    if (!passwordChanged && !rolesChanged) {
+      return await this.userRepository.save(oldUser);
+    }
+
+    return await this.userRepository.manager.transaction(async (manager) => {
+      const savedUser = await manager.save(User, oldUser);
+      await manager.update(
+        AuthSession,
+        { userId: id, revokedAt: IsNull() },
+        { revokedAt: new Date() },
+      );
+      return savedUser;
+    });
   }
 
   // deleted(id: number) {

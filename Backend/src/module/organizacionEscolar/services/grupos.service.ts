@@ -146,11 +146,15 @@ export class GruposService {
         return grupos;
     }
 
-    async updateGrupos(id: number, payload: UpdateGrupoDto): Promise<Grupos> {
+    async updateGrupos(id: number, payload: UpdateGrupoDto, userId?: number): Promise<Grupos> {
         await asegurarAnioActivoDelGrupo(this.grupoRepository, id);
 
         const grupos = await this.grupoRepository.preload({ id, ...payload });
         if (!grupos) throw new NotFoundException(`Grupos con ID ${id} no encontrado`);
+
+        grupos.update_at = new Date();
+        if (userId) grupos.user_update_id = userId;
+
         return await this.grupoRepository.save(grupos);
     }
 }

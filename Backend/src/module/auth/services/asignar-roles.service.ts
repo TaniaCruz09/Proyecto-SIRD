@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { DataSource } from 'typeorm';
-import { Role, User } from '../entities';
+import { DataSource, IsNull } from 'typeorm';
+import { AuthSession, Role, User } from '../entities';
 import { UserHasRolesDto } from '../dtos/user-has-roles';
 
 
@@ -19,11 +19,21 @@ export class AsignarRolesService {
       throw new NotFoundException('Usuario no encontrado');
     }
 
-    const asignar = [...user.roles, ...roles];
+    const currentRoles = user.roles ?? [];
+    const asignar = [...currentRoles, ...roles];
 
     user.roles = asignar;
 
-    await this.dataSource.getRepository(User).save(user);
+    await this.dataSource.transaction(async (manager) => {
+      await manager.save(User, user);
+      if (roles.length) {
+        await manager.update(
+          AuthSession,
+          { userId, revokedAt: IsNull() },
+          { revokedAt: new Date() },
+        );
+      }
+    });
 
 // Recargar usuario con roles ya asignados
 const updatedUser = await this.dataSource.getRepository(User).findOne({
@@ -44,14 +54,25 @@ return updatedUser;
       throw new NotFoundException('Usuario no encontrado');
     }
 
-    const remover = user.roles.filter((role) => {
+    const currentRoles = user.roles ?? [];
+    const remover = currentRoles.filter((role) => {
       return !roles.find((r) => r.id === role.id);
     });
+    const rolesChanged = remover.length !== currentRoles.length;
 
     user.roles = remover;
 
-    const saved = await this.dataSource.getRepository(User).save(user);
-    return saved;
+    return await this.dataSource.transaction(async (manager) => {
+      const saved = await manager.save(User, user);
+      if (rolesChanged) {
+        await manager.update(
+          AuthSession,
+          { userId, revokedAt: IsNull() },
+          { revokedAt: new Date() },
+        );
+      }
+      return saved;
+    });
   }
 
   async getNewsRolesByIds(roles: number[], userId: number): Promise<Role[]> {

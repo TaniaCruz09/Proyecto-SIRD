@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UpdateGrupoDto } from '../../organizacionEscolar/dtos/Update-grupo.dto';
 import { CreateGrupoDto } from '../../organizacionEscolar/dtos/grupos.dto';
@@ -71,9 +71,10 @@ export class GruposController {
     @Put('/:id')
     async updateGrupo(
         @Param('id', ParseIntPipe) id: number,
-        @Body() payload: UpdateGrupoDto
+        @Body() payload: UpdateGrupoDto,
+        @Req() req
     ) {
-        const grupo = await this.grupoService.updateGrupos(id, payload);
+        const grupo = await this.grupoService.updateGrupos(id, payload, req.user?.id);
         const data = {
             data: grupo,
             message: 'Grupo actualizado correctamente',

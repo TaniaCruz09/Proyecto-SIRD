@@ -1,9 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { Logger, UnauthorizedException, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { JwtService } from '@nestjs/jwt';
+import { DataSource } from 'typeorm';
 import { basename } from 'path';
 import cookieParser = require('cookie-parser');
 import { mkdirSync } from 'fs';
@@ -14,6 +15,8 @@ import {
 } from './common/uploads/uploads-root';
 import { securityHeaders } from './common/security/security-headers.middleware';
 import { authRateLimit } from './common/security/auth-rate-limit.middleware';
+import { AuthService } from './module/auth/services/auth.service';
+import { roleMatches } from './module/auth/enums';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -35,6 +38,22 @@ async function bootstrap() {
     origin: corsOrigins,
     credentials: true, // permite cookies httpOnly
   });
+  app.use((req, res, next) => {
+    const method = (req.method ?? 'GET').toUpperCase();
+    const hasCookieSession = Boolean(req.cookies?.token);
+    if (
+      hasCookieSession &&
+      !['GET', 'HEAD', 'OPTIONS'].includes(method) &&
+      !corsOrigins.includes(req.get('origin') ?? '')
+    ) {
+      res.status(403).json({
+        statusCode: 403,
+        message: 'Origen de solicitud no permitido',
+      });
+      return;
+    }
+    next();
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -45,8 +64,14 @@ async function bootstrap() {
     }),
   );
 
-  // Límite de intentos en login y recuperación de contraseña.
-  app.use('/api/v1/auth', authRateLimit);
+  // El contador compartido en PostgreSQL se aplica igual en todas las instancias.
+  app.use(
+    '/api/v1/auth',
+    authRateLimit(
+      app.get(DataSource),
+      app.get(ConfigService).getOrThrow<string>('JWT_SECRET'),
+    ),
+  );
 
   // Asegurar que existan las carpetas de uploads (en producción no están versionadas).
   // Todas cuelgan de la misma raíz absoluta, independiente del CWD.
@@ -72,7 +97,7 @@ async function bootstrap() {
   // Define PROTECT_UPLOADS=true para exigir sesión válida (recomendado, ya que
   // los expedientes contienen datos personales).
   if (process.env.PROTECT_UPLOADS === 'true') {
-    const jwtService = app.get(JwtService);
+    const authService = app.get(AuthService);
 
     app.use('/uploads', (req, res, next) => {
       const header = req.headers.authorization;
@@ -87,12 +112,32 @@ async function bootstrap() {
         return;
       }
 
-      try {
-        jwtService.verify(token);
-        next();
-      } catch {
-        res.status(401).json({ statusCode: 401, message: 'Token inválido' });
-      }
+      void authService
+        .verifyAccessToken(token)
+        .then(async (payload) => {
+          const user = await authService.findUserById(payload.sub);
+          const activeRoleAssigned = user?.roles?.some((role) =>
+            roleMatches(role.rol, payload.activeRole),
+          );
+          if (!user?.isActive || !activeRoleAssigned) {
+            res.status(401).json({
+              statusCode: 401,
+              message: 'Sesión inválida',
+            });
+            return;
+          }
+          next();
+        })
+        .catch((error: unknown) => {
+          if (error instanceof UnauthorizedException) {
+            res.status(401).json({
+              statusCode: 401,
+              message: 'Token inválido o expirado',
+            });
+            return;
+          }
+          next(error);
+        });
     });
   }
 

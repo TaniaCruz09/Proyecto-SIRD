@@ -3,13 +3,13 @@ import {
   CanActivate,
   ExecutionContext,
   Injectable,
-  BadRequestException,
   ForbiddenException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { User } from '../entities/user.entity';
 import { META_ROLES } from '../decorators/role.decorator';
-import { roleMatches, UserRole } from '../enums';
+import { roleMatches, USER_ROLES, UserRole } from '../enums';
 import { IS_PUBLIC_KEY } from '../../../common/decorators/public.decorator';
 import { ADMIN_WRITE_KEY } from '../../../common/decorators/admin-write.decorator';
 
@@ -40,39 +40,32 @@ export class UserRoleGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    if (!validRoles?.length && !adminWrite) return true;
-
     const req = context.switchToHttp().getRequest();
-    const user = req.user as User;
+    const user = req.user as (User & { activeRole?: string }) | undefined;
 
-    if (!user) throw new BadRequestException('User not found');
+    if (!user?.activeRole) {
+      throw new UnauthorizedException('Usuario no autenticado');
+    }
 
     const isReadOnly = READ_METHODS.includes(
       String(req.method ?? 'GET').toUpperCase(),
     );
 
     if (adminWrite && !isReadOnly) {
-      const isAdmin = (user.roles ?? []).some((role) =>
-        roleMatches(role.rol, UserRole.ADMIN),
-      );
-
-      if (!isAdmin) {
+      if (!roleMatches(user.activeRole, UserRole.ADMIN)) {
         throw new ForbiddenException(
           `User ${user.name} need a valid role: [${UserRole.ADMIN}]`,
         );
       }
     }
 
-    if (!validRoles?.length) return true;
-
-    for (const role of user.roles ?? []) {
-      if (validRoles.some((validRole) => roleMatches(role.rol, validRole))) {
-        return true;
-      }
+    const allowedRoles = validRoles?.length ? validRoles : USER_ROLES;
+    if (allowedRoles.some((role) => roleMatches(user.activeRole, role))) {
+      return true;
     }
 
     throw new ForbiddenException(
-      `User ${user.name} need a valid role: [${validRoles}]`,
+      `User ${user.name} need a valid role: [${allowedRoles}]`,
     );
   }
 }

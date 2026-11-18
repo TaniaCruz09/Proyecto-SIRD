@@ -5,30 +5,33 @@ import {
   Post,
   Res,
   UseGuards,
-  HttpStatus,
-  HttpException,
   Req,
   UnauthorizedException,
   BadRequestException,
+  ForbiddenException,
   NotFoundException,
   Header,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthDto } from '../dtos/auth.dto';
+import { ResetPasswordDto } from '../dtos/reset-password.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { Response, Request } from 'express';
-import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../services';
 import { normalizeRoleName, roleMatches } from '../enums';
 import { Public } from '../../../common/decorators/public.decorator';
+import {
+  AUTH_TOKEN_TYPE,
+  ROLE_SELECTION_TTL_MS,
+} from '../auth-token';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly jwtService: JwtService,
     private readonly userService: UserService,
   ) { }
 
@@ -39,6 +42,7 @@ export class AuthController {
     secure: process.env.NODE_ENV === 'production',
     sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as 'lax' | 'none',
     path: '/',
+    maxAge: 2 * 60 * 60 * 1000,
   };
 
   @Public()
@@ -48,38 +52,28 @@ export class AuthController {
     @Body() payload: AuthDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    try {
-      const { user, token } = await this.authService.signIn(payload);
-
-      // Nombres de rol con capitalización canónica ('docente' -> 'Docente')
-      const roles = user.roles?.map((r: any) => normalizeRoleName(r.rol)).filter(Boolean) || [];
-
-      // Caso 1: un solo rol → token definitivo
-      if (roles.length === 1) {
-        res.cookie('token', token, this.cookieOptions);
-
-        return { user, roles, autoSelectRole: true, token };
-      }
-
-      // Caso 2: múltiples roles → token básico
-      if (roles.length > 1) {
-        const basicToken = await this.authService.createBasicToken(user);
-
-        res.cookie('token', basicToken, this.cookieOptions);
-
-        return { user, roles, autoSelectRole: false, token: basicToken };
-      }
-
-      // Caso 3: sin roles
-      return {
-        message: 'El usuario no tiene roles asignados',
-      };
-    } catch (error: any) {
-      const status = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-      const message =
-        error.response?.message || error.message || 'Error de login';
-      throw new HttpException({ message }, status);
+    const { user, roles } = await this.authService.signIn(payload);
+    if (!roles.length) {
+      throw new ForbiddenException('El usuario no tiene roles asignados');
     }
+
+    const autoSelectRole = roles.length === 1;
+    const token = autoSelectRole
+      ? await this.authService.createAccessToken(user, roles[0])
+      : await this.authService.createRoleSelectionToken(user);
+
+    res.cookie(
+      'token',
+      token,
+      autoSelectRole
+        ? this.cookieOptions
+        : {
+            ...this.cookieOptions,
+            maxAge: ROLE_SELECTION_TTL_MS,
+          },
+    );
+
+    return { user, roles, autoSelectRole };
   }
 
   @Public()
@@ -88,71 +82,73 @@ export class AuthController {
   async selectRole(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
-    @Body() body: { role: string },
+    @Body() body: { role?: unknown },
   ) {
-    const { role } = body;
-    if (!role) {
+    const role = body?.role;
+    if (typeof role !== 'string' || !role.trim()) {
       throw new BadRequestException('Debe seleccionar un rol');
     }
 
-    try {
-      const token = req.cookies?.token;
-      if (!token) {
-        throw new BadRequestException('No hay token válido');
-      }
+    const token = req.cookies?.token;
+    if (!token) {
+      throw new UnauthorizedException('No hay token de selección');
+    }
 
-      // Decodificar token básico
-      const payload = this.jwtService.decode(token) as any;
-      if (!payload) {
-        throw new BadRequestException('Token inválido');
-      }
+    const pendingToken =
+      await this.authService.verifyRoleSelectionToken(token);
+    const user = await this.authService.findUserById(pendingToken.sub);
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('Usuario no válido');
+    }
 
-      // 🔁 Volver a buscar el usuario completo en la BD
-      const user = await this.authService.findUserById(payload.sub);
-      if (!user) throw new BadRequestException('Usuario no encontrado');
+    const selectedRole = user.roles.find((r) =>
+      roleMatches(r.rol, role.trim()),
+    );
+    if (!selectedRole) {
+      throw new ForbiddenException(
+        'El rol seleccionado no pertenece al usuario',
+      );
+    }
 
-      // Buscar el rol seleccionado dentro de sus roles (sin importar mayúsculas/minúsculas)
-      const selectedRole = user.roles.find((r) => roleMatches(r.rol, role));
-      if (!selectedRole) {
-        throw new BadRequestException('El rol seleccionado no pertenece al usuario');
-      }
+    const roleName = normalizeRoleName(selectedRole.rol);
+    const accessToken = await this.authService.createAccessToken(
+      user,
+      roleName,
+      pendingToken.sessionStartedAt,
+      pendingToken.sid,
+    );
+    res.cookie('token', accessToken, this.cookieOptions);
 
-      const roleName = normalizeRoleName(selectedRole.rol);
-
-      // Crear token completo con rol + datos extra
-      const newToken = this.jwtService.sign({
-        sub: user.id,
+    return {
+      message: 'Rol seleccionado correctamente',
+      role: roleName,
+      roles: (user.roles ?? [])
+        .map((assignedRole) => normalizeRoleName(assignedRole.rol))
+        .filter(Boolean),
+      user: {
+        id: user.id,
         name: user.name,
         email: user.email,
-        roles: [roleName],
-        docente: user.docente ? { id: user.docente.id, nombre: user.docente.nombres } : null,
-      });
-
-      res.cookie('token', newToken, this.cookieOptions);
-
-      return {
-        message: 'Rol seleccionado correctamente',
-        role: roleName,
-        token: newToken,
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          docente: user.docente,
-        },
-      };
-    } catch (err) {
-      console.error('Error en /auth/select-role:', err);
-      throw new BadRequestException('Error al seleccionar rol');
-    }
+        docente: user.docente,
+      },
+    };
   }
 
 
   @Public()
   @Post('logout')
-  logout(@Res({ passthrough: true }) res: Response) {
-    // Limpiar la cookie 'token'
-    res.clearCookie('token', this.cookieOptions);
+  async logout(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    try {
+      const token = req.cookies?.token;
+      if (token) await this.authService.revokeToken(token);
+    } catch (error) {
+      if (!(error instanceof UnauthorizedException)) throw error;
+    } finally {
+      res.clearCookie('token', this.cookieOptions);
+    }
 
     return {
       message: 'Sesión cerrada correctamente',
@@ -166,33 +162,93 @@ export class AuthController {
     const token = req.cookies?.token;
     if (!token) throw new UnauthorizedException('No hay token');
 
-    try {
-      const payload = this.jwtService.verify(token) as any;
+    const payload = await this.authService.verifyAccessToken(token);
 
-      // Verificar que el usuario siga existiendo y activo antes de renovar.
-      const user = await this.authService.findUserById(payload.sub);
-      if (!user || !user.isActive) {
-        throw new UnauthorizedException('Token invalido o expirado');
-      }
+    const user = await this.authService.findUserById(payload.sub);
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('Token inválido o expirado');
+    }
 
-      const roles = user.roles?.length
-        ? user.roles.map((role) => normalizeRoleName(role.rol))
-        : (payload.roles ?? []).map((r: string) => normalizeRoleName(r));
+    const activeRole = user.roles.find((role) =>
+      roleMatches(role.rol, payload.activeRole),
+    );
+    if (!activeRole) {
+      throw new UnauthorizedException('El rol de la sesión ya no está asignado');
+    }
 
-      const newToken = this.jwtService.sign({
-        sub: user.id,
+    const accessToken = await this.authService.createAccessToken(
+      user,
+      normalizeRoleName(activeRole.rol),
+      payload.sessionStartedAt,
+      payload.sid,
+    );
+    res.cookie('token', accessToken, this.cookieOptions);
+
+    return { message: 'Sesión renovada' };
+  }
+
+  @Public()
+  @Header('Cache-Control', 'no-store')
+  @Post('switch-role')
+  async switchRole(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+    @Body() body: { role?: unknown },
+  ) {
+    const role = body?.role;
+    if (typeof role !== 'string' || !role.trim()) {
+      throw new BadRequestException('Debe seleccionar un rol');
+    }
+
+    const token = req.cookies?.token;
+    if (!token) throw new UnauthorizedException('No hay una sesión activa');
+
+    const payload = await this.authService.verifyAccessToken(token);
+    const user = await this.authService.findUserById(payload.sub);
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('Usuario no válido');
+    }
+
+    const assignedRoles = user.roles ?? [];
+    if (
+      !assignedRoles.some((assignedRole) =>
+        roleMatches(assignedRole.rol, payload.activeRole),
+      )
+    ) {
+      throw new UnauthorizedException('El rol actual ya no está asignado');
+    }
+
+    const selectedRole = assignedRoles.find((assignedRole) =>
+      roleMatches(assignedRole.rol, role.trim()),
+    );
+    if (!selectedRole) {
+      throw new ForbiddenException(
+        'El rol seleccionado no pertenece al usuario',
+      );
+    }
+
+    const roleName = normalizeRoleName(selectedRole.rol);
+    const accessToken = await this.authService.createAccessToken(
+      user,
+      roleName,
+      payload.sessionStartedAt,
+      payload.sid,
+    );
+    res.cookie('token', accessToken, this.cookieOptions);
+
+    return {
+      message: 'Rol cambiado correctamente',
+      role: roleName,
+      roles: assignedRoles.map((assignedRole) =>
+        normalizeRoleName(assignedRole.rol),
+      ),
+      user: {
+        id: user.id,
         name: user.name,
         email: user.email,
-        roles,
-        docente: payload.docente ?? null,
-      });
-
-      res.cookie('token', newToken, this.cookieOptions);
-
-      return { message: 'Sesion renovada', token: newToken };
-    } catch {
-      throw new UnauthorizedException('Token invalido o expirado');
-    }
+        docente: user.docente,
+      },
+    };
   }
 
   @Public()
@@ -202,19 +258,52 @@ export class AuthController {
     const token = req.cookies['token'];
     if (!token) throw new UnauthorizedException('No hay token');
 
-    try {
-      const payload = this.jwtService.verify(token);
+    const tokenType = await this.authService.verifyToken(token);
+    if (tokenType.type === AUTH_TOKEN_TYPE.ROLE_SELECTION) {
+      const payload =
+        await this.authService.verifyRoleSelectionToken(token);
+      const user = await this.authService.findUserById(payload.sub);
+      if (!user || !user.isActive) {
+        throw new UnauthorizedException('Token inválido');
+      }
+
       return {
-        user: {
-          id: payload.sub,
-          name: payload.name,
-          email: payload.email,
-          roles: (payload.roles ?? []).map((r: string) => normalizeRoleName(r)),
-        },
+        roleSelectionRequired: true,
+        roles: (user.roles ?? [])
+          .map((role) => normalizeRoleName(role.rol))
+          .filter(Boolean),
+        user: { id: user.id, name: user.name, email: user.email },
       };
-    } catch {
+    }
+
+    const payload = await this.authService.verifyAccessToken(token);
+    const user = await this.authService.findUserById(payload.sub);
+    if (!user || !user.isActive) {
       throw new UnauthorizedException('Token inválido');
     }
+
+    if (
+      !(user.roles ?? []).some((role) =>
+        roleMatches(role.rol, payload.activeRole),
+      )
+    ) {
+      throw new UnauthorizedException('El rol de la sesión ya no está asignado');
+    }
+
+    const activeRole = normalizeRoleName(payload.activeRole);
+    return {
+      roleSelectionRequired: false,
+      activeRole,
+      roles: (user.roles ?? [])
+        .map((role) => normalizeRoleName(role.rol))
+        .filter(Boolean),
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        docente: user.docente,
+      },
+    };
   }
     //--------------------------------------------------------------
 //----------------- RUTAS PARA RECUPERAR CONTRASEÑA -----------------
@@ -229,14 +318,31 @@ async requestReset(@Body('email') email: string) {
     await this.userService.generateResetCode(email.trim());
   } catch (error) {
     // Solo se oculta el caso "correo no registrado" (evita enumerar usuarios).
-    // Otros fallos (por ejemplo SMTP) sí se informan.
-    if (!(error instanceof NotFoundException)) throw error;
+    if (error instanceof NotFoundException) {
+      // respuesta genérica más abajo
+    } else if (this.isMailDeliveryError(error)) {
+      throw new ServiceUnavailableException(
+        'No se pudo enviar el correo de recuperación. Intenta de nuevo más tarde.',
+      );
+    } else {
+      throw error;
+    }
   }
 
   return {
     message: 'Si el correo está registrado, recibirás un código de verificación',
   };
 }
+
+  /** Credenciales SMTP rechazadas o cuenta sin permiso para enviar. */
+  private isMailDeliveryError(error: unknown): boolean {
+    const candidate = error as { code?: unknown; responseCode?: unknown };
+    return (
+      candidate?.code === 'EAUTH' ||
+      candidate?.responseCode === 535 ||
+      candidate?.responseCode === 534
+    );
+  }
 
 
 @Public()
@@ -256,10 +362,7 @@ async verifyCode(@Body() body: { email: string; code: string }) {
 }
 @Public()
 @Post('reset-password')
-async resetPassword(@Body() body: { token: string; newPassword: string }) {
-  if (!body?.token || !body?.newPassword) {
-    throw new BadRequestException('Token y contraseña son obligatorios');
-  }
+async resetPassword(@Body() body: ResetPasswordDto) {
   return await this.userService.resetPassword(body.token, body.newPassword);
 }
 

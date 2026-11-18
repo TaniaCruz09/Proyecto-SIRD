@@ -86,8 +86,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
     // Los errores no controlados (TypeORM, red, etc.) nunca exponen detalles.
     if (!(exception instanceof HttpException)) return fallback;
 
-    // Cualquier 5xx se responde con un mensaje genérico.
-    if (status >= HttpStatus.INTERNAL_SERVER_ERROR) return SERVER_ERROR_MESSAGE;
+    // Cualquier 5xx se responde con un mensaje genérico, salvo el 503: ese
+    // mensaje es operativo y se redacta explícitamente (p. ej. fallo de correo).
+    if (
+      status >= HttpStatus.INTERNAL_SERVER_ERROR &&
+      status !== HttpStatus.SERVICE_UNAVAILABLE
+    ) {
+      return SERVER_ERROR_MESSAGE;
+    }
 
     const payload = exception.getResponse();
     const raw =
