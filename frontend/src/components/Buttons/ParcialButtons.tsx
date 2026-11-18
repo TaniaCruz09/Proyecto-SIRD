@@ -21,7 +21,7 @@ export const ParcialButtons = ({ esquelaId }: { esquelaId: number }) => {
             {botones.map((b) => (
                 <Button
                     key={b.filter}
-                    onClick={() => router.push(`/esquela/${esquelaId}/${b.filter}`)}
+                    onClick={() => router.push(`/esquelas/${esquelaId}/${b.filter}`)}
                 >
                     {b.label}
                 </Button>

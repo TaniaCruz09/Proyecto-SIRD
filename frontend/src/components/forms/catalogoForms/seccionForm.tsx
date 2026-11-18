@@ -63,7 +63,7 @@ export default function SeccionForm({
       <div>
         <input
           type="text"
-          placeholder="Escriba la profesion"
+          placeholder="Escriba la sección (ej: A)"
           value={seccion}
           onChange={(e) => setSeccion(e.target.value)}
           className="w-full p-3 border rounded-2xl border-gray-300 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all duration-300 placeholder-gray-400"
