@@ -25,8 +25,8 @@ export default function EditGrupoModal({ grupo, fetchGrupos, organizacionEscolar
                             <GrupoForm
                                 defaultValues={grupo}
                                 organizacionEscolarFija={organizacionEscolarFija}
-                                onSuccess={() => {
-                                    fetchGrupos();
+                                onSuccess={async () => {
+                                    await fetchGrupos();
                                     setShowModal(false);
                                 }}
                             />

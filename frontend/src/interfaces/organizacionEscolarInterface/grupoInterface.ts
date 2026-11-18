@@ -28,5 +28,5 @@ export interface GrupoEscolarPayload {
     organizacionEscolar?: { id: number };
     grado?: { id: number };
     seccion?: { id: number };
-    docenteGuia?: { id: number };
+    docenteGuia?: { id: number } | null;
 }

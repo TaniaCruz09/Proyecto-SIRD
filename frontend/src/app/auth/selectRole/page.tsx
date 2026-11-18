@@ -60,21 +60,24 @@ export default function SelectRolePage() {
     setRoles(mappedRoles)
     // seleccionar primer rol por defecto para UX
     if (mappedRoles.length && !selectedRole) setSelectedRole(mappedRoles[0].rol)
-  }, [contextRoles, router])
+  }, [contextRoles, router, selectedRole])
 
 
   const handleSubmit = async () => {
     if (!selectedRole) return
-    await login(selectedRole)
 
-    const userStored = localStorage.getItem('user')
-    const user = userStored ? JSON.parse(userStored) : null
+    try {
+      const userStored = localStorage.getItem('user')
+      const user = userStored ? JSON.parse(userStored) : null
 
-    await login(selectedRole, undefined, user)
+      await login(selectedRole, undefined, user)
 
-    if (selectedRole === 'Admin') router.push('/admin/home')
-    else if (selectedRole === 'Docente') router.push('/docente/home')
-    else router.push('/auth/login')
+      if (selectedRole === 'Admin') router.push('/admin/home')
+      else if (selectedRole === 'Docente') router.push('/docente/home')
+      else router.push('/auth/login')
+    } catch {
+      router.replace('/auth/login?expired=true')
+    }
   }
 
   if (loading || !roles.length) {
@@ -125,7 +128,7 @@ export default function SelectRolePage() {
         </button>
 
         <p className="text-center text-gray-500 text-sm mt-4">
-          🌟 Podrás cambiar de rol más tarde desde la configuración de tu perfil
+          🌟 Podrás cambiar de rol más tarde desde el menú de usuario
         </p>
       </div>
     </div>

@@ -10,7 +10,7 @@ import React, { useEffect, useState } from 'react'
 
 interface GrupoFormProp {
     defaultValues?: GrupoEscolar | null;
-    onSuccess: () => void;
+    onSuccess: () => void | Promise<void>;
     organizacionEscolarFija?: OrganizacionEscolar | null;
 }
 
@@ -81,10 +81,26 @@ export default function GrupoForm({ defaultValues, onSuccess, organizacionEscola
             }
 
             const grupoData: GrupoEscolarPayload = {};
-            if (selectedOrganizacionEScolar) grupoData.organizacionEscolar = selectedOrganizacionEScolar;
+            if (!isEdit && selectedOrganizacionEScolar) {
+                grupoData.organizacionEscolar = selectedOrganizacionEScolar;
+            }
             if (selectedGrado) grupoData.grado = selectedGrado;
             if (selectedSeccion) grupoData.seccion = selectedSeccion;
             if (selectedDocente) grupoData.docenteGuia = selectedDocente;
+            // En edición, dejar el selector de docente vacío quita el docente guía.
+            if (isEdit && !selectedDocente && defaultValues?.docenteGuia) {
+                grupoData.docenteGuia = null;
+            }
+
+            if (isEdit && Object.keys(grupoData).length === 0) {
+                toast({
+                    title: "Sin cambios",
+                    description: "Selecciona al menos un campo para actualizar el grupo.",
+                    variant: "destructive",
+                });
+                return;
+            }
+
             if (isEdit && defaultValues?.id) {
                 await updateGrupo(defaultValues.id, grupoData);
                 toast({
@@ -100,7 +116,7 @@ export default function GrupoForm({ defaultValues, onSuccess, organizacionEscola
                     variant: "success",
                 });
             }
-            onSuccess();
+            await onSuccess();
         } catch (error) {
             console.error("Error al guardar o actualizar grupo:", error);
             toast({

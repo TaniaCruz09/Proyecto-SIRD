@@ -79,7 +79,7 @@ function NavbarAdmin() {
   const [openCatalogs, setOpenCatalogs] = useState(false)
   const [openOrganizacionEscolar, setOpenOrganizacionEscolar] = useState(false)
 
-  const { rol, login, roles, loading, docente } = useAuth()
+  const { rol, switchRole, roles, loading, docente } = useAuth()
   const [cambiandoRol, setCambiandoRol] = useState(false)
   const [rolDestino, setRolDestino] = useState<'Admin' | 'Docente' | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -193,7 +193,7 @@ function NavbarAdmin() {
     setCambiandoRol(true)
 
     try {
-      await login(nuevoRol)
+      await switchRole(nuevoRol)
       await new Promise(r => setTimeout(r, 100))
       router.replace(nuevoRol === 'Admin' ? '/admin/home' : '/docente/home')
     } catch (error) {

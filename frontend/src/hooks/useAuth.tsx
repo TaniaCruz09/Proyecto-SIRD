@@ -2,19 +2,18 @@
 
 import { createContext, useState, useEffect, ReactNode, useContext, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { SelectRole, logoutUser, refreshSession } from '@/actions/authMethods/loginMethods'
-import { setAuthCookie, clearAuthCookie } from '@/actions/authMethods/authCookie'
+import { getCurrentSession, SelectRole, switchRole as requestRoleSwitch, logoutUser, refreshSession } from '@/actions/authMethods/loginMethods'
 import { hasRole, normalizeRole, normalizeRoles, ROL_DOCENTE } from '@/utils/roles'
 import { Docente } from '@/interfaces'
 import { getUserById } from '@/actions/authMethods/usersMethods'
-import { getDocenteById } from '@/actions/docentesMethods/docentesMethods'
 import { useToast } from '@/hooks/use-toast'
 
 interface AuthContextProps {
     rol: string | null
     roles: string[] // 🔹 array de nombres de rol
     docente: Docente | null
-    login: (newRol?: string, newRoles?: string[], user?: any) => Promise<void>
+    login: (newRol?: string, newRoles?: string[], user?: any, selectRole?: boolean) => Promise<void>
+    switchRole: (role: string) => Promise<void>
     logout: (reason?: "idle" | "expired") => Promise<void>
     loading: boolean
     loadingAuth: boolean
@@ -40,46 +39,79 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 
     useEffect(() => {
-
         const initializeAuth = async () => {
             try {
-                const userId = localStorage.getItem('userId')
-                if (!userId) {
+                const session = await getCurrentSession()
+                localStorage.removeItem('token')
+
+                if (session.roleSelectionRequired) {
+                    const availableRoles = normalizeRoles(session.roles)
+                    setRoles(availableRoles)
+                    setRol(null)
+                    localStorage.setItem('roles', JSON.stringify(availableRoles))
+                    localStorage.setItem('userId', String(session.user.id))
+                    localStorage.setItem('user', JSON.stringify(session.user))
                     setSessionActive(false)
-                    setHydrated(true)
-                    setLoading(false)
-                    setLoadingAuth(false)
+                    if (window.location.pathname !== '/auth/selectRole') {
+                        router.replace('/auth/selectRole')
+                    }
                     return
                 }
+
+                const userId = session.user?.id
+                const activeRole = normalizeRole(session.activeRole)
+                if (!userId || !activeRole) {
+                    throw new Error('La sesión no contiene un usuario y rol válidos')
+                }
+
                 setSessionActive(true)
                 logoutOnceRef.current = false
-                const docenteStorage = localStorage.getItem("docente");
-                if (docenteStorage) {
-                    setDocente(JSON.parse(docenteStorage));
-                }
-
-
-                const user = await getUserById(Number(userId)) // 🔹 traemos usuario completo
-                const userRoles = normalizeRoles(user.roles)
-
+                const userRoles = normalizeRoles(session.roles)
+                const user = session.user
                 setRoles(userRoles)
+                setRol(activeRole)
                 localStorage.setItem('roles', JSON.stringify(userRoles))
+                localStorage.setItem('rol', activeRole)
+                localStorage.setItem('userId', String(userId))
+                localStorage.setItem('user', JSON.stringify(user))
 
-                const lastRol = normalizeRole(localStorage.getItem('rol') || userRoles[0] || null)
-                setRol(lastRol || null)
-                if (lastRol) localStorage.setItem('rol', lastRol)
-
-                if (user.docente) {
-                    setDocente(user.docente)
-                    localStorage.setItem('docente', JSON.stringify(user.docente))
+                if (window.location.pathname === '/auth/selectRole') {
+                    router.replace(activeRole === 'Admin' ? '/admin/home' : '/docente/home')
                 }
-                else if (hasRole(userRoles, ROL_DOCENTE)) {
+
+                const fullUser = await getUserById(Number(userId))
+                if (fullUser.docente) {
+                    setDocente(fullUser.docente)
+                    localStorage.setItem('docente', JSON.stringify(fullUser.docente))
+                } else if (hasRole([activeRole], ROL_DOCENTE)) {
+                    setDocente(null)
+                    localStorage.removeItem('docente')
                     console.warn('Usuario con rol Docente sin relacion docente en /users/:id')
+                } else {
+                    setDocente(null)
+                    localStorage.removeItem('docente')
                 }
 
             } catch (err) {
-                console.error('Error inicializando auth:', err)
-                router.push('/auth/login')
+                setSessionActive(false)
+                setRol(null)
+                setRoles([])
+                setDocente(null)
+                localStorage.removeItem('token')
+                localStorage.removeItem('rol')
+                localStorage.removeItem('roles')
+                localStorage.removeItem('docente')
+                localStorage.removeItem('userId')
+                localStorage.removeItem('user')
+                const pathname = window.location.pathname
+                const publicRoute =
+                    pathname === '/' ||
+                    pathname.startsWith('/auth/') ||
+                    pathname.startsWith('/recuperarContrasena')
+                if (!publicRoute) {
+                    console.error('Error inicializando auth:', err)
+                    router.replace('/auth/login')
+                }
             } finally {
                 setHydrated(true)
                 setLoading(false)
@@ -90,91 +122,104 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         initializeAuth()
     }, [router])
 
-    const login = async (newRol?: string, newRoles?: string[], user?: any) => {
+    const login = async (
+        newRol?: string,
+        newRoles?: string[],
+        user?: any,
+        selectRole = true,
+    ) => {
         setIsLoggingOut(false)
         try {
             setLoading(true)
             setLoadingAuth(true)
-            setSessionActive(true)
             logoutOnceRef.current = false
+            localStorage.removeItem('token')
 
             if (newRoles) {
                 setRoles(newRoles) // actualizamos roles disponibles
                 localStorage.setItem('roles', JSON.stringify(newRoles))
             }
-            if (hasRole(normalizeRoles(user?.roles), ROL_DOCENTE)) {
-                const userId = user.id || localStorage.getItem('userId')
-                if (userId) {
-                    const fullUser = await getUserById(Number(userId))
-
-                    if (fullUser.docente) {
-                        setDocente(fullUser.docente)
-                        localStorage.setItem('docente', JSON.stringify(fullUser.docente))
-                    } else {
-                        const docenteId = fullUser?.docente?.id
-                        if (docenteId) {
-                            const d = await getDocenteById(Number(docenteId))
-                            setDocente(d)
-                            localStorage.setItem('docente', JSON.stringify(d))
-                        }
-                    }
-                }
-            }
-            // 🔹 Si no viene user, intentar recuperarlo de localStorage
-            let userData = user
-            if (!userData) {
-                const userStored = localStorage.getItem('user')
-                userData = userStored ? JSON.parse(userStored) : null
-            }
-
-            // 🔹 Cargar docente si el usuario tiene ese rol
-            if (userData) {
-                const userRolesArray = normalizeRoles(userData.roles)
-
-                if (hasRole(userRolesArray, ROL_DOCENTE)) {
-                    const userId = userData.id || localStorage.getItem('userId')
-                    if (userId) {
-                        try {
-                            // Primero intentar desde getUserById
-                            const fullUser = await getUserById(Number(userId))
-
-                            if (fullUser.docente) {
-                                setDocente(fullUser.docente)
-                                localStorage.setItem('docente', JSON.stringify(fullUser.docente))
-                            } else {
-                                // Si no viene en getUserById, usar el id de la relacion si existe
-                                const docenteId = fullUser?.docente?.id
-                                if (docenteId) {
-                                    const d = await getDocenteById(Number(docenteId))
-                                    setDocente(d)
-                                    localStorage.setItem('docente', JSON.stringify(d))
-                                }
-                            }
-                        } catch (error) {
-                            console.error('Error cargando datos del docente:', error)
-                        }
-                    }
-                }
+            if (user) {
+                localStorage.setItem('user', JSON.stringify(user))
+                localStorage.setItem('userId', String(user.id))
             }
             if (newRol) {
-                const response = await SelectRole({ role: newRol })
+                const response = selectRole
+                    ? await SelectRole({ role: newRol })
+                    : { role: newRol }
                 const rolCanonico = normalizeRole(response.role)
                 setRol(rolCanonico)
                 localStorage.setItem('rol', rolCanonico)
+                const assignedRoles = normalizeRoles(
+                    response.roles ?? newRoles ?? user?.roles,
+                )
+                const currentRoles = assignedRoles.length
+                    ? assignedRoles
+                    : [rolCanonico]
+                setRoles(currentRoles)
+                localStorage.setItem('roles', JSON.stringify(currentRoles))
+                setSessionActive(true)
+                if (hasRole([rolCanonico], ROL_DOCENTE)) {
+                    const userId = user?.id || localStorage.getItem('userId')
+                    if (userId) {
+                        const fullUser = await getUserById(Number(userId))
+                        setDocente(fullUser.docente ?? null)
+                        if (fullUser.docente) {
+                            localStorage.setItem('docente', JSON.stringify(fullUser.docente))
+                        } else {
+                            localStorage.removeItem('docente')
+                        }
+                    }
 
-                // select-role emite un token nuevo: guardarlo y refrescar la cookie del middleware
-                if (response.token) {
-                    localStorage.setItem('token', response.token)
-                    await setAuthCookie(response.token)
+                } else {
+                    setDocente(null)
+                    localStorage.removeItem('docente')
                 }
             }
         } catch (err) {
             console.error('Error en login:', err)
+            throw err
         } finally {
             setLoading(false)
             setLoadingAuth(false)
         }
     }
+
+    const switchRole = async (newRole: string) => {
+        setLoading(true)
+        setLoadingAuth(true)
+        try {
+            const response = await requestRoleSwitch({ role: newRole })
+            const activeRole = normalizeRole(response.role)
+            const assignedRoles = normalizeRoles(response.roles)
+            setRol(activeRole)
+            setRoles(assignedRoles)
+            setSessionActive(true)
+            localStorage.setItem('rol', activeRole)
+            localStorage.setItem('roles', JSON.stringify(assignedRoles))
+            if (response.user) {
+                localStorage.setItem('user', JSON.stringify(response.user))
+                localStorage.setItem('userId', String(response.user.id))
+            }
+
+            if (hasRole([activeRole], ROL_DOCENTE) && response.user?.id) {
+                const fullUser = await getUserById(Number(response.user.id))
+                setDocente(fullUser.docente ?? null)
+                if (fullUser.docente) {
+                    localStorage.setItem('docente', JSON.stringify(fullUser.docente))
+                } else {
+                    localStorage.removeItem('docente')
+                }
+            } else {
+                setDocente(null)
+                localStorage.removeItem('docente')
+            }
+        } finally {
+            setLoading(false)
+            setLoadingAuth(false)
+        }
+    }
+
     const logout = async (reason?: "idle" | "expired") => {
         if (logoutOnceRef.current) return
         logoutOnceRef.current = true
@@ -210,7 +255,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             localStorage.removeItem('userId')
             localStorage.removeItem('user')
             localStorage.removeItem('token')
-            await clearAuthCookie()
 
             setSessionActive(false)
             router.replace('/auth/login')
@@ -242,11 +286,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const now = Date.now()
             if (now - lastRefreshRef.current < refreshThrottleMs) return
             try {
-                const refreshed = await refreshSession()
-                if (refreshed?.token) {
-                    localStorage.setItem('token', refreshed.token)
-                    await setAuthCookie(refreshed.token)
-                }
+                await refreshSession()
                 lastRefreshRef.current = now
             } catch {
                 logout("expired")
@@ -272,7 +312,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!hydrated) return null
 
     return (
-        <AuthContext.Provider value={{ rol, roles, docente, login, logout, loading, loadingAuth, isLoggingOut }}>
+        <AuthContext.Provider value={{ rol, roles, docente, login, switchRole, logout, loading, loadingAuth, isLoggingOut }}>
             {children}
         </AuthContext.Provider>
     )

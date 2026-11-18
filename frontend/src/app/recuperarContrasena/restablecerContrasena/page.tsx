@@ -19,10 +19,11 @@ export default function RestablecerContrasenaPage() {
       setShowModal(true);
       setModalStage('sending');
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/reset-password`, {
+      const res = await fetch('/api/backend/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, newPassword: password }),
+        credentials: 'include',
       });
 
       const data = await res.json();
@@ -68,6 +69,7 @@ export default function RestablecerContrasenaPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Nueva contraseña"
+          minLength={8}
           className="w-full border p-2 rounded-md mb-4"
           required
         />

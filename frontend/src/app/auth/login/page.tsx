@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
 import { saveLogin } from '@/actions/authMethods/loginMethods'
-import { setAuthCookie } from '@/actions/authMethods/authCookie'
 import { useAuth } from '@/hooks/useAuth'
 import { normalizeRoles } from '@/utils/roles'
 import Link from 'next/link'
@@ -27,7 +26,7 @@ export default function LoginPage() {
     try {
   
       const res = await saveLogin({ email, password })
-      const { user, autoSelectRole, token } = res
+      const { user, autoSelectRole } = res
       // Normaliza los roles ('docente' -> 'Docente') para que el resto del sistema funcione igual
       const roles = normalizeRoles(res.roles)
 
@@ -36,17 +35,13 @@ export default function LoginPage() {
       localStorage.setItem('user', JSON.stringify(user))
       localStorage.setItem('roles', JSON.stringify(roles))
 
-      // Guardar token para peticiones autenticadas y cookie para el middleware (producción)
-      if (token) {
-        localStorage.setItem('token', token)
-        await setAuthCookie(token)
-      }
+      localStorage.removeItem('token')
 
       if (autoSelectRole && roles && roles.length === 1) {
         // ✅ Pasar roles al contexto y seleccionar rol automáticamente
         const selected = roles[0]
         localStorage.setItem('rol', selected)
-        await login(selected, roles, user)
+        await login(selected, roles, user, false)
         router.push(selected === 'Admin' ? '/admin/home' : '/docente/home')
       } else {
         // ✅ Guardar roles en contexto y redirigir a selección

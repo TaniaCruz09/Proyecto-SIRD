@@ -1,6 +1,7 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { useAuth } from '@/hooks/useAuth'
 
 interface Props {
   allowedRoles: string[]
@@ -9,15 +10,15 @@ interface Props {
 
 export default function ProtectedRoute({ allowedRoles, children }: Props) {
   const router = useRouter()
+  const { rol, loadingAuth } = useAuth()
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    const rol = localStorage.getItem('rol')
-
-    if (!token || !rol || !allowedRoles.includes(rol)) {
+    if (!loadingAuth && (!rol || !allowedRoles.includes(rol))) {
       router.push('/auth/login?expired=true')
     }
-  }, [router, allowedRoles])
+  }, [router, allowedRoles, loadingAuth, rol])
+
+  if (loadingAuth || !rol || !allowedRoles.includes(rol)) return null
 
   return <>{children}</>
 }

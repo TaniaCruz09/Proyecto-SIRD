@@ -17,6 +17,10 @@ export async function saveLogin(payload: LoginData) {
   return await response;
 }
 
+export async function getCurrentSession() {
+  return await feching("/auth/me", "no-cache", "GET");
+}
+
 export async function SelectRole(role: RolePayload) {
   try {
     const endPoint = `/auth/select-role`
@@ -26,6 +30,11 @@ export async function SelectRole(role: RolePayload) {
     console.error("Error en selectRole:", error)
     throw error
   }
+}
+
+export async function switchRole(role: RolePayload) {
+  const endPoint = '/auth/switch-role'
+  return await feching(endPoint, 'no-cache', 'POST', role)
 }
 
 export async function logoutUser() {
