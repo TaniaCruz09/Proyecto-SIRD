@@ -1,6 +1,7 @@
 import { EsquelaHeadPayload } from "@/interfaces/calificaciones/EsquelaHead";
 import { EsquelaResumen } from "@/interfaces/calificaciones/EsquelaResumen";
 import { feching } from "@/utils/cliente-http"
+import getHeadersGlobal from "@/utils/header-global"
 
 export async function getEsquelaHead() {
     const endPoint = `/esquela_head`
@@ -78,4 +79,30 @@ export async function getEsquelaResumen(id: number): Promise<EsquelaResumen> {
     }
 
     return response.data as EsquelaResumen;
+}
+
+export async function getEsquelaPdf(id: number, vista: string): Promise<Blob> {
+    const response = await fetch(`/api/backend/esquelas/${id}/pdf?vista=${encodeURIComponent(vista)}`, {
+        method: "GET",
+        cache: "no-store",
+        headers: getHeadersGlobal(),
+        credentials: "include",
+    });
+
+    if (!response.ok) {
+        const contentType = response.headers.get("content-type") ?? ""
+        const errorBody = contentType.includes("application/json")
+            ? await response.json()
+            : await response.text()
+        const message = typeof errorBody === "object" && errorBody !== null
+            ? errorBody.message
+            : errorBody
+        throw new Error(
+            typeof message === "string" && message
+                ? message
+                : `No fue posible generar el PDF (HTTP ${response.status})`,
+        )
+    }
+
+    return response.blob();
 }

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { BookOpen, GraduationCap, History, ArrowRight, Users, BookCheck } from "lucide-react"
+import { BookOpen, GraduationCap, History, ArrowRight, Users, BookCheck, BarChart3 } from "lucide-react"
 import { FaArrowUpRightFromSquare, FaBookOpen, FaClockRotateLeft } from "react-icons/fa6"
 import Link from "next/link"
 import { motion } from 'framer-motion'
@@ -225,9 +225,21 @@ export default function HomePage() {
                         </div>
                       </div>
 
-                      {/* Botón */}
-                      <div className="w-full">
+                      {/* Botones */}
+                      <div className="w-full space-y-2">
                         <GenerarEsquelaButton grupoId={grupo.id} />
+                        <Link
+                          href={`/docente/reportes-rendimiento/${grupo.id}`}
+                          className="block"
+                        >
+                          <Button
+                            variant="outline"
+                            className="h-11 w-full rounded-lg border-emerald-200 bg-emerald-50 font-medium text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100"
+                          >
+                            <BarChart3 className="mr-2 h-4 w-4" />
+                            Reportes de rendimiento
+                          </Button>
+                        </Link>
                       </div>
                     </CardContent>
                   </Card>

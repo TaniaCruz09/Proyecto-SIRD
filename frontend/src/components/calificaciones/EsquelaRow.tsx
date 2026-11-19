@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "../ui/button"
 import { EsquelaHeadInterface } from "@/interfaces/calificaciones/EsquelaHead"
-import { getEsquelaHeadById, getEsquelaResumen } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
+import { getEsquelaHeadById, getEsquelaPdf, getEsquelaResumen } from "@/actions/calificaciones/esquelasHeadsMethods/esquelasHeadMethods"
 import { getNotasCualitativas } from "@/actions/catalogos/notaCualitativaMethods"
 import type { AsignaturaCalificada, EsquelaResumen } from "@/interfaces/calificaciones/EsquelaResumen"
 import { EsquelaHead } from "./EsquelaHead"
@@ -131,6 +131,18 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
   const [centro, setCentro] = useState<CentroEscolar | null>(null)
   const [notasCualitativas, setNotasCualitativas] = useState<NotaCualitativa[]>([])
   const [resumen, setResumen] = useState<EsquelaResumen | null>(null)
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
+  const [pdfLoading, setPdfLoading] = useState(false)
+  const [pdfModalOpen, setPdfModalOpen] = useState(false)
+  const [pdfError, setPdfError] = useState<string | null>(null)
+
+  useEffect(() => {
+      return () => {
+          if (pdfUrl) {
+              URL.revokeObjectURL(pdfUrl)
+          }
+      }
+  }, [pdfUrl])
 
 
   useEffect(() => {
@@ -828,8 +840,78 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
   })
   botones.push({ key: "FINAL", label: "Nota Final" })
 
+  const abrirPdf = async () => {
+    setPdfLoading(true)
+    setPdfError(null)
+    try {
+      const blob = await getEsquelaPdf(esquelaHeadId, vista)
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl)
+      }
+      const url = URL.createObjectURL(blob)
+      setPdfUrl(url)
+      setPdfModalOpen(true)
+    } catch (error) {
+      console.error("Error generando el PDF:", error)
+      setPdfError(error instanceof Error ? error.message : "Error desconocido al generar el PDF")
+    } finally {
+      setPdfLoading(false)
+    }
+  }
+
+  const descargarPdf = () => {
+    if (!pdfUrl) return
+    const enlace = document.createElement("a")
+    enlace.href = pdfUrl
+    enlace.download = `esquela-${esquelaHeadId}.pdf`
+    document.body.appendChild(enlace)
+    enlace.click()
+    enlace.remove()
+  }
+
+  const imprimirPdf = () => {
+    const iframe = document.getElementById("esquela-pdf-preview") as HTMLIFrameElement | null
+    if (!iframe?.contentWindow) return
+    iframe.contentWindow.focus()
+    iframe.contentWindow.print()
+  }
 
   return (
+    <>
+    {pdfModalOpen && pdfUrl && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Vista previa de PDF"
+      >
+        <div className="flex h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
+          <div className="flex items-center justify-between border-b px-4 py-3">
+            <h2 className="font-semibold text-slate-900">Vista previa de Esquela PDF</h2>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={descargarPdf}>
+                Descargar PDF
+              </Button>
+              <Button onClick={imprimirPdf}>
+                Imprimir
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setPdfModalOpen(false)}
+              >
+                Cerrar
+              </Button>
+            </div>
+          </div>
+          <iframe
+            id="esquela-pdf-preview"
+            src={pdfUrl}
+            title="Vista previa de la esquela"
+            className="h-full w-full border-0"
+          />
+        </div>
+      </div>
+    )}
     <div className="space-y-6 bg-gradient-to-br from-rose-50 via-pink-50 to-white min-h-screen p-4">
 
       <EsquelaHead
@@ -843,7 +925,7 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
       />
 
       {/* ===== BOTONES ===== */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8">
         {botones.map((b) => (
           <Button
             key={b.key}
@@ -859,8 +941,20 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
         >
           Exportar Excel
         </Button>
+        <Button
+          className="col-span-2 h-auto min-h-9 w-full min-w-0 whitespace-normal px-2 text-center text-xs leading-tight sm:col-span-1 sm:text-sm"
+          onClick={abrirPdf}
+          disabled={pdfLoading}
+        >
+          {pdfLoading ? "Generando PDF..." : "Ver / Imprimir PDF"}
+        </Button>
 
       </div>
+      {pdfError && (
+        <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          No se pudo generar el PDF: {pdfError}
+        </p>
+      )}
 
       {/* ===== TABLA ===== */}
       <Card className="shadow-2xl border-0 bg-white/95">
@@ -1018,5 +1112,6 @@ export function EsquelaRow({ esquelaHeadId, estudianteId }: EsquelaRowProps) {
         </CardContent>
       </Card>
     </div>
+    </>
   )
 }

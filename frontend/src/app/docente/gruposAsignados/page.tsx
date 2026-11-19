@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Calendar, Users, BookOpen, CheckCircle2, XCircle, FileEdit, Eye, GraduationCap, Search, ChevronLeft, ChevronRight } from "lucide-react"
+import { Calendar, Users, BookOpen, CheckCircle2, XCircle, FileEdit, Eye, GraduationCap, Search, ChevronLeft, ChevronRight, BarChart3 } from "lucide-react"
 import Calificaciones from "@/app/(calificaciones)/agregar-calificaciones/page"
 import { useAuth } from "@/hooks/useAuth"
 import { getGradosByDocenteId } from "@/actions/docentesMethods/docentesMethods"
@@ -402,6 +402,14 @@ export default function GruposAsignados() {
                                                         Ver Calificaciones
                                                     </Button>
                                                 )}
+                                                <Button
+                                                    variant="outline"
+                                                    className="mt-2 w-full h-11 text-sm font-medium border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 hover:border-emerald-300 rounded-xl transition-all"
+                                                    onClick={() => router.push(`/docente/reportes-rendimiento/${grupo.id}`)}
+                                                >
+                                                    <BarChart3 className="w-4 h-4 mr-2" />
+                                                    Reportes de rendimiento
+                                                </Button>
                                             </CardContent>
                                         </Card>
                                     ))}
