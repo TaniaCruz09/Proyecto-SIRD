@@ -11,7 +11,6 @@ import { GruposService } from '../services/grupos.service';
 @Controller('grupos')
 export class GruposController {
     constructor(private readonly grupoService: GruposService) { }
-
     @Post()
     async createGrupo(@Body() createGrupoDto: CreateGrupoDto) {
         const grupos = await this.grupoService.createGrupo(createGrupoDto);
@@ -79,7 +78,6 @@ export class GruposController {
             data: grupo,
             message: 'Grupo actualizado correctamente',
         };
-
         return data;
     }
 }
